@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import ApexCharts from 'apexcharts'
 
-const GChart = ({ title, chartType, xaxisType, log, horizontal, series, themeMode = 'light' }) => {
+const GChart = ({ title, chartType, xaxisType, log, horizontal, series, height, themeMode = 'light' }) => {
     const [labelColor, setLabelColor] = useState(themeMode === 'dark' ? '#ffffff' : '#000000')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -19,13 +19,19 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, themeMod
     const formatValue = (value) => {
         if (xaxisType === 'datetime') {
             return new Date(value).toLocaleDateString('pt-PT')
+        } else if (typeof value === 'number') {
+            return value.toFixed(2)
         } else {
             return value
         }
     }
 
     useEffect(() => {
-        const _series = series;
+
+        const shape = series.map(s => s.shape)
+
+        const _series = series
+
         const chartOptions = {
             chart: {
                 type: chartType,
@@ -44,6 +50,7 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, themeMod
                         speed: 150
                     }
                 },
+                height: height,
                 redrawOnParentResize: true,
                 toolbar: {
                     show: true,
@@ -90,7 +97,7 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, themeMod
                 }
             },
             // sort series
-            series: xaxisType == 'category' ? series : series.map(s => ({
+            series: xaxisType == 'category' ? _series : _series.map(s => ({
                 ...s,
                 data: s.data.sort((a, b) => a.x - b.x)
             })),
@@ -122,6 +129,9 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, themeMod
                 },
                 logarithmic: log == null ? false : true,
                 logBase: log == null ? 10 : log
+            },
+            markers: {
+                shape: shape
             },
             legend: {
                 show: true,
@@ -183,7 +193,7 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, themeMod
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartType, xaxisType, log, horizontal, series, themeMode, labelColor])
+    }, [title, chartType, xaxisType, log, horizontal, series, height, themeMode, labelColor])
 
     return <div id="chart" />
 }
