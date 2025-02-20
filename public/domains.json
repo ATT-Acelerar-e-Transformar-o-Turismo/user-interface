@@ -371,7 +371,7 @@
     },
     {
       "nome": "Economia",
-      "DomainPage": "/environment",
+      "DomainPage": "/economy",
       "DomainColor": "#EEBB33",
       "DomainImage": "https://cdn.visitportugal.com/sites/default/files/styles/encontre_detalhe_poi_destaque/public/mediateca/CTO_Ilhavo_Barra_660x371.jpg?itok=o1B-4udv",
       "DomainCarouselImages": [
@@ -785,7 +785,7 @@
     },
     {
       "nome": "Sociedade",
-      "DomainPage": "/environment",
+      "DomainPage": "/sociaty",
       "DomainColor": "#6B3EA8",
       "DomainImage": "https://cdn.visitportugal.com/sites/default/files/styles/encontre_detalhe_poi_destaque/public/mediateca/shutterstock_673730149_%20alexilena_Costa%20Nova%20Houses_Aveiro.jpg?itok=PAqn0AUx",
       "DomainCarouselImages": [

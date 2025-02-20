@@ -1,5 +1,6 @@
 import App from "./App";
-import Environment from "./Routes/Environment";
+import DomainTemplate from "./Routes/DomainTemplate";
+import Environment from "./Routes/DomainTemplate";
 import { Helmet } from "react-helmet";
 
 export const routesList = [
@@ -21,7 +22,29 @@ export const routesList = [
                 <Helmet>
                     <title>ATT - Environment</title>
                 </Helmet>
-                <Environment />
+                <DomainTemplate />
+            </>
+        )
+    },
+    {
+        path: '/economy',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Economy</title>
+                </Helmet>
+                <DomainTemplate />
+            </>
+        )
+    },
+    {
+        path: '/sociaty',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Sociaty</title>
+                </Helmet>
+                <DomainTemplate />
             </>
         )
     }

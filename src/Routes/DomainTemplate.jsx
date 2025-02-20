@@ -4,7 +4,7 @@ import PageTemplate from "./PageTemplate";
 import { useLocation } from 'react-router-dom';
 import domains from '../../public/domains.json';
 
-export default function Environment() {
+export default function DomainTemplate() {
 
     const location = useLocation();
     const { domainName } = location.state || {};

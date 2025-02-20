@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './App.css'
-import Navbar from './components/Navbar'
 import Carousel from './components/Carousel'
 import DomainCard from './components/DomainCard'
 import PageTemplate from './Routes/PageTemplate'
