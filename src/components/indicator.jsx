@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import GChart from './chart'
-//import Views from './views'
+import Views from './views'
 //import Filter from './filter'
 import { useWindowSize } from '../hooks/useWindowSize'
 
@@ -156,11 +156,11 @@ const Indicator = ({ title, period }) => {
             <GChart {...chartData} height={500} />
           </div>
           <div className='flex flex-col gap-2'>
-            {/* <Views 
+            <Views 
               size={width > 640 ? 'sm' : 'xs'} 
               activeView={activeView}
               onViewChange={handleViewChange}
-            /> */}
+            />
           </div>
         </div>
       </div>
@@ -177,11 +177,11 @@ const Indicator = ({ title, period }) => {
           <div className='flex-grow'></div>
 
           <div className='flex flex-row gap-2 mt-6 mb-4'>
-            {/* <Views 
+            <Views 
               size={width > 640 ? 'sm' : 'xs'} 
               activeView={activeView}
               onViewChange={handleViewChange}
-            /> */}
+            />
           </div>
 
         </div>
