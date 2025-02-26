@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import GChart from './chart'
 import Views from './views'
-//import Filter from './filter'
+import Filter from './filter'
 import { useWindowSize } from '../hooks/useWindowSize'
 
 const Indicator = ({ title, period }) => {
   const { width } = useWindowSize();
   
-  const [chartData, setChartData] = useState([{
+  const [chartData, setChartData] = useState({
     chartType: 'line',
     // title: 'Sales',
     xaxisType: 'datetime', // 'datetime', 'category' or 'numeric'
@@ -82,7 +82,7 @@ const Indicator = ({ title, period }) => {
         }]
       }
     ]
-  }]);
+  });
 
   const availableFilters = {
     segment: ['B2B', 'B2C'],
@@ -147,11 +147,11 @@ const Indicator = ({ title, period }) => {
   }'></div>
 
         <div className='flex flex-row'>
-          {/* <Filter 
+           <Filter 
             filters={availableFilters}
             activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
-          /> */}
+          />
           <div className='flex-grow'>
             <GChart {...chartData} height={500} />
           </div>
@@ -168,11 +168,11 @@ const Indicator = ({ title, period }) => {
       {/* Mobile */}
       <div className='md:hidden w-full'>
         <div className='flex flex-row'>
-          {/** <Filter 
+          <Filter 
             filters={availableFilters}
             activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
-          /> */}
+          />
 
           <div className='flex-grow'></div>
 

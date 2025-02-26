@@ -72,7 +72,7 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, height, 
                     }
                 },
                 events: {
-                    beforeMount: function(chart) {
+                    beforeMount: function (chart) {
                         // Add custom CSS to style the toolbar and menu
                         const style = document.createElement('style')
                         style.innerHTML = `
@@ -175,19 +175,15 @@ const GChart = ({ title, chartType, xaxisType, log, horizontal, series, height, 
             }
         }
 
-        // Destruir o gráfico anterior se existir
         if (chartRef.current) {
             chartRef.current.destroy()
         }
 
-        // Criar e renderizar o novo gráfico
-        const chart = new ApexCharts(document.querySelector("#chart"), chartOptions)
+        const chart = new ApexCharts(chartContainerRef.current, chartOptions)
         chart.render()
-        
-        // Guardar a referência do gráfico
+
         chartRef.current = chart
 
-        // Cleanup quando o componente for desmontado
         return () => {
             if (chartRef.current) {
                 chartRef.current.destroy()
