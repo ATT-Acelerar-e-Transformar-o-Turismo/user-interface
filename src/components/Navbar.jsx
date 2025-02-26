@@ -2,10 +2,12 @@ import { Link } from "react-router-dom"
 
 export default function Navbar() {
     return (
-        <div className="navbar bg-base-300 px-4">
-            <Link to={'/home'} className="flex-1">
-                <a className="btn btn-ghost text-xl text-base-content">ATT</a>
-            </Link>
+        <div className="navbar bg-base-300 px-4 flex justify-between">
+            <div className="">
+                <Link to={'/home'} className="flex-1">
+                    <a className="btn btn-ghost text-xl text-base-content">ATT</a>
+                </Link>
+            </div>
             <div className="flex-none">
                 <ul className="menu menu-horizontal px-1">
                 <li>

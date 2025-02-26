@@ -1,1281 +1,1385 @@
 {
-  "dominios": [
-    {
-      "nome": "Ambiente",
-      "DomainPage": "/environment",
-      "DomainColor": "#B3E240",
-      "DomainImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
-      "DomainCarouselImages": [
-       "https://img.daisyui.com/images/stock/photo-1625726411847-8cbb60cc71e6.webp",
-        "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
-        "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp",
-        "https://img.daisyui.com/images/stock/photo-1665553365602-b2fb8e5d1707.webp"
-      ],
-      "subdominios": [
+    "dominios": [
         {
-          "nome": "Capital natural e uso do solo",
-          "indicadores": [
-            {
-              "nome": "Presença de plantas endêmicas e animais raros",
-              "caracteristicas": {
-                "unidade_de_medida": "Sim/Não",
-                "fonte": "CM de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Espécies protegidas no destino",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "CM de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de área designada para fins turísticos",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "CM de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Rácio de área de paisagem agrícola",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Direção Geral do Território",
-                "periodicidade": "5 anos",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Alterações no uso do solo",
-              "caracteristicas": {
-                "unidade_de_medida": "Número (ex.: de licenças/transformações)",
-                "fonte": "Direção Geral do Território",
-                "periodicidade": "5 anos",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
+            "nome": "Ambiente",
+            "DomainPage": "/environment",
+            "DomainColor": "#B3E240",
+            "DomainImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
+            "DomainCarouselImages": [
+                "./costa-nova-beach.webp"
+            ],
+            "subdominios": [
+                {
+                    "nome": "Capital natural e uso do solo",
+                    "indicadores": [
+                        {
+                            "nome": "Presença de plantas endêmicas e animais raros",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Sim/Não",
+                                "fonte": "CM de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 1
+                        },
+                        {
+                            "nome": "Espécies protegidas no destino",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "CM de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 2
+                        },
+                        {
+                            "nome": "Percentagem de área designada para fins turísticos",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "CM de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 3
+                        },
+                        {
+                            "nome": "Rácio de área de paisagem agrícola",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Direção Geral do Território",
+                                "periodicidade": "5 anos",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 4
+                        },
+                        {
+                            "nome": "Alterações no uso do solo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número (ex.: de licenças/transformações)",
+                                "fonte": "Direção Geral do Território",
+                                "periodicidade": "5 anos",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 5
+                        }
+                    ]
+                },
+                {
+                    "nome": "Externalidades ambientais",
+                    "indicadores": [
+                        {
+                            "nome": "Total de CO2 produzido devido ao consumo de energia da comunidade",
+                            "caracteristicas": {
+                                "unidade_de_medida": "ppm/kWh",
+                                "fonte": "Sensores meteorológicos (Local)",
+                                "periodicidade": "diária",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios (baseline) ou específicos (conforme a fonte)",
+                            "id": 6
+                        },
+                        {
+                            "nome": "Total de Ozónio emitido",
+                            "caracteristicas": {
+                                "unidade_de_medida": "µg/m3",
+                                "fonte": "Sensores meteorológicos (Local)",
+                                "periodicidade": "diária",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 7
+                        },
+                        {
+                            "nome": "Emissão de gases poluentes e partículas (PM10, PM2.5, NO2, CO, etc.)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "µg/m3, mg/m3, etc.",
+                                "fonte": "Sensores meteorológicos (Local)",
+                                "periodicidade": "diária",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO ou específicos (depende de como for reportado)",
+                            "id": 8
+                        },
+                        {
+                            "nome": "Frequência de eventos climáticos extremos",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número (ocorrências)",
+                                "fonte": "Sensores meteorológicos (Local)",
+                                "periodicidade": "diária/mensal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 9
+                        },
+                        {
+                            "nome": "Níveis de pluviosidade",
+                            "caracteristicas": {
+                                "unidade_de_medida": "mm/dia",
+                                "fonte": "Sensores meteorológicos (Local)",
+                                "periodicidade": "diária",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 10
+                        }
+                    ]
+                },
+                {
+                    "nome": "Eco-soluções Turísticas",
+                    "indicadores": [
+                        {
+                            "nome": "Percentagem de empresas de turismo que adotam ações para reduzir o consumo de água",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "TravelBI - Turismo de Portugal (NUT II)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 11
+                        },
+                        {
+                            "nome": "Percentagem de empresas de turismo que adotam ações para reduzir o consumo de energia",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "TravelBI - Turismo de Portugal (NUT II)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 12
+                        },
+                        {
+                            "nome": "Percentagem de empresas de turismo que separam diferentes tipos de resíduos",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "TravelBI - Turismo de Portugal (NUT II)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 13
+                        },
+                        {
+                            "nome": "Disponibilidade de água limpa nas áreas turísticas",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Sim/Não",
+                                "fonte": "Águas da Região de Aveiro (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 14
+                        }
+                    ]
+                },
+                {
+                    "nome": "Recursos e equipamentos ambientais",
+                    "indicadores": [
+                        {
+                            "nome": "Número de nadadores salvadores",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Concessionários de Praia do Concelho de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 15
+                        },
+                        {
+                            "nome": "Instalações sanitárias públicas",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "JF Gafanha da Encarnação / JF Gafanha da Nazaré",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 16
+                        },
+                        {
+                            "nome": "Materiais interpretativos no destino (painéis informativos, folhetos, etc.)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "CM Ílhavo e empresas turísticas",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 17
+                        },
+                        {
+                            "nome": "Qualidade da água balnear",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Classificação (excelente/boa/aceitável/má)",
+                                "fonte": "APA (Praias)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 18
+                        }
+                    ]
+                },
+                {
+                    "nome": "Gestão de recursos",
+                    "indicadores": [
+                        {
+                            "nome": "Consumo de energia diário por habitante",
+                            "caracteristicas": {
+                                "unidade_de_medida": "kWh/hab./ano",
+                                "fonte": "INE (Município)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO e baseline UNWTO",
+                            "id": 19
+                        },
+                        {
+                            "nome": "Percentagem de consumo de energia proveniente de fontes renováveis",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE (Nacional)",
+                                "periodicidade": "anual",
+                                "escala": "nacional"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 20
+                        },
+                        {
+                            "nome": "Hotéis que utilizam tratamento secundário ou terciário de esgoto",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Questionários aos hotéis (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 21
+                        },
+                        {
+                            "nome": "Tratamento de esgoto realizado no destino",
+                            "caracteristicas": {
+                                "unidade_de_medida": "m3",
+                                "fonte": "INE (Município)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 22
+                        },
+                        {
+                            "nome": "Percentagem de resíduos reciclados em relação ao volume total de resíduos",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "APA (Zona de recolha ERSUC)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 23
+                        },
+                        {
+                            "nome": "Qualidade da água para consumo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Parâmetros (pH, mg/L, etc.)",
+                                "fonte": "Águas da Região de Aveiro",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 24
+                        },
+                        {
+                            "nome": "Resíduos sólidos per capita por dia",
+                            "caracteristicas": {
+                                "unidade_de_medida": "kg/hab./dia",
+                                "fonte": "INE (Município)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 25
+                        },
+                        {
+                            "nome": "Consumo de água (rácio volume total consumido e litros por turista por dia)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "m³/ hab./ dormidas",
+                                "fonte": "INE (Município)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios ou baseline",
+                            "id": 26
+                        }
+                    ]
+                },
+                {
+                    "nome": "Capacidade de carga",
+                    "indicadores": [
+                        {
+                            "nome": "Número de turistas por quilómetro quadrado de área urbanizada (densidade)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Dormidas/km²",
+                                "fonte": "INE + CM Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 27
+                        },
+                        {
+                            "nome": "Intensidade de uso da praia (número de turistas por m2)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "m²/turista",
+                                "fonte": "APA (Praias)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 28
+                        }
+                    ]
+                },
+                {
+                    "nome": "Regulamentos e políticas",
+                    "indicadores": [
+                        {
+                            "nome": "Percentagem de empresas com certificação ambiental reconhecida",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Registo Nacional do Turismo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 29
+                        },
+                        {
+                            "nome": "Praia com certificação Bandeira Azul",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Associação Bandeira Azul da Europa",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 30
+                        },
+                        {
+                            "nome": "Orçamentos para proteção ambiental",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euros",
+                                "fonte": "Fundo Ambiental (Nacional)",
+                                "periodicidade": "anual",
+                                "escala": "nacional/municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 31
+                        },
+                        {
+                            "nome": "Percentagem de áreas protegidas",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE (Município)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 32
+                        }
+                    ]
+                }
+            ]
         },
         {
-          "nome": "Externalidades ambientais",
-          "indicadores": [
-            {
-              "nome": "Total de CO2 produzido devido ao consumo de energia da comunidade",
-              "caracteristicas": {
-                "unidade_de_medida": "ppm/kWh",
-                "fonte": "Sensores meteorológicos (Local)",
-                "periodicidade": "diária",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios (baseline) ou específicos (conforme a fonte)"
-            },
-            {
-              "nome": "Total de Ozónio emitido",
-              "caracteristicas": {
-                "unidade_de_medida": "µg/m3",
-                "fonte": "Sensores meteorológicos (Local)",
-                "periodicidade": "diária",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Emissão de gases poluentes e partículas (PM10, PM2.5, NO2, CO, etc.)",
-              "caracteristicas": {
-                "unidade_de_medida": "µg/m3, mg/m3, etc.",
-                "fonte": "Sensores meteorológicos (Local)",
-                "periodicidade": "diária",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO ou específicos (depende de como for reportado)"
-            },
-            {
-              "nome": "Frequência de eventos climáticos extremos",
-              "caracteristicas": {
-                "unidade_de_medida": "Número (ocorrências)",
-                "fonte": "Sensores meteorológicos (Local)",
-                "periodicidade": "diária/mensal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Níveis de pluviosidade",
-              "caracteristicas": {
-                "unidade_de_medida": "mm/dia",
-                "fonte": "Sensores meteorológicos (Local)",
-                "periodicidade": "diária",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
+            "nome": "Economia",
+            "DomainPage": "/economy",
+            "DomainColor": "#EEBB33",
+            "DomainImage": "https://cdn.visitportugal.com/sites/default/files/styles/encontre_detalhe_poi_destaque/public/mediateca/CTO_Ilhavo_Barra_660x371.jpg?itok=o1B-4udv",
+            "DomainCarouselImages": [
+                "./barra.jpg"
+            ],
+            "subdominios": [
+                {
+                    "nome": "Marketing do destino",
+                    "indicadores": [
+                        {
+                            "nome": "Audiência nas redes sociais",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Métricas (seguidores, alcance etc.)",
+                                "fonte": "Questionário à CM Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 33
+                        },
+                        {
+                            "nome": "Despesa pública com a promoção turística por turista",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro/turista",
+                                "fonte": "Contas CM Ílhavo e INE",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 34
+                        },
+                        {
+                            "nome": "Imagem global do destino",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7 (ou similar)",
+                                "fonte": "Análise de redes sociais",
+                                "periodicidade": "mensal",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 35
+                        }
+                    ]
+                },
+                {
+                    "nome": "Oferta turística",
+                    "indicadores": [
+                        {
+                            "nome": "Percentagem de estabelecimentos de alojamento turístico com certificado de acessibilidade",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 36
+                        },
+                        {
+                            "nome": "Percentagem de atrações turísticas acessíveis para pessoas com deficiência",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas e entidades públicas",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 37
+                        },
+                        {
+                            "nome": "Número de estabelecimentos de alojamento turístico por 1000 habitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 38
+                        },
+                        {
+                            "nome": "Capacidade de alojamento nos estabelecimentos de alojamento turístico por 100 residentes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 39
+                        },
+                        {
+                            "nome": "Número de estabelecimentos de restauração e similares por 1000 habitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 40
+                        },
+                        {
+                            "nome": "Capacidade dos estabelecimentos de restauração por 100 residentes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Questionário às empresas (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 41
+                        },
+                        {
+                            "nome": "Percentagem de estabelecimentos abertos durante todo o ano",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 42
+                        },
+                        {
+                            "nome": "Número de pontos de informação turística por turista",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Questionário à CM Ílhavo e INE",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 43
+                        }
+                    ]
+                },
+                {
+                    "nome": "Valor económico empresarial",
+                    "indicadores": [
+                        {
+                            "nome": "Percentagem de empresas do setor do turismo que registaram lucros",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 44
+                        },
+                        {
+                            "nome": "Remunerações das empresas no setor do turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "INE (NUT III)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 45
+                        },
+                        {
+                            "nome": "Despesa diária por turista",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 46
+                        },
+                        {
+                            "nome": "Valor dos pagamentos eletrónicos no turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "SIBS (Municipal)",
+                                "periodicidade": "mensal",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 47
+                        },
+                        {
+                            "nome": "Rendimento médio por quarto (Rev Par)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 48
+                        },
+                        {
+                            "nome": "Percentagem de empresas do turismo com iniciativas de responsabilidade social corporativa",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 49
+                        },
+                        {
+                            "nome": "Percentagem de produtos locais adquiridos pelas empresas do turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 50
+                        },
+                        {
+                            "nome": "Percentagem de serviços locais adquiridos pelas empresas do turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 51
+                        }
+                    ]
+                },
+                {
+                    "nome": "Procura turística",
+                    "indicadores": [
+                        {
+                            "nome": "Número de dormidas",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "mensal",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO e baseline UNWTO",
+                            "id": 52
+                        },
+                        {
+                            "nome": "Taxa líquida de ocupação dos alojamentos turísticos",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 53
+                        },
+                        {
+                            "nome": "Proporção de turistas na época baixa em relação à época alta",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 54
+                        },
+                        {
+                            "nome": "Estada média",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número (noites)",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 55
+                        },
+                        {
+                            "nome": "Número de dormidas por 100 residentes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "mensal",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 56
+                        },
+                        {
+                            "nome": "Percentagem de pessoas que visitaram o destino mais do que uma vez nos últimos 5 anos",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 57
+                        },
+                        {
+                            "nome": "Número de turistas por motivo da visita",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 58
+                        },
+                        {
+                            "nome": "Nível de satisfação dos visitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 59
+                        },
+                        {
+                            "nome": "Perceção do nível de preço-qualidade do destino",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 60
+                        },
+                        {
+                            "nome": "Intenção de recomendar o destino",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 61
+                        },
+                        {
+                            "nome": "Intenção de repetir a visita",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 62
+                        },
+                        {
+                            "nome": "Dados demográficos dos turistas",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem (faixa etária, nacionalidade, etc.)",
+                                "fonte": "Questionário aos visitantes (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 63
+                        }
+                    ]
+                },
+                {
+                    "nome": "Economia conexa",
+                    "indicadores": [
+                        {
+                            "nome": "Número de agências de viagens e operadores turísticos per capita",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 64
+                        },
+                        {
+                            "nome": "Percentagem de empresas que atuam no setor do turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE (Municipal)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 65
+                        },
+                        {
+                            "nome": "Número de associações do turismo em relação ao número de empresas do turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Questionário à CM Ílhavo e INE",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 66
+                        }
+                    ]
+                },
+                {
+                    "nome": "Contexto político-institucional",
+                    "indicadores": [
+                        {
+                            "nome": "Eficiência dos instrumentos de gestão territorial em relação ao turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionários aos agentes do turismo (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO e baseline UNWTO",
+                            "id": 67
+                        },
+                        {
+                            "nome": "Percentagem da área do destino com um plano de ação de turismo sustentável",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário à CM Ílhavo (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 68
+                        },
+                        {
+                            "nome": "Número de novos projetos turísticos com parecer favorável",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "SIGTUR (Local)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 69
+                        }
+                    ]
+                }
+            ]
         },
         {
-          "nome": "Eco-soluções Turísticas",
-          "indicadores": [
-            {
-              "nome": "Percentagem de empresas de turismo que adotam ações para reduzir o consumo de água",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "TravelBI - Turismo de Portugal (NUT II)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Percentagem de empresas de turismo que adotam ações para reduzir o consumo de energia",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "TravelBI - Turismo de Portugal (NUT II)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Percentagem de empresas de turismo que separam diferentes tipos de resíduos",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "TravelBI - Turismo de Portugal (NUT II)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Disponibilidade de água limpa nas áreas turísticas",
-              "caracteristicas": {
-                "unidade_de_medida": "Sim/Não",
-                "fonte": "Águas da Região de Aveiro (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            }
-          ]
-        },
-        {
-          "nome": "Recursos e equipamentos ambientais",
-          "indicadores": [
-            {
-              "nome": "Número de nadadores salvadores",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Concessionários de Praia do Concelho de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Instalações sanitárias públicas",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "JF Gafanha da Encarnação / JF Gafanha da Nazaré",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Materiais interpretativos no destino (painéis informativos, folhetos, etc.)",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "CM Ílhavo e empresas turísticas",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Qualidade da água balnear",
-              "caracteristicas": {
-                "unidade_de_medida": "Classificação (excelente/boa/aceitável/má)",
-                "fonte": "APA (Praias)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Gestão de recursos",
-          "indicadores": [
-            {
-              "nome": "Consumo de energia diário por habitante",
-              "caracteristicas": {
-                "unidade_de_medida": "kWh/hab./ano",
-                "fonte": "INE (Município)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO e baseline UNWTO"
-            },
-            {
-              "nome": "Percentagem de consumo de energia proveniente de fontes renováveis",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE (Nacional)",
-                "periodicidade": "anual",
-                "escala": "nacional"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Hotéis que utilizam tratamento secundário ou terciário de esgoto",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Questionários aos hotéis (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Tratamento de esgoto realizado no destino",
-              "caracteristicas": {
-                "unidade_de_medida": "m3",
-                "fonte": "INE (Município)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Percentagem de resíduos reciclados em relação ao volume total de resíduos",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "APA (Zona de recolha ERSUC)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Qualidade da água para consumo",
-              "caracteristicas": {
-                "unidade_de_medida": "Parâmetros (pH, mg/L, etc.)",
-                "fonte": "Águas da Região de Aveiro",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Resíduos sólidos per capita por dia",
-              "caracteristicas": {
-                "unidade_de_medida": "kg/hab./dia",
-                "fonte": "INE (Município)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Consumo de água (rácio volume total consumido e litros por turista por dia)",
-              "caracteristicas": {
-                "unidade_de_medida": "m³/ hab./ dormidas",
-                "fonte": "INE (Município)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios ou baseline"
-            }
-          ]
-        },
-        {
-          "nome": "Capacidade de carga",
-          "indicadores": [
-            {
-              "nome": "Número de turistas por quilómetro quadrado de área urbanizada (densidade)",
-              "caracteristicas": {
-                "unidade_de_medida": "Dormidas/km²",
-                "fonte": "INE + CM Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Intensidade de uso da praia (número de turistas por m2)",
-              "caracteristicas": {
-                "unidade_de_medida": "m²/turista",
-                "fonte": "APA (Praias)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Regulamentos e políticas",
-          "indicadores": [
-            {
-              "nome": "Percentagem de empresas com certificação ambiental reconhecida",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Registo Nacional do Turismo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Praia com certificação Bandeira Azul",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Associação Bandeira Azul da Europa",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Orçamentos para proteção ambiental",
-              "caracteristicas": {
-                "unidade_de_medida": "Euros",
-                "fonte": "Fundo Ambiental (Nacional)",
-                "periodicidade": "anual",
-                "escala": "nacional/municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de áreas protegidas",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE (Município)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
+            "nome": "Sociedade",
+            "DomainPage": "/sociaty",
+            "DomainColor": "#6B3EA8",
+            "DomainImage": "https://cdn.visitportugal.com/sites/default/files/styles/encontre_detalhe_poi_destaque/public/mediateca/shutterstock_673730149_%20alexilena_Costa%20Nova%20Houses_Aveiro.jpg?itok=PAqn0AUx",
+            "DomainCarouselImages": [
+                "./1.webp"
+            ],
+            "subdominios": [
+                {
+                    "nome": "Atmosfera sociocultural",
+                    "indicadores": [
+                        {
+                            "nome": "Condição geral de paz e segurança",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos stakeholders (Barra e Costa Nova)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 70
+                        },
+                        {
+                            "nome": "Taxa de criminalidade",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Por mil habitantes",
+                                "fonte": "INE (Município)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 71
+                        },
+                        {
+                            "nome": "Orgulho dos residentes pelo seu património cultural",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos residentes",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 72
+                        },
+                        {
+                            "nome": "Preparação da comunidade para o turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos stakeholders",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 73
+                        }
+                    ]
+                },
+                {
+                    "nome": "Identidade da comunidade",
+                    "indicadores": [
+                        {
+                            "nome": "Autenticidade dos eventos culturais locais",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos stakeholders",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 74
+                        },
+                        {
+                            "nome": "Desenvolvimento do artesanato local",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "Questionário às empresas",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 75
+                        },
+                        {
+                            "nome": "Produtos com identificação de origem (ex.: produtos com denominação geográfica)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Direção-Geral de Agricultura e Desenvolvimento Rural",
+                                "periodicidade": "trienal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 76
+                        },
+                        {
+                            "nome": "Investimento em ações de preservação da cultura e tradições locais",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 77
+                        }
+                    ]
+                },
+                {
+                    "nome": "Património cultural",
+                    "indicadores": [
+                        {
+                            "nome": "Densidade de atrações culturais ou históricas (atrações/área)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "quinquenal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 78
+                        },
+                        {
+                            "nome": "Pressão sobre o património cultural (ex.: capacidade de carga)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 79
+                        },
+                        {
+                            "nome": "Políticas públicas de proteção do património cultural",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 80
+                        },
+                        {
+                            "nome": "Orçamento para conservação e restauração per capita",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 81
+                        }
+                    ]
+                },
+                {
+                    "nome": "Serviços à comunidade",
+                    "indicadores": [
+                        {
+                            "nome": "Acesso a unidades de saúde num raio de 50 km",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 82
+                        },
+                        {
+                            "nome": "Acesso à eletricidade por 100 habitantes (Número de beneficiários da tarifa social de energia)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Direção Geral de Energia e Geologia",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 83
+                        },
+                        {
+                            "nome": "Caixas Multibanco por 10 000 habitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 84
+                        },
+                        {
+                            "nome": "Alojamentos familiares com fornecimento adequado de água",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Gafanha da Encarnação e Gafanha de Nazaré)",
+                                "periodicidade": "decenal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 85
+                        },
+                        {
+                            "nome": "Alojamentos familiares com instalações sanitárias melhoradas",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Gafanha da Encarnação e Gafanha de Nazaré)",
+                                "periodicidade": "decenal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 86
+                        },
+                        {
+                            "nome": "Despesas com ações de proteção social",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 87
+                        },
+                        {
+                            "nome": "Políticas de proteção contra exploração e assédio",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Sim/Não",
+                                "fonte": "Comissão para a cidadania e igualdade de gênero",
+                                "periodicidade": "decenal",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 88
+                        }
+                    ]
+                },
+                {
+                    "nome": "Infraestrutura comunitária",
+                    "indicadores": [
+                        {
+                            "nome": "Capacidade do transporte público local por 100 habitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Lugares/km",
+                                "fonte": "INE (Região centro)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 89
+                        },
+                        {
+                            "nome": "Lugares de estacionamento por km2",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 90
+                        },
+                        {
+                            "nome": "Extensão de ciclovias por unidade de área",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número (km)",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 91
+                        },
+                        {
+                            "nome": "Instalações desportivas públicas por 100 habitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "Câmara Municipal de Ílhavo (Barra e Costa Nova)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 92
+                        },
+                        {
+                            "nome": "Quantidade de espaços públicos voltados para a apreciação pelo ser humano",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Região Centro)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 93
+                        },
+                        {
+                            "nome": "Gastos do governo com segurança pública (em percentagem do PIB)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro (ou % do PIB)",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 94
+                        },
+                        {
+                            "nome": "Taxa de acidentes em vias urbanas por 100 habitantes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 95
+                        }
+                    ]
+                },
+                {
+                    "nome": "Dados demográficos",
+                    "indicadores": [
+                        {
+                            "nome": "Taxa de envelhecimento populacional",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 96
+                        },
+                        {
+                            "nome": "Taxa de mortalidade infantil",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice por mil",
+                                "fonte": "INE (Região Centro)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 97
+                        },
+                        {
+                            "nome": "Nível de educação",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice",
+                                "fonte": "INE (Aveiro)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 98
+                        },
+                        {
+                            "nome": "Esperança de vida",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número (anos)",
+                                "fonte": "INE (Aveiro)",
+                                "periodicidade": "anual",
+                                "escala": "regional"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 99
+                        },
+                        {
+                            "nome": "Taxa de crescimento da população residente",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice (%)",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 100
+                        },
+                        {
+                            "nome": "Proporção de residentes estrangeiros na população total",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número (ou %)",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 101
+                        },
+                        {
+                            "nome": "Número de segundas residências por 100 residências",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Número",
+                                "fonte": "INE (Barra e Costa Nova)",
+                                "periodicidade": "decenal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 102
+                        },
+                        {
+                            "nome": "Coeficiente de Gini (indicador de desigualdade de rendimentos)",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Índice",
+                                "fonte": "INE (Gafanha da Encarnação e Gafanha de Nazaré)",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 103
+                        },
+                        {
+                            "nome": "Rendimento per capita",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Euro",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 104
+                        }
+                    ]
+                },
+                {
+                    "nome": "Satisfação da comunidade com o turismo",
+                    "indicadores": [
+                        {
+                            "nome": "Satisfação dos residentes com os impactos locais do turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos residentes",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 105
+                        },
+                        {
+                            "nome": "Percentagem de residentes que acreditam que o turismo trouxe novos serviços ou infraestrutura",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos residentes",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 106
+                        },
+                        {
+                            "nome": "Melhorias nos serviços públicos devido ao turismo",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos residentes",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 107
+                        },
+                        {
+                            "nome": "Papel do turismo na retenção de jovens residentes",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos residentes",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 108
+                        },
+                        {
+                            "nome": "Distribuição da receita do turismo na comunidade",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Escala 1-7",
+                                "fonte": "Questionário aos stakeholders",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 109
+                        },
+                        {
+                            "nome": "Participação da comunidade no planeamento turístico",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Sim/Não",
+                                "fonte": "Questionário aos stakeholders",
+                                "periodicidade": "quinquenal",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores obrigatórios pela INSTO",
+                            "id": 110
+                        }
+                    ]
+                },
+                {
+                    "nome": "Equidade e inclusão",
+                    "indicadores": [
+                        {
+                            "nome": "Percentagem de mulheres empregadas no setor de turismo em relação ao total",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE + questionário a empresas",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores baseline da UNWTO",
+                            "id": 111
+                        },
+                        {
+                            "nome": "Políticas públicas de apoio ao empreendedorismo local",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Sim/Não",
+                                "fonte": "Câmara Municipal de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 112
+                        },
+                        {
+                            "nome": "Proporção de edifícios com necessidade de grandes reparações ou muito degradados",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "INE (Ílhavo)",
+                                "periodicidade": "anual",
+                                "escala": "municipal"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 113
+                        }
+                    ]
+                }
+            ]
         }
-      ]
-    },
-    {
-      "nome": "Economia",
-      "DomainPage": "/economy",
-      "DomainColor": "#EEBB33",
-      "DomainImage": "https://cdn.visitportugal.com/sites/default/files/styles/encontre_detalhe_poi_destaque/public/mediateca/CTO_Ilhavo_Barra_660x371.jpg?itok=o1B-4udv",
-      "DomainCarouselImages": [
-       "https://img.daisyui.com/images/stock/photo-1625726411847-8cbb60cc71e6.webp",
-        "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
-        "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp",
-        "https://img.daisyui.com/images/stock/photo-1665553365602-b2fb8e5d1707.webp"
-      ],
-      "subdominios": [
-        {
-          "nome": "Marketing do destino",
-          "indicadores": [
-            {
-              "nome": "Audiência nas redes sociais",
-              "caracteristicas": {
-                "unidade_de_medida": "Métricas (seguidores, alcance etc.)",
-                "fonte": "Questionário à CM Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Despesa pública com a promoção turística por turista",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro/turista",
-                "fonte": "Contas CM Ílhavo e INE",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Imagem global do destino",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7 (ou similar)",
-                "fonte": "Análise de redes sociais",
-                "periodicidade": "mensal",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Oferta turística",
-          "indicadores": [
-            {
-              "nome": "Percentagem de estabelecimentos de alojamento turístico com certificado de acessibilidade",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Percentagem de atrações turísticas acessíveis para pessoas com deficiência",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas e entidades públicas",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Número de estabelecimentos de alojamento turístico por 1000 habitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Capacidade de alojamento nos estabelecimentos de alojamento turístico por 100 residentes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Número de estabelecimentos de restauração e similares por 1000 habitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Capacidade dos estabelecimentos de restauração por 100 residentes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Questionário às empresas (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de estabelecimentos abertos durante todo o ano",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Número de pontos de informação turística por turista",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Questionário à CM Ílhavo e INE",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Valor económico empresarial",
-          "indicadores": [
-            {
-              "nome": "Percentagem de empresas do setor do turismo que registaram lucros",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Remunerações das empresas no setor do turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "INE (NUT III)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Despesa diária por turista",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Valor dos pagamentos eletrónicos no turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "SIBS (Municipal)",
-                "periodicidade": "mensal",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Rendimento médio por quarto (Rev Par)",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de empresas do turismo com iniciativas de responsabilidade social corporativa",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de produtos locais adquiridos pelas empresas do turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de serviços locais adquiridos pelas empresas do turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Procura turística",
-          "indicadores": [
-            {
-              "nome": "Número de dormidas",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "mensal",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO e baseline UNWTO"
-            },
-            {
-              "nome": "Taxa líquida de ocupação dos alojamentos turísticos",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Proporção de turistas na época baixa em relação à época alta",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Estada média",
-              "caracteristicas": {
-                "unidade_de_medida": "Número (noites)",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Número de dormidas por 100 residentes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "mensal",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Percentagem de pessoas que visitaram o destino mais do que uma vez nos últimos 5 anos",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Número de turistas por motivo da visita",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Nível de satisfação dos visitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Perceção do nível de preço-qualidade do destino",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Intenção de recomendar o destino",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Intenção de repetir a visita",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Dados demográficos dos turistas",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem (faixa etária, nacionalidade, etc.)",
-                "fonte": "Questionário aos visitantes (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Economia conexa",
-          "indicadores": [
-            {
-              "nome": "Número de agências de viagens e operadores turísticos per capita",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Percentagem de empresas que atuam no setor do turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE (Municipal)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Número de associações do turismo em relação ao número de empresas do turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Questionário à CM Ílhavo e INE",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Contexto político-institucional",
-          "indicadores": [
-            {
-              "nome": "Eficiência dos instrumentos de gestão territorial em relação ao turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionários aos agentes do turismo (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO e baseline UNWTO"
-            },
-            {
-              "nome": "Percentagem da área do destino com um plano de ação de turismo sustentável",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário à CM Ílhavo (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Número de novos projetos turísticos com parecer favorável",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "SIGTUR (Local)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "nome": "Sociedade",
-      "DomainPage": "/sociaty",
-      "DomainColor": "#6B3EA8",
-      "DomainImage": "https://cdn.visitportugal.com/sites/default/files/styles/encontre_detalhe_poi_destaque/public/mediateca/shutterstock_673730149_%20alexilena_Costa%20Nova%20Houses_Aveiro.jpg?itok=PAqn0AUx",
-      "DomainCarouselImages": [
-       "https://img.daisyui.com/images/stock/photo-1625726411847-8cbb60cc71e6.webp",
-        "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
-        "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp",
-        "https://img.daisyui.com/images/stock/photo-1665553365602-b2fb8e5d1707.webp"
-      ],
-      "subdominios": [
-        {
-          "nome": "Atmosfera sociocultural",
-          "indicadores": [
-            {
-              "nome": "Condição geral de paz e segurança",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos stakeholders (Barra e Costa Nova)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Taxa de criminalidade",
-              "caracteristicas": {
-                "unidade_de_medida": "Por mil habitantes",
-                "fonte": "INE (Município)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Orgulho dos residentes pelo seu património cultural",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos residentes",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Preparação da comunidade para o turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos stakeholders",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            }
-          ]
-        },
-        {
-          "nome": "Identidade da comunidade",
-          "indicadores": [
-            {
-              "nome": "Autenticidade dos eventos culturais locais",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos stakeholders",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Desenvolvimento do artesanato local",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "Questionário às empresas",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Produtos com identificação de origem (ex.: produtos com denominação geográfica)",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Direção-Geral de Agricultura e Desenvolvimento Rural",
-                "periodicidade": "trienal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Investimento em ações de preservação da cultura e tradições locais",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            }
-          ]
-        },
-        {
-          "nome": "Património cultural",
-          "indicadores": [
-            {
-              "nome": "Densidade de atrações culturais ou históricas (atrações/área)",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "quinquenal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Pressão sobre o património cultural (ex.: capacidade de carga)",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Políticas públicas de proteção do património cultural",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Orçamento para conservação e restauração per capita",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Serviços à comunidade",
-          "indicadores": [
-            {
-              "nome": "Acesso a unidades de saúde num raio de 50 km",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Acesso à eletricidade por 100 habitantes (Número de beneficiários da tarifa social de energia)",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Direção Geral de Energia e Geologia",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Caixas Multibanco por 10 000 habitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Alojamentos familiares com fornecimento adequado de água",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Gafanha da Encarnação e Gafanha de Nazaré)",
-                "periodicidade": "decenal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Alojamentos familiares com instalações sanitárias melhoradas",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Gafanha da Encarnação e Gafanha de Nazaré)",
-                "periodicidade": "decenal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Despesas com ações de proteção social",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Políticas de proteção contra exploração e assédio",
-              "caracteristicas": {
-                "unidade_de_medida": "Sim/Não",
-                "fonte": "Comissão para a cidadania e igualdade de gênero",
-                "periodicidade": "decenal",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Infraestrutura comunitária",
-          "indicadores": [
-            {
-              "nome": "Capacidade do transporte público local por 100 habitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Lugares/km",
-                "fonte": "INE (Região centro)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Lugares de estacionamento por km2",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Extensão de ciclovias por unidade de área",
-              "caracteristicas": {
-                "unidade_de_medida": "Número (km)",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Instalações desportivas públicas por 100 habitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "Câmara Municipal de Ílhavo (Barra e Costa Nova)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Quantidade de espaços públicos voltados para a apreciação pelo ser humano",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Região Centro)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Gastos do governo com segurança pública (em percentagem do PIB)",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro (ou % do PIB)",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Taxa de acidentes em vias urbanas por 100 habitantes",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Dados demográficos",
-          "indicadores": [
-            {
-              "nome": "Taxa de envelhecimento populacional",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Taxa de mortalidade infantil",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice por mil",
-                "fonte": "INE (Região Centro)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Nível de educação",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice",
-                "fonte": "INE (Aveiro)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Esperança de vida",
-              "caracteristicas": {
-                "unidade_de_medida": "Número (anos)",
-                "fonte": "INE (Aveiro)",
-                "periodicidade": "anual",
-                "escala": "regional"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Taxa de crescimento da população residente",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice (%)",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Proporção de residentes estrangeiros na população total",
-              "caracteristicas": {
-                "unidade_de_medida": "Número (ou %)",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Número de segundas residências por 100 residências",
-              "caracteristicas": {
-                "unidade_de_medida": "Número",
-                "fonte": "INE (Barra e Costa Nova)",
-                "periodicidade": "decenal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Coeficiente de Gini (indicador de desigualdade de rendimentos)",
-              "caracteristicas": {
-                "unidade_de_medida": "Índice",
-                "fonte": "INE (Gafanha da Encarnação e Gafanha de Nazaré)",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Rendimento per capita",
-              "caracteristicas": {
-                "unidade_de_medida": "Euro",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        },
-        {
-          "nome": "Satisfação da comunidade com o turismo",
-          "indicadores": [
-            {
-              "nome": "Satisfação dos residentes com os impactos locais do turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos residentes",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Percentagem de residentes que acreditam que o turismo trouxe novos serviços ou infraestrutura",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos residentes",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Melhorias nos serviços públicos devido ao turismo",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos residentes",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Papel do turismo na retenção de jovens residentes",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos residentes",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Distribuição da receita do turismo na comunidade",
-              "caracteristicas": {
-                "unidade_de_medida": "Escala 1-7",
-                "fonte": "Questionário aos stakeholders",
-                "periodicidade": "anual",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            },
-            {
-              "nome": "Participação da comunidade no planeamento turístico",
-              "caracteristicas": {
-                "unidade_de_medida": "Sim/Não",
-                "fonte": "Questionário aos stakeholders",
-                "periodicidade": "quinquenal",
-                "escala": "local"
-              },
-              "categorizacao": "Indicadores obrigatórios pela INSTO"
-            }
-          ]
-        },
-        {
-          "nome": "Equidade e inclusão",
-          "indicadores": [
-            {
-              "nome": "Percentagem de mulheres empregadas no setor de turismo em relação ao total",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE + questionário a empresas",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores baseline da UNWTO"
-            },
-            {
-              "nome": "Políticas públicas de apoio ao empreendedorismo local",
-              "caracteristicas": {
-                "unidade_de_medida": "Sim/Não",
-                "fonte": "Câmara Municipal de Ílhavo",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            },
-            {
-              "nome": "Proporção de edifícios com necessidade de grandes reparações ou muito degradados",
-              "caracteristicas": {
-                "unidade_de_medida": "Percentagem",
-                "fonte": "INE (Ílhavo)",
-                "periodicidade": "anual",
-                "escala": "municipal"
-              },
-              "categorizacao": "Indicadores específicos do destino"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+    ]
 }

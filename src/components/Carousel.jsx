@@ -11,9 +11,9 @@ const Carousel = ({ images = [] }) => {
         <div
           key={index}
           id={`slide${index}`}
-          className="carousel-item relative w-full"
+          className="carousel-item relative w-full aspect-[4/1] overflow-hidden rounded-lg bg-base-200"
         >
-          <img src={image} className="w-full" alt={`Slide ${index}`} />
+          <img src={image} className="w-full h-full object-cover" alt={`Slide ${index}`} />
           <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
             <a href={`#slide${index === 0 ? images.length - 1 : index - 1}`} className="btn btn-circle">
               ❮

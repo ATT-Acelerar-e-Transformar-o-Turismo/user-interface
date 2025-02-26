@@ -1,4 +1,5 @@
 import Carousel from "../components/Carousel";
+import IndicatorCard from "../components/IndicatorCard";
 import Dropdowns from "../components/DomainDropdown";
 import PageTemplate from "./PageTemplate";
 import { useLocation } from 'react-router-dom';
@@ -20,12 +21,30 @@ export default function DomainTemplate() {
 
     const images =selectedDomainObj.DomainCarouselImages;
 
+    const GraphTypes = [
+        { icon: "📊" },
+        { icon: "📈" },
+        { icon: "📉" },
+        { icon: "📈" },
+        { icon: "📉" },
+    ];
+
     return (
         <>
             <PageTemplate>
                 <Carousel images={images} />
                 <div className="p-4">
                     <Dropdowns initialDomain={selectedDomainObj} />
+                </div>
+                <div className=" mx-60 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ">
+                    {selectedDomainObj.subdominios.map((subdom) => (
+                        <IndicatorCard 
+                            key={subdom.id}
+                            IndicatorTitle={subdom.nome} 
+                            IndicatorId={subdom.id}
+                            GraphTypes={GraphTypes }
+                        />
+                    ))}
                 </div>
             </PageTemplate>
         </>
