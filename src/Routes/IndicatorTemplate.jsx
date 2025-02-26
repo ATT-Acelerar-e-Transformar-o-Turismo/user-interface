@@ -25,9 +25,7 @@ export default function IndicatorTemplate() {
   // The user sees this domain/subdomain/indicator on screen
   // until they pick a new indicator in the dropdown.
 
-  // This is called once the user picks a new indicator from the 3rd dropdown
   const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
-    // "Commit" the new selection by navigating
     navigate(`/indicator/${newIndicator.id}`, {
       state: {
         domainName: newDomain.nome,
