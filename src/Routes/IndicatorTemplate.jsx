@@ -1,56 +1,75 @@
-
 import { useState } from "react";
-import Carousel from "../components/Carousel";
-import IndicatorCard from "../components/IndicatorCard";
-import Dropdowns from "../components/DomainDropdown";
-import PageTemplate from "./PageTemplate";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import domains from "../../public/domains.json";
+import PageTemplate from "./PageTemplate";
+import Carousel from "../components/Carousel";
+import IndicatorDropdowns from "../components/IndicatorDropdowns"; // the new component
 
-export default function IndicatorTemplate({ indicatorId }) {
-    const location = useLocation();
-    const { domainName } = location.state || {};
+export default function IndicatorTemplate() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { domainName, subdomainName, indicatorId } = location.state || {};
 
-    const selectedDomainObj = domains.dominios.find((dom) => dom.nome === domainName);
+  // 1) Find the "official" domain/subdomain/indicator from route
+  const domainObj = domains.dominios.find((dom) => dom.nome === domainName);
+  if (!domainObj) return <div>Domínio não encontrado.</div>;
 
-    if (!selectedDomainObj) {
-        return <div>Domínio não encontrado.</div>;
-    }
+  const subdomainObj = domainObj.subdominios.find((sub) => sub.nome === subdomainName);
+  if (!subdomainObj) return <div>Subdomínio não encontrado.</div>;
 
-    const images = selectedDomainObj.DomainCarouselImages;
+  const indicatorObj = subdomainObj.indicadores.find(
+    (ind) => ind.id === Number(indicatorId)
+  );
+  if (!indicatorObj) return <div>Indicador não encontrado.</div>;
 
-    const GraphTypes = [
-        { icon: "📊" },
-        { icon: "📈" },
-        { icon: "📉" },
-        { icon: "📈" },
-        { icon: "📉" },
-    ];
+  // The user sees this domain/subdomain/indicator on screen
+  // until they pick a new indicator in the dropdown.
 
-    const [selectedSubdomain, setSelectedSubdomain] = useState(null);
+  const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
+    navigate(`/indicator/${newIndicator.id}`, {
+      state: {
+        domainName: newDomain.nome,
+        subdomainName: newSubdomain.nome,
+        indicatorId: newIndicator.id,
+      },
+    });
+  };
 
-    const indicatorsToShow = selectedSubdomain
-        ? selectedSubdomain.indicadores
-        : selectedDomainObj.subdominios.flatMap((subdom) => subdom.indicadores);
+ const images = domainObj.DomainCarouselImages;
 
-    return (
-        <>
-            <PageTemplate>
-                <Carousel images={images} />
-                <div className="p-4">
-                    <Dropdowns initialDomain={selectedDomainObj} setSelectedSubdomain={setSelectedSubdomain} />
-                </div>
-                <div className="mx-60 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {indicatorsToShow.map((indicator) => (
-                        <IndicatorCard
-                            key={indicator.id}
-                            IndicatorTitle={indicator.nome}
-                            IndicatorId={indicator.id}
-                            GraphTypes={GraphTypes}
-                        />
-                    ))}
-                </div>
-            </PageTemplate>
-        </>
-    );
+  return (
+    <PageTemplate>
+      <Carousel images={images} />
+
+      <div className="p-4">
+        <IndicatorDropdowns
+          currentDomain={domainObj}
+          currentSubdomain={subdomainObj}
+          currentIndicator={indicatorObj}
+          onIndicatorChange={handleIndicatorChange}
+          allowSubdomainClear={false}
+        />
+      </div>
+
+      <div>
+        <h1 className="text-3xl font-bold">{indicatorObj.nome}</h1>
+        <p>
+          <strong>Subdomain:</strong> {subdomainName}
+        </p>
+        <p>
+          <strong>Category:</strong> {indicatorObj.categorizacao}
+        </p>
+        <p>
+          <strong>Measurement Unit:</strong>{" "}
+          {indicatorObj.caracteristicas.unidade_de_medida}
+        </p>
+        <p>
+          <strong>Source:</strong> {indicatorObj.caracteristicas.fonte}
+        </p>
+        <p>
+          <strong>Periodicity:</strong> {indicatorObj.caracteristicas.periodicidade}
+        </p>
+      </div>
+    </PageTemplate>
+  );
 }
