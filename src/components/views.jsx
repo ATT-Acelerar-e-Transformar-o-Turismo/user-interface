@@ -1,51 +1,51 @@
 import { useState, useEffect } from 'react'
 
-const LineChartIcon = ({size}) => {
+const LineChartIcon = ({ size }) => {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M21 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     )
 }
 
-const ColumnChartIcon = ({size}) => {
+const ColumnChartIcon = ({ size }) => {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 10V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M16 7V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M8 14L8 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M4 5V19C4 19.5523 4.44772 20 5 20H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M12 10V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+            <path d="M16 7V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+            <path d="M8 14L8 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+            <path d="M4 5V19C4 19.5523 4.44772 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
         </svg>
     )
 }
 
-const BarChartIcon = ({size}) => {
+const BarChartIcon = ({ size }) => {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(90) matrix(-1, 0, 0, 1, 0, 0)">
-            <path d="M21 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" 
-                stroke="currentColor" 
-                stroke-width="2" 
-                stroke-linecap="round" 
-                stroke-linejoin="round">
+            <path d="M21 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round">
             </path>
         </svg>
     )
 }
 
-const ScatterChartIcon = ({size}) => {
+const ScatterChartIcon = ({ size }) => {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 21H7.8C6.11984 21 5.27976 21 4.63803 20.673C4.07354 20.3854 3.6146 19.9265 3.32698 19.362C3 18.7202 3 17.8802 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" 
-                stroke="currentColor" 
-                stroke-width="2" 
-                stroke-linecap="round" 
-                stroke-linejoin="round">
+            <path d="M21 21H7.8C6.11984 21 5.27976 21 4.63803 20.673C4.07354 20.3854 3.6146 19.9265 3.32698 19.362C3 18.7202 3 17.8802 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round">
             </path>
         </svg>
     )
 }
 
-const Views = ({size, activeView, onViewChange}) => {
+const Views = ({ size, activeView, onViewChange }) => {
     const [iconSize, setIconSize] = useState(size)
     const [buttonClasses, setButtonClasses] = useState({
         line: '',
@@ -67,7 +67,7 @@ const Views = ({size, activeView, onViewChange}) => {
 
     useEffect(() => {
         const baseClass = `btn btn-neutral p-1 aspect-square ${size ? `btn-${size}` : ''}`
-        
+
         setButtonClasses({
             line: `${baseClass} ${activeView === 'line' ? '' : 'btn-outline'}`,
             column: `${baseClass} ${activeView === 'column' ? '' : 'btn-outline'}`,
@@ -78,25 +78,25 @@ const Views = ({size, activeView, onViewChange}) => {
 
     return (
         <>
-            <div 
+            <div
                 className={buttonClasses.line}
                 onClick={() => onViewChange('line')}
             >
                 <LineChartIcon size={iconSize} />
             </div>
-            <div 
+            <div
                 className={buttonClasses.column}
                 onClick={() => onViewChange('column')}
             >
                 <ColumnChartIcon size={iconSize} />
             </div>
-            <div 
+            <div
                 className={buttonClasses.bar}
                 onClick={() => onViewChange('bar')}
             >
                 <BarChartIcon size={iconSize} />
             </div>
-            <div 
+            <div
                 className={buttonClasses.scatter}
                 onClick={() => onViewChange('scatter')}
             >
