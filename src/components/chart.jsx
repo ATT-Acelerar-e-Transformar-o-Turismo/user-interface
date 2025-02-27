@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import ApexCharts from 'apexcharts'
 
-const GChart = ({ title, chartType, xaxisType, log, series, height, themeMode = 'light' }) => {
+const GChart = ({ title, chartId, chartType, xaxisType, log, series, group, height, themeMode = 'light' }) => {
     const [labelColor, setLabelColor] = useState(themeMode === 'dark' ? '#ffffff' : '#000000')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -36,7 +36,8 @@ const GChart = ({ title, chartType, xaxisType, log, series, height, themeMode = 
         const chartOptions = {
             chart: {
                 type: chartType === 'column' ? 'bar' : chartType,
-                id: title,
+                id: chartId,
+                group: group,
                 background: 'transparent',
                 animations: {
                     enabled: true,
@@ -197,7 +198,7 @@ const GChart = ({ title, chartType, xaxisType, log, series, height, themeMode = 
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartType, xaxisType, log, series, height, themeMode, labelColor])
+    }, [title, chartId, chartType, xaxisType, log, series, group, height, themeMode, labelColor])
 
     return <div ref={chartContainerRef} />
 }
