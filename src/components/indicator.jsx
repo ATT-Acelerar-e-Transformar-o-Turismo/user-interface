@@ -248,7 +248,7 @@ const Indicator = ({ }) => {
           </div>
         </>
       ) || (
-          < div className={`hidden md:grid gap-4 grid-cols-${chartData.length}`}>
+          < div className={`hidden md:grid gap-4 grid-cols-2`}>
             {/** If two or more charts */}
 
             {chartData.map((data, index) => (
