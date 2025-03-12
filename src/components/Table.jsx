@@ -29,8 +29,9 @@ const columns = [
 
 
 
-export default function Table({ content, editAction, deleteAction, createAction, emptyMessage }) {
+export default function Table({ content, editAction, deleteAction, emptyMessage }) {
   const [data, _setData] = React.useState(() => [...content])
+  const rerender = React.useReducer(() => ({}), {})[1]
 
   const handleEdit = (id) => {
     editAction(id);
