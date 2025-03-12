@@ -29,18 +29,16 @@ const columns = [
 
 
 
-export default function Table({content}) {
+export default function Table({content, editAction, deleteAction}) {
   const [data, _setData] = React.useState(() => [...content])
   const rerender = React.useReducer(() => ({}), {})[1]
 
   const handleEdit = (id) => {
-    console.log(`Edit item with id: ${id}`);
-    // Add your edit logic here
+    editAction(id);
   };
 
   const handleDelete = (id) => {
-    console.log(`Delete item with id: ${id}`);
-    // Add your delete logic here
+    deleteAction(id);
   };
 
   const table = useReactTable({
