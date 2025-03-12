@@ -4,6 +4,7 @@ import DomainTemplate from "./Routes/DomainTemplate";
 import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./Routes/IndicatorTemplate";
 import NewIndicator from "./Routes/NewIndicator";
+import IndicatorsManagement from "./Routes/IndicatorsManagement";
 
 export const routesList = [
     {
@@ -80,6 +81,17 @@ export const routesList = [
                     <title>ATT - Add Data Resource</title>
                 </Helmet>
                 <AddResource />
+            </>
+        )
+    },
+    {
+        path: '/indicators-management',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Indicators</title>
+                </Helmet>
+                <IndicatorsManagement />
             </>
         )
     }
