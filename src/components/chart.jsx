@@ -107,7 +107,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, log, series, group, heig
                 data: s.data.sort((a, b) => a.x - b.x)
             })),
             title: {
-                text: title,
+                text: '',
                 style: {
                     fontSize: '20px',
                     fontWeight: 'bold',
