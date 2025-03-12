@@ -29,7 +29,7 @@ const columns = [
 
 
 
-export default function Table({ content, editAction, deleteAction, createAction }) {
+export default function Table({ content, editAction, deleteAction, createAction, emptyMessage }) {
   const [data, _setData] = React.useState(() => [...content])
 
   const handleEdit = (id) => {
@@ -49,7 +49,7 @@ export default function Table({ content, editAction, deleteAction, createAction 
   return (
     <div className="p-2">
       {data.length === 0 ? (
-        <p style={{ textAlign: 'center' }}>There are no indicators yet</p>
+        <p style={{ textAlign: 'center' }}>{emptyMessage}</p>
       ) : (
         <table className='table'>
           <thead>
