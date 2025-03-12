@@ -87,10 +87,6 @@ export default function Table({content, editAction, deleteAction}) {
           ))}
         </tbody>
       </table>
-      <div className="h-4" />
-      <button onClick={() => rerender()} className="btn btn-outline btn-sm">
-        Rerender
-      </button>
     </div>
 
   );
