@@ -8,6 +8,8 @@ function AddDataDropdown({ }) {
     const domainRef = useRef(null);
     const containerRef = useRef(null);
 
+    const [selectedType, setSelectedType] = useState("");
+    
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -20,9 +22,14 @@ function AddDataDropdown({ }) {
         return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
-    const handleSelectDomain = () => {
+    const handleSelectType = () => {
         if (domainRef.current) {
-            domainRef.current.removeAttribute("open"); // Close dropdown first
+            domainRef.current.removeAttribute("open"); 
+        }
+
+        setSelectedType(type);
+        if (onDataTypeSelect) {
+            onDataTypeSelect(type); // Send selected type to parent component
         }
 
     };
@@ -37,13 +44,13 @@ function AddDataDropdown({ }) {
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                     <li>
-                        <a onClick={(e) => { handleSelectDomain() }}>CSV</a>
+                        <a onClick={(e) => { handleSelectType("CSV") }}>CSV</a>
                     </li>
                     <li>
-                        <a onClick={(e) => { handleSelectDomain() }}>API Endpoint</a>
+                        <a onClick={(e) => { handleSelectType("API") }}>API Endpoint</a>
                     </li>
                     <li>
-                        <a onClick={(e) => { handleSelectDomain() }}>XLSX</a>
+                        <a onClick={(e) => { handleSelectType("XLSX") }}>XLSX</a>
                     </li>
                 </ul>
             </details>
