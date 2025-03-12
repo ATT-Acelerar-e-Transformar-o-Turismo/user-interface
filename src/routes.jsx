@@ -2,6 +2,7 @@ import App from "./App";
 import DomainTemplate from "./Routes/DomainTemplate";
 import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./Routes/IndicatorTemplate";
+import NewIndicator from "./Routes/NewIndicator";
 
 export const routesList = [
     {
@@ -56,6 +57,17 @@ export const routesList = [
                     <title>ATT - Indicator</title>
                 </Helmet>
                 <IndicatorTemplate />
+            </>
+        )
+    },
+    {
+        path: '/new_indicator',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - New Indicator</title>
+                </Helmet>
+                <NewIndicator />
             </>
         )
     }

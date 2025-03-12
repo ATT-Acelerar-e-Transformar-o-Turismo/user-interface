@@ -34,19 +34,21 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
     navigate(domain.DomainPage, {
       state: { domainName: domain.nome },
     });
+    
+    if (domainRef.current) domainRef.current.removeAttribute("open");
 
     setSelectedDomain(domain);
     setLocalSelectedSubdomain(null);
     setSelectedSubdomain(null); 
 
-    if (domainRef.current) domainRef.current.removeAttribute("open");
   };
 
   const handleSelectSubdomain = (subdom) => {
+    if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
+
     setLocalSelectedSubdomain(subdom);
     setSelectedSubdomain(subdom);
 
-    if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
   };
 
   const clearSubdomain = () => {
