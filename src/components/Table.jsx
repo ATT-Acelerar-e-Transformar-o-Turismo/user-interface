@@ -29,7 +29,7 @@ const columns = [
 
 
 
-export default function Table({content, editAction, deleteAction}) {
+export default function Table({ content, editAction, deleteAction, emptyMessage }) {
   const [data, _setData] = React.useState(() => [...content])
   const rerender = React.useReducer(() => ({}), {})[1]
 
@@ -49,45 +49,48 @@ export default function Table({content, editAction, deleteAction}) {
 
   return (
     <div className="p-2">
-      <table className='table'>
-        <thead>
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <th key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
+      {data.length === 0 ? (
+        <p style={{ textAlign: 'center' }}>{emptyMessage}</p>
+      ) : (
+        <table className='table'>
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
                         header.column.columnDef.header,
                         header.getContext()
                       )}
+                  </th>
+                ))}
+                <th key="actions">
+                  actions
                 </th>
-              ))}
-              <th key="actions">
-                actions
-              </th>
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+                <td key={`actions-${row.id}`}>
+                  <div className="flex flex-wrap gap-1">
+                    <button onClick={() => handleEdit(row.original.id)} className="btn btn-primary btn-sm">Edit</button>
+                    <button onClick={() => handleDelete(row.original.id)} className="btn btn-secondary btn-sm">Delete</button>
+                  </div>
                 </td>
-              ))}
-              <td key={`actions-${row.id}`}>
-                <div className="flex flex-wrap gap-1">
-                  <button onClick={() => handleEdit(row.original.id)} className="btn btn-primary btn-sm">Edit</button>
-                  <button onClick={() => handleDelete(row.original.id)} className="btn btn-secondary btn-sm">Delete</button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
-
   );
 }
