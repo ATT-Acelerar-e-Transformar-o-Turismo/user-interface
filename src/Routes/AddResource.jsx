@@ -4,8 +4,16 @@ import * as XLSX from 'xlsx';
 import PageTemplate from './PageTemplate';
 import AddDataDropdown from '../components/AddDataDropdown';
 import GChart from '../components/chart';
+import { useLocation } from 'react-router-dom';
 
 export default function AddResource() {
+
+    const location = useLocation();
+
+    const formData = location.state.dataToSend || {}
+
+    console.log(formData);
+
     const [fileData, setFileData] = useState([]);
     const [chartSeries, setChartSeries] = useState([]);
 
@@ -72,7 +80,20 @@ export default function AddResource() {
         <PageTemplate>
             <div className="flex justify-center min-h-screen">
                 <div className="p-8 rounded-lg shadow-lg w-full max-w-4xl">
-                    <h1 className="text-xl font-bold text-center mb-6">Upload CSV/XLSX</h1>
+                    <h1 className="text-xl font-bold text-center mb-6">Upload {formData.selectedDataType}</h1>
+
+                    <div className="border p-4 rounded-lg bg-gray-100">
+                        <h2 className="font-bold">Submitted Data</h2>
+                        <p><strong>Name:</strong> {formData.name || "N/A"}</p>
+                        <p><strong>Description:</strong> {formData.description || "N/A"}</p>
+                        <p><strong>Font:</strong> {formData.font || "N/A"}</p>
+                        <p><strong>Scale:</strong> {formData.scale || "N/A"}</p>
+                        <p><strong>Units:</strong> {formData.unit || "N/A"}</p>
+                        <p><strong>Periodicity:</strong> {formData.periodicity || "N/A"}</p>
+                        <p><strong>Domain:</strong> {formData.selectedDomain || "N/A"}</p>
+                        <p><strong>Subdomain:</strong> {formData.selectedSubdomain || "N/A"}</p>
+                        <p><strong>Category:</strong> {formData.selectedCategory || "N/A"}</p>
+                    </div>
 
                     {/* File Upload */}
                     <div className="space-y-5">
@@ -82,7 +103,7 @@ export default function AddResource() {
                             </label>
                             <input 
                                 type="file" 
-                                accept=".csv,.xlsx,.xls" 
+                                accept={formData.selectedDataType === 'CSV' ? '.csv' : '.xlsx,.xls'} 
                                 onChange={handleFileUpload} 
                                 className="file-input border p-2 rounded-lg w-full"
                             />

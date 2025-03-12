@@ -1,18 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import domains from "../../public/domains.json";
 
-function Dropdowns({ initialDomain, setSelectedSubdomain }) {
-    const [selectedDomain, setSelectedDomain] = useState(null);
-    const [selectedSubdomain, setLocalSelectedSubdomain] = useState(null);
+function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
+
+    const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
+    const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
+
     const domainRef = useRef(null);
     const subdomainRef = useRef(null);
     const containerRef = useRef(null);
-
-    useEffect(() => {
-        if (initialDomain) {
-            setSelectedDomain(initialDomain);
-        }
-    }, [initialDomain]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -27,14 +23,14 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
     }, []);
 
     const handleSelectDomain = (domain) => {
-        if (selectedDomain === domain) return;
 
         if (domainRef.current) {
             domainRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        setSelectedDomain(domain);
-        setLocalSelectedSubdomain(null);
+        setSelectedLocalDomain(domain);
+        setSelectedLocalSubdomain(null);
+        setSelectedDomain(domain); // Update main page
         setSelectedSubdomain(null);
     };
 
@@ -43,8 +39,8 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
             subdomainRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        setLocalSelectedSubdomain(subdom);
-        setSelectedSubdomain(subdom);
+        setSelectedLocalSubdomain(subdom);
+        setSelectedSubdomain(subdom); // Update main page
     };
 
 
@@ -52,7 +48,7 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
         <div ref={containerRef} className="container mx-auto">
             <details ref={domainRef} className="dropdown dropdown-right">
                 <summary className="btn m-1">
-                    {selectedDomain ? selectedDomain.nome : "Escolha o Domínio"}
+                    {selectedLocalDomain ? selectedLocalDomain.nome : "Escolha o Domínio"}
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                     {domains.dominios.map((domain) => (
@@ -63,19 +59,21 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
                 </ul>
             </details>
 
-            {selectedDomain && (
+            {selectedLocalDomain && (
                 <details ref={subdomainRef} className="dropdown dropdown-right">
                     <summary className="btn m-1">
-                        {selectedSubdomain ? (
+                        {
+                        selectedLocalSubdomain 
+                        ? (
                             <div className="flex items-center gap-2">
-                                {selectedSubdomain.nome}
-                            </div>
-                        ) : (
-                            "Escolha o Subdomínio"
-                        )}
+                                {selectedLocalSubdomain.nome}
+                            </div>) 
+                        : (
+                            "Escolha o Subdomínio")
+                        }
                     </summary>
                     <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        {selectedDomain.subdominios.map((subdom) => (
+                        {selectedLocalDomain.subdominios.map((subdom) => (
                             <li key={subdom.nome}>
                                 <a onClick={(e) => { handleSelectSubdomain(subdom); }}>{subdom.nome}</a>
                             </li>
@@ -87,4 +85,4 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
     );
 }
 
-export default Dropdowns;
+export default SelectDomain;

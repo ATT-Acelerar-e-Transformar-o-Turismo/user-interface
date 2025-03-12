@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import categorias from "../../public/categorias.json"; 
 
-function CategoryDropdown({ }) {
+function CategoryDropdown({ setSelectedCategory }) {
   const [selectedCat, setSelectedCat] = useState(null);
+
   const domainRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -19,11 +20,12 @@ function CategoryDropdown({ }) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const handleSelectCat = (domain) => {
+  const handleSelectCat = (categoria) => {
 
     if (domainRef.current) domainRef.current.removeAttribute("open");
 
-    setSelectedCat(domain);
+    setSelectedCat(categoria);
+    setSelectedCategory(categoria); // Update main page
 
   };
 
