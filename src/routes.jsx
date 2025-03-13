@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./Routes/IndicatorTemplate";
 import NewIndicator from "./Routes/NewIndicator";
 import IndicatorsManagement from "./Routes/IndicatorsManagement";
+import ResourcesManagement from "./Routes/ResourcesManagement"; // Import the new component
 
 export const routesList = [
     {
@@ -80,6 +81,17 @@ export const routesList = [
                     <title>ATT - Indicators</title>
                 </Helmet>
                 <IndicatorsManagement />
+            </>
+        )
+    },
+    {
+        path: '/resources-management/:indicator', // Update route to receive indicator ID
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Resources</title>
+                </Helmet>
+                <ResourcesManagement />
             </>
         )
     }
