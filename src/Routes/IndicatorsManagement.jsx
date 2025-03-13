@@ -9,13 +9,53 @@ export default function IndicatorsManagement() {
   const [tableContent, setTableContent] = useState([]);
   const [selectedOption, setSelectedOption] = useState('indicators');
 
+  const fetchTableContent = () => {
+    const data = JSON.parse(localStorage.getItem(selectedOption)) || [];
+    if (selectedOption === 'indicators') {
+      const domains = JSON.parse(localStorage.getItem('domains')) || [];
+      const domainMap = domains.reduce((acc, domain) => {
+        acc[domain.name] = domain.color;
+        return acc;
+      }, {});
+      data.forEach(indicator => {
+        indicator.color = domainMap[indicator.domain];
+      });
+    }
+    console.log(data)
+    setTableContent(data);
+  };
+
   useEffect(() => {
     fetchTableContent();
   }, [selectedOption]);
 
-  const fetchTableContent = () => {
+  useEffect(() => {
+    fetchTableContent();
+  }, []);
+
+  const handleDelete = (id) => {
     const data = JSON.parse(localStorage.getItem(selectedOption)) || [];
-    setTableContent(data);
+    const updatedData = data.filter(i => i.id !== id);
+    localStorage.setItem(selectedOption, JSON.stringify(updatedData));
+    fetchTableContent();
+  };
+
+  const visibleColumns = selectedOption === 'indicators' 
+    ? ['name', 'periodicity', 'domain', 'favourites'] 
+    : ['name', 'color'];
+
+  const renderCellContent = (column, value, row) => {
+    if (selectedOption === 'domains' && column === 'color') {
+      return <span style={{ backgroundColor: value }} className="inline-block w-4 h-4 rounded-full"></span>;
+    }
+    if (selectedOption === 'indicators' && column === 'domain') {
+      return (
+        <span style={{ borderColor: row.color }} className="inline-block px-2 py-1 rounded-full border-2">
+          {value}
+        </span>
+      );
+    }
+    return value;
   };
 
   return (
@@ -48,8 +88,14 @@ export default function IndicatorsManagement() {
           </div>
 
           <Table 
-            content={tableContent} 
+            content={tableContent.map(row => ({
+              ...row,
+              color: renderCellContent('color', row.color, row),
+              domain: renderCellContent('domain', row.domain, row)
+            }))} 
             emptyMessage={`There are no ${selectedOption} yet`} 
+            visibleColumns={visibleColumns}
+            deleteAction={handleDelete}
           />
 
         </div>
