@@ -27,12 +27,29 @@ export default function ResourcesManagement() {
     fetchTableContent(); // Refresh table content
   };
 
+  const editAction = (resourceId) => {
+    alert(`Edit action for resource ID: ${resourceId}`);
+  };
+
   useEffect(() => {
     fetchTableContent();
     fetchIndicatorName();
   }, [indicator]);
 
   const visibleColumns = ['name', 'start period', 'end period'];
+
+  const actions = [
+    {
+      label: 'Edit',
+      className: 'btn-primary',
+      onClick: editAction
+    },
+    {
+      label: 'Delete',
+      className: 'btn-secondary',
+      onClick: deleteAction
+    }
+  ];
 
   return (
     <PageTemplate>
@@ -48,7 +65,7 @@ export default function ResourcesManagement() {
             content={tableContent} 
             emptyMessage="There are no resources yet" 
             visibleColumns={visibleColumns}
-            deleteAction={deleteAction} // Pass deleteAction to Table
+            actions={actions} // Pass actions to Table
           />
         </div>
       </div>
