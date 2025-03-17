@@ -11,7 +11,7 @@ export default function DomainCard({ DomainTitle, DomainPage, DomainColor, Domai
     }
 
     return (
-        <div className="card bg-base-100 w-96 shadow-md m-4" style={{ background: `${DomainColor}` }}>
+        <div className="card bg-base-100 w-96 shadow-md" style={{ background: `${DomainColor}` }}>
             <figure className="px-10 pt-10">
                 <img
                 src={DomainImage}
