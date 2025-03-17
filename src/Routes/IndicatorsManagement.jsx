@@ -41,7 +41,7 @@ export default function IndicatorsManagement() {
   };
 
   const visibleColumns = selectedOption === 'indicators' 
-    ? ['name', 'periodicity', 'domain', 'favourites'] 
+    ? ['name', 'periodicity', 'domain', 'favourites', 'governance'] 
     : ['name', 'color'];
 
   const renderCellContent = (column, value, row) => {
@@ -54,6 +54,9 @@ export default function IndicatorsManagement() {
           {value}
         </span>
       );
+    }
+    if (column === 'governance') {
+      return value ? <i className="fas fa-check-circle text-green-500"></i> : <i className="fas fa-times-circle text-red-500"></i>;
     }
     return value;
   };
@@ -91,7 +94,8 @@ export default function IndicatorsManagement() {
             content={tableContent.map(row => ({
               ...row,
               color: renderCellContent('color', row.color, row),
-              domain: renderCellContent('domain', row.domain, row)
+              domain: renderCellContent('domain', row.domain, row),
+              governance: renderCellContent('governance', row.governance, row)
             }))} 
             emptyMessage={`There are no ${selectedOption} yet`} 
             visibleColumns={visibleColumns}

@@ -5,6 +5,7 @@ const exampleIndicators = [
     periodicity: "Monthly",
     domain: "Economy",
     favourites: 3,
+    governance: true,
   },
   {
     id: 2,
@@ -12,6 +13,7 @@ const exampleIndicators = [
     periodicity: "Weekly",
     domain: "Health",
     favourites: 5,
+    governance: false,
   },
   {
     id: 3,
@@ -19,6 +21,7 @@ const exampleIndicators = [
     periodicity: "Daily",
     domain: "Education",
     favourites: 0,
+    governance: true,
   },
   {
     id: 4,
@@ -26,6 +29,7 @@ const exampleIndicators = [
     periodicity: "Yearly",
     domain: "Environment",
     favourites: 2,
+    governance: false,
   },
 ];
 
