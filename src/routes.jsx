@@ -5,6 +5,8 @@ import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./Routes/IndicatorTemplate";
 import NewIndicator from "./Routes/NewIndicator";
 import IndicatorsManagement from "./Routes/IndicatorsManagement";
+import ResourcesManagement from "./Routes/ResourcesManagement";
+import NewDomain from "./Routes/NewDomain"; // Import the new component
 
 export const routesList = [
     {
@@ -92,6 +94,28 @@ export const routesList = [
                     <title>ATT - Indicators</title>
                 </Helmet>
                 <IndicatorsManagement />
+            </>
+        )
+    },
+    {
+        path: '/resources-management/:indicator',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Resources</title>
+                </Helmet>
+                <ResourcesManagement />
+            </>
+        )
+    },
+    {
+        path: '/new_domain',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - New Domain</title>
+                </Helmet>
+                <NewDomain />
             </>
         )
     }

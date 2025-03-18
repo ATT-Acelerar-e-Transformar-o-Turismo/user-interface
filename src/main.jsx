@@ -2,7 +2,15 @@ import App from './App.jsx'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import {routesList} from './routes.jsx'
+import { routesList } from './routes.jsx'
+import exampleDomains from './examples/domains.js'
+import exampleIndicators from './examples/indicators.js'
+import exampleResources from './examples/resources.js' // Import example resources
+
+// Initialize local storage with example data
+localStorage.setItem('indicators', JSON.stringify(exampleIndicators));
+localStorage.setItem('domains', JSON.stringify(exampleDomains));
+localStorage.setItem('resources', JSON.stringify(exampleResources)); // Add example resources to local storage
 
 const router = createBrowserRouter(routesList)
 
