@@ -31,6 +31,15 @@ const exampleIndicators = [
     favourites: 2,
     governance: false,
   },
+  
+  {
+    id: 5,
+    name: "Average Annual Precipitation in the Northern Hemisphere Over the Last Century",
+    periodicity: "Monthly",
+    domain: "Environment",
+    favourites: 1,
+  },
+  
 ];
 
 export default exampleIndicators;

@@ -6,7 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
-export default function Table({ content, editAction, deleteAction, emptyMessage, visibleColumns }) {
+export default function Table({ content, actions, emptyMessage, visibleColumns }) {
   const [data, setData] = React.useState(() => [...content])
   const rerender = React.useReducer(() => ({}), {})[1]
 
@@ -16,16 +16,8 @@ export default function Table({ content, editAction, deleteAction, emptyMessage,
     console.log(content.length)
   }, [content]);
 
-  const handleEdit = (id) => {
-    editAction(id);
-  };
-
-  const handleDelete = (id) => {
-    deleteAction(id);
-  };
-
   const columnHelper = createColumnHelper();
-  const columns = visibleColumns.map(column => 
+  const columns = visibleColumns.map(column =>
     columnHelper.accessor(column, {
       cell: info => info.getValue(),
       footer: info => info.column.id,
@@ -49,7 +41,7 @@ export default function Table({ content, editAction, deleteAction, emptyMessage,
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
-                    <th key={header.id} className="px-6 py-3 text-left text-xs font-medium text-base-content uppercase tracking-wider">
+                    <th key={header.id} className="px-4 py-2 text-left text-xs font-medium text-base-content uppercase tracking-wider">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -58,7 +50,7 @@ export default function Table({ content, editAction, deleteAction, emptyMessage,
                         )}
                     </th>
                   ))}
-                  <th key="actions" className="px-6 py-3 text-left text-xs font-medium text-base-content uppercase tracking-wider">
+                  <th key="actions" className="px-4 py-2 text-left text-xs font-medium text-base-content uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -68,14 +60,21 @@ export default function Table({ content, editAction, deleteAction, emptyMessage,
               {table.getRowModel().rows.map(row => (
                 <tr key={row.id}>
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <td key={cell.id} className="px-4 py-2 whitespace-nowrap text-ellipsis max-w-64">
+                      <span className='block overflow-hidden hover:overflow-visible z-10 hover:z-50 relative'>
+                        <span className='bg-white'>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </span>
+                      </span>
                     </td>
                   ))}
-                  <td key={`actions-${row.id}`} className="px-6 py-4 whitespace-nowrap">
+                  <td key={`actions-${row.id}`} className="px-4 py-2 whitespace-nowrap">
                     <div className="flex flex-wrap gap-1">
-                      <button onClick={() => handleEdit(row.original.id)} className="btn btn-primary btn-sm">Edit</button>
-                      <button onClick={() => handleDelete(row.original.id)} className="btn btn-secondary btn-sm">Delete</button>
+                      {actions.map((action, index) => (
+                        <button key={index} onClick={() => action.onClick(row.original.id)} className={`btn ${action.className} btn-sm min-w-16`}>
+                          {action.label}
+                        </button>
+                      ))}
                     </div>
                   </td>
                 </tr>

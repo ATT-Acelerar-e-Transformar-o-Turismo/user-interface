@@ -40,6 +40,10 @@ export default function IndicatorsManagement() {
     fetchTableContent();
   };
 
+  const handleEdit = (id) => {
+    alert(`Edit action for ID: ${id}`);
+  };
+
   const visibleColumns = selectedOption === 'indicators' 
     ? ['name', 'periodicity', 'domain', 'favourites', 'governance'] 
     : ['name', 'color'];
@@ -60,6 +64,19 @@ export default function IndicatorsManagement() {
     }
     return value;
   };
+
+  const actions = [
+    {
+      label: 'Edit',
+      className: 'btn-primary',
+      onClick: handleEdit
+    },
+    {
+      label: 'Delete',
+      className: 'btn-secondary',
+      onClick: handleDelete
+    }
+  ];
 
   return (
     <PageTemplate>
@@ -99,7 +116,7 @@ export default function IndicatorsManagement() {
             }))} 
             emptyMessage={`There are no ${selectedOption} yet`} 
             visibleColumns={visibleColumns}
-            deleteAction={handleDelete}
+            actions={actions} // Pass actions to Table
           />
 
         </div>
