@@ -6,7 +6,7 @@
             "DomainColor": "#B3E240",
             "DomainImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
             "DomainCarouselImages": [
-                "./costa-nova-beach.webp"
+                "/costa-nova-beach.webp"
             ],
             "subdominios": [
                 {
