@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 
-function AddDataDropdown({ onDataTypeSelect }) { 
+function AddDataDropdown({ onDataTypeSelect, text }) { 
     const domainRef = useRef(null);
     const containerRef = useRef(null);
 
@@ -39,7 +39,7 @@ function AddDataDropdown({ onDataTypeSelect }) {
         <div ref={containerRef} >
             <details ref={domainRef} className="dropdown dropdown-right">
                 <summary className="btn m-1">
-                        {selectedType ? `Selected: ${selectedType}` : "Add data"}
+                        {selectedType ? `Selected: ${selectedType}` : (text || 'Add Data Resource')}
                     <FontAwesomeIcon icon={faChevronRight} className="ml-2" />
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">

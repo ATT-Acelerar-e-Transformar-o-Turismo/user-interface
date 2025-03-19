@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import CategoryDropdown from '../components/CategoryDropdown';
 import AddDataDropdown from '../components/AddDataDropdown';
 import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
@@ -14,19 +13,28 @@ export default function NewIndicator() {
         scale: '',
         unit: '',
         periodicity: '',
-        category: '',
         domain: '',
         subdomain: '',
+        governance: false,
+        carrying_capacity: '',
     });
 
     const [selectedDomain, setSelectedDomain] = useState(null);
     const [selectedSubdomain, setSelectedSubdomain] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState(null);
 
     const navigate = useNavigate();
     
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
+    };
+
+    const handleGovernanceChange = (e) => {
+        setFormData({ ...formData, governance: e.target.checked });
+    };
+
+    const handleCarryingCapacityChange = (e) => {
+        setFormData({ ...formData, carrying_capacity: '' });  // Reset carrying capacity value when unchecked
+        setIsCarryingCapacityChecked(e.target.checked);
     };
 
     const handleDataTypeSelect = (dataType) => {
@@ -36,7 +44,6 @@ export default function NewIndicator() {
             selectedDataType: dataType,
             selectedDomain: selectedDomain ? selectedDomain.nome : null,
             selectedSubdomain: selectedSubdomain ? selectedSubdomain.nome : null,
-            selectedCategory: selectedCategory ? selectedCategory.nome : null,
         };
 
         console.log(formData);
@@ -94,7 +101,13 @@ export default function NewIndicator() {
                         </div>
 
                             <div className="flex items-center">
-                                <input type="checkbox" className="checkbox" />
+                                <input 
+                                    type="checkbox" 
+                                    className="checkbox"
+                                    id='governance'
+                                    checked={formData.governance}
+                                    onChange={handleGovernanceChange}   
+                                />
                                 <label htmlFor="governance-checkbox" className="text-sm font-medium text-gray-900 dark:text-white ml-2">Governance Indicator</label>
                             </div>
 
@@ -102,7 +115,8 @@ export default function NewIndicator() {
                                 <input 
                                     type="checkbox" 
                                     className="checkbox" 
-                                    onChange={(e) => setIsCarryingCapacityChecked(e.target.checked)} 
+                                    checked={isCarryingCapacityChecked} 
+                                    onChange={handleCarryingCapacityChange} 
                                 />
                                 <label htmlFor="carrying-capacity-checkbox" className="text-sm font-medium text-gray-900 dark:text-white ml-2">Carrying Capacity</label>
                             </div>
@@ -111,20 +125,20 @@ export default function NewIndicator() {
                                 <div>
                                     <label htmlFor="carrying-capacity-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Carrying Capacity Value</label>
                                     <input 
-                                        type="number" 
-                                        id="carrying-capacity-input" 
-                                        className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" 
-                                    />
+                                        type="text"
+                                        onChange={handleChange} 
+                                        id="carrying_capacity" 
+                                        className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
                                 </div>
                             )}
 
+                            <div>
+                                <label htmlFor="small-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periodicity</label>
+                                <input type="text" value={formData.periodicity} onChange={handleChange} id="periodicity" className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                            </div>
                         </form>
                     </div>
                     <div className='flex justify-end w-full mt-4'>
-                        <div>
-                            <label htmlFor="small-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periodicity</label>
-                            <input type="text" value={formData.periodicity} onChange={handleChange} id="periodicity" className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                        </div>
                     
                     <div className='flex justify-end w-full mt-4'>                    
                         <AddDataDropdown onDataTypeSelect={handleDataTypeSelect}/>
