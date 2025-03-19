@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CategoryDropdown from '../components/CategoryDropdown';
 import AddDataDropdown from '../components/AddDataDropdown';
 import SelectDomain from '../components/SelectDomain';
@@ -8,6 +9,7 @@ import Table from '../components/Table';
 export default function IndicatorsManagement() {
   const [tableContent, setTableContent] = useState([]);
   const [selectedOption, setSelectedOption] = useState('indicators');
+  const navigate = useNavigate();
 
   const fetchTableContent = () => {
     const data = JSON.parse(localStorage.getItem(selectedOption)) || [];
@@ -33,6 +35,14 @@ export default function IndicatorsManagement() {
     fetchTableContent();
   }, []);
 
+  const handleEdit = (id) => {
+    if (selectedOption === 'indicators') {
+      navigate(`/edit_indicator/${id}`);
+    } else {
+      navigate(`/edit_domain/${id}`);
+    }
+  }
+
   const handleDelete = (id) => {
     const data = JSON.parse(localStorage.getItem(selectedOption)) || [];
     const updatedData = data.filter(i => i.id !== id);
@@ -40,8 +50,8 @@ export default function IndicatorsManagement() {
     fetchTableContent();
   };
 
-  const handleEdit = (id) => {
-    alert(`Edit action for ID: ${id}`);
+  const editAction = (id) => {
+    navigate(`/edit_indicator/${id}`);
   };
 
   const visibleColumns = selectedOption === 'indicators' 
@@ -116,7 +126,7 @@ export default function IndicatorsManagement() {
             }))} 
             emptyMessage={`There are no ${selectedOption} yet`} 
             visibleColumns={visibleColumns}
-            actions={actions} // Pass actions to Table
+            actions={actions}
           />
 
         </div>

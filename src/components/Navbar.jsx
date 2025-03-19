@@ -11,6 +11,16 @@ export default function Navbar() {
             <div className="flex-none">
                 <ul className="menu menu-horizontal px-1">
                     <li>
+                        <div className="dropdown dropdown-end">
+                            <div tabIndex="0" role="button">Admin</div>
+                            <ul tabIndex="0" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                                <li>
+                                    <Link to={'/indicators-management'} className="text-base-content">Indicators</Link>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
                         <a className="text-base-content">Sign in</a>
                     </li>
                     <li>
