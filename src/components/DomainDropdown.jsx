@@ -13,6 +13,8 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
   useEffect(() => {
     if (initialDomain) {
       setSelectedDomain(initialDomain);
+      setLocalSelectedSubdomain(null);
+      setSelectedSubdomain(null);
     }
   }, [initialDomain]);
 
@@ -88,7 +90,7 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
             )}
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-            {selectedDomain.subdominios.map((subdom) => (
+            {selectedDomain.subdominios && selectedDomain.subdominios.map((subdom) => (
               <li key={subdom.nome}>
                 <a onClick={() => handleSelectSubdomain(subdom)}>{subdom.nome}</a>
               </li>

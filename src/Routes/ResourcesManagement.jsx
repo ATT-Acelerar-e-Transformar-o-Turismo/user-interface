@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
 import Table from '../components/Table';
 
@@ -7,6 +7,7 @@ export default function ResourcesManagement() {
   const { indicator } = useParams(); // Get indicator ID from route parameters
   const [tableContent, setTableContent] = useState([]);
   const [indicatorName, setIndicatorName] = useState('');
+  const navigate = useNavigate();
 
   const fetchTableContent = () => {
     const data = JSON.parse(localStorage.getItem('resources')) || [];
@@ -28,7 +29,7 @@ export default function ResourcesManagement() {
   };
 
   const editAction = (resourceId) => {
-    alert(`Edit action for resource ID: ${resourceId}`);
+    navigate(`/edit_resource/${resourceId}`);
   };
 
   useEffect(() => {
@@ -65,7 +66,8 @@ export default function ResourcesManagement() {
             content={tableContent} 
             emptyMessage="There are no resources yet" 
             visibleColumns={visibleColumns}
-            actions={actions} // Pass actions to Table
+            deleteAction={deleteAction} // Pass deleteAction to Table
+            editAction={editAction} // Pass editAction to Table
           />
         </div>
       </div>

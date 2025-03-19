@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
 
-export default function NewDomain() {
+export default function EditDomain() {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [subdomains, setSubdomains] = useState([]);
     const [subdomainInput, setSubdomainInput] = useState('');
     const [name, setName] = useState('');
     const [color, setColor] = useState('');
     const [image, setImage] = useState(null);
-    const navigate = useNavigate();
+
+    useEffect(() => {
+        const domains = JSON.parse(localStorage.getItem('domains')) || [];
+        const domainToEdit = domains.find(d => d.id === id);
+        console.log(id)
+        if (domainToEdit) {
+            setName(domainToEdit.name);
+            setColor(domainToEdit.color);
+            setSubdomains(domainToEdit.subdomains);
+            setImage(domainToEdit.image);
+        }
+    }, [id]);
 
     const handleAddSubdomain = () => {
         if (subdomainInput) {
@@ -23,10 +36,10 @@ export default function NewDomain() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const newDomain = { name, color, subdomains, image };
+        const updatedDomain = { id, name, color, subdomains, image };
         const domains = JSON.parse(localStorage.getItem('domains')) || [];
-        domains.push(newDomain);
-        localStorage.setItem('domains', JSON.stringify(domains));
+        const updatedDomains = domains.map(d => (d.id === id ? updatedDomain : d));
+        localStorage.setItem('domains', JSON.stringify(updatedDomains));
         navigate('/indicators-management');
     };
 
@@ -41,7 +54,7 @@ export default function NewDomain() {
         <PageTemplate>
             <div className="flex justify-center min-h-screen">
                 <div className="p-8 rounded-lg shadow-lg w-full ">
-                    <h1 className="text-xl font-bold text-center mb-6">New Domain</h1>
+                    <h1 className="text-xl font-bold text-center mb-6">Edit Domain</h1>
 
                     <form className="space-y-5" onSubmit={handleSubmit}>
                         <div>
@@ -101,7 +114,7 @@ export default function NewDomain() {
                             </div>
                         </div>
                         <div className="flex justify-end mt-4">
-                            <button type="submit" className="btn btn-primary">Confirm</button>
+                            <button type="submit" className="btn btn-primary">Save</button>
                         </div>
                     </form>
                 </div>

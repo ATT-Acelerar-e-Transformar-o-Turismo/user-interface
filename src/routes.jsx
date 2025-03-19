@@ -5,7 +5,9 @@ import IndicatorTemplate from "./Routes/IndicatorTemplate";
 import NewIndicator from "./Routes/NewIndicator";
 import IndicatorsManagement from "./Routes/IndicatorsManagement";
 import ResourcesManagement from "./Routes/ResourcesManagement";
-import NewDomain from "./Routes/NewDomain"; // Import the new component
+import NewDomain from "./Routes/NewDomain";
+import EditDomain from "./Routes/EditDomain";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 export const routesList = [
     {
@@ -104,6 +106,28 @@ export const routesList = [
                     <title>ATT - New Domain</title>
                 </Helmet>
                 <NewDomain />
+            </>
+        )
+    },
+    {
+        path: '/edit_indicator/:indicatorId',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Edit Indicator</title>
+                </Helmet>
+                <NewIndicator />
+            </>
+        )
+    },
+    {
+        path: '/edit_domain/:id',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Edit Domain</title>
+                </Helmet>
+                <EditDomain />
             </>
         )
     }

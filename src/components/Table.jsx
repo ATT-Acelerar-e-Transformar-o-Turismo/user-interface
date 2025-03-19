@@ -50,26 +50,26 @@ export default function Table({ content, actions, emptyMessage, visibleColumns }
                         )}
                     </th>
                   ))}
-                  <th key="actions" className="px-4 py-2 text-left text-xs font-medium text-base-content uppercase tracking-wider">
+                  <th key="actions" className="px-4 py-2 text-xs font-medium text-base-content uppercase tracking-wider text-left w-24">
                     Actions
                   </th>
                 </tr>
               ))}
             </thead>
-            <tbody className="bg-white divide-y divide-base-300">
+            <tbody className="bg-base-100 divide-y divide-base-300">
               {table.getRowModel().rows.map(row => (
                 <tr key={row.id}>
                   {row.getVisibleCells().map(cell => (
                     <td key={cell.id} className="px-4 py-2 whitespace-nowrap text-ellipsis max-w-64">
                       <span className='block overflow-hidden hover:overflow-visible z-10 hover:z-50 relative'>
-                        <span className='bg-white'>
+                        <span className="bg-base-100">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </span>
                       </span>
                     </td>
                   ))}
-                  <td key={`actions-${row.id}`} className="px-4 py-2 whitespace-nowrap">
-                    <div className="flex flex-wrap gap-1">
+                  <td key={`actions-${row.id}`} className="px-4 py-2 w-24">
+                    <div className="flex gap-1">
                       {actions.map((action, index) => (
                         <button key={index} onClick={() => action.onClick(row.original.id)} className={`btn ${action.className} btn-sm min-w-16`}>
                           {action.label}
