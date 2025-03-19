@@ -16,7 +16,7 @@ export default function DomainCard({ DomainTitle, DomainPage, DomainColor, Domai
                 <img
                 src={DomainImage}
                 alt={DomainTitle}
-                class="rounded-xl" />
+                className="rounded-xl" />
             </figure>
             <div className="card-body items-center text-center">
                 <div className="card-actions">

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import CategoryDropdown from '../components/CategoryDropdown';
 import AddDataDropdown from '../components/AddDataDropdown';
 import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
@@ -26,6 +28,11 @@ export default function NewIndicator() {
     
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
+        const { id, value } = e.target;
+        setIndicatorData(prevState => ({
+        ...prevState,
+        [id]: value
+        }));
     };
 
     const handleGovernanceChange = (e) => {
@@ -51,15 +58,45 @@ export default function NewIndicator() {
 
     };
 
-    const [isCarryingCapacityChecked, setIsCarryingCapacityChecked] = useState(false);
+  const { indicatorId } = useParams();
 
-    return (
-        <PageTemplate>
-            <div className="flex justify-center min-h-screen">
-                <div className="p-8 rounded-lg shadow-lg w-full flex flex-col justify-between">
-                    <div>
-                        <h1 className="text-xl font-bold text-center mb-6">New Indicator</h1>
+  useEffect(() => {
+    if (indicatorId) {
+      const indicators = JSON.parse(localStorage.getItem('indicators')) || [];
+      const indicator = indicators.find(ind => ind.id === parseInt(indicatorId));
+      if (indicator) {
+        setIndicatorData(indicator);
+      }
+    }
+  }, [indicatorId]);
 
+  const handleSave = () => {
+    const indicators = JSON.parse(localStorage.getItem('indicators')) || [];
+    if (indicatorId) {
+      const index = indicators.findIndex(ind => ind.id === parseInt(indicatorId));
+      if (index !== -1) {
+        indicators[index] = indicatorData;
+      }
+    } else {
+      indicatorData.id = indicators.length ? indicators[indicators.length - 1].id + 1 : 1;
+      indicators.push(indicatorData);
+    }
+    localStorage.setItem('indicators', JSON.stringify(indicators));
+  };
+
+  return (
+    <PageTemplate>
+      <div className="flex justify-center min-h-screen">
+        <div className="p-8 rounded-lg shadow-lg w-full ">
+          <h1 className="text-xl font-bold text-center mb-6">
+            {indicatorId ? 'Edit Indicator' : 'New Indicator'}
+          </h1>
+
+          <form className="space-y-5">
+            <div>
+              <label htmlFor="name" className="block mb-2 text-sm font-medium text-neutral">Name</label>
+              <input type="text" id="name" value={indicatorData.name} onChange={handleChange} className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" />
+            </div>
                     <form className="space-y-5">
                         <div>
                             <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
@@ -73,27 +110,21 @@ export default function NewIndicator() {
                             />
                         </div>
 
-                        <div>
-                            <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-                            <textarea
-                                id="description"
-                                rows="4"
-                                value={formData.description}
-                                onChange={handleChange}
-                                className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"
-                            />
-                        </div>
+            <div>
+              <label htmlFor="description" className="block mb-2 text-sm font-medium text-neutral">Description</label>
+              <textarea
+                id="description"
+                value={indicatorData.description}
+                onChange={handleChange}
+                rows="4"
+                className="block w-full p-4 text-neutral border border-base-300 rounded-lg bg-base-100 text-base focus:ring-primary focus:border-primary resize-none"
+              />
+            </div>
 
-                        
-                        <div>
-                            <label htmlFor="small-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Unit</label>
-                            <input type="text" value={formData.unit} onChange={handleChange} id="unit" className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                        </div>
-
-                        <div>
-                            <label htmlFor="small-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Font</label>
-                            <input type="text" value={formData.font} onChange={handleChange} id="font" className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                        </div>
+            <div>
+              <label htmlFor="font" className="block mb-2 text-sm font-medium text-neutral">Font</label>
+              <input type="text" id="font" value={indicatorData.font} onChange={handleChange} className="block w-full p-2 text-neutral border border-base-300 rounded-lg bg-base-100 text-xs focus:ring-primary focus:border-primary" />
+            </div>
 
                         <div>
                             <label htmlFor="small-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Scale</label>
@@ -141,11 +172,22 @@ export default function NewIndicator() {
                     <div className='flex justify-end w-full mt-4'>
                     
                     <div className='flex justify-end w-full mt-4'>                    
-                        <AddDataDropdown onDataTypeSelect={handleDataTypeSelect}/>
+                        <AddDataDropdown 
                     </div>
                     </div>
                 </div>
             </div>
-        </PageTemplate>
-    );
+          </form>
+          <div className='flex justify-end w-full mt-4'>
+            <button onClick={handleSave} className="btn btn-primary">
+              {indicatorId ? 'Update' : 'Save'}
+            </button>
+            <AddDataDropdown onDataTypeSelect={handleDataTypeSelect}/>
+          </div>
+
+        </div>
+
+      </div>
+    </PageTemplate >
+  );
 }
