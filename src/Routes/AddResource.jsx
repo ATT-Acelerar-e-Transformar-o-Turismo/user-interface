@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import PageTemplate from './PageTemplate';
 import AddDataDropdown from '../components/AddDataDropdown';
 import GChart from '../components/chart';
-import { useLocation } from 'react-router-dom';
+import { useLocation , useNavigate} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
 export default function AddResource() {
     const location = useLocation();
     const formData = location.state?.dataToSend || {};
+    const navigate = useNavigate();
 
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [uploadedData, setUploadedData] = useState([]);
@@ -138,6 +139,10 @@ export default function AddResource() {
 
     console.log(chartSeries)
 
+    const handleBack = () => {
+        navigate(-1, { state: { dataToSend: formData } });
+    }
+
     return (
         <PageTemplate>
             <div className="flex justify-center ">
@@ -238,7 +243,7 @@ export default function AddResource() {
                         )}
                         <div className='flex mt-8'>
                             <div className="flex justify-start w-full ">
-                                <button className="btn" >
+                                <button className="btn" onClick={handleBack}>
                                 <FontAwesomeIcon icon={faChevronLeft} className="mr-2" />
                                 Back
                                 </button>
