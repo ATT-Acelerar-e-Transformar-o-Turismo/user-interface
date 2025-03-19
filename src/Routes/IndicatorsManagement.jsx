@@ -64,7 +64,7 @@ export default function IndicatorsManagement() {
     }
     if (selectedOption === 'indicators' && column === 'domain') {
       return (
-        <span style={{ borderColor: row.color }} className="inline-block px-2 py-1 rounded-full border-2">
+        <span style={{ borderColor: row.color }} className="inline-block px-2 py-1 rounded-full border-2 w-full text-center">
           {value}
         </span>
       );

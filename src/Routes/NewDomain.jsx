@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
 
 export default function NewDomain() {
@@ -9,6 +9,21 @@ export default function NewDomain() {
     const [color, setColor] = useState('');
     const [image, setImage] = useState(null);
     const navigate = useNavigate();
+    const { id } = useParams();
+
+    useEffect(() => {
+        if (id) {
+            const domains = JSON.parse(localStorage.getItem('domains')) || [];
+            const domain = domains.find(dom => dom.id === parseInt(id));
+            if (domain) {
+                setName(domain.name);
+                setColor(domain.color);
+                setSubdomains(domain.subdomains);
+                setImage(domain.image);
+            }
+            console.log("subdomains: " + domain.subdomains)
+        }
+    }, [id]);
 
     const handleAddSubdomain = () => {
         if (subdomainInput) {
@@ -23,9 +38,16 @@ export default function NewDomain() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const newDomain = { name, color, subdomains, image };
+        const newDomain = { id: id ? parseInt(id) : Date.now(), name, color, subdomains, image };
         const domains = JSON.parse(localStorage.getItem('domains')) || [];
-        domains.push(newDomain);
+        if (id) {
+            const index = domains.findIndex(dom => dom.id === parseInt(id));
+            if (index !== -1) {
+                domains[index] = newDomain;
+            }
+        } else {
+            domains.push(newDomain);
+        }
         localStorage.setItem('domains', JSON.stringify(domains));
         navigate('/indicators-management');
     };
