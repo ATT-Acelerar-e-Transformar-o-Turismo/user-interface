@@ -38,11 +38,67 @@ export default function IndicatorTemplate() {
 
   const images = domainObj.DomainCarouselImages;
 
+  // Example chart data
+  const exampleCharts = [
+    {
+      chartType: 'line',
+      xaxisType: 'datetime',
+      availableFilters: {},
+      annotations: {
+        xaxis: [{
+          x: new Date('06/01/2020').getTime(),
+          borderColor: '#000000',
+          label: {
+          }
+        }],
+        yaxis: [{
+          y: 170,
+          borderColor: '#000000',
+          label: {
+            text: 'carrying capacity'
+          }
+        }]
+      },
+      series: [
+        {
+          name: 'B2B Sales',
+          hidden: false,
+          data: [
+            { x: '2020-01-01', y: 30 },
+            { x: '2020-02-01', y: 40 },
+            { x: '2020-03-01', y: 35 },
+            { x: '2020-04-01', y: 50 },
+            { x: '2020-05-01', y: 49 },
+            { x: '2020-06-01', y: 60 },
+            { x: '2020-07-01', y: 70 },
+            { x: '2020-08-01', y: 80 },
+            { x: '2020-09-01', y: 90 },
+            { x: '2020-10-01', y: 100 },
+            { x: '2020-11-01', y: 110 },
+            { x: '2020-12-01', y: 120 },
+            { x: '2021-01-01', y: 130 },
+            { x: '2021-02-01', y: 140 },
+            { x: '2021-03-01', y: 150 },
+            { x: '2021-04-01', y: 160 },
+            { x: '2021-05-01', y: 170 },
+            { x: '2021-06-01', y: 180 },
+            { x: '2021-07-01', y: 190 },
+            { x: '2021-08-01', y: 200 },
+            { x: '2021-09-01', y: 210 },
+            { x: '2021-10-01', y: 220 },
+            { x: '2021-11-01', y: 230 },
+            { x: '2021-12-01', y: 240 },
+          ]
+        },
+      ]
+    }
+  ];
+
   return (
     <PageTemplate>
       <Carousel images={images} />
 
-      <div className="container mx-auto">
+      <div className="@container mx-auto">
         <div className="p-4">
           <IndicatorDropdowns
             currentDomain={domainObj}
@@ -52,29 +108,41 @@ export default function IndicatorTemplate() {
             allowSubdomainClear={false}
           />
         </div>
+        <h2 className="text-2xl font-bold mt-16">{indicatorObj.nome}</h2>
 
-        <div>
-          <h1 className="text-3xl font-bold">{indicatorObj.nome}</h1>
-          <p>
-            <strong>Subdomain:</strong> {subdomainName}
-          </p>
-          <p>
-            <strong>Category:</strong> {indicatorObj.categorizacao}
-          </p>
-          <p>
-            <strong>Measurement Unit:</strong>{" "}
-            {indicatorObj.caracteristicas.unidade_de_medida}
-          </p>
-          <p>
-            <strong>Source:</strong> {indicatorObj.caracteristicas.fonte}
-          </p>
-          <p>
-            <strong>Periodicity:</strong> {indicatorObj.caracteristicas.periodicidade}
-          </p>
+        <div className="mt-12">
+          <Indicator charts={exampleCharts} />
         </div>
-        <div className="p-4">
-          <Indicator />
+
+        <div className="mt-8 @2xl:mx-32 container">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="mb-4">
+                <span className="font-semibold">Subdomain</span><br />
+                {subdomainName}
+              </p>
+              <p className="mb-4">
+                <span className="font-semibold">Category</span><br />
+                {indicatorObj.categorizacao}
+              </p>
+            </div>
+            <div>
+              <p className="mb-4">
+                <span className="font-semibold">Measurement Unit</span><br />
+                {indicatorObj.caracteristicas.unidade_de_medida}
+              </p>
+              <p className="mb-4">
+                <span className="font-semibold">Source</span><br />
+                {indicatorObj.caracteristicas.fonte}
+              </p>
+              <p className="mb-4">
+                <span className="font-semibold">Periodicity</span><br />
+                {indicatorObj.caracteristicas.periodicidade}
+              </p>
+            </div>
+          </div>
         </div>
+
       </div>
     </PageTemplate>
   );
