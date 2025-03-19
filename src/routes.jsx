@@ -7,7 +7,6 @@ import NewIndicator from "./Routes/NewIndicator";
 import IndicatorsManagement from "./Routes/IndicatorsManagement";
 import ResourcesManagement from "./Routes/ResourcesManagement";
 import NewDomain from "./Routes/NewDomain";
-import EditDomain from "./Routes/EditDomain";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 export const routesList = [
@@ -139,7 +138,7 @@ export const routesList = [
                 <Helmet>
                     <title>ATT - Edit Domain</title>
                 </Helmet>
-                <EditDomain />
+                <NewDomain />
             </>
         )
     }

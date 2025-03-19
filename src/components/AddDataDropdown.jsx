@@ -37,7 +37,7 @@ function AddDataDropdown({ onDataTypeSelect, text }) {
 
     return (
         <div ref={containerRef} >
-            <details ref={domainRef} className="dropdown dropdown-right">
+            <details ref={domainRef} className="dropdown dropdown-top">
                 <summary className="btn m-1">
                         {selectedType ? `Selected: ${selectedType}` : (text || 'Add Data Resource')}
                     <FontAwesomeIcon icon={faChevronRight} className="ml-2" />

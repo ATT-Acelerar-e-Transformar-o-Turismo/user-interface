@@ -24,7 +24,7 @@ const exampleIndicators = [
   {
     id: 3,
     name: "Literacy Rate",
-    periodicity: "Sociedade",
+    periodicity: "Monthly",
     domain: "Sociedade",
     favourites: 0,
     governance: true,

@@ -75,13 +75,15 @@ export default function IndicatorDropdowns({
   };
 
   return (
-    <div ref={containerRef} className="flex flex-wrap gap-4">
+    <div ref={containerRef} className="flex flex-nowrap gap-4 flex-col md:flex-row">
       {/* Domain Dropdown */}
-      <details ref={domainRef} className="dropdown dropdown-right">
-        <summary className="btn m-1">
-          {stagedDomain ? stagedDomain.nome : "Escolha o Domínio"}
+      <details ref={domainRef} className="dropdown md:dropdown-right">
+        <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
+          <p className="overflow-hidden text-center text-nowrap">
+            {stagedDomain ? stagedDomain.nome : "Escolha o Domínio"}
+          </p>
         </summary>
-        <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+        <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
           {allDomains.map((dom) => (
             <li key={dom.nome}>
               <a onClick={() => handleDomainSelect(dom)}>{dom.nome}</a>
@@ -92,22 +94,25 @@ export default function IndicatorDropdowns({
 
       {/* Subdomain Dropdown */}
       {stagedDomain && (
-        <details ref={subdomainRef} className="dropdown dropdown-right">
-          <summary className="btn m-1">
-            {stagedSubdomain ? (
-              <div className="flex items-center gap-2">
-                {stagedSubdomain.nome}
-                {allowSubdomainClear && (
-                  <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
-                    ✕
-                  </button>
-                )}
-              </div>
-            ) : (
-              "Escolha o Subdomínio"
-            )}
+        <details ref={subdomainRef} className="dropdown md:dropdown-right">
+          <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
+            <p className="overflow-hidden text-center text-nowrap">
+              {stagedSubdomain ? (
+                <div className="flex items-center gap-2">
+
+                  {stagedSubdomain.nome}
+                  {allowSubdomainClear && (
+                    <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ) : (
+                "Escolha o Subdomínio"
+              )}
+            </p>
           </summary>
-          <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+          <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
             {stagedDomain.subdominios.map((sub) => (
               <li key={sub.nome}>
                 <a onClick={() => handleSubdomainSelect(sub)}>
@@ -121,11 +126,13 @@ export default function IndicatorDropdowns({
 
       {/* Indicator Dropdown */}
       {stagedSubdomain && (
-        <details ref={indicatorRef} className="dropdown dropdown-right">
-          <summary className="btn m-1">
-            {stagedIndicator ? stagedIndicator.nome : "Escolha o Indicador"}
+        <details ref={indicatorRef} className="dropdown md:dropdown-right">
+          <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
+            <p className="overflow-hidden text-center text-nowrap">
+              {stagedIndicator ? stagedIndicator.nome : "Escolha o Indicador"}
+            </p>
           </summary>
-          <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+          <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
             {stagedSubdomain.indicadores.map((ind) => (
               <li key={ind.id}>
                 <a onClick={() => handleIndicatorSelect(ind)}>

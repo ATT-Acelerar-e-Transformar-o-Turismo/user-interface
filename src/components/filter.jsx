@@ -9,7 +9,7 @@ const Filter = ({ filters, activeFilters, onFilterChange }) => {
 
   return (
     <details className="dropdown">
-      <summary className="btn mt-6 ml-1 w-24">Filters &#x25BC;</summary>
+      <summary className="btn mt-6 w-24">Filters &#x25BC;</summary>
       <div className="dropdown-content bg-base-200 rounded-box z-1 w-52 p-2 shadow-sm">
         {Object.entries(filters).map(([filterGroup, options]) => (
           <div key={filterGroup}>
