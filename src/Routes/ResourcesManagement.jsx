@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
 import Table from '../components/Table';
+import AddDataDropdown from '../components/AddDataDropdown';
 
 export default function ResourcesManagement() {
   const { indicator } = useParams(); // Get indicator ID from route parameters
@@ -32,6 +33,18 @@ export default function ResourcesManagement() {
     navigate(`/edit_resource/${resourceId}`);
   };
 
+  const handleDataTypeSelect = (dataType) => {
+    const indicators = JSON.parse(localStorage.getItem('indicators')) || {};
+    const indicatorData = indicators.find(ind => ind.id === parseInt(indicator));
+    const dataToSend = {
+      ...indicatorData,
+      selectedDataType: dataType,
+    };
+
+    console.log(indicatorData);
+    navigate('/add_data_resource', { state: { dataToSend } });
+  };
+
   useEffect(() => {
     fetchTableContent();
     fetchIndicatorName();
@@ -58,16 +71,13 @@ export default function ResourcesManagement() {
         <div className="p-8 rounded-lg shadow-lg w-full">
           <h1 className="text-xl font-bold text-center mb-6">{indicatorName} - Resources</h1>
           <div className="flex flex-row-reverse mb-4">
-            <a href="new_resource">
-              <button className="btn btn-success">Create New Resource</button>
-            </a>
+            <AddDataDropdown onDataTypeSelect={handleDataTypeSelect} />
           </div>
           <Table 
             content={tableContent} 
             emptyMessage="There are no resources yet" 
             visibleColumns={visibleColumns}
-            deleteAction={deleteAction} // Pass deleteAction to Table
-            editAction={editAction} // Pass editAction to Table
+            actions={actions}
           />
         </div>
       </div>
