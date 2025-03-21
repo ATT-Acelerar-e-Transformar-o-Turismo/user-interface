@@ -47,16 +47,24 @@ export default function IndicatorTemplate() {
       annotations: {
         xaxis: [{
           x: new Date('06/01/2020').getTime(),
+          strokeDashArray: 8,
           borderColor: '#000000',
+          opacity: 0.1,
           label: {
+            text: 'segregação de freguesias',
           }
         }],
         yaxis: [{
           y: 170,
-          borderColor: '#000000',
+          borderColor: '#775DD0',
           label: {
-            text: 'carrying capacity'
-          }
+            borderColor: "#775DD0",
+            text: 'carrying capacity limit',
+            style: {
+              color: '#fff',
+              background: '#775DD0'
+            }
+          },
         }]
       },
       series: [

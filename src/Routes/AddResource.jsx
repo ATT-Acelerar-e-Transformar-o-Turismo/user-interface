@@ -143,6 +143,23 @@ export default function AddResource() {
         navigate(-1, { state: { dataToSend: formData } });
     }
 
+    const handleSave = () => {
+        const resources = JSON.parse(localStorage.getItem('resources')) || [];
+        const newResource = {
+            id: Math.floor(Math.random() * 10000 + 200),
+            name: formData.name,
+            'start period': combinedRows.length > 0 ? combinedRows[0][0] : '',
+            'end period': combinedRows.length > 0 ? combinedRows[combinedRows.length - 1][0] : '',
+            indicator: formData.id,
+            data: combinedRows,
+            headers: combinedHeaders,
+            edit: true,
+        };
+        resources.push(newResource);
+        localStorage.setItem('resources', JSON.stringify(resources));
+        navigate(`/resources-management/${formData.id}`);
+    };
+
     return (
         <PageTemplate>
             <div className="flex justify-center ">
@@ -152,15 +169,15 @@ export default function AddResource() {
                     </h1>
 
                     <div className="border p-4 rounded-lg bg-gray-100">
-                        <h2 className="font-bold">Submitted Data</h2>
+                        <h2 className="font-bold">Indicator Metadata</h2>
                         <p><strong>Name:</strong> {formData.name || "N/A"}</p>
                         <p><strong>Description:</strong> {formData.description || "N/A"}</p>
-                        <p><strong>Font:</strong> {formData.font || "N/A"}</p>
+                        <p><strong>Source:</strong> {formData.font || "N/A"}</p>
                         <p><strong>Scale:</strong> {formData.scale || "N/A"}</p>
                         <p><strong>Units:</strong> {formData.unit || "N/A"}</p>
                         <p><strong>Periodicity:</strong> {formData.periodicity || "N/A"}</p>
-                        <p><strong>Domain:</strong> {formData.selectedDomain || "N/A"}</p>
-                        <p><strong>Subdomain:</strong> {formData.selectedSubdomain || "N/A"}</p>
+                        <p><strong>Domain:</strong> {formData.domain || "N/A"}</p>
+                        <p><strong>Subdomain:</strong> {formData.subdomain || "N/A"}</p>
                         <p><strong>Governance:</strong> {formData.governance ? "Yes" : "No"}</p>
                         <p><strong>Carrying Capacity:</strong> {formData.carrying_capacity || "N/A"}</p>
                     </div>
@@ -249,7 +266,7 @@ export default function AddResource() {
                                 </button>
                             </div>
                             <div className="flex justify-center w-full ">
-                                <button className="btn btn-success" >
+                                <button className="btn btn-success" onClick={handleSave}>
                                 Save
                                 </button>
                             </div>
