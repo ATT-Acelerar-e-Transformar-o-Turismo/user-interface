@@ -62,7 +62,7 @@ export default function NewIndicator() {
     let id;
     if (indicatorId) {
       id = parseInt(indicatorId);
-      index = indicators.findIndex(ind => ind.id === id);
+      const index = indicators.findIndex(ind => ind.id === id);
       console.log(indicatorData)
       if (index !== -1) {
         indicators[index] = indicatorData;
