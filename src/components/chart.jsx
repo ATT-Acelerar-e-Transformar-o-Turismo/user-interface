@@ -140,7 +140,29 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations, log, series
                 logarithmic: log == null ? false : true,
                 logBase: log == null ? 10 : log
             },
-            annotations: annotations,
+            annotations: {
+                xaxis: annotations.xaxis.map(annotation => ({
+                    x: annotation.value,
+                    strokeDashArray: 8,
+                    borderColor: '#000000',
+                    opacity: 0.1,
+                    label: {
+                        text: annotation.label,
+                    }
+                })),
+                yaxis: annotations.yaxis.map(annotation => ({
+                    y: annotation.value,
+                    borderColor: '#775DD0',
+                    label: {
+                        borderColor: "#775DD0",
+                        text: annotation.label,
+                        style: {
+                            color: '#fff',
+                            background: '#775DD0'
+                        }
+                    },
+                }))
+            },
             markers: {
                 shape: shape
             },
