@@ -59,21 +59,22 @@ export default function NewIndicator() {
       favourites: 0,
     }
     const indicators = JSON.parse(localStorage.getItem('indicators')) || [];
-    let index;
+    let id;
     if (indicatorId) {
-      index = indicators.findIndex(ind => ind.id === parseInt(indicatorId));
+      id = parseInt(indicatorId);
+      index = indicators.findIndex(ind => ind.id === id);
       console.log(indicatorData)
       if (index !== -1) {
         indicators[index] = indicatorData;
       }
     } else {
       // random big index
-      index = Math.floor(Math.random() * 10000 + 200);
-      indicatorData.id = index;
+      id = Math.floor(Math.random() * 10000 + 200);
+      indicatorData.id = id;
       indicators.push(indicatorData);
     }
     localStorage.setItem('indicators', JSON.stringify(indicators));
-    return index;
+    return id;
   }
 
   const handleGovernanceChange = (e) => {
@@ -103,8 +104,8 @@ export default function NewIndicator() {
   };
 
   const handleAddData = () => {
-    submitData();
-    navigate('/resources-management/' + indicatorId);
+    const id = submitData();
+    navigate('/resources-management/' + id);
   }
 
   return (
@@ -176,7 +177,7 @@ export default function NewIndicator() {
 
             {isCarryingCapacityChecked && (
               <div>
-                <label htmlFor="carrying-capacity-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Carrying Capacity Value</label>
+                <label htmlFor="carrying-capacity-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Carrying Capacity Limit Value</label>
                 <input
                   type="text"
                   onChange={handleChange}

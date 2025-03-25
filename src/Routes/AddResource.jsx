@@ -147,7 +147,7 @@ export default function AddResource() {
         const resources = JSON.parse(localStorage.getItem('resources')) || [];
         const newResource = {
             id: Math.floor(Math.random() * 10000 + 200),
-            name: formData.name,
+            name: uploadedFiles.length > 0 ? uploadedFiles[0].name : formData.name,
             'start period': combinedRows.length > 0 ? combinedRows[0][0] : '',
             'end period': combinedRows.length > 0 ? combinedRows[combinedRows.length - 1][0] : '',
             indicator: formData.id,
