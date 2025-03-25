@@ -44,18 +44,18 @@ export default function IndicatorTemplate() {
       chartType: 'line',
       xaxisType: 'datetime',
       group: 'sales',
-      availableFilters: {
-        segment: {
+      availableFilters: [
+        {
           label: 'Segment',
           values: ['B2B', 'B2C']
         }
-      },
-      activeFilters: {
-        segment: {
+      ],
+      activeFilters: [
+        {
           label: 'Segment',
           values: ['B2B']
         }
-      },
+      ],
       annotations: {
         xaxis: [{
           value: new Date('06/01/2020').getTime(),

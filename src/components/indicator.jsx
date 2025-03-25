@@ -52,32 +52,26 @@ const chartDataSample = {
       data: [{
         x: '2020-01-01',
         y: 20,
-        segment: 'B2C'
       },
       {
         x: '2020-02-01',
         y: 25,
-        segment: 'B2C'
       },
       {
         x: '2020-03-01',
         y: 45,
-        segment: 'B2C'
       },
       {
         x: '2020-04-01',
         y: 40,
-        segment: 'B2C'
       },
       {
         x: '2020-05-01',
         y: 39,
-        segment: 'B2C'
       },
       {
         x: '2020-06-01',
         y: 50,
-        segment: 'B2C'
       }]
     }
   ]
@@ -157,9 +151,12 @@ const Indicator = ({ charts }) => {
       ...chart,
       series: chart.series.map(serie => ({
         ...serie,
-        hidden: !Object.entries(activeFilters[chart.chartId] || {}).every(
-          ([filterKey, filterValues]) => filterValues.values.includes(
-            serie.filterValues.find(f => f.label === filterKey).value
+        hidden: !(
+          activeFilters[chart.chartId] &&
+          activeFilters[chart.chartId].every(
+            filter => filter.values.includes(
+              serie.filterValues.find(f => f.label === filter.label)?.value
+            )
           )
         )
       }))
@@ -169,10 +166,9 @@ const Indicator = ({ charts }) => {
   const handleFilterChange = (chartId, filterGroup, values) => {
     setActiveFilters(prev => ({
       ...prev,
-      [chartId]: {
-        ...prev[chartId],
-        [filterGroup]: values
-      }
+      [chartId]: prev[chartId].map(filter =>
+        filter.label === filterGroup ? { ...filter, values } : filter
+      )
     }));
   };
 
