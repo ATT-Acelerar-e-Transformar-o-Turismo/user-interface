@@ -8,12 +8,6 @@ const chartDataSample = {
   chartType: 'line',
   xaxisType: 'datetime', // 'datetime', 'category' or 'numeric'
   group: 'sales',
-  // title: 'Sales',
-  // period: 'Annual',
-  // log: 10, // null for linear, x for log base x
-  availableFilters: {
-    segment: ['B2B', 'B2C'],
-  },
   annotations: {
     xaxis: [{
       x: new Date('03/01/2020').getTime(),
@@ -30,32 +24,26 @@ const chartDataSample = {
       data: [{
         x: '2020-01-01',
         y: 30,
-        segment: 'B2B'
       },
       {
         x: '2020-02-01',
         y: 40,
-        segment: 'B2B'
       },
       {
         x: '2020-03-01',
         y: 35,
-        segment: 'B2B'
       },
       {
         x: '2020-04-01',
         y: 50,
-        segment: 'B2B'
       },
       {
         x: '2020-05-01',
         y: 49,
-        segment: 'B2B'
       },
       {
         x: '2020-06-01',
         y: 60,
-        segment: 'B2B'
       }]
     },
     {
@@ -64,32 +52,26 @@ const chartDataSample = {
       data: [{
         x: '2020-01-01',
         y: 20,
-        segment: 'B2C'
       },
       {
         x: '2020-02-01',
         y: 25,
-        segment: 'B2C'
       },
       {
         x: '2020-03-01',
         y: 45,
-        segment: 'B2C'
       },
       {
         x: '2020-04-01',
         y: 40,
-        segment: 'B2C'
       },
       {
         x: '2020-05-01',
         y: 39,
-        segment: 'B2C'
       },
       {
         x: '2020-06-01',
         y: 50,
-        segment: 'B2C'
       }]
     }
   ]
@@ -102,9 +84,6 @@ const chartDataSample2 = {
   // title: 'Sales',
   // period: 'Annual',
   // log: 10, // null for linear, x for log base x
-  availableFilters: {
-    segment: ['B2B'],
-  },
   series: [
     {
       name: 'B2B Sales',
@@ -112,32 +91,26 @@ const chartDataSample2 = {
       data: [{
         x: '2020-01-01',
         y: 30,
-        segment: 'B2B'
       },
       {
         x: '2020-02-01',
         y: 40,
-        segment: 'B2B'
       },
       {
         x: '2020-03-01',
         y: 35,
-        segment: 'B2B'
       },
       {
         x: '2020-04-01',
         y: 50,
-        segment: 'B2B'
       },
       {
         x: '2020-05-01',
         y: 49,
-        segment: 'B2B'
       },
       {
         x: '2020-06-01',
         y: 60,
-        segment: 'B2B'
       }]
     }
   ]
@@ -163,34 +136,39 @@ const Indicator = ({ charts }) => {
       chartId: `chart${index + 1}`
     }));
     setChartData(chartsWithIds);
-    /*
-    setActiveFilters(chartsWithIds.reduce((acc, chart) => {
-      acc[chart.chartId] = { segment: chart.availableFilters.segment };
+
+    const initialFilters = chartsWithIds.reduce((acc, chart) => {
+      acc[chart.chartId] = chart.activeFilters;
       return acc;
-    }, {}));
-    */
+    }, {});
+    setActiveFilters(initialFilters);
+
     setActiveView(chartsWithIds.map(() => 'line'));
   }, [charts]);
 
   useEffect(() => {
     setChartData(prev => prev.map(chart => ({
       ...chart,
-      /*
       series: chart.series.map(serie => ({
         ...serie,
-        hidden: activeFilters[chart.chartId] ? !activeFilters[chart.chartId].segment.includes(serie.segment) : false
+        hidden: !(
+          activeFilters[chart.chartId] &&
+          activeFilters[chart.chartId].every(
+            filter => filter.values.includes(
+              serie.filterValues.find(f => f.label === filter.label)?.value
+            )
+          )
+        )
       }))
-        */
     })));
   }, [activeFilters]);
 
   const handleFilterChange = (chartId, filterGroup, values) => {
     setActiveFilters(prev => ({
       ...prev,
-      [chartId]: {
-        ...prev[chartId],
-        [filterGroup]: values
-      }
+      [chartId]: prev[chartId].map(filter =>
+        filter.label === filterGroup ? { ...filter, values } : filter
+      )
     }));
   };
 
