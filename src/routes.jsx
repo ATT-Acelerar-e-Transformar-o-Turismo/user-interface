@@ -1,12 +1,12 @@
 import App from "./App";
-import AddResource from "./Routes/AddResource";
-import DomainTemplate from "./Routes/DomainTemplate";
+import AddResource from "./pages/AddResource";
+import DomainTemplate from "./pages/DomainTemplate";
 import { Helmet } from "react-helmet";
-import IndicatorTemplate from "./Routes/IndicatorTemplate";
-import NewIndicator from "./Routes/NewIndicator";
-import IndicatorsManagement from "./Routes/IndicatorsManagement";
-import ResourcesManagement from "./Routes/ResourcesManagement";
-import NewDomain from "./Routes/NewDomain";
+import IndicatorTemplate from "./pages/IndicatorTemplate";
+import NewIndicator from "./pages/NewIndicator";
+import IndicatorsManagement from "./pages/IndicatorsManagement";
+import ResourcesManagement from "./pages/ResourcesManagement";
+import NewDomain from "./pages/NewDomain";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 export const routesList = [

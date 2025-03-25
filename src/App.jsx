@@ -1,12 +1,7 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import GChart from './components/chart'
-import Indicator from './components/indicator'
 import './App.css'
 import Carousel from './components/Carousel'
 import DomainCard from './components/DomainCard'
-import PageTemplate from './Routes/PageTemplate'
+import PageTemplate from './pages/PageTemplate'
 import domains from '../public/domains.json'
 
 

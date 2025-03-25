@@ -4,7 +4,7 @@ import domains from "../../public/domains.json";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns"; // the new component
-import Indicator from "../components/indicator";
+import Indicator from "../components/Indicator";
 
 export default function IndicatorTemplate() {
   const location = useLocation();

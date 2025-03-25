@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import GChart from './chart'
-import Views from './views'
-import Filter from './filter'
+import GChart from './Chart'
+import Views from './Views'
+import Filter from './Filter'
 import { useWindowSize } from '../hooks/useWindowSize'
 
 const chartDataSample = {
