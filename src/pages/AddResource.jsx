@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import PageTemplate from './PageTemplate';
 import AddDataDropdown from '../components/AddDataDropdown';
-import GChart from '../components/chart';
+import GChart from '../components/Chart';
 import { useLocation , useNavigate} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
