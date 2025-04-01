@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import CategoryDropdown from '../components/CategoryDropdown';
-import AddDataDropdown from '../components/AddDataDropdown';
 import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
 import { useNavigate } from 'react-router-dom';

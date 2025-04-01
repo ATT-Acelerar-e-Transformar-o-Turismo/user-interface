@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CategoryDropdown from '../components/CategoryDropdown';
-import AddDataDropdown from '../components/AddDataDropdown';
-import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
 import Table from '../components/Table';
 
@@ -48,10 +45,6 @@ export default function IndicatorsManagement() {
     const updatedData = data.filter(i => i.id !== id);
     localStorage.setItem(selectedOption, JSON.stringify(updatedData));
     fetchTableContent();
-  };
-
-  const editAction = (id) => {
-    navigate(`/edit_indicator/${id}`);
   };
 
   const visibleColumns = selectedOption === 'indicators' 
