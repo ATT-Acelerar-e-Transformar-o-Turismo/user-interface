@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
+import { useDomain } from '../contexts/DomainContext';
 
 export default function NewDomain() {
     const [subdomains, setSubdomains] = useState([]);
@@ -10,10 +11,10 @@ export default function NewDomain() {
     const [image, setImage] = useState(null);
     const navigate = useNavigate();
     const { id } = useParams();
+    const { domains, addDomain, updateDomain } = useDomain();
 
     useEffect(() => {
         if (id) {
-            const domains = JSON.parse(localStorage.getItem('domains')) || [];
             const domain = domains.find(dom => dom.id === parseInt(id));
             if (domain) {
                 setName(domain.name);
@@ -21,9 +22,8 @@ export default function NewDomain() {
                 setSubdomains(domain.subdomains);
                 setImage(domain.image);
             }
-            console.log("subdomains: " + domain.subdomains)
         }
-    }, [id]);
+    }, [id, domains]);
 
     const handleAddSubdomain = () => {
         if (subdomainInput) {
@@ -38,17 +38,20 @@ export default function NewDomain() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const newDomain = { id: id ? parseInt(id) : Date.now(), name, color, subdomains, image };
-        const domains = JSON.parse(localStorage.getItem('domains')) || [];
+        const newDomain = { 
+            id: id ? parseInt(id) : Date.now(), 
+            name, 
+            color, 
+            subdomains, 
+            image 
+        };
+        
         if (id) {
-            const index = domains.findIndex(dom => dom.id === parseInt(id));
-            if (index !== -1) {
-                domains[index] = newDomain;
-            }
+            updateDomain(parseInt(id), newDomain);
         } else {
-            domains.push(newDomain);
+            addDomain(newDomain);
         }
-        localStorage.setItem('domains', JSON.stringify(domains));
+        
         navigate('/indicators-management');
     };
 
