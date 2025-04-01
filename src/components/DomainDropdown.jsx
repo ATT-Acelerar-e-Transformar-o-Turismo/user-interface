@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import domains from "../../public/domains.json";
 import { useNavigate } from "react-router-dom";
+import { useDomain } from "../contexts/DomainContext";
 
 function Dropdowns({ initialDomain, setSelectedSubdomain }) {
   const [selectedDomain, setSelectedDomain] = useState(null);
@@ -9,6 +9,7 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
   const subdomainRef = useRef(null);
   const containerRef = useRef(null);
   const navigate = useNavigate();
+  const { domains } = useDomain();
 
   useEffect(() => {
     if (initialDomain) {
@@ -65,9 +66,9 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
           {selectedDomain ? selectedDomain.nome : "Escolha o Domínio"}
         </summary>
         <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-          {domains.dominios.map((domain) => (
-            <li key={domain.nome}>
-              <a onClick={() => handleSelectDomain(domain)}>{domain.nome}</a>
+          {domains.map((domain) => (
+            <li key={domain.name}>
+              <a onClick={() => handleSelectDomain(domain)}>{domain.name}</a>
             </li>
           ))}
         </ul>
@@ -90,9 +91,9 @@ function Dropdowns({ initialDomain, setSelectedSubdomain }) {
             )}
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-            {selectedDomain.subdominios && selectedDomain.subdominios.map((subdom) => (
-              <li key={subdom.nome}>
-                <a onClick={() => handleSelectSubdomain(subdom)}>{subdom.nome}</a>
+            {selectedDomain.subdomains && selectedDomain.subdomains.map((subdom) => (
+              <li key={subdom}>
+                <a onClick={() => handleSelectSubdomain({nome: subdom})}>{subdom}</a>
               </li>
             ))}
           </ul>

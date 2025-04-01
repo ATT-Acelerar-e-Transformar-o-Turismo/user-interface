@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import CategoryDropdown from '../components/CategoryDropdown';
+import AddDataDropdown from '../components/AddDataDropdown';
 import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
-import { useNavigate } from 'react-router-dom';
+import { useDomain } from '../contexts/DomainContext';
 
 export default function NewIndicator() {
+  const { indicatorId } = useParams();
+  const navigate = useNavigate();
+  const { indicators, addIndicator, updateIndicator } = useDomain();
 
   const [isCarryingCapacityChecked, setIsCarryingCapacityChecked] = useState(false);
-
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -21,29 +25,34 @@ export default function NewIndicator() {
     carrying_capacity: false,
   });
 
+  useEffect(() => {
+    if (indicatorId) {
+      const indicator = indicators.find(ind => ind.id === parseInt(indicatorId));
+      if (indicator) {
+        setFormData(indicator);
+        if (indicator.carrying_capacity) {
+          setIsCarryingCapacityChecked(true);
+        }
+      }
+    }
+  }, [indicatorId, indicators]);
+
   const setSelectedDomain = (domain) => {
-    console.log("selected domain: " + domain);
-    setFormData((prevFormData) => ({
+    setFormData(prevFormData => ({
       ...prevFormData,
       domain: domain,
       subdomain: ''
     }));
-    console.log(formData);
   };
 
   const setSelectedSubdomain = (subdomain) => {
-    console.log("selected subdomain: " + subdomain);
-    setFormData((prevFormData) => ({
+    setFormData(prevFormData => ({
       ...prevFormData,
       subdomain: subdomain
     }));
-    console.log(formData);
   };
 
-  const navigate = useNavigate();
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
     const { id, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
@@ -51,60 +60,48 @@ export default function NewIndicator() {
     }));
   };
 
-  const submitData = () => {
-    const indicatorData = {
-      ...formData,
-      favourites: 0,
-    }
-    const indicators = JSON.parse(localStorage.getItem('indicators')) || [];
-    let id;
-    if (indicatorId) {
-      id = parseInt(indicatorId);
-      const index = indicators.findIndex(ind => ind.id === id);
-      console.log(indicatorData)
-      if (index !== -1) {
-        indicators[index] = indicatorData;
-      }
-    } else {
-      // random big index
-      id = Math.floor(Math.random() * 10000 + 200);
-      indicatorData.id = id;
-      indicators.push(indicatorData);
-    }
-    localStorage.setItem('indicators', JSON.stringify(indicators));
-    return id;
-  }
-
   const handleGovernanceChange = (e) => {
-    setFormData({ ...formData, governance: e.target.checked });
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      governance: e.target.checked
+    }));
   };
 
   const handleCarryingCapacityChange = (e) => {
-    setFormData({ ...formData, carrying_capacity: false });  // Reset carrying capacity value when unchecked
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      carrying_capacity: e.target.checked ? formData.carrying_capacity || '' : false
+    }));
     setIsCarryingCapacityChecked(e.target.checked);
   };
 
-  const { indicatorId } = useParams();
-
-  useEffect(() => {
+  const saveIndicator = () => {
+    const newIndicator = {
+      ...formData,
+      favourites: formData.favourites || 0,
+    };
+    
     if (indicatorId) {
-      const indicators = JSON.parse(localStorage.getItem('indicators')) || [];
-      const indicator = indicators.find(ind => ind.id === parseInt(indicatorId));
-      if (indicator) {
-        setFormData(indicator);
-      }
+      newIndicator.id = parseInt(indicatorId);
+      updateIndicator(parseInt(indicatorId), newIndicator);
+    } else {
+      // Gerar um ID aleatório grande
+      newIndicator.id = Math.floor(Math.random() * 10000 + 200);
+      addIndicator(newIndicator);
     }
-  }, [indicatorId]);
+    
+    return newIndicator.id;
+  };
 
   const handleSave = () => {
-    submitData();
+    saveIndicator();
     navigate('/indicators-management');
   };
 
   const handleAddData = () => {
-    const id = submitData();
-    navigate('/resources-management/' + id);
-  }
+    const id = saveIndicator();
+    navigate(`/add_data_resource/${id}`);
+  };
 
   return (
     <PageTemplate>
@@ -180,6 +177,7 @@ export default function NewIndicator() {
                   type="text"
                   onChange={handleChange}
                   id="carrying_capacity"
+                  value={formData.carrying_capacity || ''}
                   className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
               </div>
             )}
@@ -199,6 +197,6 @@ export default function NewIndicator() {
           Add Data
         </button>
       </div>
-    </PageTemplate >
+    </PageTemplate>
   );
 }
