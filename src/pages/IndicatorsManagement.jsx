@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PageTemplate from './PageTemplate';
-import Table from '../components/Table';
+import ManagementTemplate from '../components/ManagementTemplate';
 import { useDomain } from '../contexts/DomainContext';
 
 export default function IndicatorsManagement() {
@@ -9,32 +8,23 @@ export default function IndicatorsManagement() {
   const navigate = useNavigate();
   const { domains, indicators, deleteDomain, deleteIndicator } = useDomain();
 
-  const tableContent = selectedOption === 'indicators' 
-    ? indicators.map(indicator => ({
-        ...indicator,
-        color: domains.find(domain => domain.name === indicator.domain)?.color
-      }))
-    : domains;
+  const tableContent =
+    selectedOption === 'indicators'
+      ? indicators.map(indicator => ({
+          ...indicator,
+          color: domains.find(domain => domain.name === indicator.domain)?.color
+        }))
+      : domains;
 
-  const handleEdit = (id) => {
-    if (selectedOption === 'indicators') {
-      navigate(`/edit_indicator/${id}`);
-    } else {
-      navigate(`/edit_domain/${id}`);
-    }
-  }
+  const handleEdit = (id) =>
+    navigate(selectedOption === 'indicators' ? `/edit_indicator/${id}` : `/edit_domain/${id}`);
+  const handleDelete = (id) =>
+    selectedOption === 'indicators' ? deleteIndicator(id) : deleteDomain(id);
 
-  const handleDelete = (id) => {
-    if (selectedOption === 'indicators') {
-      deleteIndicator(id);
-    } else {
-      deleteDomain(id);
-    }
-  };
-
-  const visibleColumns = selectedOption === 'indicators' 
-    ? ['name', 'periodicity', 'domain', 'favourites', 'governance'] 
-    : ['name', 'color'];
+  const visibleColumns =
+    selectedOption === 'indicators'
+      ? ['name', 'periodicity', 'domain', 'favourites', 'governance']
+      : ['name', 'color'];
 
   const renderCellContent = (column, value, row) => {
     if (selectedOption === 'domains' && column === 'color') {
@@ -54,61 +44,42 @@ export default function IndicatorsManagement() {
   };
 
   const actions = [
-    {
-      label: 'Edit',
-      className: 'btn-primary',
-      onClick: handleEdit
-    },
-    {
-      label: 'Delete',
-      className: 'btn-secondary',
-      onClick: handleDelete
-    }
+    { label: 'Edit', className: 'btn-primary', onClick: handleEdit },
+    { label: 'Delete', className: 'btn-secondary', onClick: handleDelete }
   ];
 
   return (
-    <PageTemplate>
-      <div className="flex mb-4">
-        <button
-          className={`btn ${selectedOption === 'indicators' ? 'btn-primary' : 'btn-base-300'} rounded-r-none`}
-          onClick={() => setSelectedOption('indicators')}
-        >
-          Indicators
-        </button>
-        <button
-          className={`btn ${selectedOption === 'domains' ? 'btn-primary' : 'btn-base-300'} rounded-l-none`}
-          onClick={() => setSelectedOption('domains')}
-        >
-          Domains
-        </button>
-      </div>
-      <div className="flex justify-center">
-        <div className="p-8 rounded-lg shadow-lg w-full ">
-          <h1 className="text-xl font-bold text-center mb-6">
-            {selectedOption === 'indicators' ? 'Indicators' : 'Domains'}
-          </h1>
-          <div className="flex flex-row-reverse mb-4">
-            <a href={selectedOption === 'indicators' ? 'new_indicator' : 'new_domain'}>
-              <button className="btn btn-success">
-                {selectedOption === 'indicators' ? 'Create New Indicator' : 'Create New Domain'}
-              </button>
-            </a>
+    <ManagementTemplate
+      title={selectedOption === 'indicators' ? 'Indicators' : 'Domains'}
+      tableContent={tableContent}
+      emptyMessage={`There are no ${selectedOption} yet`}
+      visibleColumns={visibleColumns}
+      actions={actions}
+      renderCellContent={renderCellContent}
+      headerActions={
+        <div className="flex w-full mb-4 justify-between">
+          <div>
+            <button
+              className={`btn ${selectedOption === 'indicators' ? 'btn-primary' : 'btn-base-300'} rounded-r-none`}
+              onClick={() => setSelectedOption('indicators')}
+            >
+              Indicators
+            </button>
+            <button
+              className={`btn ${selectedOption === 'domains' ? 'btn-primary' : 'btn-base-300'} rounded-l-none`}
+              onClick={() => setSelectedOption('domains')}
+            >
+              Domains
+            </button>
           </div>
-
-          <Table 
-            content={tableContent.map(row => ({
-              ...row,
-              color: renderCellContent('color', row.color, row),
-              domain: renderCellContent('domain', row.domain, row),
-              governance: renderCellContent('governance', row.governance, row)
-            }))} 
-            emptyMessage={`There are no ${selectedOption} yet`} 
-            visibleColumns={visibleColumns}
-            actions={actions}
-          />
-
+          <div className='flex-grow'></div>
+          <a href={selectedOption === 'indicators' ? 'new_indicator' : 'new_domain'}>
+            <button className="btn btn-success">
+              {selectedOption === 'indicators' ? 'Create New Indicator' : 'Create New Domain'}
+            </button>
+          </a>
         </div>
-      </div>
-    </PageTemplate>
+      }
+    />
   );
 }
