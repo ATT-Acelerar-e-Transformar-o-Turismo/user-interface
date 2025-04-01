@@ -1,22 +1,27 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import PageTemplate from './PageTemplate';
 import AddDataDropdown from '../components/AddDataDropdown';
 import GChart from '../components/Chart';
-import { useLocation , useNavigate} from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { useDomain } from '../contexts/DomainContext';
+import { useResource } from '../contexts/ResourceContext';
 
 export default function AddResource() {
     const location = useLocation();
-    const formData = location.state?.dataToSend || {};
+    const { indicator: indicatorIdParam } = useParams();
     const navigate = useNavigate();
+    const { indicators } = useDomain();
+    const { addResource } = useResource();
+
+    const formData = location.state?.dataToSend || 
+                    indicators.find(ind => ind.id === parseInt(indicatorIdParam)) || {};
 
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [uploadedData, setUploadedData] = useState([]);
-
     const [combinedHeaders, setCombinedHeaders] = useState([]);
     const [combinedRows, setCombinedRows] = useState([]);
     const [chartSeries, setChartSeries] = useState([]);
@@ -79,7 +84,6 @@ export default function AddResource() {
         reader.readAsArrayBuffer(file);
     };
 
-
     const processFileData = (data, index) => {
         if (!data || !data.length) return;
 
@@ -99,7 +103,6 @@ export default function AddResource() {
 
         combineAllData(newUploadedData);
     };
-
 
     const combineAllData = (allData) => {
         if (!allData.length) {
@@ -137,17 +140,14 @@ export default function AddResource() {
         }));
     };
 
-    console.log(chartSeries)
-
     const handleBack = () => {
-        navigate(-1, { state: { dataToSend: formData } });
-    }
+        navigate(-1);
+    };
 
     const handleSave = () => {
-        const resources = JSON.parse(localStorage.getItem('resources')) || [];
         const newResource = {
             id: Math.floor(Math.random() * 10000 + 200),
-            name: uploadedFiles.length > 0 ? uploadedFiles[0].name : formData.name,
+            name: uploadedFiles.length > 0 ? uploadedFiles[0].name : "uploaded_data.csv",
             'start period': combinedRows.length > 0 ? combinedRows[0][0] : '',
             'end period': combinedRows.length > 0 ? combinedRows[combinedRows.length - 1][0] : '',
             indicator: formData.id,
@@ -155,8 +155,8 @@ export default function AddResource() {
             headers: combinedHeaders,
             edit: true,
         };
-        resources.push(newResource);
-        localStorage.setItem('resources', JSON.stringify(resources));
+        
+        addResource(newResource);
         navigate(`/resources-management/${formData.id}`);
     };
 
@@ -165,7 +165,7 @@ export default function AddResource() {
             <div className="flex justify-center ">
                 <div className="p-8 rounded-lg shadow-lg w-full max-w-4xl">
                     <h1 className="text-xl font-bold text-center mb-6">
-                        Upload {formData.selectedDataType}
+                        Upload {formData.selectedDataType || "Data"}
                     </h1>
 
                     <div className="border p-4 rounded-lg bg-gray-100">
@@ -245,7 +245,6 @@ export default function AddResource() {
                         )}
 
                         {/* Chart Display */}
-
                         {chartSeries.length > 0 && (
                             <div className="mt-6">
                                 <GChart

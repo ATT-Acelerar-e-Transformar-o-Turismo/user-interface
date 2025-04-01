@@ -1,39 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CategoryDropdown from '../components/CategoryDropdown';
-import AddDataDropdown from '../components/AddDataDropdown';
-import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
 import Table from '../components/Table';
+import { useDomain } from '../contexts/DomainContext';
 
 export default function IndicatorsManagement() {
-  const [tableContent, setTableContent] = useState([]);
   const [selectedOption, setSelectedOption] = useState('indicators');
   const navigate = useNavigate();
+  const { domains, indicators, deleteDomain, deleteIndicator } = useDomain();
 
-  const fetchTableContent = () => {
-    const data = JSON.parse(localStorage.getItem(selectedOption)) || [];
-    if (selectedOption === 'indicators') {
-      const domains = JSON.parse(localStorage.getItem('domains')) || [];
-      const domainMap = domains.reduce((acc, domain) => {
-        acc[domain.name] = domain.color;
-        return acc;
-      }, {});
-      data.forEach(indicator => {
-        indicator.color = domainMap[indicator.domain];
-      });
-    }
-    console.log(data)
-    setTableContent(data);
-  };
-
-  useEffect(() => {
-    fetchTableContent();
-  }, [selectedOption]);
-
-  useEffect(() => {
-    fetchTableContent();
-  }, []);
+  const tableContent = selectedOption === 'indicators' 
+    ? indicators.map(indicator => ({
+        ...indicator,
+        color: domains.find(domain => domain.name === indicator.domain)?.color
+      }))
+    : domains;
 
   const handleEdit = (id) => {
     if (selectedOption === 'indicators') {
@@ -44,14 +25,11 @@ export default function IndicatorsManagement() {
   }
 
   const handleDelete = (id) => {
-    const data = JSON.parse(localStorage.getItem(selectedOption)) || [];
-    const updatedData = data.filter(i => i.id !== id);
-    localStorage.setItem(selectedOption, JSON.stringify(updatedData));
-    fetchTableContent();
-  };
-
-  const editAction = (id) => {
-    navigate(`/edit_indicator/${id}`);
+    if (selectedOption === 'indicators') {
+      deleteIndicator(id);
+    } else {
+      deleteDomain(id);
+    }
   };
 
   const visibleColumns = selectedOption === 'indicators' 
@@ -130,7 +108,6 @@ export default function IndicatorsManagement() {
           />
 
         </div>
-
       </div>
     </PageTemplate>
   );

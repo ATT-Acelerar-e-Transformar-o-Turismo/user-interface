@@ -1,20 +1,16 @@
 import { useState, useEffect, useRef } from "react";
+import { useDomain } from "../contexts/DomainContext";
 
 function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
-    const [domains, setDomains] = useState([]);
     const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
     const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
 
     const domainRef = useRef(null);
     const subdomainRef = useRef(null);
     const containerRef = useRef(null);
+    const { domains } = useDomain();
 
     useEffect(() => {
-        const storedDomains = JSON.parse(localStorage.getItem("domains"));
-        if (storedDomains) {
-            setDomains(storedDomains);
-        }
-
         const handleClickOutside = (event) => {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
                 if (domainRef.current) domainRef.current.removeAttribute("open");

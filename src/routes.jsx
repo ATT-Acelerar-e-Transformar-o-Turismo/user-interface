@@ -7,7 +7,6 @@ import NewIndicator from "./pages/NewIndicator";
 import IndicatorsManagement from "./pages/IndicatorsManagement";
 import ResourcesManagement from "./pages/ResourcesManagement";
 import NewDomain from "./pages/NewDomain";
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 export const routesList = [
     {
@@ -78,6 +77,17 @@ export const routesList = [
     },
     {
         path: '/add_data_resource',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Add Data Resource</title>
+                </Helmet>
+                <AddResource />
+            </>
+        )
+    },
+    {
+        path: '/add_data_resource/:indicator',
         element: (
             <>
                 <Helmet>
