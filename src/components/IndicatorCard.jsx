@@ -38,7 +38,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     return (
         <div className="card bg-base-100 w-96 shadow-sm" style={{ border: `2px solid ${domainColor}` }}>
             <figure className="px-10 pt-10">
-                <img src="../../public/graph.png" alt="Graph" className="rounded-xl" />
+                <img src="/graph.png" alt="Graph" className="rounded-xl" />
             </figure>
             <div className="card-body items-center text-center">
                 <h2 className="card-title">{IndicatorTitle}</h2>

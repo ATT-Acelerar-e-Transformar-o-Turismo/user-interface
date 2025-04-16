@@ -1,0 +1,8 @@
+services:
+  user-interface:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: att-user-interface
+    networks:
+      - att-network 
