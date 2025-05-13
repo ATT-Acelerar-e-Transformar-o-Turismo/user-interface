@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import domainsData from "../../public/domains.json";
+import { useDomain } from "../contexts/DomainContext";
 
 export default function IndicatorDropdowns({
   currentDomain,
@@ -13,6 +13,7 @@ export default function IndicatorDropdowns({
   const [stagedDomain, setStagedDomain] = useState(null);
   const [stagedSubdomain, setStagedSubdomain] = useState(null);
   const [stagedIndicator, setStagedIndicator] = useState(null);
+  const { domains } = useDomain();
 
   const domainRef = useRef(null);
   const subdomainRef = useRef(null);
@@ -38,7 +39,7 @@ export default function IndicatorDropdowns({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const allDomains = domainsData.dominios;
+  const allDomains = domains;
 
   const handleDomainSelect = (domain) => {
     if (stagedDomain && stagedDomain.nome === domain.nome) {

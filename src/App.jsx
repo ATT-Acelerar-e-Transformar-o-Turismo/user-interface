@@ -2,7 +2,7 @@ import './App.css'
 import Carousel from './components/Carousel'
 import DomainCard from './components/DomainCard'
 import PageTemplate from './pages/PageTemplate'
-import domains from '../public/domains.json'
+import { useDomain } from './contexts/DomainContext'
 
 
 const images = [
@@ -14,6 +14,8 @@ const images = [
 
 
 function App() {
+  const { domains } = useDomain();
+  
   return (
     <>
       <PageTemplate>
@@ -24,8 +26,14 @@ function App() {
             <input type="search" className="grow" placeholder="Procurar por Indicador" />
           </label>
           <div className='flex flex-row flex-wrap place-content-center gap-8 my-8 w-full'>
-            {domains.dominios.map((domain) => (
-              <DomainCard DomainTitle={domain.nome} DomainPage={domain.DomainPage} DomainColor={domain.DomainColor} DomainImage={domain.DomainImage} />
+            {domains.map((domain, index) => (
+              <DomainCard 
+                key={index}
+                DomainTitle={domain.nome} 
+                DomainPage={domain.DomainPage} 
+                DomainColor={domain.DomainColor} 
+                DomainImage={domain.DomainImage} 
+              />
             ))}
           </div>
         </div>

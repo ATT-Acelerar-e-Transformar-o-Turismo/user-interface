@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import domains from "../../public/domains.json";
+import { useDomain } from "../contexts/DomainContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns"; // the new component
@@ -9,9 +9,10 @@ export default function IndicatorTemplate() {
   const location = useLocation();
   const navigate = useNavigate();
   const { domainName, subdomainName, indicatorId } = location.state || {};
+  const { domains } = useDomain();
 
   // 1) Find the "official" domain/subdomain/indicator from route
-  const domainObj = domains.dominios.find((dom) => dom.nome === domainName);
+  const domainObj = domains.find((dom) => dom.nome === domainName);
   if (!domainObj) return <div>Domínio não encontrado.</div>;
 
   const subdomainObj = domainObj.subdominios.find((sub) => sub.nome === subdomainName);

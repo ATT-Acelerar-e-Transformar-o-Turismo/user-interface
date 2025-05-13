@@ -12,6 +12,16 @@ export default function Navbar() {
                 <ul className="menu menu-horizontal px-1">
                     <li>
                         <div className="dropdown dropdown-end">
+                            <div tabIndex="0" role="button">Daniel</div>
+                            <ul tabIndex="0" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                                <li><Link to={'/favorites'} className="text-base-content">Favoritos</Link></li>
+                                <li><Link className="text-base-content">Settings</Link></li>
+                                <li><a className="text-base-content">Sign out</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <div className="dropdown dropdown-end">
                             <div tabIndex="0" role="button">Admin</div>
                             <ul tabIndex="0" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
                                 <li>
@@ -19,9 +29,6 @@ export default function Navbar() {
                                 </li>
                             </ul>
                         </div>
-                    </li>
-                    <li>
-                        <a className="text-base-content">Sign in</a>
                     </li>
                     <li>
                         <details>
