@@ -1,6 +1,7 @@
 import App from "./App";
 import AddResource from "./pages/AddResource";
 import DomainTemplate from "./pages/DomainTemplate";
+import FavoritesPage from "./pages/FavoritesPage";
 import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
 import NewIndicator from "./pages/NewIndicator";
@@ -17,6 +18,17 @@ export const routesList = [
                     <title>ATT - Home</title>
                 </Helmet>
                 <App />
+            </>
+        )
+    },
+    {
+        path: '/favorites',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Favorites</title>
+                </Helmet>
+                <FavoritesPage />
             </>
         )
     },

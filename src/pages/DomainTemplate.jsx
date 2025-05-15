@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import domains from "../../public/domains.json";
+import { useDomain } from "../contexts/DomainContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import Dropdowns from "../components/DomainDropdown";
@@ -9,7 +9,8 @@ import IndicatorCard from "../components/IndicatorCard";
 export default function DomainTemplate() {
   const location = useLocation();
   const { domainName } = location.state || {};
-  const selectedDomainObj = domains.dominios.find((dom) => dom.nome === domainName);
+  const { domains } = useDomain();
+  const selectedDomainObj = domains.find((dom) => dom.nome === domainName);
 
   if (!selectedDomainObj) {
     return <div>Domínio não encontrado.</div>;
