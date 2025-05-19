@@ -8,7 +8,6 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
     const chartContainerRef = useRef(null)
 
     useEffect(() => {
-        // Obtém os estilos computados do elemento raiz
         const computedStyle = getComputedStyle(document.documentElement)
         const baseContentColor = computedStyle.getPropertyValue('--color-base-content').trim()
 
@@ -208,19 +207,15 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
             }
         }
 
-        // Destruir o gráfico anterior se existir
         if (chartRef.current) {
             chartRef.current.destroy()
         }
 
-        // Criar e renderizar o novo gráfico
         const chart = new ApexCharts(chartContainerRef.current, chartOptions)
         chart.render()
 
-        // Guardar a referência do gráfico
         chartRef.current = chart
 
-        // Cleanup quando o componente for desmontado
         return () => {
             if (chartRef.current) {
                 chartRef.current.destroy()
