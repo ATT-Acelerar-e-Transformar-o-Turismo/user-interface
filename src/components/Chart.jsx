@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import ApexCharts from 'apexcharts'
 
-const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light' }) => {
+const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true }) => {
     const [labelColor, setLabelColor] = useState(themeMode === 'dark' ? '#ffffff' : '#000000')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -56,21 +56,21 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 redrawOnParentResize: true,
                 zoom: {
                     type: 'x',
-                    enabled: true,
-                    autoScaleYaxis: true
+                    enabled: allowUserInteraction,
+                    autoScaleYaxis: allowUserInteraction
                 },
                 toolbar: {
-                    show: true,
+                    show: showToolbar,
                     tools: {
                         download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true
+                        selection: allowUserInteraction,
+                        zoom: allowUserInteraction,
+                        zoomin: allowUserInteraction,
+                        zoomout: allowUserInteraction,
+                        pan: allowUserInteraction,
+                        reset: allowUserInteraction
                     },
-                    autoSelected: 'zoom',
+                    autoSelected: allowUserInteraction ? 'zoom' : undefined,
                     export: {
                         csv: {
                             headerCategory: 'x',
@@ -167,8 +167,8 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 shape: shape
             },
             legend: {
-                show: true,
-                showForSingleSeries: true,
+                show: showLegend,
+                showForSingleSeries: showLegend,
                 labels: {
                     colors: labelColor
                 },
@@ -183,7 +183,8 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
             },
             tooltip: {
                 theme: themeMode,
-                custom: ({
+                enabled: showTooltip,
+                custom: showTooltip ? ({
                     series,
                     seriesIndex,
                     dataPointIndex,
@@ -204,7 +205,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                         ${header}
                         ${body}
                     </div>`
-                }
+                } : undefined
             }
         }
 
@@ -226,7 +227,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction])
 
     return <div ref={chartContainerRef} />
 }

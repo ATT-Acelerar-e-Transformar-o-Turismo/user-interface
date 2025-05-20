@@ -4,6 +4,7 @@ import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
+import Chart from "./Chart";
 
 export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes }) {
     let domainColor = "purple"; // Default color
@@ -73,6 +74,20 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         setIsFavorite(!isFavorite);
     };
 
+    // Sample data for preview
+    const previewData = {
+        series: [{
+            name: 'Sample Data',
+            data: [
+                { x: 1, y: 10 },
+                { x: 2, y: 15 },
+                { x: 3, y: 12 },
+                { x: 4, y: 18 },
+                { x: 5, y: 14 }
+            ]
+        }]
+    };
+
     return (
         <div className="card bg-base-100 w-96 shadow-sm" style={{ border: `2px solid ${domainColor}` }}>
             <button className="flex justify-end mt-6 mr-10" onClick={toggleFavorite}>
@@ -82,21 +97,28 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
                 />
             </button>
             <figure className="px-10 pt-6">
-                <img src="/graph.png" alt="Graph" className="rounded-xl" />
+                <Chart
+                    chartId={`preview-${IndicatorId}`}
+                    chartType="line"
+                    xaxisType="numeric"
+                    series={previewData.series}
+                    height={200}
+                    showLegend={false}
+                    showToolbar={false}
+                    showTooltip={false}
+                    allowUserInteraction={false}
+                />
             </figure>
             <div className="card-body items-center text-center">
                 <h2 className="card-title">{IndicatorTitle}</h2>
                 <div className="card-actions">
-                    {GraphTypes.map((graphType, index) => (
-                        <button 
-                            key={index} 
-                            className="btn" 
-                            style={{ background: domainColor }} 
-                            onClick={handleClick}
-                        >
-                            {graphType.icon}
-                        </button>
-                    ))}
+                    <button 
+                        className="btn" 
+                        style={{ background: domainColor }}
+                        onClick={handleClick}
+                    >
+                        Ver Indicador
+                    </button>
                 </div>
             </div>
         </div>
