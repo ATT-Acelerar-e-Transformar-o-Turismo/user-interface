@@ -41,6 +41,7 @@ export default function IndicatorTemplate() {
   // Example chart data
   const exampleCharts = [
     {
+      title: 'Vendas por Segmento',
       chartType: 'line',
       xaxisType: 'datetime',
       group: 'sales',

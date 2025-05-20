@@ -2,7 +2,7 @@ import App from "./App";
 import AddResource from "./pages/AddResource";
 import DomainTemplate from "./pages/DomainTemplate";
 import FavoritesPage from "./pages/FavoritesPage";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
 import NewIndicator from "./pages/NewIndicator";
 import IndicatorsManagement from "./pages/IndicatorsManagement";

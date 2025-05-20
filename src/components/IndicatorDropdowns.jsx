@@ -80,9 +80,9 @@ export default function IndicatorDropdowns({
       {/* Domain Dropdown */}
       <details ref={domainRef} className="dropdown md:dropdown-right">
         <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
-          <p className="overflow-hidden text-center text-nowrap">
+          <span className="overflow-hidden text-center text-nowrap">
             {stagedDomain ? stagedDomain.nome : "Escolha o Domínio"}
-          </p>
+          </span>
         </summary>
         <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
           {allDomains.map((dom) => (
@@ -97,21 +97,20 @@ export default function IndicatorDropdowns({
       {stagedDomain && (
         <details ref={subdomainRef} className="dropdown md:dropdown-right">
           <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
-            <p className="overflow-hidden text-center text-nowrap">
+            <span className="overflow-hidden text-center text-nowrap">
               {stagedSubdomain ? (
-                <div className="flex items-center gap-2">
-
+                <span className="flex items-center gap-2">
                   {stagedSubdomain.nome}
                   {allowSubdomainClear && (
                     <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
                       ✕
                     </button>
                   )}
-                </div>
+                </span>
               ) : (
                 "Escolha o Subdomínio"
               )}
-            </p>
+            </span>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
             {stagedDomain.subdominios.map((sub) => (
@@ -129,9 +128,9 @@ export default function IndicatorDropdowns({
       {stagedSubdomain && (
         <details ref={indicatorRef} className="dropdown md:dropdown-right">
           <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
-            <p className="overflow-hidden text-center text-nowrap">
+            <span className="overflow-hidden text-center text-nowrap">
               {stagedIndicator ? stagedIndicator.nome : "Escolha o Indicador"}
-            </p>
+            </span>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
             {stagedSubdomain.indicadores.map((ind) => (

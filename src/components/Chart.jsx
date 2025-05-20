@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import ApexCharts from 'apexcharts'
 
-const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light' }) => {
+const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light', tooltip = true, toolbar = true }) => {
     const [labelColor, setLabelColor] = useState(themeMode === 'dark' ? '#ffffff' : '#000000')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -27,9 +27,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
     }
 
     useEffect(() => {
-
         const shape = series.map(s => s.shape)
-
         const _series = series.filter(s => !s.hidden)
 
         const chartOptions = {
@@ -59,7 +57,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                     autoScaleYaxis: true
                 },
                 toolbar: {
-                    show: true,
+                    show: toolbar,
                     tools: {
                         download: true,
                         selection: true,
@@ -79,7 +77,6 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 },
                 events: {
                     beforeMount: function (chart) {
-                        // Add custom CSS to style the toolbar and menu
                         const style = document.createElement('style')
                         style.innerHTML = `
                             .apexcharts-toolbar {
@@ -105,7 +102,6 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
             dataLabels: {
                 enabled: false
             },
-            // sort series
             series: xaxisType == 'category' ? _series : _series.map(s => ({
                 ...s,
                 data: s.data.sort((a, b) => a.x - b.x)
@@ -181,8 +177,9 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 }
             },
             tooltip: {
+                enabled: tooltip,
                 theme: themeMode,
-                custom: ({
+                custom: tooltip ? ({
                     series,
                     seriesIndex,
                     dataPointIndex,
@@ -203,7 +200,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                         ${header}
                         ${body}
                     </div>`
-                }
+                } : undefined
             }
         }
 
@@ -221,7 +218,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, tooltip, toolbar])
 
     return <div ref={chartContainerRef} />
 }

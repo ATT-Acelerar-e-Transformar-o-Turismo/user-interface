@@ -19,15 +19,6 @@ export default function DomainTemplate() {
   const images = selectedDomainObj.DomainCarouselImages;
   const [selectedSubdomain, setSelectedSubdomain] = useState(null);
 
-  // Graph icons
-  const GraphTypes = [
-    { icon: "📊" },
-    { icon: "📈" },
-    { icon: "📉" },
-    { icon: "📈" },
-    { icon: "📉" },
-  ];
-
   const indicatorsToShow = selectedSubdomain
     ? selectedSubdomain.indicadores
     : selectedDomainObj.subdominios.flatMap((subdom) => subdom.indicadores);
@@ -50,7 +41,6 @@ export default function DomainTemplate() {
             key={indicator.id}
             IndicatorTitle={indicator.nome}
             IndicatorId={indicator.id}
-            GraphTypes={GraphTypes}
           />
         ))}
       </div>

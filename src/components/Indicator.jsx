@@ -129,29 +129,43 @@ const updateSerieVisibility = (serie, chartId, activeFilters) => {
 };
 
 const updateChartSeries = (chart, activeFilters) => {
-  const updatedSeries = chart.series.map(serie =>
-    updateSerieVisibility(serie, chart.chartId, activeFilters)
-  );
+  if (!activeFilters[chart.chartId]) return chart;
+
+  const updatedSeries = chart.series.map(serie => {
+    const isVisible = activeFilters[chart.chartId].every(filter => {
+      const filterValue = serie.filterValues?.find(f => f.label === filter.label)?.value;
+      return filter.values.includes(filterValue);
+    });
+    return { ...serie, hidden: !isVisible };
+  });
 
   return { ...chart, series: updatedSeries };
 };
 
+const getInitialFilters = (charts) => {
+  return charts.reduce((acc, chart) => {
+    acc[chart.chartId] = chart.activeFilters || [];
+    return acc;
+  }, {});
+};
+
 const createChartWithId = (chart, index) => ({
   ...chart,
-  chartId: `chart${index + 1}`
+  chartId: `chart${index + 1}`,
+  title: chart.title || 'Chart',
+  period: chart.period || 'Period',
+  availableFilters: chart.availableFilters || [],
+  activeFilters: chart.activeFilters || []
 });
 
 const createMobileChart = (chart) => ({
   ...chart,
-  chartId: `${chart.chartId}_mobile`
+  chartId: `${chart.chartId}_mobile`,
+  title: chart.title || 'Chart',
+  period: chart.period || 'Period',
+  availableFilters: chart.availableFilters || [],
+  activeFilters: chart.activeFilters || []
 });
-
-const getInitialFilters = (charts) => {
-  return charts.reduce((acc, chart) => {
-    acc[chart.chartId] = chart.activeFilters;
-    return acc;
-  }, {});
-};
 
 const Indicator = ({ charts }) => {
   const { width } = useWindowSize();

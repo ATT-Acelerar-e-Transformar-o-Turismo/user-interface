@@ -4,12 +4,31 @@ import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
+import GChart from './Chart';
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes }) {
+export default function IndicatorCard({ IndicatorTitle, IndicatorId }) {
     let domainColor = "purple"; // Default color
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
     const { domains } = useDomain();
+
+    // Sample chart data for preview
+    const previewChartData = {
+        chartType: 'line',
+        xaxisType: 'datetime',
+        series: [
+            {
+                name: 'Sample Data',
+                hidden: false,
+                data: [
+                    { x: '2024-01-01', y: 30 },
+                    { x: '2024-02-01', y: 40 },
+                    { x: '2024-03-01', y: 35 },
+                    { x: '2024-04-01', y: 50 }
+                ]
+            }
+        ]
+    };
 
     let selectedDomain = null;
     let selectedSubdomain = null;
@@ -81,22 +100,25 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
                     className={`text-2xl btn btn-ghost ${isFavorite ? 'text-red-500' : ''}`}
                 />
             </button>
-            <figure className="px-10 pt-6">
-                <img src="/graph.png" alt="Graph" className="rounded-xl" />
-            </figure>
+            <div className="w-full flex justify-center items-center" style={{marginBottom: 0, paddingBottom: 0}}>
+                <GChart 
+                    {...previewChartData}
+                    height={200}
+                    chartId={`preview-${IndicatorId}`}
+                    tooltip={false}
+                    toolbar={false}
+                />
+            </div>
             <div className="card-body items-center text-center">
                 <h2 className="card-title">{IndicatorTitle}</h2>
                 <div className="card-actions">
-                    {GraphTypes.map((graphType, index) => (
-                        <button 
-                            key={index} 
-                            className="btn" 
-                            style={{ background: domainColor }} 
-                            onClick={handleClick}
+                    <button 
+                        className="btn" 
+                        style={{ background: domainColor }} 
+                        onClick={handleClick}
                         >
-                            {graphType.icon}
-                        </button>
-                    ))}
+                            Ver indicador
+                    </button>
                 </div>
             </div>
         </div>
