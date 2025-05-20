@@ -18,6 +18,7 @@ export default function DomainTemplate() {
 
   const images = selectedDomainObj.DomainCarouselImages;
   const [selectedSubdomain, setSelectedSubdomain] = useState(null);
+  const [selectedDomain, setSelectedDomain] = useState(selectedDomainObj);
 
   // Graph icons
   const GraphTypes = [
@@ -37,7 +38,9 @@ export default function DomainTemplate() {
       <Carousel images={images} />
       <div className="p-4">
         <Dropdowns
-          initialDomain={selectedDomainObj}
+          selectedDomain={selectedDomain}
+          setSelectedDomain={setSelectedDomain}
+          selectedSubdomain={selectedSubdomain}
           setSelectedSubdomain={setSelectedSubdomain}
           showIndicatorDropdown={false}
           redirectOnDomainChange={true}
