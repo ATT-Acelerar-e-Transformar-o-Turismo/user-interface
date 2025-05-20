@@ -10,10 +10,13 @@ export default function IndicatorsManagement() {
 
   const tableContent =
     selectedOption === 'indicators'
-      ? indicators.map(indicator => ({
-          ...indicator,
-          color: domains.find(domain => domain.name === indicator.domain)?.color
-        }))
+      ? indicators.map(indicator => {
+          const foundDomain = domains.find(domain => domain.nome === (indicator.domain?.nome || indicator.domain));
+          return {
+            ...indicator,
+            color: foundDomain?.DomainColor
+          };
+        })
       : domains;
 
   const handleEdit = (id) =>
@@ -28,7 +31,8 @@ export default function IndicatorsManagement() {
 
   const renderCellContent = (column, value, row) => {
     if (selectedOption === 'domains' && column === 'color') {
-      return <span style={{ backgroundColor: value }} className="inline-block w-4 h-4 rounded-full"></span>;
+      console.log(value)
+      return <span style={{ backgroundColor: row.DomainColor || '#CCCCCC' }} className="inline-block w-4 h-4 rounded-full"></span>;
     }
     if (selectedOption === 'indicators' && column === 'domain') {
       return (
@@ -36,6 +40,9 @@ export default function IndicatorsManagement() {
           {value}
         </span>
       );
+    }
+    if (selectedOption === 'domains' && column === 'name') {
+      return row.nome;
     }
     if (column === 'governance') {
       return value ? <i className="fas fa-check-circle text-green-500"></i> : <i className="fas fa-times-circle text-red-500"></i>;
