@@ -83,6 +83,11 @@ export default function FavoritesPage() {
     return true;
   });
 
+  const clearFilters = () => {
+    setSelectedDomain(null);
+    setSelectedSubdomain(null);
+  };
+
   // For debugging
   console.log("Selected domain:", selectedDomain?.nome);
   console.log("Filtered indicators:", filteredIndicators.length);
@@ -91,12 +96,24 @@ export default function FavoritesPage() {
     <PageTemplate>
       <div className="p-4 text-center">
         <h1 className="text-3xl font-bold mb-6">Meus Indicadores Favoritos</h1>
-        <Dropdowns
-          setSelectedDomain={setSelectedDomain}
-          setSelectedSubdomain={setSelectedSubdomain}
-          showIndicatorDropdown={false}
-          allowSubdomainClear={true}
-        />
+        <div className="flex flex-col items-center gap-4">
+          <Dropdowns
+            selectedDomain={selectedDomain}
+            selectedSubdomain={selectedSubdomain}
+            setSelectedDomain={setSelectedDomain}
+            setSelectedSubdomain={setSelectedSubdomain}
+            showIndicatorDropdown={false}
+            allowSubdomainClear={true}
+          />
+          {(selectedDomain || selectedSubdomain) && (
+            <button 
+              onClick={clearFilters}
+              className="btn btn-outline btn-sm"
+            >
+              Limpar Filtros
+            </button>
+          )}
+        </div>
       </div>
       
       {filteredIndicators.length === 0 ? (

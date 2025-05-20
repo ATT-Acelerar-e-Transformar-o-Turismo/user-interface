@@ -1,26 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 
 const Carousel = ({ images = [] }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   if (!Array.isArray(images)) {
     return null;
   }
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
 
   return (
     <div className="carousel w-full">
       {images.map((image, index) => (
         <div
           key={index}
-          id={`slide${index}`}
-          className="carousel-item relative w-full aspect-[4/1] overflow-hidden rounded-lg bg-base-200"
+          className={`carousel-item relative w-full aspect-[4/1] overflow-hidden rounded-lg bg-base-200 ${
+            index === currentSlide ? "block" : "hidden"
+          }`}
         >
           <img src={image} className="w-full h-full object-cover" alt={`Slide ${index}`} />
           <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-            <a href={`#slide${index === 0 ? images.length - 1 : index - 1}`} className="btn btn-circle">
+            <button onClick={prevSlide} className="btn btn-circle">
               ❮
-            </a>
-            <a href={`#slide${index === images.length - 1 ? 0 : index + 1}`} className="btn btn-circle">
+            </button>
+            <button onClick={nextSlide} className="btn btn-circle">
               ❯
-            </a>
+            </button>
           </div>
         </div>
       ))}

@@ -11,24 +11,24 @@ export default function Navbar() {
             <div className="flex-none">
                 <ul className="menu menu-horizontal px-1">
                     <li>
-                        <div className="dropdown dropdown-end">
-                            <div tabIndex="0" role="button">Daniel</div>
+                        <details className="dropdown dropdown-end">
+                            <summary>My Profile</summary>
                             <ul tabIndex="0" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
                                 <li><Link to={'/favorites'} className="text-base-content">Favoritos</Link></li>
                                 <li><Link className="text-base-content">Settings</Link></li>
                                 <li><a className="text-base-content">Sign out</a></li>
                             </ul>
-                        </div>
+                        </details>
                     </li>
                     <li>
-                        <div className="dropdown dropdown-end">
-                            <div tabIndex="0" role="button">Admin</div>
-                            <ul tabIndex="0" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                        <details className="dropdown dropdown-end">
+                            <summary>Admin</summary>
+                            <ul className="bg-base-100 rounded-t-none p-2 absolute right-0 mt-2 w-40 z-10">
                                 <li>
                                     <Link to={'/indicators-management'} className="text-base-content">Indicators</Link>
                                 </li>
                             </ul>
-                        </div>
+                        </details>
                     </li>
                     <li>
                         <details>
