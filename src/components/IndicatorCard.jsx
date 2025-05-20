@@ -96,20 +96,20 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
                     className={`text-2xl btn btn-ghost ${isFavorite ? 'text-red-500' : ''}`}
                 />
             </button>
-            <figure className="px-10 pt-6">
+            <figure>
                 <Chart
                     chartId={`preview-${IndicatorId}`}
                     chartType="line"
                     xaxisType="numeric"
                     series={previewData.series}
-                    height={200}
+                    height={220}
                     showLegend={false}
                     showToolbar={false}
                     showTooltip={false}
                     allowUserInteraction={false}
                 />
             </figure>
-            <div className="card-body items-center text-center">
+            <div className="card-body pt-1 items-center text-center">
                 <h2 className="card-title">{IndicatorTitle}</h2>
                 <div className="card-actions">
                     <button 
