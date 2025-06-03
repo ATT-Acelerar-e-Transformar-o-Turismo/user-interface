@@ -2,7 +2,6 @@ import App from "./App";
 import AddResource from "./pages/AddResource";
 import DomainTemplate from "./pages/DomainTemplate";
 import FavoritesPage from "./pages/FavoritesPage";
-import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
 import NewIndicator from "./pages/NewIndicator";
 import IndicatorsManagement from "./pages/IndicatorsManagement";
@@ -14,9 +13,7 @@ export const routesList = [
         path: '/home',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Home</title>
-                </Helmet>
+                <title>ATT - Home</title>
                 <App />
             </>
         )
@@ -25,9 +22,7 @@ export const routesList = [
         path: '/favorites',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Favorites</title>
-                </Helmet>
+                <title>ATT - Favorites</title>
                 <FavoritesPage />
             </>
         )
@@ -36,9 +31,7 @@ export const routesList = [
         path: '/environment',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Environment</title>
-                </Helmet>
+                <title>ATT - Environment</title>
                 <DomainTemplate />
             </>
         )
@@ -47,9 +40,7 @@ export const routesList = [
         path: '/economy',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Economy</title>
-                </Helmet>
+                <title>ATT - Economy</title>
                 <DomainTemplate />
             </>
         )
@@ -58,9 +49,7 @@ export const routesList = [
         path: '/sociaty',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Sociaty</title>
-                </Helmet>
+                <title>ATT - Sociaty</title>
                 <DomainTemplate />
             </>
         )
@@ -69,9 +58,7 @@ export const routesList = [
         path: '/indicator/:indicatorId',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Indicator</title>
-                </Helmet>
+                <title>ATT - Indicator</title>
                 <IndicatorTemplate />
             </>
         )
@@ -80,9 +67,7 @@ export const routesList = [
         path: '/new_indicator',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - New Indicator</title>
-                </Helmet>
+                <title>ATT - New Indicator</title>
                 <NewIndicator />
             </>
         )
@@ -91,9 +76,7 @@ export const routesList = [
         path: '/add_data_resource',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Add Data Resource</title>
-                </Helmet>
+                <title>ATT - Add Data Resource</title>
                 <AddResource />
             </>
         )
@@ -102,9 +85,7 @@ export const routesList = [
         path: '/add_data_resource/:indicator',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Add Data Resource</title>
-                </Helmet>
+                <title>ATT - Add Data Resource</title>
                 <AddResource />
             </>
         )
@@ -113,9 +94,7 @@ export const routesList = [
         path: '/indicators-management',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Indicators</title>
-                </Helmet>
+                <title>ATT - Indicators</title>
                 <IndicatorsManagement />
             </>
         )
@@ -124,9 +103,7 @@ export const routesList = [
         path: '/resources-management/:indicator',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Resources</title>
-                </Helmet>
+                <title>ATT - Resources</title>
                 <ResourcesManagement />
             </>
         )
@@ -135,9 +112,7 @@ export const routesList = [
         path: '/new_domain',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - New Domain</title>
-                </Helmet>
+                <title>ATT - New Domain</title>
                 <NewDomain />
             </>
         )
@@ -146,9 +121,7 @@ export const routesList = [
         path: '/edit_indicator/:indicatorId',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Edit Indicator</title>
-                </Helmet>
+                <title>ATT - Edit Indicator</title>
                 <NewIndicator />
             </>
         )
@@ -157,9 +130,7 @@ export const routesList = [
         path: '/edit_domain/:id',
         element: (
             <>
-                <Helmet>
-                    <title>ATT - Edit Domain</title>
-                </Helmet>
+                <title>ATT - Edit Domain</title>
                 <NewDomain />
             </>
         )

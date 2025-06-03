@@ -10,6 +10,22 @@
             ],
             "subdominios": [
                 {
+                    "nome": "Clima e Alterações Climáticas",
+                    "indicadores": [
+                        {
+                            "nome": "Monthly Precipitation",
+                            "caracteristicas": {
+                                "unidade_de_medida": "mm",
+                                "fonte": "CM de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 2000
+                        }
+                    ]
+                },
+                {
                     "nome": "Capital natural e uso do solo",
                     "indicadores": [
                         {
@@ -350,6 +366,17 @@
                 {
                     "nome": "Regulamentos e políticas",
                     "indicadores": [
+                        {
+                            "nome": "Occupancy Rate",
+                            "caracteristicas": {
+                                "unidade_de_medida": "Percentagem",
+                                "fonte": "CM de Ílhavo",
+                                "periodicidade": "anual",
+                                "escala": "local"
+                            },
+                            "categorizacao": "Indicadores específicos do destino",
+                            "id": 2900
+                        },
                         {
                             "nome": "Percentagem de empresas com certificação ambiental reconhecida",
                             "caracteristicas": {
@@ -859,7 +886,7 @@
                     "nome": "Atmosfera sociocultural",
                     "indicadores": [
                         {
-                            "nome": "Condição geral de paz e segurança",
+                            "nome": "Beneficiárias/os do rendimento social de inserção, da segurança social por 1000 habitantes em idade ativa",
                             "caracteristicas": {
                                 "unidade_de_medida": "Escala 1-7",
                                 "fonte": "Questionário aos stakeholders (Barra e Costa Nova)",
@@ -870,7 +897,7 @@
                             "id": 70
                         },
                         {
-                            "nome": "Taxa de criminalidade",
+                            "nome": "Índice sintético de desenvolvimento regional (Coesão)",
                             "caracteristicas": {
                                 "unidade_de_medida": "Por mil habitantes",
                                 "fonte": "INE (Município)",
@@ -881,7 +908,7 @@
                             "id": 71
                         },
                         {
-                            "nome": "Orgulho dos residentes pelo seu património cultural",
+                            "nome": "Despesas municipais em património cultural ",
                             "caracteristicas": {
                                 "unidade_de_medida": "Escala 1-7",
                                 "fonte": "Questionário aos residentes",

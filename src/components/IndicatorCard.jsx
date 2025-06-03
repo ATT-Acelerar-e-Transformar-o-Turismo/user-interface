@@ -4,12 +4,16 @@ import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
+import { loadIndicatorData, getSampleData, getChartTypeForIndicator } from "../utils/excelLoader";
 import Chart from "./Chart";
 
 export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes }) {
     let domainColor = "purple"; // Default color
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
+    const [chartData, setChartData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [chartType, setChartType] = useState('line');
     const { domains } = useDomain();
 
     let selectedDomain = null;
@@ -26,6 +30,31 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         }
         if (selectedDomain) break;
     }
+
+    // Load chart data based on indicator ID
+    useEffect(() => {
+        const loadData = async () => {
+            setIsLoading(true);
+            
+            // Get chart type for this indicator
+            const indicatorChartType = getChartTypeForIndicator(IndicatorId);
+            setChartType(indicatorChartType);
+            
+            // Try to load real data for specific indicators (70, 71, 72, 2000, 2900)
+            const realData = await loadIndicatorData(IndicatorId);
+            
+            if (realData) {
+                setChartData(realData);
+            } else {
+                // Fall back to sample data for other indicators
+                setChartData(getSampleData());
+            }
+            
+            setIsLoading(false);
+        };
+
+        loadData();
+    }, [IndicatorId]);
 
     // Check localStorage on component mount
     useEffect(() => {
@@ -74,20 +103,6 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         setIsFavorite(!isFavorite);
     };
 
-    // Sample data for preview
-    const previewData = {
-        series: [{
-            name: 'Sample Data',
-            data: [
-                { x: 1, y: 10 },
-                { x: 2, y: 15 },
-                { x: 3, y: 12 },
-                { x: 4, y: 18 },
-                { x: 5, y: 14 }
-            ]
-        }]
-    };
-
     return (
         <div className="card bg-base-100 w-96 shadow-sm" style={{ border: `2px solid ${domainColor}` }}>
             <button className="flex justify-end mt-6 mr-10" onClick={toggleFavorite}>
@@ -97,17 +112,28 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
                 />
             </button>
             <figure>
-                <Chart
-                    chartId={`preview-${IndicatorId}`}
-                    chartType="line"
-                    xaxisType="numeric"
-                    series={previewData.series}
-                    height={220}
-                    showLegend={false}
-                    showToolbar={false}
-                    showTooltip={false}
-                    allowUserInteraction={false}
-                />
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-[220px]">
+                        <span className="loading loading-spinner loading-md"></span>
+                    </div>
+                ) : chartData ? (
+                    <Chart
+                        title=""
+                        chartId={`preview-${IndicatorId}`}
+                        chartType={chartType}
+                        xaxisType="numeric"
+                        series={chartData.series}
+                        height={220}
+                        showLegend={false}
+                        showToolbar={false}
+                        showTooltip={true}
+                        allowUserInteraction={false}
+                    />
+                ) : (
+                    <div className="flex items-center justify-center h-[220px] text-gray-500">
+                        No data available
+                    </div>
+                )}
             </figure>
             <div className="card-body pt-1 items-center text-center">
                 <h2 className="card-title">{IndicatorTitle}</h2>
