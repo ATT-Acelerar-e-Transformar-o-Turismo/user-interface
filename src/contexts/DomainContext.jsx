@@ -18,7 +18,7 @@ export function DomainProvider({ children }) {
                 const storedIndicators = JSON.parse(localStorage.getItem('indicators')) || [];
                 setIndicators(storedIndicators);
                 
-                const response = await apiClient.get('/api/indicators/domains');
+                const response = await apiClient.get('/api/domains');
                 setDomains(response.data || []);
             } catch (err) {
                 setError(err.message);
@@ -82,7 +82,10 @@ export function DomainProvider({ children }) {
     };
 
     const getDomainByName = (name) => {
-        return domains.find(domain => domain.name === name || domain.nome === name) || null;
+        return domains.find(domain => 
+            domain.name === name || 
+            domain.nome === name
+        ) || null;
     };
 
     return (

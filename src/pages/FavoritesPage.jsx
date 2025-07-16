@@ -3,11 +3,20 @@ import { useDomain } from "../contexts/DomainContext";
 import PageTemplate from "./PageTemplate";
 import Dropdowns from "../components/DomainDropdown";
 import IndicatorCard from "../components/IndicatorCard";
+import LoadingSkeleton from "../components/LoadingSkeleton";
+import ErrorDisplay from "../components/ErrorDisplay";
+import indicatorService from "../services/indicatorService";
 
 export default function FavoritesPage() {
   const [favoriteIndicators, setFavoriteIndicators] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedSubdomain, setSelectedSubdomain] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(12);
   const { domains } = useDomain();
 
   // Graph icons - reusing the same icons from DomainTemplate
@@ -19,29 +28,44 @@ export default function FavoritesPage() {
     { icon: "📉" },
   ];
 
-  // Function to load favorites from localStorage
-  const loadFavorites = () => {
-    const favorites = JSON.parse(localStorage.getItem('favoriteIndicators')) || [];
-    
-    // Find all indicator objects that match the favorite IDs
-    const favoriteIndicatorObjects = [];
-    
-    domains.forEach(domain => {
-      domain.subdominios && domain.subdominios.forEach(subdomain => {
-        subdomain.indicadores && subdomain.indicadores.forEach(indicator => {
-          if (favorites.includes(indicator.id)) {
-            favoriteIndicatorObjects.push({
-              ...indicator,
-              domainName: domain.nome,
-              subdomainName: subdomain.nome,
-              domainColor: domain.DomainColor
-            });
-          }
-        });
-      });
-    });
-    
-    setFavoriteIndicators(favoriteIndicatorObjects);
+  // Function to load favorites from API
+  const loadFavorites = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const favorites = JSON.parse(localStorage.getItem('favoriteIndicators')) || [];
+      
+      if (favorites.length === 0) {
+        setFavoriteIndicators([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch all favorite indicators from API
+      const favoriteIndicatorObjects = [];
+      
+      for (const favoriteId of favorites) {
+        try {
+          const indicator = await indicatorService.getById(favoriteId);
+          favoriteIndicatorObjects.push({
+            ...indicator,
+            domainName: indicator.domain?.nome || indicator.domain?.name,
+            subdomainName: indicator.subdomain,
+            domainColor: indicator.domain?.DomainColor
+          });
+        } catch (err) {
+          console.warn(`Failed to load favorite indicator ${favoriteId}:`, err);
+        }
+      }
+      
+      setFavoriteIndicators(favoriteIndicatorObjects);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to load favorite indicators:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Load favorites on component mount
@@ -61,7 +85,7 @@ export default function FavoritesPage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [domains]);
+  }, []);
 
   // Filter indicators based on selected domain/subdomain
   const filteredIndicators = favoriteIndicators.filter(indicator => {
@@ -86,11 +110,43 @@ export default function FavoritesPage() {
   const clearFilters = () => {
     setSelectedDomain(null);
     setSelectedSubdomain(null);
+    setCurrentPage(0);
   };
 
-  // For debugging
-  console.log("Selected domain:", selectedDomain?.nome);
-  console.log("Filtered indicators:", filteredIndicators.length);
+  // Pagination for filtered indicators
+  const totalPages = Math.ceil(filteredIndicators.length / pageSize);
+  const startIndex = currentPage * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedIndicators = filteredIndicators.slice(startIndex, endIndex);
+
+  // Pagination controls
+  const PaginationControls = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-6">
+        <button
+          className="btn btn-sm"
+          disabled={currentPage === 0}
+          onClick={() => setCurrentPage(currentPage - 1)}
+        >
+          Previous
+        </button>
+        
+        <span className="px-4 py-2">
+          Page {currentPage + 1} of {totalPages}
+        </span>
+        
+        <button
+          className="btn btn-sm"
+          disabled={currentPage >= totalPages - 1}
+          onClick={() => setCurrentPage(currentPage + 1)}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
 
   return (
     <PageTemplate>
@@ -116,26 +172,38 @@ export default function FavoritesPage() {
         </div>
       </div>
       
-      {filteredIndicators.length === 0 ? (
-        <div className="text-center p-8">
-          <h2 className="text-xl">
-            {selectedDomain 
-              ? `Nenhum indicador favorito encontrado para ${selectedDomain.nome}` 
-              : "Você ainda não tem indicadores favoritos."}
-          </h2>
-          <p className="mt-2">Adicione indicadores aos favoritos clicando no ícone de coração nas páginas de domínios.</p>
-        </div>
-      ) : (
-        <div className="flex flex-wrap place-content-center gap-4">
-          {filteredIndicators.map((indicator) => (
-            <IndicatorCard
-              key={indicator.id}
-              IndicatorTitle={indicator.nome}
-              IndicatorId={indicator.id}
-              GraphTypes={GraphTypes}
-            />
-          ))}
-        </div>
+      {loading && <LoadingSkeleton />}
+      
+      {error && <ErrorDisplay error={error} />}
+      
+      {!loading && !error && (
+        <>
+          {filteredIndicators.length === 0 ? (
+            <div className="text-center p-8">
+              <h2 className="text-xl">
+                {selectedDomain 
+                  ? `Nenhum indicador favorito encontrado para ${selectedDomain.nome}` 
+                  : "Você ainda não tem indicadores favoritos."}
+              </h2>
+              <p className="mt-2">Adicione indicadores aos favoritos clicando no ícone de coração nas páginas de domínios.</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap place-content-center gap-4">
+                {paginatedIndicators.map((indicator) => (
+                  <IndicatorCard
+                    key={indicator.id}
+                    IndicatorTitle={indicator.name || indicator.nome}
+                    IndicatorId={indicator.id}
+                    GraphTypes={GraphTypes}
+                  />
+                ))}
+              </div>
+              
+              <PaginationControls />
+            </>
+          )}
+        </>
       )}
     </PageTemplate>
   );
