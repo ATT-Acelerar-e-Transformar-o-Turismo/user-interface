@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.0.7",
     "@tanstack/react-table": "^8.21.2",
     "apexcharts": "^4.5.0",
+    "axios": "^1.10.0",
     "exceljs": "^4.4.0",
     "fontawesome": "^5.6.3",
     "nouislider": "^15.8.1",
