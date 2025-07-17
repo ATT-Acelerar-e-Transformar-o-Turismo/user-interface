@@ -163,5 +163,16 @@ export const routesList = [
                 <NewDomain />
             </>
         )
+    },
+    {
+        path: '/:domainPath',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Domain</title>
+                </Helmet>
+                <DomainTemplate />
+            </>
+        )
     }
 ];

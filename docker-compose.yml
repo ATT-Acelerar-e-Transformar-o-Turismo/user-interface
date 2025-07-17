@@ -5,4 +5,15 @@ services:
       dockerfile: Dockerfile
     container_name: att-user-interface
     networks:
-      - att-network 
+      - att-orchestrator_att-network
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: package.json
+
+networks:
+  att-orchestrator_att-network:
+    external: true 

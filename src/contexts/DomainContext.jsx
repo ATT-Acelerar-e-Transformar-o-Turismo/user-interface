@@ -1,19 +1,34 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import domainsData from '../../public/domains.json';
+import apiClient from '../services/apiClient';
 
 const DomainContext = createContext();
 
 export function DomainProvider({ children }) {
     const [domains, setDomains] = useState([]);
     const [indicators, setIndicators] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        const storedIndicators = JSON.parse(localStorage.getItem('indicators')) || [];
-        
-        const jsonDomainsFromFile = domainsData.dominios || [];
-        
-        setDomains(jsonDomainsFromFile);
-        setIndicators(storedIndicators);
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const storedIndicators = JSON.parse(localStorage.getItem('indicators')) || [];
+                setIndicators(storedIndicators);
+                
+                const response = await apiClient.get('/api/domains');
+                setDomains(response.data || []);
+            } catch (err) {
+                setError(err.message);
+                console.error('Failed to load domains:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
     }, []);
 
     const updateDomains = (newDomains) => {
@@ -67,13 +82,18 @@ export function DomainProvider({ children }) {
     };
 
     const getDomainByName = (name) => {
-        return domains.find(domain => domain.name === name || domain.nome === name) || null;
+        return domains.find(domain => 
+            domain.name === name || 
+            domain.nome === name
+        ) || null;
     };
 
     return (
         <DomainContext.Provider value={{
             domains,
             indicators,
+            loading,
+            error,
             addDomain,
             updateDomain,
             deleteDomain,
