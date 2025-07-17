@@ -15,13 +15,25 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     let selectedDomain = null;
     let selectedSubdomain = null;
 
+    // Handle both old JSON structure and new API structure
     for (const domain of domains) {
-        for (const subdomain of domain.subdominios) {
-            if (subdomain.indicadores.some(indicator => indicator.id === IndicatorId)) {
-                domainColor = domain.DomainColor;
+        if (domain.subdominios && Array.isArray(domain.subdominios)) {
+            // Old structure
+            for (const subdomain of domain.subdominios) {
+                if (subdomain.indicadores && subdomain.indicadores.some(indicator => indicator.id === IndicatorId)) {
+                    domainColor = domain.DomainColor || domain.color;
+                    selectedDomain = domain;
+                    selectedSubdomain = subdomain;
+                    break;
+                }
+            }
+        } else {
+            // New API structure - for now, just use the first domain as fallback
+            // In a real implementation, you'd get indicator-domain relationships from the API
+            if (!selectedDomain) {
                 selectedDomain = domain;
-                selectedSubdomain = subdomain;
-                break;
+                selectedSubdomain = { nome: domain.subdomains?.[0] || 'Default' };
+                domainColor = domain.color || domain.DomainColor;
             }
         }
         if (selectedDomain) break;
@@ -42,8 +54,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: selectedDomain.nome,
-                subdomainName: selectedSubdomain.nome,
+                domainName: selectedDomain.nome || selectedDomain.name,
+                subdomainName: selectedSubdomain.nome || selectedSubdomain.name || selectedSubdomain,
             },
         });
     };

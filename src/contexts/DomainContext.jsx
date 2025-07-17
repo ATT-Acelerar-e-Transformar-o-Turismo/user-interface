@@ -19,7 +19,8 @@ export function DomainProvider({ children }) {
                 setIndicators(storedIndicators);
                 
                 const response = await apiClient.get('/api/domains');
-                setDomains(response.data || []);
+                const domainsData = response.data;
+                setDomains(Array.isArray(domainsData) ? domainsData : []);
             } catch (err) {
                 setError(err.message);
                 console.error('Failed to load domains:', err);
@@ -38,6 +39,21 @@ export function DomainProvider({ children }) {
     const updateIndicators = (newIndicators) => {
         setIndicators(newIndicators);
         localStorage.setItem('indicators', JSON.stringify(newIndicators));
+    };
+
+    const refreshDomains = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await apiClient.get('/api/domains');
+            const domainsData = response.data;
+            setDomains(Array.isArray(domainsData) ? domainsData : []);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to refresh domains:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const addDomain = (domain) => {
@@ -94,6 +110,7 @@ export function DomainProvider({ children }) {
             indicators,
             loading,
             error,
+            refreshDomains,
             addDomain,
             updateDomain,
             deleteDomain,
