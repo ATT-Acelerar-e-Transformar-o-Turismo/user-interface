@@ -71,7 +71,14 @@ export default function Table({ content, actions, emptyMessage, visibleColumns }
                   <td key={`actions-${row.id}`} className="px-4 py-2 w-24">
                     <div className="flex gap-1">
                       {actions.map((action, index) => (
-                        <button key={index} onClick={() => action.onClick(row.original.id)} className={`btn ${action.className} btn-sm min-w-16`}>
+                        <button key={index} onClick={() => {
+                          console.log('Table - action click, row.original:', row.original);
+                          console.log('Table - row.original.id:', row.original.id);
+                          console.log('Table - row.original._id:', row.original._id);
+                          const idToPass = row.original.id || row.original._id;
+                          console.log('Table - ID being passed to action:', idToPass);
+                          action.onClick(idToPass);
+                        }} className={`btn ${action.className} btn-sm min-w-16`}>
                           {action.label}
                         </button>
                       ))}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ManagementTemplate from '../components/ManagementTemplate';
 import indicatorService from '../services/indicatorService';
@@ -16,7 +16,6 @@ export default function IndicatorsManagement() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
   
   const navigate = useNavigate();
 
@@ -56,9 +55,9 @@ export default function IndicatorsManagement() {
     navigate(selectedOption === 'indicators' ? `/edit_indicator/${id}` : `/edit_domain/${id}`);
   };
 
-  const handleDelete = async (item) => {
+  const handleDelete = async (id) => {
     try {
-      const id = item.id || item._id;
+      // id is already the string ID, no need to extract it from an object
       if (selectedOption === 'indicators') {
         await indicatorService.delete(id);
         setIndicators(indicators.filter(indicator => (indicator.id || indicator._id) !== id));
@@ -98,6 +97,13 @@ export default function IndicatorsManagement() {
           };
         })
       : domains;
+
+  // Debug: Log the table content structure
+  console.log('IndicatorsManagement - tableContent:', tableContent);
+  console.log('IndicatorsManagement - first item:', tableContent[0]);
+  console.log('IndicatorsManagement - first item ID:', tableContent[0]?.id);
+  console.log('IndicatorsManagement - first item _id:', tableContent[0]?._id);
+  console.log('IndicatorsManagement - first item keys:', Object.keys(tableContent[0] || {}));
 
   const visibleColumns =
     selectedOption === 'indicators'
@@ -174,13 +180,13 @@ export default function IndicatorsManagement() {
           <div>
             <button
               className={`btn ${selectedOption === 'indicators' ? 'btn-primary' : 'btn-base-300'} rounded-r-none`}
-                onClick={() => handleOptionChange('indicators')}
+              onClick={() => handleOptionChange('indicators')}
             >
               Indicators
             </button>
             <button
               className={`btn ${selectedOption === 'domains' ? 'btn-primary' : 'btn-base-300'} rounded-l-none`}
-                onClick={() => handleOptionChange('domains')}
+              onClick={() => handleOptionChange('domains')}
             >
               Domains
             </button>
@@ -194,7 +200,7 @@ export default function IndicatorsManagement() {
         </div>
       }
     />
-      {paginationControls}
+    {paginationControls}
     </>
   );
 }
