@@ -97,7 +97,7 @@ export default function ResourcesManagement() {
   };
 
   const visibleColumns = ['name', 'start_period', 'end_period', 'type'];
-  
+
   const actions = [
     { label: 'Edit', className: 'btn-primary', onClick: handleEdit },
     { label: 'Delete', className: 'btn-secondary', onClick: handleDelete }

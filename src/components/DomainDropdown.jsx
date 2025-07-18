@@ -97,7 +97,7 @@ function Dropdowns({
             return (
               <li key={domainId || domainName}>
                 <a onClick={() => handleSelectDomain(domain)}>{domainName}</a>
-              </li>
+            </li>
             );
           })}
         </ul>
@@ -132,8 +132,8 @@ function Dropdowns({
                 <li key={subdomainName || index}>
                   <a onClick={() => handleSelectSubdomain(subdomainItem)}>
                     {subdomainName}
-                  </a>
-                </li>
+                </a>
+              </li>
               );
             })}
           </ul>

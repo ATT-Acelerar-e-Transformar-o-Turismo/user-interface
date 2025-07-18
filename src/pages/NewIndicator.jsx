@@ -15,7 +15,7 @@ export default function NewIndicator() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [domains, setDomains] = useState([]);
-  
+
   const [isCarryingCapacityChecked, setIsCarryingCapacityChecked] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -45,9 +45,9 @@ export default function NewIndicator() {
       setDomains(domainsData || []);
       
       // If editing, load the indicator data
-      if (indicatorId) {
+    if (indicatorId) {
         const indicator = await indicatorService.getById(indicatorId);
-        if (indicator) {
+      if (indicator) {
           setFormData({
             name: indicator.name || '',
             description: indicator.description || '',
@@ -61,11 +61,11 @@ export default function NewIndicator() {
             carrying_capacity: indicator.carrying_capacity || false,
           });
           
-          if (indicator.carrying_capacity) {
-            setIsCarryingCapacityChecked(true);
-          }
+        if (indicator.carrying_capacity) {
+          setIsCarryingCapacityChecked(true);
         }
       }
+    }
     } catch (err) {
       setError(err.message || 'Failed to load data');
       console.error('Error loading data:', err);
@@ -141,19 +141,19 @@ export default function NewIndicator() {
         periodicity: formData.periodicity.trim(),
         governance: formData.governance,
         carrying_capacity: isCarryingCapacityChecked ? formData.carrying_capacity : false,
-        favourites: formData.favourites || 0,
-      };
-
+      favourites: formData.favourites || 0,
+    };
+    
       let result;
-      if (indicatorId) {
+    if (indicatorId) {
         // Update existing indicator
         result = await indicatorService.update(indicatorId, indicatorData);
-      } else {
+    } else {
         // Create new indicator
         const domainId = formData.domain.id || formData.domain._id;
         result = await indicatorService.create(domainId, formData.subdomain, indicatorData);
-      }
-      
+    }
+    
       return result;
     } catch (err) {
       setError(err.message || 'Failed to save indicator');
@@ -166,7 +166,7 @@ export default function NewIndicator() {
   const handleSave = async () => {
     try {
       await saveIndicator();
-      navigate('/indicators-management');
+    navigate('/indicators-management');
     } catch (err) {
       // Error is already set in saveIndicator
       console.error('Error saving indicator:', err);
@@ -177,7 +177,7 @@ export default function NewIndicator() {
     try {
       const result = await saveIndicator();
       const id = result.id || result._id;
-      navigate(`/add_data_resource/${id}`);
+    navigate(`/add_data_resource/${id}`);
     } catch (err) {
       // Error is already set in saveIndicator
       console.error('Error saving indicator:', err);

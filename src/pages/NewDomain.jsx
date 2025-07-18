@@ -22,12 +22,12 @@ export default function NewDomain() {
                 try {
                     setLoading(true);
                     const domain = await domainService.getById(id);
-                    if (domain) {
+            if (domain) {
                         setName(domain.name || '');
                         setColor(domain.color || '#000000');
                         setSubdomains(Array.isArray(domain.subdomains) ? domain.subdomains : []);
                         setImage(domain.image || '');
-                    }
+            }
                 } catch (err) {
                     setError('Failed to load domain: ' + err.message);
                 } finally {
@@ -66,17 +66,17 @@ export default function NewDomain() {
                 color: color || '#000000', 
                 subdomains: subdomains || [],
                 image: image || ''
-            };
-            
-            if (id) {
+        };
+        
+        if (id) {
                 await domainService.update(id, domainData);
-            } else {
+        } else {
                 await domainService.create(domainData);
             }
             
             // Refresh domains in context
             await refreshDomains();
-            navigate('/indicators-management');
+        navigate('/indicators-management');
         } catch (err) {
             setError('Failed to save domain: ' + err.message);
         } finally {
@@ -190,15 +190,15 @@ export default function NewDomain() {
 
                         <div>
                             <label htmlFor="image-input" className="block mb-2 text-sm font-medium text-neutral">Image URL</label>
-                            <input
+                                <input
                                 type="text"
-                                id="image-input"
+                                    id="image-input"
                                 value={image}
                                 onChange={(e) => setImage(e.target.value)}
                                 disabled={loading}
                                 placeholder="Enter image URL"
                                 className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
-                            />
+                                />
                         </div>
                         
                         <div className="flex justify-end mt-4 space-x-2">

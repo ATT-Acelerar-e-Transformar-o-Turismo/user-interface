@@ -175,7 +175,7 @@ export default function IndicatorDropdowns({
             return (
               <li key={domainId || domainName}>
                 <a onClick={() => handleDomainSelect(dom)}>{domainName}</a>
-              </li>
+            </li>
             );
           })}
         </ul>
@@ -228,11 +228,11 @@ export default function IndicatorDropdowns({
               <li><span className="loading loading-spinner loading-sm"></span></li>
             ) : subdomainIndicators.length > 0 ? (
               subdomainIndicators.map((ind) => (
-                <li key={ind.id}>
-                  <a onClick={() => handleIndicatorSelect(ind)}>
+              <li key={ind.id}>
+                <a onClick={() => handleIndicatorSelect(ind)}>
                     {ind.name}
-                  </a>
-                </li>
+                </a>
+              </li>
               ))
             ) : (
               <li><span className="text-gray-500">Nenhum indicador encontrado</span></li>

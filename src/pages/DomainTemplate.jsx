@@ -29,7 +29,7 @@ export default function DomainTemplate() {
   
   // Find domain by name in the API domains
   const selectedDomainObj = domains.find((dom) => 
-    (dom.nome === domainName || dom.name === domainName) ||
+                             (dom.nome === domainName || dom.name === domainName) ||
     (dom.nome === inferredDomainName || dom.name === inferredDomainName) ||
     // Also try lowercase comparison
     (dom.name && dom.name.toLowerCase() === inferredDomainName.toLowerCase())

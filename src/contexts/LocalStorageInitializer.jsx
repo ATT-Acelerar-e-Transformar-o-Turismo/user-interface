@@ -29,35 +29,35 @@ export function LocalStorageInitializer() {
         // Handle old JSON structure
         domains.forEach((domain) => {
           if (domain.subdominios && Array.isArray(domain.subdominios)) {
-            domain.subdominios.forEach((subdomain) => {
+        domain.subdominios.forEach((subdomain) => {
               if (subdomain.indicadores && Array.isArray(subdomain.indicadores)) {
-                subdomain.indicadores.forEach((indicator) => {
-                  indicators.push({
-                    id: indicators.length + 1,
-                    name: indicator.nome,
-                    periodicity: indicator.caracteristicas.periodicidade,
-                    domain: domain.nome,
-                    subdomain: subdomain.nome,
-                    favourites: getRandomFavourites(),
-                    governance: getRandomGovernance(),
-                    description: "",
-                    font: "",
-                    scale: indicator.caracteristicas.unidade_de_medida,
-                  });
-
-                  resources.push({
-                    id: resources.length + 1,
-                    name: `${indicator.nome.replace(/\s+/g, '_').toLowerCase()}.csv`,
-                    'start period': '',
-                    'end period': '',
-                    indicator: indicators.length,
-                    edit: true,
-                  });
-                });
-              }
+          subdomain.indicadores.forEach((indicator) => {
+            indicators.push({
+              id: indicators.length + 1,
+              name: indicator.nome,
+              periodicity: indicator.caracteristicas.periodicidade,
+              domain: domain.nome,
+              subdomain: subdomain.nome,
+              favourites: getRandomFavourites(),
+              governance: getRandomGovernance(),
+              description: "",
+              font: "",
+              scale: indicator.caracteristicas.unidade_de_medida,
             });
-          }
+
+            resources.push({
+              id: resources.length + 1,
+              name: `${indicator.nome.replace(/\s+/g, '_').toLowerCase()}.csv`,
+              'start period': '',
+              'end period': '',
+              indicator: indicators.length,
+              edit: true,
+            });
+          });
+              }
         });
+          }
+      });
       } else {
         // Handle new API structure - create minimal test data since the API structure doesn't include indicators
         console.log('Domains loaded from API - using minimal test data for localStorage');

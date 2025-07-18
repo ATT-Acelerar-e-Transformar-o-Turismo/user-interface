@@ -190,13 +190,13 @@ export default function IndicatorTemplate() {
       <div className="@container mx-auto">
         <div className="p-4">
           {domainObj && (
-            <IndicatorDropdowns
-              currentDomain={domainObj}
+          <IndicatorDropdowns
+            currentDomain={domainObj}
               currentSubdomain={indicator.subdomain}
               currentIndicator={indicator}
-              onIndicatorChange={handleIndicatorChange}
-              allowSubdomainClear={false}
-            />
+            onIndicatorChange={handleIndicatorChange}
+            allowSubdomainClear={false}
+          />
           )}
         </div>
         <h2 className="text-2xl font-bold mt-16">{indicator.name}</h2>

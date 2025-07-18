@@ -19,12 +19,12 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     for (const domain of domains) {
         if (domain.subdominios && Array.isArray(domain.subdominios)) {
             // Old structure
-            for (const subdomain of domain.subdominios) {
+        for (const subdomain of domain.subdominios) {
                 if (subdomain.indicadores && subdomain.indicadores.some(indicator => indicator.id === IndicatorId)) {
                     domainColor = domain.DomainColor || domain.color;
-                    selectedDomain = domain;
-                    selectedSubdomain = subdomain;
-                    break;
+                selectedDomain = domain;
+                selectedSubdomain = subdomain;
+                break;
                 }
             }
         } else {

@@ -79,7 +79,7 @@ export default function IndicatorsManagement() {
 
   // Prepare table content
   const tableContent = selectedOption === 'indicators' 
-    ? indicators.map(indicator => {
+      ? indicators.map(indicator => {
         // Map domain data for indicators
         let domainInfo = null;
         if (indicator.domain) {
@@ -91,13 +91,13 @@ export default function IndicatorsManagement() {
           }
         }
         
-        return {
-          ...indicator,
+          return {
+            ...indicator,
           domain: domainInfo?.name || indicator.subdomain || 'Unknown Domain',
           color: domainInfo?.color || '#CCCCCC'
-        };
-      })
-    : domains;
+          };
+        })
+      : domains;
 
   const visibleColumns =
     selectedOption === 'indicators'
@@ -162,38 +162,38 @@ export default function IndicatorsManagement() {
 
   return (
     <>
-      <ManagementTemplate
-        title={selectedOption === 'indicators' ? 'Indicators' : 'Domains'}
-        tableContent={tableContent}
-        emptyMessage={`There are no ${selectedOption} yet`}
-        visibleColumns={visibleColumns}
-        actions={actions}
-        renderCellContent={renderCellContent}
-        headerActions={
-          <div className="flex w-full mb-4 justify-between">
-            <div>
-              <button
-                className={`btn ${selectedOption === 'indicators' ? 'btn-primary' : 'btn-base-300'} rounded-r-none`}
+    <ManagementTemplate
+      title={selectedOption === 'indicators' ? 'Indicators' : 'Domains'}
+      tableContent={tableContent}
+      emptyMessage={`There are no ${selectedOption} yet`}
+      visibleColumns={visibleColumns}
+      actions={actions}
+      renderCellContent={renderCellContent}
+      headerActions={
+        <div className="flex w-full mb-4 justify-between">
+          <div>
+            <button
+              className={`btn ${selectedOption === 'indicators' ? 'btn-primary' : 'btn-base-300'} rounded-r-none`}
                 onClick={() => handleOptionChange('indicators')}
-              >
-                Indicators
-              </button>
-              <button
-                className={`btn ${selectedOption === 'domains' ? 'btn-primary' : 'btn-base-300'} rounded-l-none`}
+            >
+              Indicators
+            </button>
+            <button
+              className={`btn ${selectedOption === 'domains' ? 'btn-primary' : 'btn-base-300'} rounded-l-none`}
                 onClick={() => handleOptionChange('domains')}
-              >
-                Domains
-              </button>
-            </div>
-            <div className='flex-grow'></div>
-            <a href={selectedOption === 'indicators' ? 'new_indicator' : 'new_domain'}>
-              <button className="btn btn-success">
-                {selectedOption === 'indicators' ? 'Create New Indicator' : 'Create New Domain'}
-              </button>
-            </a>
+            >
+              Domains
+            </button>
           </div>
-        }
-      />
+          <div className='flex-grow'></div>
+          <a href={selectedOption === 'indicators' ? 'new_indicator' : 'new_domain'}>
+            <button className="btn btn-success">
+              {selectedOption === 'indicators' ? 'Create New Indicator' : 'Create New Domain'}
+            </button>
+          </a>
+        </div>
+      }
+    />
       {paginationControls}
     </>
   );

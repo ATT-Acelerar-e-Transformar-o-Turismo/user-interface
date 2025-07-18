@@ -3,7 +3,7 @@ import apiClient from './apiClient';
 export const domainService = {
   // Get all domains
   async getAll() {
-    const response = await apiClient.get('/api/domains/');
+    const response = await apiClient.get('/api/domains');
     return response.data;
   },
 
@@ -15,7 +15,7 @@ export const domainService = {
 
   // Create domain
   async create(domainData) {
-    const response = await apiClient.post('/api/domains/', domainData);
+    const response = await apiClient.post('/api/domains', domainData);
     return response.data;
   },
 
