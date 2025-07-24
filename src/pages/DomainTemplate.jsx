@@ -48,7 +48,7 @@ export default function DomainTemplate() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(12); // 12 indicators per page
+  const [pageSize] = useState(9); // 9 indicators per page
   const [totalIndicators, setTotalIndicators] = useState(0);
 
   // Domain state

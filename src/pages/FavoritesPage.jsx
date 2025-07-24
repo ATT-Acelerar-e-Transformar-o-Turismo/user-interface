@@ -16,7 +16,7 @@ export default function FavoritesPage() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(12);
+  const [pageSize] = useState(9);
   const { domains } = useDomain();
 
   // Graph icons - reusing the same icons from DomainTemplate
