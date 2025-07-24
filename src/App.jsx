@@ -34,8 +34,8 @@ function App() {
             key={index}
             DomainTitle={domain.name} 
             DomainPage={domain.DomainPage || `/${domain.name.toLowerCase().replace(/\s+/g, '-')}`} 
-            DomainColor={domain.color || domain.DomainColor} 
-            DomainImage={domain.image || domain.DomainImage} 
+            DomainColor={domain.color} 
+            DomainImage={domain.image} 
           />
         ))}
       </div>
