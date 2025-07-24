@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Destination-specific indicators",
+        "description": "Indicators specific to this destination"
+    },
+    {
+        "id": 2,
+        "name": "UNWTO baseline indicators",
+        "description": "Baseline indicators from UNWTO"
+    },
+    {
+        "id": 3,
+        "name": "Required indicators by INSTO* and UNWTO baseline",
+        "description": "Required indicators by INSTO and UNWTO baseline"
+    },
+    {
+        "id": 4,
+        "name": "Required indicators by INSTO",
+        "description": "Required indicators by INSTO"
+    }
+]

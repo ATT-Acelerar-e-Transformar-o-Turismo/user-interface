@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ManagementTemplate from '../components/ManagementTemplate';
 import { useDomain } from '../contexts/DomainContext';
+import ManagementTemplate from '../components/ManagementTemplate';
 
 export default function IndicatorsManagement() {
+  const { domains, indicators, deleteDomain, deleteIndicator } = useDomain();
   const [selectedOption, setSelectedOption] = useState('indicators');
   const navigate = useNavigate();
-  const { domains, indicators, deleteDomain, deleteIndicator } = useDomain();
 
   const tableContent =
     selectedOption === 'indicators'
       ? indicators.map(indicator => {
-          const foundDomain = domains.find(domain => domain.nome === (indicator.domain?.nome || indicator.domain));
+          const foundDomain = domains.find(domain => domain.name === (indicator.domain?.name || indicator.domain));
           return {
             ...indicator,
             color: foundDomain?.DomainColor
@@ -42,7 +42,7 @@ export default function IndicatorsManagement() {
       );
     }
     if (selectedOption === 'domains' && column === 'name') {
-      return row.nome;
+      return row.name;
     }
     if (column === 'governance') {
       return value ? <i className="fas fa-check-circle text-green-500"></i> : <i className="fas fa-times-circle text-red-500"></i>;

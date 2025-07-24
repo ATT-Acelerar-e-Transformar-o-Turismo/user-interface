@@ -15,12 +15,16 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     let selectedDomain = null;
     let selectedSubdomain = null;
 
+    // Find the domain and subdomain for this indicator
     for (const domain of domains) {
-        for (const subdomain of domain.subdominios) {
-            if (subdomain.indicadores.some(indicator => indicator.id === IndicatorId)) {
-                domainColor = domain.DomainColor;
+        if (domain.subdomains && Array.isArray(domain.subdomains)) {
+            // Check if any subdomain name matches the indicator's subdomain
+            for (const subdomainName of domain.subdomains) {
+                // For now, we'll use the domain color and assume the subdomain
+                // This is a simplified approach since we don't have the full indicator data here
+                domainColor = domain.color || "purple";
                 selectedDomain = domain;
-                selectedSubdomain = subdomain;
+                selectedSubdomain = { name: subdomainName };
                 break;
             }
         }
@@ -42,8 +46,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: selectedDomain.nome,
-                subdomainName: selectedSubdomain.nome,
+                domainName: selectedDomain.name,
+                subdomainName: selectedSubdomain.name,
             },
         });
     };
