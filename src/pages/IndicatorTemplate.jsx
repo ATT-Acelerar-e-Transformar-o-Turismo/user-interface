@@ -1,42 +1,88 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDomain } from "../contexts/DomainContext";
+import { useState, useEffect } from "react";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
-import IndicatorDropdowns from "../components/IndicatorDropdowns"; // the new component
+import IndicatorDropdowns from "../components/IndicatorDropdowns";
 import Indicator from "../components/Indicator";
+import { indicatorService } from "../services/indicatorService";
 
 export default function IndicatorTemplate() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { domainName, subdomainName, indicatorId } = location.state || {};
+  const { indicatorId } = useParams();
   const { domains } = useDomain();
+  const navigate = useNavigate();
+  
+  const [indicator, setIndicator] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 1) Find the "official" domain/subdomain/indicator from route
-  const domainObj = domains.find((dom) => dom.nome === domainName);
-  if (!domainObj) return <div>Domínio não encontrado.</div>;
+  useEffect(() => {
+    const fetchIndicator = async () => {
+      if (!indicatorId) {
+        setError("Indicator ID not found");
+        setLoading(false);
+        return;
+      }
 
-  const subdomainObj = domainObj.subdominios.find((sub) => sub.nome === subdomainName);
-  if (!subdomainObj) return <div>Subdomínio não encontrado.</div>;
+      try {
+        setLoading(true);
+        const indicatorData = await indicatorService.getById(indicatorId);
+        setIndicator(indicatorData);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching indicator:", err);
+        setError("Failed to load indicator");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const indicatorObj = subdomainObj.indicadores.find(
-    (ind) => ind.id === Number(indicatorId)
-  );
-  if (!indicatorObj) return <div>Indicador não encontrado.</div>;
+    fetchIndicator();
+  }, [indicatorId]);
 
-  // The user sees this domain/subdomain/indicator on screen
-  // until they pick a new indicator in the dropdown.
+  if (loading) {
+    return (
+      <PageTemplate>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading indicator...</div>
+        </div>
+      </PageTemplate>
+    );
+  }
+
+  if (error || !indicator) {
+    return (
+      <PageTemplate>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">{error || "Indicador não encontrado."}</div>
+        </div>
+      </PageTemplate>
+    );
+  }
+
+  if (!indicator.domain) {
+    return (
+      <PageTemplate>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">Domínio não encontrado.</div>
+        </div>
+      </PageTemplate>
+    );
+  }
+
+  // Find domain for carousel images and dropdown compatibility
+  const domainObj = domains.find((dom) => {
+    // Handle both old structure (nome) and new structure (name)
+    const domainNameFromContext = dom.nome || dom.name;
+    return domainNameFromContext === indicator.domain.name;
+  });
 
   const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
-    navigate(`/indicator/${newIndicator.id}`, {
-      state: {
-        domainName: newDomain.nome,
-        subdomainName: newSubdomain.nome,
-        indicatorId: newIndicator.id,
-      },
-    });
+    navigate(`/indicator/${newIndicator.id}`);
   };
 
-  const images = domainObj.DomainCarouselImages;
+  // Use domain images if available from context, fallback to default
+  const images = domainObj?.DomainCarouselImages || [];
 
   // Example chart data
   const exampleCharts = [
@@ -135,48 +181,6 @@ export default function IndicatorTemplate() {
         }
       ]
     },
-    /*
-    {
-      chartType: 'line',
-      xaxisType: 'datetime',
-      group: 'sales',
-      availableFilters: {},
-      activeFilters: {},
-      annotations: {},
-      series: [
-        {
-          name: 'Category Sales',
-          hidden: false,
-          filterValues: {},
-          data: [
-            { x: '2020-01-01', y: 100 },
-            { x: '2020-02-01', y: 200 },
-            { x: '2020-03-01', y: 300 },
-            { x: '2020-04-01', y: 400 },
-            { x: '2020-05-01', y: 500 },
-            { x: '2020-06-01', y: 600 },
-            { x: '2020-07-01', y: 700 },
-            { x: '2020-08-01', y: 800 },
-            { x: '2020-09-01', y: 900 },
-            { x: '2020-10-01', y: 1000 },
-            { x: '2020-11-01', y: 1100 },
-            { x: '2020-12-01', y: 1200 },
-            { x: '2021-01-01', y: 1300 },
-            { x: '2021-02-01', y: 1400 },
-            { x: '2021-03-01', y: 1500 },
-            { x: '2021-04-01', y: 1600 },
-            { x: '2021-05-01', y: 1700 },
-            { x: '2021-06-01', y: 1800 },
-            { x: '2021-07-01', y: 1900 },
-            { x: '2021-08-01', y: 2000 },
-            { x: '2021-09-01', y: 2100 },
-            { x: '2021-10-01', y: 2200 },
-            { x: '2021-11-01', y: 2300 },
-            { x: '2021-12-01', y: 2400 },
-          ]
-        }
-      ]
-    }*/
   ];
 
   return (
@@ -185,15 +189,17 @@ export default function IndicatorTemplate() {
 
       <div className="@container mx-auto">
         <div className="p-4">
+          {domainObj && (
           <IndicatorDropdowns
             currentDomain={domainObj}
-            currentSubdomain={subdomainObj}
-            currentIndicator={indicatorObj}
+              currentSubdomain={indicator.subdomain}
+              currentIndicator={indicator}
             onIndicatorChange={handleIndicatorChange}
             allowSubdomainClear={false}
           />
+          )}
         </div>
-        <h2 className="text-2xl font-bold mt-16">{indicatorObj.nome}</h2>
+        <h2 className="text-2xl font-bold mt-16">{indicator.name}</h2>
 
         <div className="mt-12">
           <Indicator charts={exampleCharts} />
@@ -204,28 +210,37 @@ export default function IndicatorTemplate() {
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Subdomain</span><br />
-                {subdomainName}
+                {indicator.subdomain || 'N/A'}
               </p>
               <p className="mb-4">
-                <span className="font-semibold">Category</span><br />
-                {indicatorObj.categorizacao}
+                <span className="font-semibold">Domain</span><br />
+                {indicator.domain.name}
               </p>
             </div>
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicatorObj.caracteristicas.unidade_de_medida}
+                {indicator.scale || 'N/A'}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicatorObj.caracteristicas.fonte}
+                {indicator.font || 'N/A'}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicatorObj.caracteristicas.periodicidade}
+                {indicator.periodicity || 'N/A'}
               </p>
             </div>
           </div>
+          
+          {indicator.description && (
+            <div className="mt-6">
+              <p className="mb-4">
+                <span className="font-semibold">Description</span><br />
+                {indicator.description}
+              </p>
+            </div>
+          )}
         </div>
 
       </div>

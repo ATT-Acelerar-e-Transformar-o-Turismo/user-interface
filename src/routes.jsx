@@ -11,6 +11,17 @@ import NewDomain from "./pages/NewDomain";
 
 export const routesList = [
     {
+        path: '/',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Home</title>
+                </Helmet>
+                <App />
+            </>
+        )
+    },
+    {
         path: '/home',
         element: (
             <>
