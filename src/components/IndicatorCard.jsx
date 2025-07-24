@@ -16,8 +16,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     let selectedSubdomain = null;
 
     for (const domain of domains) {
-        for (const subdomain of domain.subdominios) {
-            if (subdomain.indicadores.some(indicator => indicator.id === IndicatorId)) {
+        for (const subdomain of domain.subdomains) {
+            if (subdomain.indicators.some(indicator => indicator.id === IndicatorId)) {
                 domainColor = domain.DomainColor;
                 selectedDomain = domain;
                 selectedSubdomain = subdomain;
@@ -42,8 +42,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: selectedDomain.nome,
-                subdomainName: selectedSubdomain.nome,
+                domainName: selectedDomain.name,
+                subdomainName: selectedSubdomain.name,
             },
         });
     };

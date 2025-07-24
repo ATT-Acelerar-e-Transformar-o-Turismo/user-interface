@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import PropTypes from 'prop-types'
 import ApexCharts from 'apexcharts'
 
 const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true }) => {
@@ -230,6 +231,48 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
     }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction])
 
     return <div ref={chartContainerRef} />
+}
+
+GChart.propTypes = {
+    title: PropTypes.string,
+    chartId: PropTypes.string.isRequired,
+    chartType: PropTypes.oneOf(['line', 'area', 'bar', 'column', 'scatter']).isRequired,
+    xaxisType: PropTypes.oneOf(['datetime', 'category', 'numeric']).isRequired,
+    annotations: PropTypes.shape({
+        xaxis: PropTypes.arrayOf(PropTypes.shape({
+            value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            label: PropTypes.string
+        })),
+        yaxis: PropTypes.arrayOf(PropTypes.shape({
+            value: PropTypes.number,
+            label: PropTypes.string
+        }))
+    }),
+    log: PropTypes.number,
+    series: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string,
+        hidden: PropTypes.bool,
+        data: PropTypes.arrayOf(PropTypes.shape({
+            x: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            y: PropTypes.number
+        }))
+    })).isRequired,
+    group: PropTypes.string,
+    height: PropTypes.number,
+    themeMode: PropTypes.oneOf(['light', 'dark']),
+    showLegend: PropTypes.bool,
+    showToolbar: PropTypes.bool,
+    showTooltip: PropTypes.bool,
+    allowUserInteraction: PropTypes.bool
+}
+
+GChart.defaultProps = {
+    annotations: { xaxis: [], yaxis: [] },
+    themeMode: 'light',
+    showLegend: true,
+    showToolbar: true,
+    showTooltip: true,
+    allowUserInteraction: true
 }
 
 export default GChart

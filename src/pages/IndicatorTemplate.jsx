@@ -12,16 +12,16 @@ export default function IndicatorTemplate() {
   const { domains } = useDomain();
 
   // 1) Find the "official" domain/subdomain/indicator from route
-  const domainObj = domains.find((dom) => dom.nome === domainName);
-  if (!domainObj) return <div>Domínio não encontrado.</div>;
+  const domainObj = domains.find((dom) => dom.name === domainName);
+  if (!domainObj) return <div>Domain not found.</div>;
 
-  const subdomainObj = domainObj.subdominios.find((sub) => sub.nome === subdomainName);
-  if (!subdomainObj) return <div>Subdomínio não encontrado.</div>;
+  const subdomainObj = domainObj.subdomains.find((sub) => sub.name === subdomainName);
+  if (!subdomainObj) return <div>Subdomain not found.</div>;
 
-  const indicatorObj = subdomainObj.indicadores.find(
+  const indicatorObj = subdomainObj.indicators.find(
     (ind) => ind.id === Number(indicatorId)
   );
-  if (!indicatorObj) return <div>Indicador não encontrado.</div>;
+  if (!indicatorObj) return <div>Indicator not found.</div>;
 
   // The user sees this domain/subdomain/indicator on screen
   // until they pick a new indicator in the dropdown.
@@ -29,8 +29,8 @@ export default function IndicatorTemplate() {
   const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
     navigate(`/indicator/${newIndicator.id}`, {
       state: {
-        domainName: newDomain.nome,
-        subdomainName: newSubdomain.nome,
+        domainName: newDomain.name,
+        subdomainName: newSubdomain.name,
         indicatorId: newIndicator.id,
       },
     });
@@ -193,7 +193,7 @@ export default function IndicatorTemplate() {
             allowSubdomainClear={false}
           />
         </div>
-        <h2 className="text-2xl font-bold mt-16">{indicatorObj.nome}</h2>
+        <h2 className="text-2xl font-bold mt-16">{indicatorObj.name}</h2>
 
         <div className="mt-12">
           <Indicator charts={exampleCharts} />
@@ -208,21 +208,21 @@ export default function IndicatorTemplate() {
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Category</span><br />
-                {indicatorObj.categorizacao}
+                {indicatorObj.categorization}
               </p>
             </div>
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicatorObj.caracteristicas.unidade_de_medida}
+                {indicatorObj.characteristics.unit_of_measure}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicatorObj.caracteristicas.fonte}
+                {indicatorObj.characteristics.source}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicatorObj.caracteristicas.periodicidade}
+                {indicatorObj.characteristics.periodicity}
               </p>
             </div>
           </div>

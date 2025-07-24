@@ -27,14 +27,14 @@ export default function DomainTemplate() {
   
   const inferredDomainName = domainName || pathToDomainName(domainPath || location.pathname);
   const selectedDomainObj = domains.find((dom) => 
-                             (dom.nome === domainName || dom.name === domainName) ||
-                             (dom.nome === inferredDomainName || dom.name === inferredDomainName)
+                             (dom.name === domainName || dom.name === domainName) ||
+                             (dom.name === inferredDomainName || dom.name === inferredDomainName)
                            ) || 
                            getDomainByName(inferredDomainName) ||
                            // Fallback mock domain for testing when API is not available
                            {
                              id: location.pathname.replace('/', ''),
-                             nome: inferredDomainName || 'Test Domain',
+                             name: inferredDomainName || 'Test Domain',
                              DomainCarouselImages: [
                                "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
                                "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
@@ -69,7 +69,13 @@ export default function DomainTemplate() {
   // Load indicators from API
   useEffect(() => {
     const loadIndicators = async () => {
-      if (!selectedDomainObj?.id) {
+      // Wait for domains to load from API
+      if (domains.length === 0) {
+        setLoading(false);
+        return;
+      }
+      
+      if (!selectedDomainObj?.id || !selectedDomainObj.id.match(/^[a-fA-F0-9]{24}$/)) {
         setLoading(false);
         return;
       }
@@ -81,28 +87,26 @@ export default function DomainTemplate() {
         const skip = currentPage * pageSize;
         let data;
         
+        // Always use the general API with client-side filtering for now
+        // since domain-specific endpoints may not be working correctly
+        const allIndicators = await indicatorService.getAll(0, 50); // Get indicators for filtering (API limit is 50)
+        let filteredData = allIndicators.filter(indicator => indicator.domain === selectedDomainObj.id);
+        
+        // Apply subdomain filter if selected
         if (selectedSubdomain) {
-          // Load indicators for specific subdomain
-          data = await indicatorService.getBySubdomain(
-            selectedDomainObj.id, 
-            selectedSubdomain.nome, 
-            skip, 
-            pageSize
-          );
-        } else {
-          // Load all indicators for domain
-          data = await indicatorService.getByDomain(
-            selectedDomainObj.id, 
-            skip, 
-            pageSize
-          );
+          filteredData = filteredData.filter(indicator => indicator.subdomain === selectedSubdomain.name);
         }
         
+        // Apply pagination to filtered data
+        const startIndex = skip;
+        const endIndex = startIndex + pageSize;
+        data = filteredData.slice(startIndex, endIndex);
+        
         setIndicators(data || []);
-        setTotalIndicators(data?.length || 0);
+        setTotalIndicators(filteredData.length);
       } catch (err) {
-        // Don't show error for empty domain - just show no indicators found
-        console.warn('Failed to load indicators:', err);
+        console.error('Failed to load indicators:', err);
+        setError(err.message);
         setIndicators([]);
         setTotalIndicators(0);
       } finally {
@@ -111,7 +115,7 @@ export default function DomainTemplate() {
     };
 
     loadIndicators();
-  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize]);
+  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize, domains]);
 
   // Reset pagination when subdomain changes
   const handleSubdomainChange = (subdomain) => {
@@ -176,7 +180,7 @@ export default function DomainTemplate() {
             {indicators.map((indicator) => (
               <IndicatorCard
                 key={indicator.id}
-                IndicatorTitle={indicator.name || indicator.nome}
+                IndicatorTitle={indicator.name}
                 IndicatorId={indicator.id}
                 GraphTypes={GraphTypes}
               />
@@ -187,8 +191,8 @@ export default function DomainTemplate() {
             <div className="text-center p-8">
               <h2 className="text-xl">
                 {selectedSubdomain 
-                  ? `Nenhum indicador encontrado para ${selectedSubdomain.nome || selectedSubdomain.name}` 
-                  : `Nenhum indicador encontrado para ${selectedDomainObj.name || selectedDomainObj.nome || inferredDomainName}`}
+                  ? `No indicators found for ${selectedSubdomain.name}` 
+                  : `No indicators found for ${selectedDomainObj.name || inferredDomainName}`}
               </h2>
             </div>
           )}

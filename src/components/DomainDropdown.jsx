@@ -1,21 +1,20 @@
-import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDomain } from "../contexts/DomainContext";
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDomain } from '../contexts/DomainContext';
 
 function Dropdowns({
   selectedDomain,
-  selectedSubdomain,
   setSelectedDomain,
+  selectedSubdomain,
   setSelectedSubdomain,
-  redirectOnDomainChange = false,
-  showIndicatorDropdown = false,
-  allowSubdomainClear = true
+  redirectOnDomainChange = true,
+  allowSubdomainClear = true,
 }) {
+  const { domains } = useDomain();
+  const navigate = useNavigate();
+  const containerRef = useRef(null);
   const domainRef = useRef(null);
   const subdomainRef = useRef(null);
-  const containerRef = useRef(null);
-  const navigate = useNavigate();
-  const { domains } = useDomain();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -25,28 +24,29 @@ function Dropdowns({
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSelectDomain = (domain) => {
-    if (selectedDomain?.nome === domain.nome) return;
+    const domainName = domain.name;
+    if (selectedDomain?.name === domainName) return;
 
     if (redirectOnDomainChange) {
-      navigate(domain.DomainPage, {
-        state: { domainName: domain.nome },
+      navigate(domain.DomainPage || `/${domainName.toLowerCase().replace(/\s+/g, '-')}`, {
+        state: { domainName: domainName },
       });
     }
 
-    if (domainRef.current) domainRef.current.removeAttribute("open");
-
     setSelectedDomain(domain);
-    setSelectedSubdomain(null); // Reset subdomain on domain change
+    setSelectedSubdomain(null);
   };
 
-  const handleSelectSubdomain = (subdom) => {
-    if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
-    setSelectedSubdomain(subdom);
+  const handleSelectSubdomain = (subdomain) => {
+    if (subdomainRef.current) {
+      subdomainRef.current.removeAttribute("open");
+    }
+    setSelectedSubdomain(subdomain);
   };
 
   const clearSubdomain = () => {
@@ -57,12 +57,12 @@ function Dropdowns({
     <div ref={containerRef} className="container mx-auto">
       <details ref={domainRef} className="dropdown dropdown-right">
         <summary className="btn m-1">
-          {selectedDomain ? selectedDomain.nome : "Escolha o Domínio"}
+          {selectedDomain ? selectedDomain.name : "Escolha o Domínio"}
         </summary>
         <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
           {domains.map((domain, index) => (
-            <li key={domain.nome || index}>
-              <a onClick={() => handleSelectDomain(domain)}>{domain.nome}</a>
+            <li key={domain.name || index}>
+              <a onClick={() => handleSelectDomain(domain)}>{domain.name}</a>
             </li>
           ))}
         </ul>
@@ -73,33 +73,22 @@ function Dropdowns({
           <summary className="btn m-1">
             {selectedSubdomain ? (
               <div className="flex items-center gap-2">
-                {selectedSubdomain.nome}
+                {selectedSubdomain.name}
                 {allowSubdomainClear && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearSubdomain();
-                    }}
-                    className="btn btn-ghost btn-sm"
-                  >
+                  <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
                     ✕
                   </button>
                 )}
               </div>
             ) : (
-              "Escolha o Subdomínio"
+              <p>Escolha o Subdomínio</p>
             )}
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-            {selectedDomain.subdominios?.map((subdom, index) => (
-              <li key={subdom.nome || index}>
-                <a onClick={() => handleSelectSubdomain(subdom)}>{subdom.nome}</a>
-              </li>
-            ))}
-            {selectedDomain.subdomains?.map((subdom, index) => (
-              <li key={subdom || index}>
-                <a onClick={() => handleSelectSubdomain({ nome: subdom })}>
-                  {subdom}
+            {(selectedDomain?.subdomains || []).map((subdom, index) => (
+              <li key={typeof subdom === 'string' ? subdom : (subdom.name || index)}>
+                <a onClick={() => handleSelectSubdomain(typeof subdom === 'string' ? { name: subdom } : subdom)}>
+                  {typeof subdom === 'string' ? subdom : subdom.name}
                 </a>
               </li>
             ))}

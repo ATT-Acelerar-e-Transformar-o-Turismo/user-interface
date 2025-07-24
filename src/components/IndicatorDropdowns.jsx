@@ -42,7 +42,7 @@ export default function IndicatorDropdowns({
   const allDomains = domains;
 
   const handleDomainSelect = (domain) => {
-    if (stagedDomain && stagedDomain.nome === domain.nome) {
+    if (stagedDomain && stagedDomain.name === domain.name) {
       if (domainRef.current) domainRef.current.removeAttribute("open");
       return;
     }
@@ -81,13 +81,13 @@ export default function IndicatorDropdowns({
       <details ref={domainRef} className="dropdown md:dropdown-right">
         <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
           <p className="overflow-hidden text-center text-nowrap">
-            {stagedDomain ? stagedDomain.nome : "Escolha o Domínio"}
+            {stagedDomain ? stagedDomain.name : "Escolha o Domínio"}
           </p>
         </summary>
         <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
           {allDomains.map((dom) => (
-            <li key={dom.nome}>
-              <a onClick={() => handleDomainSelect(dom)}>{dom.nome}</a>
+            <li key={dom.name}>
+              <a onClick={() => handleDomainSelect(dom)}>{dom.name}</a>
             </li>
           ))}
         </ul>
@@ -101,7 +101,7 @@ export default function IndicatorDropdowns({
               {stagedSubdomain ? (
                 <div className="flex items-center gap-2">
 
-                  {stagedSubdomain.nome}
+                  {stagedSubdomain.name}
                   {allowSubdomainClear && (
                     <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
                       ✕
@@ -114,10 +114,10 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedDomain.subdominios.map((sub) => (
-              <li key={sub.nome}>
+            {stagedDomain.subdomains.map((sub) => (
+              <li key={sub.name}>
                 <a onClick={() => handleSubdomainSelect(sub)}>
-                  {sub.nome}
+                  {sub.name}
                 </a>
               </li>
             ))}
@@ -130,14 +130,14 @@ export default function IndicatorDropdowns({
         <details ref={indicatorRef} className="dropdown md:dropdown-right">
           <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
             <p className="overflow-hidden text-center text-nowrap">
-              {stagedIndicator ? stagedIndicator.nome : "Escolha o Indicador"}
+              {stagedIndicator ? stagedIndicator.name : "Escolha o Indicador"}
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedSubdomain.indicadores.map((ind) => (
+            {stagedSubdomain.indicators.map((ind) => (
               <li key={ind.id}>
                 <a onClick={() => handleIndicatorSelect(ind)}>
-                  {ind.nome}
+                  {ind.name}
                 </a>
               </li>
             ))}
