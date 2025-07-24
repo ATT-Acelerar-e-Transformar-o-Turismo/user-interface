@@ -50,7 +50,7 @@ export default function FavoritesPage() {
           const indicator = await indicatorService.getById(favoriteId);
           favoriteIndicatorObjects.push({
             ...indicator,
-            domainName: indicator.domain?.nome || indicator.domain?.name,
+            domainName: indicator.domain?.name,
             subdomainName: indicator.subdomain,
             domainColor: indicator.domain?.DomainColor
           });
@@ -95,12 +95,12 @@ export default function FavoritesPage() {
     }
     
     // Filter by domain
-    if (indicator.domainName !== selectedDomain.nome) {
+    if (indicator.domainName !== selectedDomain.name) {
       return false;
     }
     
     // Filter by subdomain if selected
-    if (selectedSubdomain && indicator.subdomainName !== selectedSubdomain.nome) {
+    if (selectedSubdomain && indicator.subdomainName !== selectedSubdomain.name) {
       return false;
     }
     
@@ -151,7 +151,7 @@ export default function FavoritesPage() {
   return (
     <PageTemplate>
       <div className="p-4 text-center">
-        <h1 className="text-3xl font-bold mb-6">Meus Indicadores Favoritos</h1>
+        <h1 className="text-3xl font-bold mb-6">My Favorite Indicators</h1>
         <div className="flex flex-col items-center gap-4">
           <Dropdowns
             selectedDomain={selectedDomain}
@@ -182,10 +182,10 @@ export default function FavoritesPage() {
             <div className="text-center p-8">
               <h2 className="text-xl">
                 {selectedDomain 
-                  ? `Nenhum indicador favorito encontrado para ${selectedDomain.nome}` 
-                  : "Você ainda não tem indicadores favoritos."}
+                  ? `Nenhum indicador favorito encontrado para ${selectedDomain.name}` 
+                  : "You don't have any favorite indicators yet."}
               </h2>
-              <p className="mt-2">Adicione indicadores aos favoritos clicando no ícone de coração nas páginas de domínios.</p>
+              <p className="mt-2">Add indicators to favorites by clicking the heart icon on domain pages.</p>
             </div>
           ) : (
             <>
@@ -193,7 +193,7 @@ export default function FavoritesPage() {
                 {paginatedIndicators.map((indicator) => (
                   <IndicatorCard
                     key={indicator.id}
-                    IndicatorTitle={indicator.name || indicator.nome}
+                    IndicatorTitle={indicator.name}
                     IndicatorId={indicator.id}
                     GraphTypes={GraphTypes}
                   />
