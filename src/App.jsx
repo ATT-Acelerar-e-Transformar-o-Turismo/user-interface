@@ -32,8 +32,8 @@ function App() {
         {domains.map((domain, index) => (
           <DomainCard 
             key={index}
-            DomainTitle={domain.name || domain.nome} 
-            DomainPage={domain.DomainPage || `/${(domain.name || domain.nome || '').toLowerCase().replace(/\s+/g, '-')}`} 
+            DomainTitle={domain.name} 
+            DomainPage={domain.DomainPage || `/${domain.name.toLowerCase().replace(/\s+/g, '-')}`} 
             DomainColor={domain.color || domain.DomainColor} 
             DomainImage={domain.image || domain.DomainImage} 
           />

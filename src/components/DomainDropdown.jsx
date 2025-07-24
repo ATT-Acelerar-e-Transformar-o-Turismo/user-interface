@@ -1,21 +1,20 @@
-import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDomain } from "../contexts/DomainContext";
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDomain } from '../contexts/DomainContext';
 
 function Dropdowns({
   selectedDomain,
-  selectedSubdomain,
   setSelectedDomain,
+  selectedSubdomain,
   setSelectedSubdomain,
-  redirectOnDomainChange = false,
-  showIndicatorDropdown = false,
-  allowSubdomainClear = true
+  redirectOnDomainChange = true,
+  allowSubdomainClear = true,
 }) {
+  const { domains } = useDomain();
+  const navigate = useNavigate();
+  const containerRef = useRef(null);
   const domainRef = useRef(null);
   const subdomainRef = useRef(null);
-  const containerRef = useRef(null);
-  const navigate = useNavigate();
-  const { domains } = useDomain();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -25,13 +24,13 @@ function Dropdowns({
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSelectDomain = (domain) => {
-    const domainName = domain.nome || domain.name;
-    if (selectedDomain?.nome === domainName || selectedDomain?.name === domainName) return;
+    const domainName = domain.name;
+    if (selectedDomain?.name === domainName) return;
 
     if (redirectOnDomainChange) {
       navigate(domain.DomainPage || `/${domainName.toLowerCase().replace(/\s+/g, '-')}`, {
@@ -39,15 +38,15 @@ function Dropdowns({
       });
     }
 
-    if (domainRef.current) domainRef.current.removeAttribute("open");
-
     setSelectedDomain(domain);
-    setSelectedSubdomain(null); // Reset subdomain on domain change
+    setSelectedSubdomain(null);
   };
 
-  const handleSelectSubdomain = (subdom) => {
-    if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
-    setSelectedSubdomain(subdom);
+  const handleSelectSubdomain = (subdomain) => {
+    if (subdomainRef.current) {
+      subdomainRef.current.removeAttribute("open");
+    }
+    setSelectedSubdomain(subdomain);
   };
 
   const clearSubdomain = () => {
@@ -74,21 +73,15 @@ function Dropdowns({
           <summary className="btn m-1">
             {selectedSubdomain ? (
               <div className="flex items-center gap-2">
-                {selectedSubdomain.nome}
+                {selectedSubdomain.name}
                 {allowSubdomainClear && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearSubdomain();
-                    }}
-                    className="btn btn-ghost btn-sm"
-                  >
+                  <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
                     ✕
                   </button>
                 )}
               </div>
             ) : (
-              "Escolha o Subdomínio"
+              <p>Escolha o Subdomínio</p>
             )}
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
