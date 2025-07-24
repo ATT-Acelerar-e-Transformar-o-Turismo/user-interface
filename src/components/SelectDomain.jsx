@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { useDomain } from "../contexts/DomainContext";
+import React, { useState, useEffect, useRef } from 'react';
+import { useDomain } from '../contexts/DomainContext';
 
 function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
+    const { domains } = useDomain();
     const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
     const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
-
+    const containerRef = useRef(null);
     const domainRef = useRef(null);
     const subdomainRef = useRef(null);
-    const containerRef = useRef(null);
-    const { domains } = useDomain();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -18,8 +17,8 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
             }
         };
 
-        document.addEventListener("click", handleClickOutside);
-        return () => document.removeEventListener("click", handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleSelectDomain = (domain) => {
@@ -38,7 +37,7 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
             subdomainRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        const subdomainName = subdom.name || subdom; // Handle both object and string cases
+        const subdomainName = subdom.name; // Use only name property since data is standardized
         setSelectedLocalSubdomain(subdomainName);
         setSelectedSubdomain(subdomainName); // Update main page with subdomain name
     };
@@ -73,8 +72,8 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
                     </summary>
                     <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                         {(selectedLocalDomain.subdomains || []).map((subdom) => (
-                            <li key={subdom.name || subdom}>
-                                <a onClick={() => { handleSelectSubdomain(subdom); }}>{subdom.name || subdom}</a>
+                            <li key={subdom.name}>
+                                <a onClick={() => { handleSelectSubdomain(subdom); }}>{subdom.name}</a>
                             </li>
                         ))}
                     </ul>
