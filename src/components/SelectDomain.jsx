@@ -29,7 +29,7 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
 
         setSelectedLocalDomain(domain);
         setSelectedLocalSubdomain(null);
-        setSelectedDomain(domain.nome); // Update main page with domain name
+        setSelectedDomain(domain.name); // Update main page with domain name
         setSelectedSubdomain(null);
     };
 
@@ -38,7 +38,7 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
             subdomainRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        const subdomainName = subdom.nome || subdom; // Handle both object and string cases
+        const subdomainName = subdom.name || subdom; // Handle both object and string cases
         setSelectedLocalSubdomain(subdomainName);
         setSelectedSubdomain(subdomainName); // Update main page with subdomain name
     };
@@ -47,12 +47,12 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
         <div ref={containerRef} className="container mx-auto">
             <details ref={domainRef} className="dropdown dropdown-right">
                 <summary className="btn m-1">
-                    {selectedLocalDomain ? selectedLocalDomain.nome : "Escolha o Domínio"}
+                    {selectedLocalDomain ? selectedLocalDomain.name : "Escolha o Domínio"}
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                     {domains.map((domain) => (
-                        <li key={domain.nome}>
-                            <a onClick={() => { handleSelectDomain(domain); }}>{domain.nome}</a>
+                        <li key={domain.name}>
+                            <a onClick={() => { handleSelectDomain(domain); }}>{domain.name}</a>
                         </li>
                     ))}
                 </ul>
@@ -72,9 +72,9 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
                         }
                     </summary>
                     <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        {(selectedLocalDomain.subdomains || selectedLocalDomain.subdominios || []).map((subdom) => (
-                            <li key={subdom.nome || subdom}>
-                                <a onClick={() => { handleSelectSubdomain(subdom); }}>{subdom.nome || subdom}</a>
+                        {(selectedLocalDomain.subdomains || []).map((subdom) => (
+                            <li key={subdom.name || subdom}>
+                                <a onClick={() => { handleSelectSubdomain(subdom); }}>{subdom.name || subdom}</a>
                             </li>
                         ))}
                     </ul>

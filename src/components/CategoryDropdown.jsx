@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
-import categorias from "../../public/categorias.json"; 
+import categorias from "../../public/categories.json"; 
 
 function CategoryDropdown({ setSelectedCategory }) {
   const [selectedCat, setSelectedCat] = useState(null);
