@@ -19,7 +19,7 @@ export default function IndicatorTemplate() {
   if (!subdomainObj) return <div>Subdomain not found.</div>;
 
   const indicatorObj = subdomainObj.indicators.find(
-    (ind) => ind.id === Number(indicatorId)
+    (ind) => ind.id === indicatorId
   );
   if (!indicatorObj) return <div>Indicator not found.</div>;
 

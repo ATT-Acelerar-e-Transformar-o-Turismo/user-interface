@@ -6,30 +6,14 @@ import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
 import Chart from "./Chart";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes }) {
-    let domainColor = "purple"; // Default color
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes, domain, subdomain }) {
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
     const { domains } = useDomain();
 
-    let selectedDomain = null;
-    let selectedSubdomain = null;
-
-    // Find the domain and subdomain for this indicator
-    for (const domain of domains) {
-        if (domain.subdomains && Array.isArray(domain.subdomains)) {
-            // Check if any subdomain name matches the indicator's subdomain
-            for (const subdomainName of domain.subdomains) {
-                // For now, we'll use the domain color and assume the subdomain
-                // This is a simplified approach since we don't have the full indicator data here
-                domainColor = domain.color || "purple";
-                selectedDomain = domain;
-                selectedSubdomain = { name: subdomainName };
-                break;
-            }
-        }
-        if (selectedDomain) break;
-    }
+    // Find the domain for this indicator
+    const selectedDomain = domains.find(d => d.name === domain) || domains[0];
+    const domainColor = selectedDomain?.color || "purple";
 
     // Check localStorage on component mount
     useEffect(() => {
@@ -38,8 +22,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     }, [IndicatorId]);
 
     const handleClick = () => {
-        if (!selectedDomain || !selectedSubdomain) {
-            console.error("Domain or Subdomain not found for Indicator ID:", IndicatorId);
+        if (!selectedDomain) {
+            console.error("Domain not found for Indicator ID:", IndicatorId);
             return;
         }
 
@@ -47,7 +31,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
             state: { 
                 indicatorId: IndicatorId, 
                 domainName: selectedDomain.name,
-                subdomainName: selectedSubdomain.name,
+                subdomainName: subdomain, // Just pass the subdomain as is
             },
         });
     };

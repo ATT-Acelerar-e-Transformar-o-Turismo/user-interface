@@ -18,7 +18,7 @@ export function DomainProvider({ children }) {
                 const storedIndicators = JSON.parse(localStorage.getItem('indicators')) || [];
                 setIndicators(storedIndicators);
                 
-                const response = await apiClient.get('/api/domains');
+                const response = await apiClient.get('/api/domains/');
                 setDomains(response.data || []);
             } catch (err) {
                 setError(err.message);
