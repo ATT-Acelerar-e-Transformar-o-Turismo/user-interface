@@ -18,6 +18,7 @@ export class ApiMocks {
     await ApiMocks.mockIndicators(page);
     await ApiMocks.mockDomainIndicators(page);
     await ApiMocks.mockSubdomainIndicators(page);
+    await ApiMocks.mockSingleIndicator(page);
   }
 
   /**
@@ -85,11 +86,12 @@ export class ApiMocks {
   }
 
   private static async mockSingleIndicator(page: Page) {
-    await page.route("**/api/indicators/*", async route => {
+    await page.route("**/api/indicators/[^?]*", async route => {
       const url = route.request().url();
-      const indicatorId = url.split('/').pop();
+      const indicatorId = url.split('/').pop()?.split('?')[0]; // Remove query parameters
       
       const indicator = MOCK_INDICATORS.find(ind => ind.id === indicatorId);
+      
       await route.fulfill({ json: indicator || MOCK_INDICATORS[0] });
     });
   }

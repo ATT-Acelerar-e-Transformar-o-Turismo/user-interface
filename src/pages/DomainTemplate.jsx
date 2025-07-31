@@ -88,6 +88,16 @@ export default function DomainTemplate() {
         // Always use the general API with client-side filtering for now
         // since domain-specific endpoints may not be working correctly
         const allIndicators = await indicatorService.getAll(0, 50); // Get indicators for filtering (API limit is 50)
+        
+        // Ensure allIndicators is an array before filtering
+        if (!Array.isArray(allIndicators)) {
+          console.error("API returned non-array data:", allIndicators);
+          setIndicators([]);
+          setTotalIndicators(0);
+          setLoading(false);
+          return;
+        }
+        
         let filteredData = allIndicators.filter(indicator => indicator.domain === selectedDomainObj.id);
         
         // Apply subdomain filter if selected

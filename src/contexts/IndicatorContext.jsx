@@ -17,6 +17,15 @@ export function IndicatorProvider({ children }) {
             setLoading(true);
             setError(null);
             const data = await indicatorService.getAll(0, 50);
+            
+            // Ensure data is an array before setting indicators
+            if (!Array.isArray(data)) {
+                console.error("API returned non-array data:", data);
+                setIndicators([]);
+                setError("Invalid data format received from API");
+                return;
+            }
+            
             setIndicators(data || []);
         } catch (err) {
             setError(err.message);

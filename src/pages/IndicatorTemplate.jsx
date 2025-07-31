@@ -233,15 +233,15 @@ export default function IndicatorTemplate() {
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicatorObj.unit_of_measure || "N/A"}
+                {indicatorObj.characteristics?.unit_of_measure || indicatorObj.unit_of_measure || "N/A"}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicatorObj.font || indicatorObj.source || "N/A"}
+                {indicatorObj.characteristics?.source || indicatorObj.font || indicatorObj.source || "N/A"}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicatorObj.periodicity || "N/A"}
+                {indicatorObj.characteristics?.periodicity || indicatorObj.periodicity || "N/A"}
               </p>
             </div>
           </div>
