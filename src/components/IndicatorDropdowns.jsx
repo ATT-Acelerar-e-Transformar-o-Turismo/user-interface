@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useDomain } from "../contexts/DomainContext";
+import { useIndicator } from "../contexts/IndicatorContext";
 
 export default function IndicatorDropdowns({
   currentDomain,
@@ -14,6 +15,7 @@ export default function IndicatorDropdowns({
   const [stagedSubdomain, setStagedSubdomain] = useState(null);
   const [stagedIndicator, setStagedIndicator] = useState(null);
   const { domains } = useDomain();
+  const { indicators } = useIndicator();
 
   const domainRef = useRef(null);
   const subdomainRef = useRef(null);
@@ -41,6 +43,13 @@ export default function IndicatorDropdowns({
 
   const allDomains = domains;
 
+  // Get indicators for the current domain and subdomain
+  const getIndicatorsForSubdomain = (domainId, subdomainName) => {
+    return indicators.filter(indicator => 
+      indicator.domain === domainId && indicator.subdomain === subdomainName
+    );
+  };
+
   const handleDomainSelect = (domain) => {
     if (stagedDomain && stagedDomain.name === domain.name) {
       if (domainRef.current) domainRef.current.removeAttribute("open");
@@ -53,8 +62,8 @@ export default function IndicatorDropdowns({
     if (domainRef.current) domainRef.current.removeAttribute("open");
   };
 
-  const handleSubdomainSelect = (subdom) => {
-    setStagedSubdomain(subdom);
+  const handleSubdomainSelect = (subdomain) => {
+    setStagedSubdomain(subdomain);
     // Reset indicator
     setStagedIndicator(null);
 
@@ -73,6 +82,18 @@ export default function IndicatorDropdowns({
     e.stopPropagation();
     setStagedSubdomain(null);
     setStagedIndicator(null);
+  };
+
+  // Get subdomains for the current domain
+  const getSubdomainsForDomain = (domain) => {
+    if (!domain || !domain.subdomains) return [];
+    return domain.subdomains;
+  };
+
+  // Get indicators for the current subdomain
+  const getIndicatorsForCurrentSubdomain = () => {
+    if (!stagedDomain || !stagedSubdomain) return [];
+    return getIndicatorsForSubdomain(stagedDomain.id, stagedSubdomain.name);
   };
 
   return (
@@ -114,7 +135,7 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedDomain.subdomains.map((sub) => (
+            {getSubdomainsForDomain(stagedDomain).map((sub) => (
               <li key={sub.name}>
                 <a onClick={() => handleSubdomainSelect(sub)}>
                   {sub.name}
@@ -134,7 +155,7 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedSubdomain.indicators.map((ind) => (
+            {getIndicatorsForCurrentSubdomain().map((ind) => (
               <li key={ind.id}>
                 <a onClick={() => handleIndicatorSelect(ind)}>
                   {ind.name}

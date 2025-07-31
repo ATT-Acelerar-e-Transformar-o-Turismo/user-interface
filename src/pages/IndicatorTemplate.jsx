@@ -1,5 +1,6 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDomain } from "../contexts/DomainContext";
+import { useIndicator } from "../contexts/IndicatorContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns"; // the new component
@@ -8,20 +9,38 @@ import Indicator from "../components/Indicator";
 export default function IndicatorTemplate() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { domainName, subdomainName, indicatorId } = location.state || {};
+  const { indicatorId } = useParams(); // Extract from URL params
+  const { domainName, subdomainName } = location.state || {};
   const { domains } = useDomain();
+  const { indicators, getIndicatorById, loading } = useIndicator();
 
-  // 1) Find the "official" domain/subdomain/indicator from route
-  const domainObj = domains.find((dom) => dom.name === domainName);
+  // Show loading state while indicators are being loaded
+  if (loading) {
+    return (
+      <PageTemplate>
+        <div className="flex justify-center items-center h-64">
+          <div className="loading loading-spinner loading-lg"></div>
+        </div>
+      </PageTemplate>
+    );
+  }
+
+  // 1) Find the indicator from indicators context first
+  const indicatorObj = getIndicatorById(indicatorId);
+  if (!indicatorObj) return <div>Indicator not found.</div>;
+
+  // 2) Find the domain from domains context
+  let domainObj = domains.find((dom) => dom.name === domainName);
+  
+  // If domainName is not available, try to get domain from indicator data
+  if (!domainObj && indicatorObj) {
+    domainObj = domains.find((dom) => dom.id === indicatorObj.domain || dom.name === indicatorObj.domain?.name);
+  }
+  
   if (!domainObj) return <div>Domain not found.</div>;
 
-  const subdomainObj = domainObj.subdomains.find((sub) => sub.name === subdomainName);
-  if (!subdomainObj) return <div>Subdomain not found.</div>;
-
-  const indicatorObj = subdomainObj.indicators.find(
-    (ind) => ind.id === indicatorId
-  );
-  if (!indicatorObj) return <div>Indicator not found.</div>;
+  // 3) Get subdomain name from indicator data
+  const currentSubdomainName = subdomainName || indicatorObj.subdomain;
 
   // The user sees this domain/subdomain/indicator on screen
   // until they pick a new indicator in the dropdown.
@@ -187,7 +206,7 @@ export default function IndicatorTemplate() {
         <div className="p-4">
           <IndicatorDropdowns
             currentDomain={domainObj}
-            currentSubdomain={subdomainObj}
+            currentSubdomain={{ name: currentSubdomainName }}
             currentIndicator={indicatorObj}
             onIndicatorChange={handleIndicatorChange}
             allowSubdomainClear={false}
@@ -204,25 +223,25 @@ export default function IndicatorTemplate() {
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Subdomain</span><br />
-                {subdomainName}
+                {currentSubdomainName}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Category</span><br />
-                {indicatorObj.categorization}
+                {indicatorObj.categorization || "Destination-specific indicators"}
               </p>
             </div>
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicatorObj.characteristics.unit_of_measure}
+                {indicatorObj.unit_of_measure || "N/A"}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicatorObj.characteristics.source}
+                {indicatorObj.font || indicatorObj.source || "N/A"}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicatorObj.characteristics.periodicity}
+                {indicatorObj.periodicity || "N/A"}
               </p>
             </div>
           </div>

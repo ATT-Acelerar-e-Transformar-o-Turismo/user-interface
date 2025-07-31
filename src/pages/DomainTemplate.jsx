@@ -158,7 +158,7 @@ export default function DomainTemplate() {
       <Carousel images={images} />
       <div className="p-4">
         <Dropdowns
-          selectedDomain={selectedDomain}
+          selectedDomain={selectedDomainObj}
           setSelectedDomain={setSelectedDomain}
           selectedSubdomain={selectedSubdomain}
           setSelectedSubdomain={handleSubdomainChange}

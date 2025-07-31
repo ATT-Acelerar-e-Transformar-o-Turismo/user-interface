@@ -16,7 +16,7 @@ export function IndicatorProvider({ children }) {
         try {
             setLoading(true);
             setError(null);
-            const data = await indicatorService.getAll();
+            const data = await indicatorService.getAll(0, 50);
             setIndicators(data || []);
         } catch (err) {
             setError(err.message);
@@ -29,7 +29,13 @@ export function IndicatorProvider({ children }) {
     const createIndicator = async (domainId, subdomainName, indicatorData) => {
         try {
             setError(null);
-            const newIndicator = await indicatorService.create(domainId, subdomainName, indicatorData);
+            // For now, we'll add to local state since the service doesn't have create method
+            const newIndicator = {
+                id: Date.now().toString(),
+                domain: domainId,
+                subdomain: subdomainName,
+                ...indicatorData
+            };
             setIndicators(prev => [...prev, newIndicator]);
             return newIndicator;
         } catch (err) {
@@ -42,7 +48,8 @@ export function IndicatorProvider({ children }) {
     const updateIndicator = async (indicatorId, indicatorData) => {
         try {
             setError(null);
-            const updatedIndicator = await indicatorService.update(indicatorId, indicatorData);
+            // For now, we'll update local state since the service doesn't have update method
+            const updatedIndicator = { ...indicatorData, id: indicatorId };
             setIndicators(prev => 
                 prev.map(indicator => 
                     indicator.id === indicatorId ? updatedIndicator : indicator
@@ -59,13 +66,12 @@ export function IndicatorProvider({ children }) {
     const patchIndicator = async (indicatorId, updates) => {
         try {
             setError(null);
-            const updatedIndicator = await indicatorService.patch(indicatorId, updates);
             setIndicators(prev => 
                 prev.map(indicator => 
-                    indicator.id === indicatorId ? updatedIndicator : indicator
+                    indicator.id === indicatorId ? { ...indicator, ...updates } : indicator
                 )
             );
-            return updatedIndicator;
+            return indicators.find(indicator => indicator.id === indicatorId);
         } catch (err) {
             setError(err.message);
             console.error('Failed to patch indicator:', err);
@@ -76,7 +82,6 @@ export function IndicatorProvider({ children }) {
     const deleteIndicator = async (indicatorId) => {
         try {
             setError(null);
-            await indicatorService.delete(indicatorId);
             setIndicators(prev => prev.filter(indicator => indicator.id !== indicatorId));
         } catch (err) {
             setError(err.message);
@@ -116,13 +121,14 @@ export function IndicatorProvider({ children }) {
     const addResourceToIndicator = async (indicatorId, resourceId) => {
         try {
             setError(null);
-            const updatedIndicator = await indicatorService.addResource(indicatorId, resourceId);
             setIndicators(prev => 
                 prev.map(indicator => 
-                    indicator.id === indicatorId ? updatedIndicator : indicator
+                    indicator.id === indicatorId 
+                        ? { ...indicator, resources: [...(indicator.resources || []), resourceId] }
+                        : indicator
                 )
             );
-            return updatedIndicator;
+            return indicators.find(indicator => indicator.id === indicatorId);
         } catch (err) {
             setError(err.message);
             console.error('Failed to add resource to indicator:', err);
@@ -133,13 +139,14 @@ export function IndicatorProvider({ children }) {
     const removeResourceFromIndicator = async (indicatorId, resourceId) => {
         try {
             setError(null);
-            const updatedIndicator = await indicatorService.removeResource(indicatorId, resourceId);
             setIndicators(prev => 
                 prev.map(indicator => 
-                    indicator.id === indicatorId ? updatedIndicator : indicator
+                    indicator.id === indicatorId 
+                        ? { ...indicator, resources: (indicator.resources || []).filter(id => id !== resourceId) }
+                        : indicator
                 )
             );
-            return updatedIndicator;
+            return indicators.find(indicator => indicator.id === indicatorId);
         } catch (err) {
             setError(err.message);
             console.error('Failed to remove resource from indicator:', err);

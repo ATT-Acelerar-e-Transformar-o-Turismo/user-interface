@@ -5,39 +5,42 @@ const DomainContext = createContext();
 
 export function DomainProvider({ children }) {
     const [domains, setDomains] = useState([]);
-    const [indicators, setIndicators] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                
-                const storedIndicators = JSON.parse(localStorage.getItem('indicators')) || [];
-                setIndicators(storedIndicators);
-                
-                const response = await apiClient.get('/api/domains/');
-                setDomains(response.data || []);
-            } catch (err) {
-                setError(err.message);
-                console.error('Failed to load domains:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadData();
+        loadDomains();
     }, []);
+
+    const loadDomains = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await apiClient.get('/api/domains/');
+            const domainsData = response.data || [];
+            
+            // Transform domains to match expected structure
+            const transformedDomains = domainsData.map(domain => ({
+                ...domain,
+                DomainPage: `/${domain.name.toLowerCase()}`,
+                DomainColor: domain.color,
+                DomainImage: domain.image,
+                DomainCarouselImages: [domain.image],
+                subdomains: domain.subdomains ? domain.subdomains.map(subdomain => ({ name: subdomain })) : []
+            }));
+            
+            setDomains(transformedDomains);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to load domains:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const updateDomains = (newDomains) => {
         setDomains(newDomains);
-    };
-
-    const updateIndicators = (newIndicators) => {
-        setIndicators(newIndicators);
-        localStorage.setItem('indicators', JSON.stringify(newIndicators));
     };
 
     const addDomain = (domain) => {
@@ -57,50 +60,31 @@ export function DomainProvider({ children }) {
         updateDomains(newDomains);
     };
 
-    const addIndicator = (indicator) => {
-        const newIndicators = [...indicators, indicator];
-        updateIndicators(newIndicators);
-        return indicator.id;
-    };
-
-    const updateIndicator = (id, updatedIndicator) => {
-        const newIndicators = indicators.map(indicator => 
-            indicator.id === id ? updatedIndicator : indicator
-        );
-        updateIndicators(newIndicators);
-        return id;
-    };
-
-    const deleteIndicator = (id) => {
-        const newIndicators = indicators.filter(indicator => indicator.id !== id);
-        updateIndicators(newIndicators);
-    };
-
-    const getIndicatorById = (id) => {
-        const parsedId = parseInt(id);
-        return indicators.find(indicator => indicator.id === parsedId) || null;
-    };
-
     const getDomainByName = (name) => {
         return domains.find(domain => 
             domain.name === name
         ) || null;
     };
 
+    const getDomainById = (id) => {
+        return domains.find(domain => domain.id === id) || null;
+    };
+
+    const refreshDomains = () => {
+        loadDomains();
+    };
+
     return (
         <DomainContext.Provider value={{
             domains,
-            indicators,
             loading,
             error,
             addDomain,
             updateDomain,
             deleteDomain,
-            addIndicator,
-            updateIndicator,
-            deleteIndicator,
-            getIndicatorById,
-            getDomainByName
+            getDomainByName,
+            getDomainById,
+            refreshDomains
         }}>
             {children}
         </DomainContext.Provider>
