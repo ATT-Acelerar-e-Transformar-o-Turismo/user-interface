@@ -4,8 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: att-user-interface
-    networks:
-      - att-orchestrator_att-network
     develop:
       watch:
         - action: sync
@@ -16,4 +14,4 @@ services:
 
 networks:
   att-orchestrator_att-network:
-    external: true 
+    external: true
