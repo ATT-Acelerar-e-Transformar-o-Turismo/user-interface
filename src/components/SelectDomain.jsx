@@ -1,14 +1,33 @@
 import { useState, useEffect, useRef } from "react";
 import { useDomain } from "../contexts/DomainContext";
 
-function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
+function SelectDomain({ 
+  setSelectedDomain, 
+  setSelectedSubdomain, 
+  domains: propDomains,
+  selectedDomain: propSelectedDomain,
+  selectedSubdomain: propSelectedSubdomain
+}) {
     const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
     const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
 
     const domainRef = useRef(null);
     const subdomainRef = useRef(null);
     const containerRef = useRef(null);
-    const { domains } = useDomain();
+    
+    // Use prop domains if provided, otherwise fallback to context
+    const { domains: contextDomains } = useDomain();
+    const domains = propDomains || contextDomains;
+
+    // Initialize local state with provided values when editing
+    useEffect(() => {
+        if (propSelectedDomain) {
+            setSelectedLocalDomain(propSelectedDomain);
+        }
+        if (propSelectedSubdomain) {
+            setSelectedLocalSubdomain(propSelectedSubdomain);
+        }
+    }, [propSelectedDomain, propSelectedSubdomain]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -29,8 +48,10 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
 
         setSelectedLocalDomain(domain);
         setSelectedLocalSubdomain(null);
-        setSelectedDomain(domain.nome); // Update main page with domain name
-        setSelectedSubdomain(null);
+        
+        // Call parent callbacks with the full domain object and clear subdomain
+        setSelectedDomain(domain);
+        setSelectedSubdomain('');
     };
 
     const handleSelectSubdomain = (subdom) => {
@@ -43,16 +64,30 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
         setSelectedSubdomain(subdomainName); // Update main page with subdomain name
     };
 
+    const getDomainDisplayName = () => {
+        if (selectedLocalDomain) {
+            return selectedLocalDomain.nome || selectedLocalDomain.name || 'Unknown Domain';
+        }
+        return "Escolha o Domínio";
+    };
+
+    const getSubdomains = () => {
+        if (!selectedLocalDomain) return [];
+        return selectedLocalDomain.subdomains || selectedLocalDomain.subdominios || [];
+    };
+
     return (
         <div ref={containerRef} className="container mx-auto">
             <details ref={domainRef} className="dropdown dropdown-right">
                 <summary className="btn m-1">
-                    {selectedLocalDomain ? selectedLocalDomain.nome : "Escolha o Domínio"}
+                    {getDomainDisplayName()}
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                     {domains.map((domain) => (
-                        <li key={domain.nome}>
-                            <a onClick={() => { handleSelectDomain(domain); }}>{domain.nome}</a>
+                        <li key={domain.nome || domain.name || domain.id}>
+                            <a onClick={() => { handleSelectDomain(domain); }}>
+                                {domain.nome || domain.name}
+                            </a>
                         </li>
                     ))}
                 </ul>
@@ -72,9 +107,11 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
                         }
                     </summary>
                     <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        {(selectedLocalDomain.subdomains || selectedLocalDomain.subdominios || []).map((subdom) => (
-                            <li key={subdom.nome || subdom}>
-                                <a onClick={() => { handleSelectSubdomain(subdom); }}>{subdom.nome || subdom}</a>
+                        {getSubdomains().map((subdom, index) => (
+                            <li key={subdom.nome || subdom || index}>
+                                <a onClick={() => { handleSelectSubdomain(subdom); }}>
+                                    {subdom.nome || subdom}
+                                </a>
                             </li>
                         ))}
                     </ul>
