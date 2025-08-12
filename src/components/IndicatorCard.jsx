@@ -5,27 +5,43 @@ import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
 import Chart from "./Chart";
+import indicatorService from "../services/indicatorService";
 
 export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes }) {
-    let domainColor = "purple"; // Default color
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
+    const [indicatorData, setIndicatorData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const { domains } = useDomain();
 
-    let selectedDomain = null;
-    let selectedSubdomain = null;
-
-    for (const domain of domains) {
-        for (const subdomain of domain.subdomains) {
-            if (subdomain.indicators.some(indicator => indicator.id === IndicatorId)) {
-                domainColor = domain.DomainColor;
-                selectedDomain = domain;
-                selectedSubdomain = subdomain;
-                break;
+    // Fetch indicator data from API
+    useEffect(() => {
+        const fetchIndicatorData = async () => {
+            try {
+                setLoading(true);
+                const data = await indicatorService.getById(IndicatorId);
+                setIndicatorData(data);
+            } catch (err) {
+                console.error("Failed to fetch indicator data:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
+        };
+
+        if (IndicatorId) {
+            fetchIndicatorData();
         }
-        if (selectedDomain) break;
-    }
+    }, [IndicatorId]);
+
+    // Find domain information based on indicator data
+    const selectedDomain = indicatorData?.domain ? 
+        (typeof indicatorData.domain === 'object' ? indicatorData.domain : 
+         domains.find(domain => (domain.id || domain._id) === indicatorData.domain)) : null;
+    
+    const domainColor = selectedDomain?.color || selectedDomain?.DomainColor || "purple";
+    const selectedSubdomain = indicatorData?.subdomain || 'Unknown Subdomain';
 
     // Check localStorage on component mount
     useEffect(() => {
@@ -34,16 +50,19 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
     }, [IndicatorId]);
 
     const handleClick = () => {
-        if (!selectedDomain || !selectedSubdomain) {
-            console.error("Domain or Subdomain not found for Indicator ID:", IndicatorId);
+        if (!indicatorData) {
+            console.error("Indicator data not found for Indicator ID:", IndicatorId);
             return;
         }
+
+        const domainName = selectedDomain?.name || 'Unknown Domain';
+        const subdomainName = typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain?.name || 'Unknown Subdomain';
 
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: selectedDomain.name,
-                subdomainName: selectedSubdomain.name,
+                domainName: domainName,
+                subdomainName: subdomainName,
             },
         });
     };
@@ -88,6 +107,28 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         }]
     };
 
+    if (loading) {
+        return (
+            <div className="card bg-base-100 w-96 shadow-sm animate-pulse">
+                <div className="card-body">
+                    <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !indicatorData) {
+        return (
+            <div className="card bg-base-100 w-96 shadow-sm border-2 border-red-300">
+                <div className="card-body">
+                    <h3 className="text-red-600">Error loading indicator</h3>
+                    <p className="text-sm text-gray-600">{error || 'Indicator not found'}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="card bg-base-100 w-96 shadow-sm" style={{ border: `2px solid ${domainColor}` }}>
             <button className="flex justify-end mt-6 mr-10" onClick={toggleFavorite}>
@@ -110,7 +151,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
                 />
             </figure>
             <div className="card-body pt-1 items-center text-center">
-                <h2 className="card-title">{IndicatorTitle}</h2>
+                <h2 className="card-title">{indicatorData.name || IndicatorTitle}</h2>
                 <div className="card-actions">
                     <button 
                         className="btn" 

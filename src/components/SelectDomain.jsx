@@ -1,13 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDomain } from '../contexts/DomainContext';
 
-function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
-    const { domains } = useDomain();
+function SelectDomain({ 
+  setSelectedDomain, 
+  setSelectedSubdomain, 
+  domains: propDomains,
+  selectedDomain: propSelectedDomain,
+  selectedSubdomain: propSelectedSubdomain
+}) {
     const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
     const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
-    const containerRef = useRef(null);
     const domainRef = useRef(null);
     const subdomainRef = useRef(null);
+    const containerRef = useRef(null);
+    
+    // Use prop domains if provided, otherwise fallback to context
+    const { domains: contextDomains } = useDomain();
+    const domains = propDomains || contextDomains;
+
+    // Initialize local state with provided values when editing
+    useEffect(() => {
+        if (propSelectedDomain) {
+            setSelectedLocalDomain(propSelectedDomain);
+        }
+        if (propSelectedSubdomain) {
+            setSelectedLocalSubdomain(propSelectedSubdomain);
+        }
+    }, [propSelectedDomain, propSelectedSubdomain]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -28,6 +47,8 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
 
         setSelectedLocalDomain(domain);
         setSelectedLocalSubdomain(null);
+        
+        // Call parent callbacks with the full domain object and clear subdomain
         setSelectedDomain(domain.name); // Update main page with domain name
         setSelectedSubdomain(null);
     };
@@ -40,6 +61,18 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
         const subdomainName = subdom.name; // Use only name property since data is standardized
         setSelectedLocalSubdomain(subdomainName);
         setSelectedSubdomain(subdomainName); // Update main page with subdomain name
+    };
+
+    const getDomainDisplayName = () => {
+        if (selectedLocalDomain) {
+            return selectedLocalDomain.nome || selectedLocalDomain.name || 'Unknown Domain';
+        }
+        return "Escolha o Domínio";
+    };
+
+    const getSubdomains = () => {
+        if (!selectedLocalDomain) return [];
+        return selectedLocalDomain.subdomains || selectedLocalDomain.subdominios || [];
     };
 
     return (
