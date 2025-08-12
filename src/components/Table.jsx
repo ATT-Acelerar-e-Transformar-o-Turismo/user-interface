@@ -72,11 +72,7 @@ export default function Table({ content, actions, emptyMessage, visibleColumns }
                     <div className="flex gap-1">
                       {actions.map((action, index) => (
                         <button key={index} onClick={() => {
-                          console.log('Table - action click, row.original:', row.original);
-                          console.log('Table - row.original.id:', row.original.id);
-                          console.log('Table - row.original._id:', row.original._id);
                           const idToPass = row.original.id || row.original._id;
-                          console.log('Table - ID being passed to action:', idToPass);
                           action.onClick(idToPass);
                         }} className={`btn ${action.className} btn-sm min-w-16`}>
                           {action.label}

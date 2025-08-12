@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
 import { useDomain } from '../contexts/DomainContext';
@@ -14,7 +14,7 @@ export default function NewDomain() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const { id } = useParams();
-    const { domains, refreshDomains } = useDomain();
+    const { refreshDomains } = useDomain();
 
     useEffect(() => {
         if (id) {
@@ -29,7 +29,7 @@ export default function NewDomain() {
                         setImage(domain.image || '');
             }
                 } catch (err) {
-                    setError('Failed to load domain: ' + err.message);
+                    setError('Failed to load domain: ' + (err.userMessage || err.message));
                 } finally {
                     setLoading(false);
                 }
@@ -68,6 +68,8 @@ export default function NewDomain() {
                 image: image || ''
         };
         
+
+        
         if (id) {
                 await domainService.update(id, domainData);
         } else {
@@ -78,7 +80,7 @@ export default function NewDomain() {
             await refreshDomains();
         navigate('/indicators-management');
         } catch (err) {
-            setError('Failed to save domain: ' + err.message);
+            setError('Failed to save domain: ' + (err.userMessage || err.message));
         } finally {
             setLoading(false);
         }
@@ -91,13 +93,7 @@ export default function NewDomain() {
         }
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // For now, just use the file name. In a real app, you'd upload the file to a server
-            setImage(file.name);
-        }
-    };
+
 
     if (loading && id) {
         return (

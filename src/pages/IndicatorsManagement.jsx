@@ -32,14 +32,17 @@ export default function IndicatorsManagement() {
       if (selectedOption === 'indicators') {
         // Load indicators with pagination
         const indicatorsData = await indicatorService.getAll(currentPage * pageSize, pageSize);
+
         setIndicators(indicatorsData || []);
         
         // Also load domains for mapping
         const domainsData = await domainService.getAll();
+
         setDomains(domainsData || []);
       } else {
         // Load domains
         const domainsData = await domainService.getAll();
+
         setDomains(domainsData || []);
       }
     } catch (err) {
@@ -50,8 +53,12 @@ export default function IndicatorsManagement() {
     }
   };
 
-  const handleEdit = (item) => {
-    const id = item.id || item._id;
+  const handleEdit = (id) => {
+    if (!id || id === 'undefined') {
+      setError('Invalid item ID. Cannot edit.');
+      return;
+    }
+    
     navigate(selectedOption === 'indicators' ? `/edit_indicator/${id}` : `/edit_domain/${id}`);
   };
 
@@ -90,20 +97,15 @@ export default function IndicatorsManagement() {
           }
         }
         
-          return {
-            ...indicator,
+        return {
+          ...indicator,
           domain: domainInfo?.name || indicator.subdomain || 'Unknown Domain',
           color: domainInfo?.color || '#CCCCCC'
-          };
-        })
+        };
+      })
       : domains;
 
-  // Debug: Log the table content structure
-  console.log('IndicatorsManagement - tableContent:', tableContent);
-  console.log('IndicatorsManagement - first item:', tableContent[0]);
-  console.log('IndicatorsManagement - first item ID:', tableContent[0]?.id);
-  console.log('IndicatorsManagement - first item _id:', tableContent[0]?._id);
-  console.log('IndicatorsManagement - first item keys:', Object.keys(tableContent[0] || {}));
+
 
   const visibleColumns =
     selectedOption === 'indicators'

@@ -67,7 +67,7 @@ export default function NewIndicator() {
       }
     }
     } catch (err) {
-      setError(err.message || 'Failed to load data');
+      setError(err.userMessage || err.message || 'Failed to load data');
       console.error('Error loading data:', err);
     } finally {
       setLoading(false);
@@ -134,15 +134,21 @@ export default function NewIndicator() {
 
       const indicatorData = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        font: formData.font.trim(),
-        scale: formData.scale.trim(),
-        unit: formData.unit.trim(),
-        periodicity: formData.periodicity.trim(),
+        description: formData.description.trim() || "",
+        font: formData.font.trim() || "",
+        scale: formData.scale.trim() || "",
+        periodicity: formData.periodicity.trim() || "",
         governance: formData.governance,
-        carrying_capacity: isCarryingCapacityChecked ? formData.carrying_capacity : false,
-      favourites: formData.favourites || 0,
-    };
+        favourites: formData.favourites || 0,
+      };
+
+      // For updates, add domain and subdomain fields
+      if (indicatorId) {
+        indicatorData.domain = formData.domain.id || formData.domain._id || formData.domain;
+        indicatorData.subdomain = formData.subdomain;
+      }
+
+
     
       let result;
     if (indicatorId) {
@@ -156,7 +162,7 @@ export default function NewIndicator() {
     
       return result;
     } catch (err) {
-      setError(err.message || 'Failed to save indicator');
+      setError(err.userMessage || err.message || 'Failed to save indicator');
       throw err;
     } finally {
       setSaving(false);
