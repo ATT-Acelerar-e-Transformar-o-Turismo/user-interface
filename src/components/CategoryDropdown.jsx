@@ -1,56 +1,52 @@
 
 import { useState, useEffect, useRef } from "react";
-import categorias from "../../public/categorias.json"; 
+import categories from "../../public/categories.json"; 
 
 function CategoryDropdown({ setSelectedCategory }) {
   const [selectedCat, setSelectedCat] = useState(null);
-
-  const domainRef = useRef(null);
   const containerRef = useRef(null);
-
+  const categoryRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
-        if (domainRef.current) domainRef.current.removeAttribute("open");
+        if (categoryRef.current) categoryRef.current.removeAttribute("open");
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectCat = (categoria) => {
+  const handleSelectCategory = (category) => {
+    setSelectedCat(category);
+    setSelectedCategory(category);
+    if (categoryRef.current) categoryRef.current.removeAttribute("open");
+  };
 
-    if (domainRef.current) domainRef.current.removeAttribute("open");
-
-    setSelectedCat(categoria);
-    setSelectedCategory(categoria); // Update main page
-
+  const clearCategory = () => {
+    setSelectedCat(null);
+    setSelectedCategory(null);
   };
 
   return (
     <div ref={containerRef} className="container mx-auto">
-        <details ref={domainRef} className="dropdown dropdown-right">
-        <summary className="btn m-1 flex items-center gap-2">
-            {selectedCat && (
-            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedCat.cor }}/>
-            )}
-            {selectedCat ? selectedCat.nome : "Escolha a categoria"}
+      <details ref={categoryRef} className="dropdown dropdown-right">
+        <summary className="btn m-1">
+          {selectedCat ? selectedCat.name : "Escolha a categoria"}
         </summary>
-        <ul className="dropdown-content w-max menu p-2 shadow bg-base-100 rounded-box">
-            {categorias.Categorias.map((categoria) => (
-            <li key={categoria.nome}>
-                <a className="flex items-center gap-2" onClick={() => handleSelectCat(categoria)}>
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: categoria.cor }}/>
-                    {categoria.nome}
-                </a>
+        <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+          {categories.map((category) => (
+            <li key={category.name}>
+              <a onClick={() => handleSelectCategory(category)}>
+                {category.name}
+              </a>
             </li>
-            ))}
+          ))}
         </ul>
-        </details>
+      </details>
     </div>
-    );
+  );
 }
 
 export default CategoryDropdown; 

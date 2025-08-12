@@ -99,8 +99,7 @@ export function DomainProvider({ children }) {
 
     const getDomainByName = (name) => {
         return domains.find(domain => 
-            domain.name === name || 
-            domain.nome === name
+            domain.name === name
         ) || null;
     };
 

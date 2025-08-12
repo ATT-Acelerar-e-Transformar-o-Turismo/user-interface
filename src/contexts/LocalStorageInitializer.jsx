@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useDomain } from './DomainContext';
-import domainsData from '../../public/domains.json';
 
 export function LocalStorageInitializer() {
   const { domains } = useDomain();
@@ -20,14 +19,14 @@ export function LocalStorageInitializer() {
 
     if (!localStorage.getItem('indicators') || !localStorage.getItem('resources')) {
       // Check if domains have the old JSON structure (subdominios/indicadores) or new API structure
-      const hasOldStructure = domains.some(domain => domain.subdominios && Array.isArray(domain.subdominios));
+      const hasOldStructure = domains && domains.some(domain => domain.subdominios && Array.isArray(domain.subdominios));
       
       let indicators = [];
       let resources = [];
       
       if (hasOldStructure) {
         // Handle old JSON structure
-        domains.forEach((domain) => {
+        domains && domains.forEach((domain) => {
           if (domain.subdominios && Array.isArray(domain.subdominios)) {
         domain.subdominios.forEach((subdomain) => {
               if (subdomain.indicadores && Array.isArray(subdomain.indicadores)) {
@@ -63,9 +62,9 @@ export function LocalStorageInitializer() {
         console.log('Domains loaded from API - using minimal test data for localStorage');
         
         // Create some test indicators for each domain
-        domains.forEach((domain, domainIndex) => {
+        domains && domains.forEach((domain) => {
           if (domain.subdomains && Array.isArray(domain.subdomains)) {
-            domain.subdomains.forEach((subdomain, subdomainIndex) => {
+            domain.subdomains.forEach((subdomain) => {
               // Create 2-3 test indicators per subdomain
               for (let i = 0; i < 2; i++) {
                 indicators.push({

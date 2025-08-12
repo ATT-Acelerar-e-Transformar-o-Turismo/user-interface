@@ -1,88 +1,79 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useDomain } from "../contexts/DomainContext";
-import { useState, useEffect } from "react";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns";
 import Indicator from "../components/Indicator";
-import { indicatorService } from "../services/indicatorService";
+import indicatorService from "../services/indicatorService";
+import { useState, useEffect } from "react";
+
 
 export default function IndicatorTemplate() {
   const { indicatorId } = useParams();
   const { domains } = useDomain();
   const navigate = useNavigate();
-  
-  const [indicator, setIndicator] = useState(null);
+  const [indicatorData, setIndicatorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch indicator data from API
   useEffect(() => {
-    const fetchIndicator = async () => {
-      if (!indicatorId) {
-        setError("Indicator ID not found");
-        setLoading(false);
-        return;
-      }
-
+    const fetchIndicatorData = async () => {
       try {
         setLoading(true);
-        const indicatorData = await indicatorService.getById(indicatorId);
-        setIndicator(indicatorData);
-        setError(null);
+        const data = await indicatorService.getById(indicatorId);
+        setIndicatorData(data);
       } catch (err) {
-        console.error("Error fetching indicator:", err);
-        setError("Failed to load indicator");
+        console.error("Failed to fetch indicator data:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchIndicator();
+    if (indicatorId) {
+      fetchIndicatorData();
+    }
   }, [indicatorId]);
 
+  // Add loading state while domains are being fetched
+  if (!domains || domains.length === 0) {
+    return <div>Loading domains...</div>;
+  }
+
   if (loading) {
-    return (
-      <PageTemplate>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading indicator...</div>
-        </div>
-      </PageTemplate>
-    );
+    return <div>Loading indicator...</div>;
   }
 
-  if (error || !indicator) {
-    return (
-      <PageTemplate>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-red-600">{error || "Indicador não encontrado."}</div>
-        </div>
-      </PageTemplate>
-    );
+  if (error || !indicatorData) {
+    return <div>Error: {error || 'Indicator not found'}</div>;
   }
 
-  if (!indicator.domain) {
-    return (
-      <PageTemplate>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-red-600">Domínio não encontrado.</div>
-        </div>
-      </PageTemplate>
-    );
+  // Find domain information based on indicator data
+  const domainObj = indicatorData.domain ? 
+    (typeof indicatorData.domain === 'object' ? indicatorData.domain : 
+     domains.find(domain => (domain.id || domain._id) === indicatorData.domain)) : null;
+
+  if (!domainObj) {
+    return <div>Domain not found for indicator.</div>;
   }
 
-  // Find domain for carousel images and dropdown compatibility
-  const domainObj = domains.find((dom) => {
-    // Handle both old structure (nome) and new structure (name)
-    const domainNameFromContext = dom.nome || dom.name;
-    return domainNameFromContext === indicator.domain.name;
-  });
+  const subdomainName = indicatorData.subdomain || 'Unknown Subdomain';
+
+  // The user sees this domain/subdomain/indicator on screen
+  // until they pick a new indicator in the dropdown.
 
   const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
-    navigate(`/indicator/${newIndicator.id}`);
+    navigate(`/indicator/${newIndicator.id || newIndicator._id}`, {
+      state: {
+        domainName: newDomain.name,
+        subdomainName: typeof newSubdomain === 'string' ? newSubdomain : newSubdomain.name,
+        indicatorId: newIndicator.id || newIndicator._id,
+      },
+    });
   };
 
-  // Use domain images if available from context, fallback to default
-  const images = domainObj?.DomainCarouselImages || [];
+  const images = domainObj.DomainCarouselImages || [];
 
   // Example chart data
   const exampleCharts = [
@@ -192,14 +183,14 @@ export default function IndicatorTemplate() {
           {domainObj && (
           <IndicatorDropdowns
             currentDomain={domainObj}
-              currentSubdomain={indicator.subdomain}
-              currentIndicator={indicator}
+              currentSubdomain={subdomainName}
+              currentIndicator={indicatorData}
             onIndicatorChange={handleIndicatorChange}
             allowSubdomainClear={false}
           />
           )}
         </div>
-        <h2 className="text-2xl font-bold mt-16">{indicator.name}</h2>
+        <h2 className="text-2xl font-bold mt-16">{indicatorData.name}</h2>
 
         <div className="mt-12">
           <Indicator charts={exampleCharts} />
@@ -210,34 +201,34 @@ export default function IndicatorTemplate() {
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Subdomain</span><br />
-                {indicator.subdomain || 'N/A'}
+                {subdomainName}
               </p>
               <p className="mb-4">
-                <span className="font-semibold">Domain</span><br />
-                {indicator.domain.name}
+                <span className="font-semibold">Category</span><br />
+                {indicatorData.categorization || 'N/A'}
               </p>
             </div>
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicator.scale || 'N/A'}
+                {indicatorData.scale || 'N/A'}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicator.font || 'N/A'}
+                {indicatorData.font || 'N/A'}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicator.periodicity || 'N/A'}
+                {indicatorData.periodicity || 'N/A'}
               </p>
             </div>
           </div>
           
-          {indicator.description && (
+          {indicatorData.description && (
             <div className="mt-6">
               <p className="mb-4">
                 <span className="font-semibold">Description</span><br />
-                {indicator.description}
+                {indicatorData.description}
               </p>
             </div>
           )}

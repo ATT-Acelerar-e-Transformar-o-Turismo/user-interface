@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 
 const LineChartIcon = ({ size }) => {
     return (
@@ -46,7 +47,7 @@ const ScatterChartIcon = ({ size }) => {
 }
 
 const Views = ({ size, activeView, onViewChange }) => {
-    const [iconSize, setIconSize] = useState(size)
+    const [iconSize, setIconSize] = useState('24px') // Initialize with a proper pixel value
     const [buttonClasses, setButtonClasses] = useState({
         line: '',
         column: '',
@@ -62,7 +63,8 @@ const Views = ({ size, activeView, onViewChange }) => {
             'lg': 32,
             'xl': 36
         }
-        setIconSize(sizes[size] + 'px')
+        const pixelSize = sizes[size] || 24; // Default to 24px if size is not found
+        setIconSize(pixelSize + 'px')
     }, [size])
 
     useEffect(() => {
@@ -105,5 +107,17 @@ const Views = ({ size, activeView, onViewChange }) => {
         </>
     )
 }
+
+// PropTypes for icon components
+LineChartIcon.propTypes = { size: PropTypes.string };
+ColumnChartIcon.propTypes = { size: PropTypes.string };
+BarChartIcon.propTypes = { size: PropTypes.string };
+ScatterChartIcon.propTypes = { size: PropTypes.string };
+
+Views.propTypes = {
+  size: PropTypes.string,
+  activeView: PropTypes.string,
+  onViewChange: PropTypes.func.isRequired,
+};
 
 export default Views

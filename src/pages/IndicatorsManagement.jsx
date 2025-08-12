@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import ManagementTemplate from '../components/ManagementTemplate';
 import indicatorService from '../services/indicatorService';
 import domainService from '../services/domainService';
@@ -7,6 +8,7 @@ import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 
 export default function IndicatorsManagement() {
+
   const [selectedOption, setSelectedOption] = useState('indicators');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -22,7 +24,7 @@ export default function IndicatorsManagement() {
   // Load data based on selected option
   useEffect(() => {
     loadData();
-  }, [selectedOption, currentPage]);
+  }, [selectedOption, currentPage, pageSize]);
 
   const loadData = async () => {
     try {
@@ -122,6 +124,9 @@ export default function IndicatorsManagement() {
           {value}
         </span>
       );
+    }
+    if (selectedOption === 'domains' && column === 'name') {
+      return row.name;
     }
     if (column === 'governance') {
       return value ? <i className="fas fa-check-circle text-green-500"></i> : <i className="fas fa-times-circle text-red-500"></i>;
