@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import { useDomain } from "../contexts/DomainContext";
 
 export default function IndicatorDropdowns({
   currentDomain,
   currentSubdomain,
   currentIndicator,
-
   onIndicatorChange,
-
   allowSubdomainClear = false,
 }) {
   const [stagedDomain, setStagedDomain] = useState(null);
   const [stagedSubdomain, setStagedSubdomain] = useState(null);
   const [stagedIndicator, setStagedIndicator] = useState(null);
+  const [subdomainIndicators, setSubdomainIndicators] = useState([]);
+  const [loadingIndicators, setLoadingIndicators] = useState(false);
   const { domains } = useDomain();
 
   const domainRef = useRef(null);
@@ -39,6 +40,44 @@ export default function IndicatorDropdowns({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // Load indicators when subdomain changes
+  useEffect(() => {
+    const loadSubdomainIndicators = async () => {
+      if (!stagedDomain?.id || !stagedSubdomain) {
+        setSubdomainIndicators([]);
+        return;
+      }
+
+      try {
+        setLoadingIndicators(true);
+        
+        const domainId = stagedDomain.id || stagedDomain._id;
+        
+        if (!domainId) {
+          setSubdomainIndicators([]);
+          return;
+        }
+        
+        // For now, skip the API call since it's not working properly
+        // This will allow the dropdowns to work without the indicator list
+        setSubdomainIndicators([]);
+        
+        // TODO: Uncomment when nginx routing is fixed
+        // const indicators = await indicatorService.getBySubdomain(domainId, stagedSubdomain);
+        // console.log('Loaded indicators:', indicators);
+        // setSubdomainIndicators(indicators || []);
+      } catch (error) {
+        console.error('Failed to load indicators for subdomain:', error);
+        console.error('Error details:', error.response?.data || error.message);
+        setSubdomainIndicators([]);
+      } finally {
+        setLoadingIndicators(false);
+      }
+    };
+
+    loadSubdomainIndicators();
+  }, [stagedDomain?.id, stagedDomain?._id, stagedSubdomain]);
+
   const allDomains = domains;
 
   const handleDomainSelect = (domain) => {
@@ -49,12 +88,13 @@ export default function IndicatorDropdowns({
     setStagedDomain(domain);
     setStagedSubdomain(null);
     setStagedIndicator(null);
+    setSubdomainIndicators([]);
 
     if (domainRef.current) domainRef.current.removeAttribute("open");
   };
 
-  const handleSubdomainSelect = (subdom) => {
-    setStagedSubdomain(subdom);
+  const handleSubdomainSelect = (subdomainName) => {
+    setStagedSubdomain(subdomainName);
     // Reset indicator
     setStagedIndicator(null);
 
@@ -65,7 +105,25 @@ export default function IndicatorDropdowns({
     setStagedIndicator(indicator);
     if (indicatorRef.current) indicatorRef.current.removeAttribute("open");
 
-    onIndicatorChange(stagedDomain, stagedSubdomain, indicator);
+    // Create compatible objects for the callback
+    const domainForCallback = {
+      ...stagedDomain,
+      nome: stagedDomain.nome || stagedDomain.name,
+      name: stagedDomain.name || stagedDomain.nome
+    };
+    
+    const subdomainForCallback = {
+      nome: typeof stagedSubdomain === 'string' ? stagedSubdomain : (stagedSubdomain?.nome || stagedSubdomain?.name),
+      name: typeof stagedSubdomain === 'string' ? stagedSubdomain : (stagedSubdomain?.name || stagedSubdomain?.nome)
+    };
+    
+    const indicatorForCallback = {
+      ...indicator,
+      nome: indicator.name || indicator.nome,
+      name: indicator.name || indicator.nome
+    };
+
+    onIndicatorChange(domainForCallback, subdomainForCallback, indicatorForCallback);
   };
 
   // If the user clicks the X to clear subdomain
@@ -73,7 +131,9 @@ export default function IndicatorDropdowns({
     e.stopPropagation();
     setStagedSubdomain(null);
     setStagedIndicator(null);
+    setSubdomainIndicators([]);
   };
+
 
   return (
     <div ref={containerRef} className="flex flex-nowrap gap-4 flex-col md:flex-row">
@@ -101,7 +161,7 @@ export default function IndicatorDropdowns({
               {stagedSubdomain ? (
                 <div className="flex items-center gap-2">
 
-                  {stagedSubdomain.name}
+                  {typeof stagedSubdomain === 'string' ? stagedSubdomain : stagedSubdomain.name}
                   {allowSubdomainClear && (
                     <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
                       ✕
@@ -114,13 +174,16 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedDomain.subdomains.map((sub) => (
-              <li key={sub.name}>
-                <a onClick={() => handleSubdomainSelect(sub)}>
-                  {sub.name}
-                </a>
-              </li>
-            ))}
+            {stagedDomain.subdomains.map((sub) => {
+              const subName = typeof sub === 'string' ? sub : sub.name;
+              return (
+                <li key={subName}>
+                  <a onClick={() => handleSubdomainSelect(subName)}>
+                    {subName}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </details>
       )}
@@ -134,16 +197,30 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedSubdomain.indicators.map((ind) => (
-              <li key={ind.id}>
+            {loadingIndicators ? (
+              <li><span className="text-gray-500">Carregando...</span></li>
+            ) : subdomainIndicators && subdomainIndicators.length > 0 ? (
+              subdomainIndicators.map((ind) => (
+              <li key={ind.id || ind._id}>
                 <a onClick={() => handleIndicatorSelect(ind)}>
                   {ind.name}
                 </a>
               </li>
-            ))}
+                ))
+            ) : (
+              <li><span className="text-gray-500">Nenhum indicador encontrado</span></li>
+            )}
           </ul>
         </details>
       )}
     </div>
   );
 }
+
+IndicatorDropdowns.propTypes = {
+  currentDomain: PropTypes.object,
+  currentSubdomain: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  currentIndicator: PropTypes.object,
+  onIndicatorChange: PropTypes.func.isRequired,
+  allowSubdomainClear: PropTypes.bool,
+};

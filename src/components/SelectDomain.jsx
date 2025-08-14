@@ -1,13 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { useDomain } from '../contexts/DomainContext';
 
-function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
-    const { domains } = useDomain();
+function SelectDomain({ 
+  setSelectedDomain, 
+  setSelectedSubdomain, 
+  domains: propDomains,
+  selectedDomain: propSelectedDomain,
+  selectedSubdomain: propSelectedSubdomain
+}) {
     const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
     const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
-    const containerRef = useRef(null);
     const domainRef = useRef(null);
     const subdomainRef = useRef(null);
+    const containerRef = useRef(null);
+    
+    // Use prop domains if provided, otherwise fallback to context
+    const { domains: contextDomains } = useDomain();
+    const domains = propDomains || contextDomains;
+
+    // Initialize local state with provided values when editing
+    useEffect(() => {
+        if (propSelectedDomain) {
+            setSelectedLocalDomain(propSelectedDomain);
+        }
+        if (propSelectedSubdomain) {
+            setSelectedLocalSubdomain(propSelectedSubdomain);
+        }
+    }, [propSelectedDomain, propSelectedSubdomain]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -28,7 +48,9 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
 
         setSelectedLocalDomain(domain);
         setSelectedLocalSubdomain(null);
-        setSelectedDomain(domain.name); // Update main page with domain name
+        
+        // Call parent callbacks with the full domain object and clear subdomain
+        setSelectedDomain(domain); // Pass full domain object to the parent
         setSelectedSubdomain(null);
     };
 
@@ -37,9 +59,14 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
             subdomainRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        const subdomainName = subdom.name; // Use only name property since data is standardized
+        const subdomainName = typeof subdom === 'string' ? subdom : subdom.name;
         setSelectedLocalSubdomain(subdomainName);
         setSelectedSubdomain(subdomainName); // Update main page with subdomain name
+    };
+
+    const getSubdomains = () => {
+        if (!selectedLocalDomain) return [];
+        return selectedLocalDomain.subdomains || selectedLocalDomain.subdominios || [];
     };
 
     return (
@@ -71,11 +98,14 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
                         }
                     </summary>
                     <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        {(selectedLocalDomain.subdomains || []).map((subdom) => (
-                            <li key={subdom.name}>
-                                <a onClick={() => { handleSelectSubdomain(subdom); }}>{subdom.name}</a>
-                            </li>
-                        ))}
+                        {(getSubdomains()).map((subdom) => {
+                            const subName = typeof subdom === 'string' ? subdom : subdom.name;
+                            return (
+                                <li key={subName}>
+                                    <a onClick={() => { handleSelectSubdomain(subdom); }}>{subName}</a>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </details>
             )}
@@ -84,3 +114,17 @@ function SelectDomain({ setSelectedDomain, setSelectedSubdomain }) {
 }
 
 export default SelectDomain;
+
+SelectDomain.propTypes = {
+    setSelectedDomain: PropTypes.func.isRequired,
+    setSelectedSubdomain: PropTypes.func.isRequired,
+    domains: PropTypes.arrayOf(
+        PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            subdomains: PropTypes.array,
+            subdominios: PropTypes.array,
+        })
+    ),
+    selectedDomain: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+    selectedSubdomain: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+};

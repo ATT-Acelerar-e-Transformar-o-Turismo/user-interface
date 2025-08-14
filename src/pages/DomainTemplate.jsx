@@ -53,7 +53,10 @@ export default function DomainTemplate() {
   const [selectedSubdomain, setSelectedSubdomain] = useState(null);
   const [selectedDomain, setSelectedDomain] = useState(selectedDomainObj);
 
-  const images = selectedDomainObj.DomainCarouselImages;
+  const images = selectedDomainObj?.DomainCarouselImages || [
+    "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
+    "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
+  ];
 
   // Graph icons
   const GraphTypes = [

@@ -1,42 +1,100 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDomain } from "../contexts/DomainContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
-import IndicatorDropdowns from "../components/IndicatorDropdowns"; // the new component
+import IndicatorDropdowns from "../components/IndicatorDropdowns";
 import Indicator from "../components/Indicator";
+import indicatorService from "../services/indicatorService";
+import { useState, useEffect } from "react";
+
 
 export default function IndicatorTemplate() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { domainName, subdomainName, indicatorId } = location.state || {};
+  const { indicatorId } = useParams();
   const { domains } = useDomain();
+  const navigate = useNavigate();
+  const [indicatorData, setIndicatorData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 1) Find the "official" domain/subdomain/indicator from route
-  const domainObj = domains.find((dom) => dom.name === domainName);
-  if (!domainObj) return <div>Domain not found.</div>;
+  // Fetch indicator data from API
+  useEffect(() => {
+    const fetchIndicatorData = async () => {
+      try {
+        setLoading(true);
+        const data = await indicatorService.getById(indicatorId);
+        // console.log('Fetched indicator data:', data);
+        setIndicatorData(data);
+      } catch (err) {
+        console.error("Failed to fetch indicator data:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const subdomainObj = domainObj.subdomains.find((sub) => sub.name === subdomainName);
-  if (!subdomainObj) return <div>Subdomain not found.</div>;
+    if (indicatorId) {
+      fetchIndicatorData();
+    }
+  }, [indicatorId]);
 
-  const indicatorObj = subdomainObj.indicators.find(
-    (ind) => ind.id === indicatorId
-  );
-  if (!indicatorObj) return <div>Indicator not found.</div>;
+  // Add loading state while domains are being fetched
+  if (!domains || domains.length === 0) {
+    return <div>Loading domains...</div>;
+  }
 
+  if (loading) {
+    return <div>Loading indicator...</div>;
+  }
+
+  if (error || !indicatorData) {
+    return <div>Error: {error || 'Indicator not found'}</div>;
+  }
+
+  // Find domain information based on indicator data
+  const domainObj = indicatorData.domain ? 
+    (typeof indicatorData.domain === 'object' ? indicatorData.domain : 
+     domains.find(domain => (domain.id || domain._id) === indicatorData.domain)) : null;
+
+  // Debug logging removed for cleaner output
+
+  if (!domainObj) {
+    return <div>Domain not found for indicator.</div>;
+  }
+
+  const subdomainName = indicatorData.subdomain || 'Unknown Subdomain';
+
+  // Handle both string arrays and object arrays for subdomains
+  let subdomainObj = null;
+  if (Array.isArray(domainObj.subdomains)) {
+    if (domainObj.subdomains.length > 0 && typeof domainObj.subdomains[0] === 'string') {
+      // If subdomains is an array of strings, create a mock subdomain object
+      subdomainObj = { name: subdomainName };
+    } else {
+      // If subdomains is an array of objects, find by name
+      subdomainObj = domainObj.subdomains.find((sub) => sub.name === subdomainName);
+    }
+  }
+  
+  if (!subdomainObj) {
+    return <div>Subdomain not found: {subdomainName}</div>;
+  }
+
+  // Try to find indicator in subdomain, but don't fail if not found
+  // This is expected since we're using API data
   // The user sees this domain/subdomain/indicator on screen
   // until they pick a new indicator in the dropdown.
 
   const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
-    navigate(`/indicator/${newIndicator.id}`, {
+    navigate(`/indicator/${newIndicator.id || newIndicator._id}`, {
       state: {
         domainName: newDomain.name,
-        subdomainName: newSubdomain.name,
-        indicatorId: newIndicator.id,
+        subdomainName: typeof newSubdomain === 'string' ? newSubdomain : newSubdomain.name,
+        indicatorId: newIndicator.id || newIndicator._id,
       },
     });
   };
 
-  const images = domainObj.DomainCarouselImages;
+  const images = domainObj.DomainCarouselImages || [];
 
   // Example chart data
   const exampleCharts = [
@@ -135,48 +193,6 @@ export default function IndicatorTemplate() {
         }
       ]
     },
-    /*
-    {
-      chartType: 'line',
-      xaxisType: 'datetime',
-      group: 'sales',
-      availableFilters: {},
-      activeFilters: {},
-      annotations: {},
-      series: [
-        {
-          name: 'Category Sales',
-          hidden: false,
-          filterValues: {},
-          data: [
-            { x: '2020-01-01', y: 100 },
-            { x: '2020-02-01', y: 200 },
-            { x: '2020-03-01', y: 300 },
-            { x: '2020-04-01', y: 400 },
-            { x: '2020-05-01', y: 500 },
-            { x: '2020-06-01', y: 600 },
-            { x: '2020-07-01', y: 700 },
-            { x: '2020-08-01', y: 800 },
-            { x: '2020-09-01', y: 900 },
-            { x: '2020-10-01', y: 1000 },
-            { x: '2020-11-01', y: 1100 },
-            { x: '2020-12-01', y: 1200 },
-            { x: '2021-01-01', y: 1300 },
-            { x: '2021-02-01', y: 1400 },
-            { x: '2021-03-01', y: 1500 },
-            { x: '2021-04-01', y: 1600 },
-            { x: '2021-05-01', y: 1700 },
-            { x: '2021-06-01', y: 1800 },
-            { x: '2021-07-01', y: 1900 },
-            { x: '2021-08-01', y: 2000 },
-            { x: '2021-09-01', y: 2100 },
-            { x: '2021-10-01', y: 2200 },
-            { x: '2021-11-01', y: 2300 },
-            { x: '2021-12-01', y: 2400 },
-          ]
-        }
-      ]
-    }*/
   ];
 
   return (
@@ -185,15 +201,17 @@ export default function IndicatorTemplate() {
 
       <div className="@container mx-auto">
         <div className="p-4">
+          {domainObj && (
           <IndicatorDropdowns
             currentDomain={domainObj}
-            currentSubdomain={subdomainObj}
-            currentIndicator={indicatorObj}
+            currentSubdomain={subdomainName}
+            currentIndicator={indicatorData}
             onIndicatorChange={handleIndicatorChange}
             allowSubdomainClear={false}
           />
+          )}
         </div>
-        <h2 className="text-2xl font-bold mt-16">{indicatorObj.name}</h2>
+        <h2 className="text-2xl font-bold mt-16">{indicatorData.name}</h2>
 
         <div className="mt-12">
           <Indicator charts={exampleCharts} />
@@ -208,24 +226,33 @@ export default function IndicatorTemplate() {
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Category</span><br />
-                {indicatorObj.categorization}
+                {indicatorData.categorization || 'N/A'}
               </p>
             </div>
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicatorObj.characteristics.unit_of_measure}
+                {indicatorData.scale || 'N/A'}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicatorObj.characteristics.source}
+                {indicatorData.font || 'N/A'}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicatorObj.characteristics.periodicity}
+                {indicatorData.periodicity || 'N/A'}
               </p>
             </div>
           </div>
+          
+          {indicatorData.description && (
+            <div className="mt-6">
+              <p className="mb-4">
+                <span className="font-semibold">Description</span><br />
+                {indicatorData.description}
+              </p>
+            </div>
+          )}
         </div>
 
       </div>

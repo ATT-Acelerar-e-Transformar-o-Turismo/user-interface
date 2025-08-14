@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDomain } from '../contexts/DomainContext';
+import PropTypes from 'prop-types';
 
 function Dropdowns({
   selectedDomain,
@@ -27,6 +28,8 @@ function Dropdowns({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+
 
   const handleSelectDomain = (domain) => {
     const domainName = domain.name;
@@ -98,5 +101,14 @@ function Dropdowns({
     </div>
   );
 }
+
+Dropdowns.propTypes = {
+  selectedDomain: PropTypes.object,
+  setSelectedDomain: PropTypes.func.isRequired,
+  selectedSubdomain: PropTypes.object,
+  setSelectedSubdomain: PropTypes.func.isRequired,
+  redirectOnDomainChange: PropTypes.bool,
+  allowSubdomainClear: PropTypes.bool,
+};
 
 export default Dropdowns;
