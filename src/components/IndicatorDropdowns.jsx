@@ -51,11 +51,24 @@ export default function IndicatorDropdowns({
       try {
         setLoadingIndicators(true);
         
-        // For now, just set empty indicators to avoid API errors
-        // The main functionality (showing current indicator) works fine
+        const domainId = stagedDomain.id || stagedDomain._id;
+        
+        if (!domainId) {
+          setSubdomainIndicators([]);
+          return;
+        }
+        
+        // For now, skip the API call since it's not working properly
+        // This will allow the dropdowns to work without the indicator list
         setSubdomainIndicators([]);
+        
+        // TODO: Uncomment when nginx routing is fixed
+        // const indicators = await indicatorService.getBySubdomain(domainId, stagedSubdomain);
+        // console.log('Loaded indicators:', indicators);
+        // setSubdomainIndicators(indicators || []);
       } catch (error) {
         console.error('Failed to load indicators for subdomain:', error);
+        console.error('Error details:', error.response?.data || error.message);
         setSubdomainIndicators([]);
       } finally {
         setLoadingIndicators(false);
@@ -63,7 +76,7 @@ export default function IndicatorDropdowns({
     };
 
     loadSubdomainIndicators();
-  }, [stagedDomain?.id, stagedSubdomain]);
+  }, [stagedDomain?.id, stagedDomain?._id, stagedSubdomain]);
 
   const allDomains = domains;
 
@@ -161,13 +174,16 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedDomain.subdomains.map((sub) => (
-              <li key={sub.name}>
-                <a onClick={() => handleSubdomainSelect(sub)}>
-                  {sub.name}
-                </a>
-              </li>
-            ))}
+            {stagedDomain.subdomains.map((sub) => {
+              const subName = typeof sub === 'string' ? sub : sub.name;
+              return (
+                <li key={subName}>
+                  <a onClick={() => handleSubdomainSelect(subName)}>
+                    {subName}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </details>
       )}

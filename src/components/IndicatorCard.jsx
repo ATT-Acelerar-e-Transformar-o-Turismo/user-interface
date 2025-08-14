@@ -7,7 +7,7 @@ import { useDomain } from "../contexts/DomainContext";
 import Chart from "./Chart";
 import indicatorService from "../services/indicatorService";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes }) {
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes, domain, subdomain }) {
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
     const [indicatorData, setIndicatorData] = useState(null);
@@ -61,8 +61,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes 
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: domainName,
-                subdomainName: subdomainName,
+                domainName: selectedDomain.name,
+                subdomainName: subdomain, // Just pass the subdomain as is
             },
         });
     };

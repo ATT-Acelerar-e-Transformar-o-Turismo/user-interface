@@ -7,7 +7,7 @@ export const indicatorService = {
   },
 
   async getByDomain(domainId, skip = 0, limit = 10) {
-    const response = await apiClient.get(`/api/indicators/domain/${domainId}?skip=${skip}&limit=${limit}`);
+    const response = await apiClient.get(`/api/indicators/domain/${domainId}/?skip=${skip}&limit=${limit}`);
     return response.data;
   },
 
@@ -24,7 +24,8 @@ export const indicatorService = {
 
   // Create indicator
   async create(domainId, subdomainName, indicatorData) {
-    const response = await apiClient.post(`/api/indicators/${domainId}/${subdomainName}/`, indicatorData);
+    const encodedSubdomainName = encodeURIComponent(subdomainName);
+    const response = await apiClient.post(`/api/indicators/${domainId}/${encodedSubdomainName}/`, indicatorData);
     return response.data;
   },
 

@@ -22,6 +22,7 @@ export default function IndicatorTemplate() {
       try {
         setLoading(true);
         const data = await indicatorService.getById(indicatorId);
+        // console.log('Fetched indicator data:', data);
         setIndicatorData(data);
       } catch (err) {
         console.error("Failed to fetch indicator data:", err);
@@ -54,12 +55,32 @@ export default function IndicatorTemplate() {
     (typeof indicatorData.domain === 'object' ? indicatorData.domain : 
      domains.find(domain => (domain.id || domain._id) === indicatorData.domain)) : null;
 
+  // Debug logging removed for cleaner output
+
   if (!domainObj) {
     return <div>Domain not found for indicator.</div>;
   }
 
   const subdomainName = indicatorData.subdomain || 'Unknown Subdomain';
 
+  // Handle both string arrays and object arrays for subdomains
+  let subdomainObj = null;
+  if (Array.isArray(domainObj.subdomains)) {
+    if (domainObj.subdomains.length > 0 && typeof domainObj.subdomains[0] === 'string') {
+      // If subdomains is an array of strings, create a mock subdomain object
+      subdomainObj = { name: subdomainName };
+    } else {
+      // If subdomains is an array of objects, find by name
+      subdomainObj = domainObj.subdomains.find((sub) => sub.name === subdomainName);
+    }
+  }
+  
+  if (!subdomainObj) {
+    return <div>Subdomain not found: {subdomainName}</div>;
+  }
+
+  // Try to find indicator in subdomain, but don't fail if not found
+  // This is expected since we're using API data
   // The user sees this domain/subdomain/indicator on screen
   // until they pick a new indicator in the dropdown.
 
@@ -183,8 +204,8 @@ export default function IndicatorTemplate() {
           {domainObj && (
           <IndicatorDropdowns
             currentDomain={domainObj}
-              currentSubdomain={subdomainName}
-              currentIndicator={indicatorData}
+            currentSubdomain={subdomainName}
+            currentIndicator={indicatorData}
             onIndicatorChange={handleIndicatorChange}
             allowSubdomainClear={false}
           />

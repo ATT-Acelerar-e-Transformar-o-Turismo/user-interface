@@ -18,30 +18,26 @@ export default function DomainTemplate() {
   // Determine domain from state or URL path
   // Convert URL path back to domain name (e.g., /ambiente -> Ambiente, /nova-economia -> Nova Economia)
   const pathToDomainName = (path) => {
-    const cleanPath = path.replace('/', '');
+    const cleanPath = path.replace("/", "");
     return cleanPath
-      .split('-')
+      .split("-")
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .join(" ");
   };
   
   const inferredDomainName = domainName || pathToDomainName(domainPath || location.pathname);
   
-  // Find domain by name in the API domains
-  const selectedDomainObj = domains.find((dom) => 
-                             (dom.name === domainName || dom.name === domainName) ||
-                             (dom.name === inferredDomainName || dom.name === inferredDomainName)
-                           ) || 
-                           getDomainByName(inferredDomainName) ||
-                           // Fallback mock domain for testing when API is not available
-                           {
-                             id: location.pathname.replace('/', ''),
-                             name: inferredDomainName || 'Test Domain',
-                             DomainCarouselImages: [
-                               "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
-                               "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
-                             ]
-                           };
+  // Find domain by name or fallback to mock domain for testing
+  const selectedDomainObj = domains.find(dom => 
+    dom.name === domainName || dom.name === inferredDomainName
+  ) || getDomainByName(inferredDomainName) || {
+    id: location.pathname.replace("/", ""),
+    name: inferredDomainName || "Test Domain",
+    DomainCarouselImages: [
+      "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
+      "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
+    ]
+  };
 
   // API state management
   const [indicators, setIndicators] = useState([]);
@@ -50,7 +46,7 @@ export default function DomainTemplate() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(12); // 12 indicators per page
+  const [pageSize] = useState(9); // 9 indicators per page
   const [totalIndicators, setTotalIndicators] = useState(0);
 
   // Domain state
@@ -110,7 +106,7 @@ export default function DomainTemplate() {
         setIndicators(data || []);
         setTotalIndicators(filteredData.length);
       } catch (err) {
-        console.error('Failed to load indicators:', err);
+        console.error("Failed to load indicators:", err);
         setError(err.message);
         setIndicators([]);
         setTotalIndicators(0);
@@ -188,6 +184,8 @@ export default function DomainTemplate() {
                 IndicatorTitle={indicator.name}
                 IndicatorId={indicator.id}
                 GraphTypes={GraphTypes}
+                domain={selectedDomainObj.name}
+                subdomain={selectedSubdomain?.name}
               />
             ))}
           </div>
