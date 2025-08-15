@@ -32,10 +32,10 @@ function App() {
         {domains.map((domain, index) => (
           <DomainCard 
             key={index}
-            DomainTitle={domain.name} 
-            DomainPage={domain.DomainPage || `/${domain.name.toLowerCase().replace(/\s+/g, '-')}`} 
-            DomainColor={domain.color} 
-            DomainImage={domain.image} 
+            DomainTitle={domain?.name || "Unnamed Domain"} 
+            DomainPage={domain.DomainPage || (domain?.name ? `/${domain.name.toLowerCase().replace(/\s+/g, '-')}` : '/unknown-domain')} 
+            DomainColor={domain?.color} 
+            DomainImage={domain?.image} 
           />
         ))}
       </div>

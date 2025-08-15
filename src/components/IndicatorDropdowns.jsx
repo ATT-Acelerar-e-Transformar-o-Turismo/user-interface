@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useDomain } from "../contexts/DomainContext";
+import { useIndicator } from "../contexts/IndicatorContext";
 
 export default function IndicatorDropdowns({
   currentDomain,
@@ -12,9 +13,9 @@ export default function IndicatorDropdowns({
   const [stagedDomain, setStagedDomain] = useState(null);
   const [stagedSubdomain, setStagedSubdomain] = useState(null);
   const [stagedIndicator, setStagedIndicator] = useState(null);
-  const [subdomainIndicators, setSubdomainIndicators] = useState([]);
-  const [loadingIndicators, setLoadingIndicators] = useState(false);
+
   const { domains } = useDomain();
+  const { indicators } = useIndicator();
 
   const domainRef = useRef(null);
   const subdomainRef = useRef(null);
@@ -22,6 +23,12 @@ export default function IndicatorDropdowns({
   const containerRef = useRef(null);
 
   useEffect(() => {
+    console.log('IndicatorDropdowns useEffect - setting staged values:', {
+      currentDomain,
+      currentSubdomain,
+      currentIndicator,
+      domainSubdomains: currentDomain?.subdomains
+    });
     setStagedDomain(currentDomain);
     setStagedSubdomain(currentSubdomain);
     setStagedIndicator(currentIndicator);
@@ -40,61 +47,53 @@ export default function IndicatorDropdowns({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Load indicators when subdomain changes
-  useEffect(() => {
-    const loadSubdomainIndicators = async () => {
-      if (!stagedDomain?.id || !stagedSubdomain) {
-        setSubdomainIndicators([]);
-        return;
-      }
 
-      try {
-        setLoadingIndicators(true);
-        
-        const domainId = stagedDomain.id || stagedDomain._id;
-        
-        if (!domainId) {
-          setSubdomainIndicators([]);
-          return;
-        }
-        
-        // For now, skip the API call since it's not working properly
-        // This will allow the dropdowns to work without the indicator list
-        setSubdomainIndicators([]);
-        
-        // TODO: Uncomment when nginx routing is fixed
-        // const indicators = await indicatorService.getBySubdomain(domainId, stagedSubdomain);
-        // console.log('Loaded indicators:', indicators);
-        // setSubdomainIndicators(indicators || []);
-      } catch (error) {
-        console.error('Failed to load indicators for subdomain:', error);
-        console.error('Error details:', error.response?.data || error.message);
-        setSubdomainIndicators([]);
-      } finally {
-        setLoadingIndicators(false);
-      }
-    };
-
-    loadSubdomainIndicators();
-  }, [stagedDomain?.id, stagedDomain?._id, stagedSubdomain]);
 
   const allDomains = domains;
 
+  // Get indicators for the current domain and subdomain
+  const getIndicatorsForSubdomain = (domainId, subdomainName) => {
+    console.log('Filtering indicators with:', { domainId, subdomainName });
+    console.log('All indicators:', indicators.map(ind => ({ 
+      id: ind.id, 
+      name: ind.name, 
+      domain: ind.domain, 
+      subdomain: ind.subdomain 
+    })));
+    
+    const filteredIndicators = indicators.filter(indicator => {
+      // Domain should now always be a string ID (normalized in IndicatorContext)
+      const domainMatch = indicator.domain === domainId;
+      const subdomainMatch = indicator.subdomain === subdomainName;
+      
+      console.log(`Indicator ${indicator.name}:`, {
+        domainId,
+        domainMatch,
+        subdomainMatch,
+        indicator: { domain: indicator.domain, subdomain: indicator.subdomain }
+      });
+      
+      return domainMatch && subdomainMatch;
+    });
+    
+    console.log('Filtered indicators result:', filteredIndicators);
+    return filteredIndicators;
+  };
+
   const handleDomainSelect = (domain) => {
-    if (stagedDomain && stagedDomain.name === domain.name) {
+    if (stagedDomain && stagedDomain?.name === domain?.name) {
       if (domainRef.current) domainRef.current.removeAttribute("open");
       return;
     }
     setStagedDomain(domain);
     setStagedSubdomain(null);
     setStagedIndicator(null);
-    setSubdomainIndicators([]);
 
     if (domainRef.current) domainRef.current.removeAttribute("open");
   };
 
-  const handleSubdomainSelect = (subdomainName) => {
-    setStagedSubdomain(subdomainName);
+  const handleSubdomainSelect = (subdomain) => {
+    setStagedSubdomain(subdomain);
     // Reset indicator
     setStagedIndicator(null);
 
@@ -108,8 +107,8 @@ export default function IndicatorDropdowns({
     // Create compatible objects for the callback
     const domainForCallback = {
       ...stagedDomain,
-      nome: stagedDomain.nome || stagedDomain.name,
-      name: stagedDomain.name || stagedDomain.nome
+      nome: stagedDomain?.nome || stagedDomain?.name,
+      name: stagedDomain?.name || stagedDomain?.nome
     };
     
     const subdomainForCallback = {
@@ -119,8 +118,8 @@ export default function IndicatorDropdowns({
     
     const indicatorForCallback = {
       ...indicator,
-      nome: indicator.name || indicator.nome,
-      name: indicator.name || indicator.nome
+      nome: indicator?.name || indicator?.nome,
+      name: indicator?.name || indicator?.nome
     };
 
     onIndicatorChange(domainForCallback, subdomainForCallback, indicatorForCallback);
@@ -131,9 +130,35 @@ export default function IndicatorDropdowns({
     e.stopPropagation();
     setStagedSubdomain(null);
     setStagedIndicator(null);
-    setSubdomainIndicators([]);
   };
 
+  // Get subdomains for the current domain
+  const getSubdomainsForDomain = (domain) => {
+    if (!domain || !domain.subdomains) {
+      console.log('No domain or subdomains:', { domain, hasSubdomains: domain?.subdomains });
+      return [];
+    }
+    console.log('Domain subdomains:', domain.subdomains);
+    return domain.subdomains;
+  };
+
+  // Get indicators for the current subdomain
+  const getIndicatorsForCurrentSubdomain = () => {
+    if (!stagedDomain || !stagedSubdomain) {
+      console.log('No staged domain or subdomain:', { stagedDomain, stagedSubdomain });
+      return [];
+    }
+    
+    // Use standardized domain.id format (no _id)
+    const domainId = stagedDomain?.id;
+    const subdomainName = typeof stagedSubdomain === 'string' 
+      ? stagedSubdomain 
+      : stagedSubdomain?.name;
+    
+    console.log('Getting indicators for:', { domainId, subdomainName, stagedDomain, stagedSubdomain });
+    
+    return getIndicatorsForSubdomain(domainId, subdomainName);
+  };
 
   return (
     <div ref={containerRef} className="flex flex-nowrap gap-4 flex-col md:flex-row">
@@ -141,13 +166,13 @@ export default function IndicatorDropdowns({
       <details ref={domainRef} className="dropdown md:dropdown-right">
         <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
           <p className="overflow-hidden text-center text-nowrap">
-            {stagedDomain ? stagedDomain.name : "Escolha o Domínio"}
+            {stagedDomain?.name || "Escolha o Domínio"}
           </p>
         </summary>
         <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-          {allDomains.map((dom) => (
-            <li key={dom.name}>
-              <a onClick={() => handleDomainSelect(dom)}>{dom.name}</a>
+          {allDomains.map((dom, index) => (
+            <li key={dom?.name || `domain-${index}`}>
+              <a onClick={() => handleDomainSelect(dom)}>{dom?.name || "Unnamed Domain"}</a>
             </li>
           ))}
         </ul>
@@ -160,8 +185,8 @@ export default function IndicatorDropdowns({
             <p className="overflow-hidden text-center text-nowrap">
               {stagedSubdomain ? (
                 <div className="flex items-center gap-2">
-
-                  {typeof stagedSubdomain === 'string' ? stagedSubdomain : stagedSubdomain.name}
+                  {console.log('Subdomain dropdown - stagedSubdomain:', stagedSubdomain, 'type:', typeof stagedSubdomain)}
+                  {typeof stagedSubdomain === 'string' ? stagedSubdomain : stagedSubdomain?.name}
                   {allowSubdomainClear && (
                     <button onClick={clearSubdomain} className="btn btn-ghost btn-sm">
                       ✕
@@ -174,16 +199,13 @@ export default function IndicatorDropdowns({
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {stagedDomain.subdomains.map((sub) => {
-              const subName = typeof sub === 'string' ? sub : sub.name;
-              return (
-                <li key={subName}>
-                  <a onClick={() => handleSubdomainSelect(subName)}>
-                    {subName}
-                  </a>
-                </li>
-              );
-            })}
+            {getSubdomainsForDomain(stagedDomain).map((sub, index) => (
+              <li key={sub?.name || `subdomain-${index}`}>
+                <a onClick={() => handleSubdomainSelect(sub)}>
+                  {sub?.name || "Unnamed Subdomain"}
+                </a>
+              </li>
+            ))}
           </ul>
         </details>
       )}
@@ -193,20 +215,18 @@ export default function IndicatorDropdowns({
         <details ref={indicatorRef} className="dropdown md:dropdown-right">
           <summary className="btn m-1 w-full md:w-fit md:max-w-48 lg:max-w-72 xl:max-w-96">
             <p className="overflow-hidden text-center text-nowrap">
-              {stagedIndicator ? stagedIndicator.name : "Escolha o Indicador"}
+              {stagedIndicator?.name || "Escolha o Indicador"}
             </p>
           </summary>
           <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full md:w-48 lg:w-72 xl:w-96">
-            {loadingIndicators ? (
-              <li><span className="text-gray-500">Carregando...</span></li>
-            ) : subdomainIndicators && subdomainIndicators.length > 0 ? (
-              subdomainIndicators.map((ind) => (
-              <li key={ind.id || ind._id}>
-                <a onClick={() => handleIndicatorSelect(ind)}>
-                  {ind.name}
-                </a>
-              </li>
-                ))
+            {getIndicatorsForCurrentSubdomain().length > 0 ? (
+              getIndicatorsForCurrentSubdomain().map((ind) => (
+                <li key={ind.id}>
+                  <a onClick={() => handleIndicatorSelect(ind)}>
+                    {ind?.name || "Unnamed Indicator"}
+                  </a>
+                </li>
+              ))
             ) : (
               <li><span className="text-gray-500">Nenhum indicador encontrado</span></li>
             )}

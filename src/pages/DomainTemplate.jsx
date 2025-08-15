@@ -18,26 +18,53 @@ export default function DomainTemplate() {
   // Determine domain from state or URL path
   // Convert URL path back to domain name (e.g., /ambiente -> Ambiente, /nova-economia -> Nova Economia)
   const pathToDomainName = (path) => {
+    if (!path || typeof path !== 'string') return "";
     const cleanPath = path.replace("/", "");
+    if (!cleanPath) return "";
     return cleanPath
       .split("-")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map(word => word && word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : "")
+      .filter(word => word.length > 0)
       .join(" ");
   };
   
   const inferredDomainName = domainName || pathToDomainName(domainPath || location.pathname);
   
+  // Debug logging
+  console.log("DomainTemplate Debug:", {
+    domainPath,
+    locationPathname: location.pathname,
+    domainName,
+    inferredDomainName,
+    domainsLength: domains.length,
+    domains: domains.map(d => ({ id: d?.id, name: d?.name }))
+  });
+  
   // Find domain by name or fallback to mock domain for testing
-  const selectedDomainObj = domains.find(dom => 
-    dom.name === domainName || dom.name === inferredDomainName
-  ) || getDomainByName(inferredDomainName) || {
+  const foundDomain = domains.find(dom => 
+    dom?.name === domainName || dom?.name === inferredDomainName
+  ) || getDomainByName(inferredDomainName);
+  
+  const selectedDomainObj = foundDomain || {
     id: location.pathname.replace("/", ""),
     name: inferredDomainName || "Test Domain",
+    subdomains: [],
     DomainCarouselImages: [
       "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
       "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
     ]
   };
+  
+  console.log("Selected Domain Object:", selectedDomainObj);
+  console.log("Subdomains detail:", selectedDomainObj?.subdomains);
+  
+  // Ensure safe subdomains array 
+  if (selectedDomainObj?.subdomains && Array.isArray(selectedDomainObj.subdomains)) {
+    selectedDomainObj.subdomains = selectedDomainObj.subdomains.filter(sub => 
+      sub != null && (typeof sub === 'string' || (typeof sub === 'object' && sub.name != null))
+    );
+    console.log("Filtered subdomains:", selectedDomainObj.subdomains);
+  }
 
   // API state management
   const [indicators, setIndicators] = useState([]);
@@ -51,7 +78,7 @@ export default function DomainTemplate() {
 
   // Domain state
   const [selectedSubdomain, setSelectedSubdomain] = useState(null);
-  const [selectedDomain, setSelectedDomain] = useState(selectedDomainObj);
+  const [,setSelectedDomain] = useState(selectedDomainObj);
 
   const images = selectedDomainObj?.DomainCarouselImages || [
     "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
@@ -91,12 +118,34 @@ export default function DomainTemplate() {
         // Always use the general API with client-side filtering for now
         // since domain-specific endpoints may not be working correctly
         const allIndicators = await indicatorService.getAll(0, 50); // Get indicators for filtering (API limit is 50)
-        let filteredData = allIndicators.filter(indicator => indicator.domain === selectedDomainObj.id);
+        
+        // Ensure allIndicators is an array before filtering
+        if (!Array.isArray(allIndicators)) {
+          console.error("API returned non-array data:", allIndicators);
+          setIndicators([]);
+          setTotalIndicators(0);
+          setLoading(false);
+          return;
+        }
+        
+        let filteredData = allIndicators.filter(indicator => 
+          indicator && indicator.domain === selectedDomainObj.id
+        );
         
         // Apply subdomain filter if selected
-        if (selectedSubdomain) {
-          filteredData = filteredData.filter(indicator => indicator.subdomain === selectedSubdomain.name);
+        if (selectedSubdomain && selectedSubdomain.name) {
+          const subdomainName = typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name;
+          filteredData = filteredData.filter(indicator => 
+            indicator && indicator.subdomain === subdomainName
+          );
         }
+        
+        // Filter out indicators with null names to prevent rendering errors
+        filteredData = filteredData.filter(indicator => 
+          indicator && indicator.name != null
+        );
+        
+        console.log("Filtered indicators:", filteredData.map(ind => ({ id: ind?.id, name: ind?.name })));
         
         // Apply pagination to filtered data
         const startIndex = skip;
@@ -161,7 +210,7 @@ export default function DomainTemplate() {
       <Carousel images={images} />
       <div className="p-4">
         <Dropdowns
-          selectedDomain={selectedDomain}
+          selectedDomain={selectedDomainObj}
           setSelectedDomain={setSelectedDomain}
           selectedSubdomain={selectedSubdomain}
           setSelectedSubdomain={handleSubdomainChange}
@@ -178,24 +227,26 @@ export default function DomainTemplate() {
       {!loading && !error && (
         <>
           <div className="flex flex-wrap place-content-center gap-4">
-            {indicators.map((indicator) => (
-              <IndicatorCard
-                key={indicator.id}
-                IndicatorTitle={indicator.name}
-                IndicatorId={indicator.id}
-                GraphTypes={GraphTypes}
-                domain={selectedDomainObj.name}
-                subdomain={selectedSubdomain?.name}
-              />
-            ))}
+            {indicators
+              .filter(indicator => indicator && indicator.name && indicator.id)
+              .map((indicator) => (
+                <IndicatorCard
+                  key={indicator.id}
+                  IndicatorTitle={indicator.name}
+                  IndicatorId={indicator.id}
+                  GraphTypes={GraphTypes}
+                  domain={selectedDomainObj?.name}
+                  subdomain={typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain?.name}
+                />
+              ))}
           </div>
           
           {indicators.length === 0 && (
             <div className="text-center p-8">
               <h2 className="text-xl">
-                {selectedSubdomain 
-                  ? `No indicators found for ${selectedSubdomain.name}` 
-                  : `No indicators found for ${selectedDomainObj.name || inferredDomainName}`}
+                {selectedSubdomain && (typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name)
+                  ? `No indicators found for ${typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name}` 
+                  : `No indicators found for ${selectedDomainObj?.name || inferredDomainName}`}
               </h2>
             </div>
           )}

@@ -65,17 +65,22 @@ export class TestHelpers {
    * Click on an indicator and wait for navigation
    */
   static async clickIndicator(page: Page, indicatorName: string) {
+    console.log("Looking for indicator card with text:", indicatorName);
+    
     const indicatorCard = page.locator(".card").filter({ hasText: indicatorName });
     await expect(indicatorCard).toBeVisible();
+    console.log("Found indicator card");
 
     const viewIndicatorButton = indicatorCard.locator("button", { hasText: "Ver Indicador" });
+    await expect(viewIndicatorButton).toBeVisible();
+    console.log("Found Ver Indicador button");
+    
     await viewIndicatorButton.click();
+    console.log("Clicked Ver Indicador button");
 
-    // Wait for indicator details to load
-    await page.waitForResponse(response => 
-      response.url().includes("/api/indicators/"),
-      { timeout: 30000 }
-    );
+    // Wait for navigation to complete
+    await page.waitForURL(/^\/indicator\/[a-f0-9]{24}$/);
+    console.log("Navigation completed");
   }
 
   /**
@@ -111,13 +116,16 @@ export class TestHelpers {
    */
   static async verifyIndicatorDetails(page: Page, indicatorName: string, subdomainName: string) {
     // Verify URL changed to indicator page
-    await expect(page).toHaveURL(/^\/indicator\/[a-f0-9]{24}$/);
+    const currentUrl = page.url();
+    const urlPath = new URL(currentUrl).pathname;
+    expect(urlPath).toMatch(/^\/indicator\/[a-f0-9]{24}$/);
 
     // Check if indicator details are visible
     const indicatorNameHeading = page.getByRole("heading", { name: indicatorName });
     await expect(indicatorNameHeading).toBeVisible();
 
-    const subdomainText = page.getByText(subdomainName);
+    // Look for subdomain in the specific section where it should appear
+    const subdomainText = page.locator("p").filter({ hasText: "Subdomain" }).filter({ hasText: subdomainName });
     await expect(subdomainText).toBeVisible();
   }
 }

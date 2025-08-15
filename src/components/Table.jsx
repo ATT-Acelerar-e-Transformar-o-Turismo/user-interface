@@ -72,7 +72,7 @@ export default function Table({ content, actions, emptyMessage, visibleColumns }
                     <div className="flex gap-1">
                       {actions.map((action, index) => (
                         <button key={index} onClick={() => {
-                          const idToPass = row.original.id || row.original._id;
+                          const idToPass = row.original.id;
                           action.onClick(idToPass);
                         }} className={`btn ${action.className} btn-sm min-w-16`}>
                           {action.label}

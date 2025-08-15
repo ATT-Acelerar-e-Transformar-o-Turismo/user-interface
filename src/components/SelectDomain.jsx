@@ -73,12 +73,12 @@ function SelectDomain({
         <div ref={containerRef} className="container mx-auto">
             <details ref={domainRef} className="dropdown dropdown-right">
                 <summary className="btn m-1">
-                    {selectedLocalDomain ? selectedLocalDomain.name : "Escolha o Domínio"}
+                    {selectedLocalDomain?.name || "Escolha o Domínio"}
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                    {domains.map((domain) => (
-                        <li key={domain.name}>
-                            <a onClick={() => { handleSelectDomain(domain); }}>{domain.name}</a>
+                    {domains.map((domain, index) => (
+                        <li key={domain?.name || index}>
+                            <a onClick={() => { handleSelectDomain(domain); }}>{domain?.name || "Unnamed Domain"}</a>
                         </li>
                     ))}
                 </ul>

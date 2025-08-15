@@ -63,7 +63,7 @@ export default function ResourcesManagement() {
 
   const handleDelete = async (resource) => {
     try {
-      const resourceId = resource.id || resource._id;
+      const resourceId = resource.id;
       
       // Delete the resource
       await resourceService.delete(resourceId);
@@ -73,7 +73,7 @@ export default function ResourcesManagement() {
       
       // Update local state
       setResources(resources.filter(id => id !== resourceId));
-      setResourcesDetails(resourcesDetails.filter(r => (r.id || r._id) !== resourceId));
+      setResourcesDetails(resourcesDetails.filter(r => r.id !== resourceId));
     } catch (err) {
       setError(err.message || 'Failed to delete resource');
       console.error('Error deleting resource:', err);
@@ -81,7 +81,7 @@ export default function ResourcesManagement() {
   };
 
   const handleEdit = (resource) => {
-    const resourceId = resource.id || resource._id;
+    const resourceId = resource.id;
     navigate(`/edit_resource/${resourceId}`);
   };
 

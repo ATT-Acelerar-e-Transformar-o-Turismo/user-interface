@@ -144,7 +144,7 @@ export default function NewIndicator() {
 
       // For updates, add domain and subdomain fields
       if (indicatorId) {
-        indicatorData.domain = formData.domain.id || formData.domain._id || formData.domain;
+        indicatorData.domain = formData.domain.id || formData.domain;
         indicatorData.subdomain = formData.subdomain;
       }
 
@@ -156,7 +156,7 @@ export default function NewIndicator() {
         result = await indicatorService.update(indicatorId, indicatorData);
     } else {
         // Create new indicator
-        const domainId = formData.domain.id || formData.domain._id;
+        const domainId = formData.domain.id;
         result = await indicatorService.create(domainId, formData.subdomain, indicatorData);
     }
     
@@ -182,7 +182,7 @@ export default function NewIndicator() {
   const handleAddData = async () => {
     try {
       const result = await saveIndicator();
-      const id = result.id || result._id;
+      const id = result.id;
     navigate(`/add_data_resource/${id}`);
     } catch (err) {
       // Error is already set in saveIndicator

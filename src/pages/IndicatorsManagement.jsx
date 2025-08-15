@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+
 import ManagementTemplate from '../components/ManagementTemplate';
 import indicatorService from '../services/indicatorService';
 import domainService from '../services/domainService';
@@ -69,10 +70,10 @@ export default function IndicatorsManagement() {
       // id is already the string ID, no need to extract it from an object
       if (selectedOption === 'indicators') {
         await indicatorService.delete(id);
-        setIndicators(indicators.filter(indicator => (indicator.id || indicator._id) !== id));
+        setIndicators(indicators.filter(indicator => indicator.id !== id));
       } else {
         await domainService.delete(id);
-        setDomains(domains.filter(domain => (domain.id || domain._id) !== id));
+        setDomains(domains.filter(domain => domain.id !== id));
       }
     } catch (err) {
       setError(err.message || 'Failed to delete item');
@@ -95,7 +96,7 @@ export default function IndicatorsManagement() {
             domainInfo = indicator.domain;
           } else {
             // If domain is just an ID, find it in domains array
-            domainInfo = domains.find(domain => (domain.id || domain._id) === indicator.domain);
+            domainInfo = domains.find(domain => domain.id === indicator.domain);
           }
         }
         
