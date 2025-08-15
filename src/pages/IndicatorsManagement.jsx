@@ -19,6 +19,8 @@ export default function IndicatorsManagement() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
   
   const navigate = useNavigate();
 
@@ -33,20 +35,29 @@ export default function IndicatorsManagement() {
       setError(null);
       
       if (selectedOption === 'indicators') {
-        // Load indicators with pagination
-        const indicatorsData = await indicatorService.getAll(currentPage * pageSize, pageSize);
+        // Load indicators with pagination and total count
+        const skip = currentPage * pageSize;
+        const [indicatorsData, totalCount] = await Promise.all([
+          indicatorService.getAll(skip, pageSize),
+          indicatorService.getCount()
+        ]);
 
         setIndicators(indicatorsData || []);
+        setTotalItems(totalCount || 0);
+        
+        // Determine if there are more pages based on total count
+        const hasMore = skip + pageSize < totalCount;
+        setHasNextPage(hasMore);
         
         // Also load domains for mapping
         const domainsData = await domainService.getAll();
-
         setDomains(domainsData || []);
       } else {
-        // Load domains
+        // Load domains (domains don't use pagination)
         const domainsData = await domainService.getAll();
-
         setDomains(domainsData || []);
+        setHasNextPage(false);
+        setTotalItems(domainsData?.length || 0);
       }
     } catch (err) {
       setError(err.message || 'Failed to load data');
@@ -70,7 +81,15 @@ export default function IndicatorsManagement() {
       // id is already the string ID, no need to extract it from an object
       if (selectedOption === 'indicators') {
         await indicatorService.delete(id);
-        setIndicators(indicators.filter(indicator => indicator.id !== id));
+        const updatedIndicators = indicators.filter(indicator => indicator.id !== id);
+        setIndicators(updatedIndicators);
+        
+        // If we deleted the last item on this page and we're not on the first page, go back
+        if (updatedIndicators.length === 0 && currentPage > 0) {
+          setCurrentPage(currentPage - 1);
+        }
+        // Always reload data to ensure pagination state and counts are correct
+        loadData();
       } else {
         await domainService.delete(id);
         setDomains(domains.filter(domain => domain.id !== id));
@@ -84,6 +103,8 @@ export default function IndicatorsManagement() {
   const handleOptionChange = (option) => {
     setSelectedOption(option);
     setCurrentPage(0); // Reset pagination when switching tabs
+    setHasNextPage(false);
+    setTotalItems(0);
   };
 
   // Prepare table content
@@ -145,24 +166,32 @@ export default function IndicatorsManagement() {
 
   // Pagination controls
   const paginationControls = selectedOption === 'indicators' && (
-    <div className="flex justify-center mt-4 gap-2">
-      <button 
-        className="btn btn-sm" 
-        onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-        disabled={currentPage === 0 || loading}
-      >
-        Previous
-      </button>
-      <span className="flex items-center px-4">
-        Page {currentPage + 1}
-      </span>
-      <button 
-        className="btn btn-sm" 
-        onClick={() => setCurrentPage(currentPage + 1)}
-        disabled={indicators.length < pageSize || loading}
-      >
-        Next
-      </button>
+    <div className="flex flex-col items-center mt-4 gap-2">
+      <div className="flex justify-center gap-2">
+        <button 
+          className="btn btn-sm" 
+          onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+          disabled={currentPage === 0 || loading}
+        >
+          Previous
+        </button>
+        <span className="flex items-center px-4">
+          Page {currentPage + 1}
+        </span>
+        <button 
+          className="btn btn-sm" 
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={!hasNextPage || loading}
+        >
+          Next
+        </button>
+      </div>
+      {indicators.length > 0 && (
+        <div className="text-sm text-gray-600">
+          Showing {currentPage * pageSize + 1} - {currentPage * pageSize + indicators.length} of {totalItems} indicators
+          {totalItems > 0 && ` (Page ${currentPage + 1} of ${Math.ceil(totalItems / pageSize)})`}
+        </div>
+      )}
     </div>
   );
 

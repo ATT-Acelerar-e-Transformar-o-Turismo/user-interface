@@ -6,6 +6,11 @@ export const indicatorService = {
     return response.data;
   },
 
+  async getCount() {
+    const response = await apiClient.get('/api/indicators/count');
+    return response.data;
+  },
+
   async getByDomain(domainId, skip = 0, limit = 10) {
     const response = await apiClient.get(`/api/indicators/domain/${domainId}/?skip=${skip}&limit=${limit}`);
     return response.data;
