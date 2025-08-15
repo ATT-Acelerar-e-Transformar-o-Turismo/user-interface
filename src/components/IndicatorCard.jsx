@@ -6,10 +6,12 @@ import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
 import Chart from "./Chart";
 import useIndicatorData from "../hooks/useIndicatorData";
+import PropTypes from "prop-types";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes, domain, subdomain }) {
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, subdomain }) {
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
+    const [indicatorData] = useState(null);
     const { domains } = useDomain();
     
     // Use the custom hook to fetch indicator data
@@ -26,15 +28,10 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes,
     }, [IndicatorId]);
 
     const handleClick = () => {
-        if (!selectedDomain) {
-            console.error("Domain not found for Indicator ID:", IndicatorId);
-            return;
-        }
-
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: selectedDomain.name,
+                domainName: selectedDomain?.name || "Unknown Domain",
                 subdomainName: subdomain, // Just pass the subdomain as is
             },
         });
@@ -100,7 +97,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes,
                 )}
             </figure>
             <div className="card-body pt-1 items-center text-center">
-                <h2 className="card-title">{IndicatorTitle}</h2>
+                <h2 className="card-title">{indicatorData?.name || IndicatorTitle}</h2>
                 <div className="card-actions">
                     <button 
                         className="btn" 
@@ -114,3 +111,15 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, GraphTypes,
         </div>
     );
 }
+
+IndicatorCard.propTypes = {
+    IndicatorTitle: PropTypes.string.isRequired,
+    IndicatorId: PropTypes.string.isRequired,
+    domain: PropTypes.string,
+    subdomain: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.shape({
+            name: PropTypes.string
+        })
+    ])
+};

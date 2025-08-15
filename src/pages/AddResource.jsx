@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';

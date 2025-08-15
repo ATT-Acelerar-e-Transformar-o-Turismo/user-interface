@@ -33,13 +33,13 @@ function CategoryDropdown({ setSelectedCategory }) {
     <div ref={containerRef} className="container mx-auto">
       <details ref={categoryRef} className="dropdown dropdown-right">
         <summary className="btn m-1">
-          {selectedCat ? selectedCat.name : "Escolha a categoria"}
+          {selectedCat?.name || "Escolha a categoria"}
         </summary>
         <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-          {categories.map((category) => (
-            <li key={category.name}>
+          {categories.map((category, index) => (
+            <li key={category?.name || index}>
               <a onClick={() => handleSelectCategory(category)}>
-                {category.name}
+                {category?.name || "Unnamed Category"}
               </a>
             </li>
           ))}

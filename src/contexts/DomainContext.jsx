@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import apiClient from '../services/apiClient';
 
 const DomainContext = createContext();
@@ -17,17 +18,17 @@ export function DomainProvider({ children }) {
             setLoading(true);
             setError(null);
             
-            const response = await apiClient.get('/api/domains/');
+            const response = await apiClient.get('/api/domains');
             const domainsData = response.data || [];
             
             // Transform domains to match expected structure
             const transformedDomains = domainsData.map(domain => ({
                 ...domain,
-                DomainPage: `/${domain.name.toLowerCase()}`,
+                DomainPage: domain.name ? `/${domain.name.toLowerCase()}` : '/unknown-domain',
                 DomainColor: domain.color,
                 DomainImage: domain.image,
                 DomainCarouselImages: [domain.image],
-                subdomains: domain.subdomains ? domain.subdomains.map(subdomain => ({ name: subdomain })) : []
+                subdomains: domain.subdomains ? domain.subdomains.filter(subdomain => subdomain != null).map(subdomain => ({ name: subdomain })) : []
             }));
             
             setDomains(transformedDomains);
@@ -41,6 +42,10 @@ export function DomainProvider({ children }) {
 
     const updateDomains = (newDomains) => {
         setDomains(newDomains);
+    };
+
+    const refreshDomains = async () => {
+        await loadDomains();
     };
 
     const addDomain = (domain) => {
@@ -62,7 +67,7 @@ export function DomainProvider({ children }) {
 
     const getDomainByName = (name) => {
         return domains.find(domain => 
-            domain.name === name
+            domain?.name === name
         ) || null;
     };
 
@@ -70,26 +75,26 @@ export function DomainProvider({ children }) {
         return domains.find(domain => domain.id === id) || null;
     };
 
-    const refreshDomains = () => {
-        loadDomains();
-    };
-
     return (
         <DomainContext.Provider value={{
             domains,
             loading,
             error,
+            refreshDomains,
             addDomain,
             updateDomain,
             deleteDomain,
             getDomainByName,
-            getDomainById,
-            refreshDomains
+            getDomainById
         }}>
             {children}
         </DomainContext.Provider>
     );
 }
+
+DomainProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
 
 export function useDomain() {
     const context = useContext(DomainContext);

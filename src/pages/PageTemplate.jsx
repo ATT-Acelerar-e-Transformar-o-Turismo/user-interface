@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import PropTypes from 'prop-types';
 
 export default function PageTemplate({ children }) {
     return (
@@ -12,3 +13,7 @@ export default function PageTemplate({ children }) {
         </>
     )
 }
+
+PageTemplate.propTypes = {
+    children: PropTypes.node.isRequired,
+};

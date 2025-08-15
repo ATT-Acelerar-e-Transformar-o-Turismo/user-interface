@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import indicatorService from '../services/indicatorService';
+import PropTypes from 'prop-types';
 
 const IndicatorContext = createContext();
 
@@ -26,7 +27,16 @@ export function IndicatorProvider({ children }) {
                 return;
             }
             
-            setIndicators(data || []);
+            // Normalize indicators to ensure consistent domain ID format
+            const normalizedIndicators = data.map(indicator => ({
+                ...indicator,
+                // Ensure domain is always a string ID, never an object
+                domain: typeof indicator.domain === 'object' 
+                    ? (indicator.domain.id || indicator.domain._id || indicator.domain)
+                    : indicator.domain
+            }));
+            
+            setIndicators(normalizedIndicators || []);
         } catch (err) {
             setError(err.message);
             console.error('Failed to load indicators:', err);
@@ -188,6 +198,10 @@ export function IndicatorProvider({ children }) {
     );
 }
 
+IndicatorProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
 export function useIndicator() {
     const context = useContext(IndicatorContext);
     if (!context) {
@@ -195,3 +209,4 @@ export function useIndicator() {
     }
     return context;
 }
+
