@@ -4,6 +4,7 @@ import DomainCard from './components/DomainCard'
 import LoadingSkeleton from './components/LoadingSkeleton'
 import ErrorDisplay from './components/ErrorDisplay'
 import PageTemplate from './pages/PageTemplate'
+import SearchBox from './components/SearchBox'
 import { useDomain } from './contexts/DomainContext'
 
 
@@ -44,13 +45,12 @@ function App() {
   
   return (
     <>
-      <PageTemplate>
+      <PageTemplate showSearchBox={false}>
         <div className="flex flex-col items-center">
           <Carousel images={images} />
-          <label className="input my-4">
-            <svg className="h-[1em] opacity-50 btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></g></svg>
-            <input type="search" className="grow" placeholder="Procurar por Indicador" />
-          </label>
+          <div className="my-6">
+            <SearchBox />
+          </div>
           {renderContent()}
         </div>
       </PageTemplate>

@@ -6,9 +6,8 @@ services:
     container_name: att-user-interface
     develop:
       watch:
-        - action: sync
+        - action: rebuild
           path: ./src
-          target: /app/src
         - action: rebuild
           path: package.json
 

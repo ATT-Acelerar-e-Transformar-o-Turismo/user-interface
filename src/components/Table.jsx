@@ -6,7 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
-export default function Table({ content, actions, emptyMessage, visibleColumns }) {
+export default function Table({ content, actions, emptyMessage, visibleColumns, sortingInfo }) {
   const [data, setData] = React.useState(() => [...content])
   const rerender = React.useReducer(() => ({}), {})[1]
 
@@ -40,16 +40,40 @@ export default function Table({ content, actions, emptyMessage, visibleColumns }
             <thead className="bg-base-200">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id} className="px-4 py-2 text-left text-xs font-medium text-base-content uppercase tracking-wider">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </th>
-                  ))}
+                  {headerGroup.headers.map(header => {
+                    const columnId = header.column.id;
+                    const isSortable = sortingInfo?.sortableColumns?.includes(columnId);
+                    const isCurrentSort = sortingInfo?.sortBy === columnId;
+                    const sortOrder = isCurrentSort ? sortingInfo.sortOrder : null;
+                    
+                    return (
+                      <th 
+                        key={header.id} 
+                        className={`px-4 py-2 text-left text-xs font-medium text-base-content uppercase tracking-wider ${
+                          isSortable ? 'cursor-pointer hover:bg-base-300 select-none' : ''
+                        }`}
+                        onClick={() => isSortable && sortingInfo.handleSort(columnId)}
+                      >
+                        <div className="flex items-center gap-1">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                          {isSortable && (
+                            <span className="ml-1">
+                              {isCurrentSort ? (
+                                sortOrder === 'asc' ? '↑' : '↓'
+                              ) : (
+                                '↕'
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th key="actions" className="px-4 py-2 text-xs font-medium text-base-content uppercase tracking-wider text-left w-24">
                     Actions
                   </th>
