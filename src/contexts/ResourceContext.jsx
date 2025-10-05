@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import resourceService from '../services/resourceService';
 
 const ResourceContext = createContext();
 
@@ -11,31 +13,40 @@ export function ResourceProvider({ children }) {
         loadResources();
     }, []);
 
-    const loadResources = () => {
+    const loadResources = async () => {
         try {
             setLoading(true);
             setError(null);
-            const storedResources = JSON.parse(localStorage.getItem('resources')) || [];
-            setResources(storedResources);
+            const fetchedResources = await resourceService.getAll(0, 50); // Max limit is 50
+            setResources(fetchedResources);
         } catch (err) {
             setError(err.message);
             console.error('Failed to load resources:', err);
+            // Fallback to localStorage for backward compatibility
+            try {
+                const storedResources = JSON.parse(localStorage.getItem('resources')) || [];
+                setResources(storedResources);
+            } catch (localErr) {
+                console.error('Failed to load from localStorage:', localErr);
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const updateResources = (newResources) => {
-        setResources(newResources);
-        localStorage.setItem('resources', JSON.stringify(newResources));
-    };
-
-    const addResource = (resource) => {
+    const addResource = async (resource) => {
         try {
             setError(null);
-            const newResource = { ...resource, id: Date.now().toString() };
-            const newResources = [...resources, newResource];
-            updateResources(newResources);
+            // Prepare resource data for API
+            const resourceData = {
+                wrapper_id: resource.wrapper_id || generateWrapperId(),
+                name: resource.name,
+                type: resource.type || 'file',
+                ...resource
+            };
+            
+            const newResource = await resourceService.create(resourceData);
+            setResources(prev => [...prev, newResource]);
             return newResource;
         } catch (err) {
             setError(err.message);
@@ -44,14 +55,14 @@ export function ResourceProvider({ children }) {
         }
     };
 
-    const updateResource = (id, updatedResource) => {
+    const updateResource = async (id, updatedResource) => {
         try {
             setError(null);
-            const newResources = resources.map(resource => 
-                resource.id === id ? { ...resource, ...updatedResource } : resource
-            );
-            updateResources(newResources);
-            return newResources.find(resource => resource.id === id);
+            const updated = await resourceService.update(id, updatedResource);
+            setResources(prev => prev.map(resource => 
+                resource.id === id ? updated : resource
+            ));
+            return updated;
         } catch (err) {
             setError(err.message);
             console.error('Failed to update resource:', err);
@@ -59,11 +70,11 @@ export function ResourceProvider({ children }) {
         }
     };
 
-    const deleteResource = (id) => {
+    const deleteResource = async (id) => {
         try {
             setError(null);
-            const newResources = resources.filter(resource => resource.id !== id);
-            updateResources(newResources);
+            await resourceService.delete(id);
+            setResources(prev => prev.filter(resource => resource.id !== id));
         } catch (err) {
             setError(err.message);
             console.error('Failed to delete resource:', err);
@@ -71,8 +82,21 @@ export function ResourceProvider({ children }) {
         }
     };
 
-    const getResourceById = (id) => {
-        return resources.find(resource => resource.id === id) || null;
+    const getResourceById = async (id) => {
+        try {
+            // Try to find in local state first
+            const localResource = resources.find(resource => resource.id === id);
+            if (localResource) {
+                return localResource;
+            }
+            
+            // If not found locally, fetch from API
+            const resource = await resourceService.getById(id);
+            return resource;
+        } catch (err) {
+            console.error('Failed to get resource by id:', err);
+            return null;
+        }
     };
 
     const getResourcesByIndicator = (indicatorId) => {
@@ -81,6 +105,11 @@ export function ResourceProvider({ children }) {
 
     const refreshResources = () => {
         loadResources();
+    };
+
+    // Helper function to generate wrapper_id
+    const generateWrapperId = () => {
+        return `wrapper_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     };
 
     return (
@@ -99,6 +128,10 @@ export function ResourceProvider({ children }) {
         </ResourceContext.Provider>
     );
 }
+
+ResourceProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
 
 export function useResource() {
     const context = useContext(ResourceContext);

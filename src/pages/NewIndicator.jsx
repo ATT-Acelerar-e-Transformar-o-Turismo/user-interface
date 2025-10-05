@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SelectDomain from '../components/SelectDomain';
 import PageTemplate from './PageTemplate';
@@ -6,10 +6,12 @@ import indicatorService from '../services/indicatorService';
 import domainService from '../services/domainService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
+import { useIndicator } from '../contexts/IndicatorContext';
 
 export default function NewIndicator() {
   const { indicatorId } = useParams();
   const navigate = useNavigate();
+  const { refreshIndicators } = useIndicator();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -122,6 +124,17 @@ export default function NewIndicator() {
     if (!formData.subdomain.trim()) {
       throw new Error('Subdomain is required');
     }
+    
+    // Additional validation for editing mode
+    if (indicatorId) {
+      const domainId = typeof formData.domain === 'object' && formData.domain?.id 
+        ? formData.domain.id 
+        : formData.domain;
+      if (!domainId) {
+        throw new Error('Invalid domain data');
+      }
+    }
+    
     return true;
   };
 
@@ -144,16 +157,25 @@ export default function NewIndicator() {
 
       // For updates, add domain and subdomain fields
       if (indicatorId) {
-        indicatorData.domain = formData.domain.id || formData.domain;
+        // Ensure we extract the domain ID correctly
+        const domainId = typeof formData.domain === 'object' && formData.domain?.id 
+          ? formData.domain.id 
+          : formData.domain;
+        indicatorData.domain = domainId;
         indicatorData.subdomain = formData.subdomain;
+        
+        // Debug logging
+        console.log('PATCH Debug - formData.domain:', formData.domain);
+        console.log('PATCH Debug - extracted domainId:', domainId);
+        console.log('PATCH Debug - indicatorData:', indicatorData);
       }
 
 
     
       let result;
     if (indicatorId) {
-        // Update existing indicator
-        result = await indicatorService.update(indicatorId, indicatorData);
+        // Update existing indicator (use patch for partial updates)
+        result = await indicatorService.patch(indicatorId, indicatorData);
     } else {
         // Create new indicator
         const domainId = formData.domain.id;
@@ -172,6 +194,8 @@ export default function NewIndicator() {
   const handleSave = async () => {
     try {
       await saveIndicator();
+      // Refresh the indicator context after saving
+      refreshIndicators();
     navigate('/indicators-management');
     } catch (err) {
       // Error is already set in saveIndicator
@@ -181,9 +205,17 @@ export default function NewIndicator() {
 
   const handleAddData = async () => {
     try {
-      const result = await saveIndicator();
-      const id = result.id;
-    navigate(`/add_data_resource/${id}`);
+      if (indicatorId) {
+        // If editing existing indicator, just navigate without saving
+        navigate(`/add_data_resource/${indicatorId}`);
+      } else {
+        // If creating new indicator, save first then navigate
+        const result = await saveIndicator();
+        const id = result.id;
+        // Refresh the indicator context after saving
+        refreshIndicators();
+        navigate(`/add_data_resource/${id}`);
+      }
     } catch (err) {
       // Error is already set in saveIndicator
       console.error('Error saving indicator:', err);
