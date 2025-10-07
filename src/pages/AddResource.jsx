@@ -247,6 +247,7 @@ export default function AddResource() {
             const safeHeaders = Array.isArray(combinedHeaders) ? combinedHeaders : [];
             const safeFiles = Array.isArray(uploadedFiles) ? uploadedFiles : [];
             
+            // Create a single resource with all data columns
             const newResource = {
                 wrapper_id: `wrapper_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
                 name: safeFiles.length > 0 ? safeFiles[0].name : "uploaded_data.csv",

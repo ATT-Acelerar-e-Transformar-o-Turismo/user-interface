@@ -42,18 +42,43 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data', includeRes
               const resourceDataPromises = indicator.resources.map(async (resourceId) => {
                 try {
                   const resourceInfo = await resourceService.getById(resourceId);
-                  const resourceData = await resourceService.getResourceData(resourceId, 0, 1000, 'asc');
+                  const resourceData = await resourceService.getResourceData(resourceId, 0, 10000, 'asc');
                   
                   if (resourceData && resourceData.length > 0) {
-                    const transformedData = resourceData.map(point => ({
-                      x: new Date(point.x).getTime(),
-                      y: Number(point.y.toFixed(2))
-                    }));
+                    // Check if resource has multiple series (multi-column file)
+                    const hasSeries = resourceData.some(point => point.series);
                     
-                    return {
-                      name: resourceInfo?.name || `Resource ${resourceId}`,
-                      data: transformedData
-                    };
+                    if (hasSeries) {
+                      // Split data by series
+                      const seriesMap = {};
+                      resourceData.forEach(point => {
+                        const seriesName = point.series || 'Unknown';
+                        if (!seriesMap[seriesName]) {
+                          seriesMap[seriesName] = [];
+                        }
+                        seriesMap[seriesName].push({
+                          x: new Date(point.x).getTime(),
+                          y: Number(point.y.toFixed(2))
+                        });
+                      });
+                      
+                      // Return array of series
+                      return Object.entries(seriesMap).map(([seriesName, data]) => ({
+                        name: `${resourceInfo?.name} - ${seriesName}`,
+                        data: data
+                      }));
+                    } else {
+                      // Single series resource
+                      const transformedData = resourceData.map(point => ({
+                        x: new Date(point.x).getTime(),
+                        y: Number(point.y.toFixed(2))
+                      }));
+                      
+                      return [{
+                        name: resourceInfo?.name || `Resource ${resourceId}`,
+                        data: transformedData
+                      }];
+                    }
                   }
                 } catch (err) {
                   console.warn(`Failed to fetch data for resource ${resourceId}:`, err);
@@ -62,7 +87,9 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data', includeRes
               });
               
               const resourceSeries = await Promise.all(resourceDataPromises);
-              const validResourceSeries = resourceSeries.filter(series => series !== null);
+              const validResourceSeries = resourceSeries
+                .filter(series => series !== null)
+                .flat();  // Flatten since multi-series resources return arrays
               
               allSeries.push(...validResourceSeries);
             }
