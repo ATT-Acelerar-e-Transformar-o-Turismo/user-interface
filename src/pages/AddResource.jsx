@@ -299,7 +299,7 @@ export default function AddResource() {
     }
 
     return (
-        <PageTemplate>
+        <PageTemplate showSearchBox={false}>
             <div className="flex justify-center ">
                 <div className="p-8 rounded-lg shadow-lg w-full max-w-4xl">
                     <h1 className="text-xl font-bold text-center mb-6">

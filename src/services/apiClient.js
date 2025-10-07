@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: '', // Use relative URLs since nginx handles routing
+  baseURL: import.meta.env.VITE_API_BASE_URL, // Use relative URLs since nginx handles routing
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

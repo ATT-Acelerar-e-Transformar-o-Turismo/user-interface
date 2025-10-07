@@ -1,19 +1,73 @@
 import apiClient from './apiClient';
 
 export const indicatorService = {
-  async getAll(skip = 0, limit = 10) {
-    const response = await apiClient.get(`/api/indicators/?skip=${skip}&limit=${limit}`);
+  async getAll(skip = 0, limit = 10, sortBy = 'name', sortOrder = 'asc', governanceFilter = null) {
+    let url = `/api/indicators/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    if (governanceFilter !== null) {
+      url += `&governance_filter=${governanceFilter}`;
+    }
+    const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getByDomain(domainId, skip = 0, limit = 10) {
-    const response = await apiClient.get(`/api/indicators/domain/${domainId}/?skip=${skip}&limit=${limit}`);
+  async getCount() {
+    const response = await apiClient.get('/api/indicators/count');
     return response.data;
   },
 
-  async getBySubdomain(domainId, subdomainName, skip = 0, limit = 10) {
+  async getCountByDomain(domainId, governanceFilter = null) {
+    let url = `/api/indicators/domain/${domainId}/count`;
+    if (governanceFilter !== null) {
+      url += `?governance_filter=${governanceFilter}`;
+    }
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  async getCountBySubdomain(domainId, subdomainName, governanceFilter = null) {
     const encodedSubdomainName = encodeURIComponent(subdomainName);
-    const response = await apiClient.get(`/api/indicators/domain/${domainId}/subdomain/${encodedSubdomainName}?skip=${skip}&limit=${limit}`);
+    let url = `/api/indicators/domain/${domainId}/subdomain/${encodedSubdomainName}/count`;
+    if (governanceFilter !== null) {
+      url += `?governance_filter=${governanceFilter}`;
+    }
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  async search(query, limit = 10, skip = 0, sortBy = 'name', sortOrder = 'asc', governanceFilter = null, domainFilter = null, subdomainFilter = null) {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+    let url = `/api/indicators/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    if (governanceFilter !== null) {
+      url += `&governance_filter=${governanceFilter}`;
+    }
+    if (domainFilter !== null) {
+      url += `&domain_filter=${encodeURIComponent(domainFilter)}`;
+    }
+    if (subdomainFilter !== null) {
+      url += `&subdomain_filter=${encodeURIComponent(subdomainFilter)}`;
+    }
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  async getByDomain(domainId, skip = 0, limit = 10, sortBy = 'name', sortOrder = 'asc', governanceFilter = null) {
+    let url = `/api/indicators/domain/${domainId}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    if (governanceFilter !== null) {
+      url += `&governance_filter=${governanceFilter}`;
+    }
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  async getBySubdomain(domainId, subdomainName, skip = 0, limit = 10, sortBy = 'name', sortOrder = 'asc', governanceFilter = null) {
+    const encodedSubdomainName = encodeURIComponent(subdomainName);
+    let url = `/api/indicators/domain/${domainId}/subdomain/${encodedSubdomainName}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    if (governanceFilter !== null) {
+      url += `&governance_filter=${governanceFilter}`;
+    }
+    const response = await apiClient.get(url);
     return response.data;
   },
 

@@ -54,9 +54,6 @@ export default function IndicatorTemplate() {
     );
   }
 
-  // 1) Find the indicator from indicators context first
-  const indicatorObj = getIndicatorById(indicatorId);
-  if (!indicatorObj) return <div>Indicator not found.</div>;
 
   // Add loading state while domains are being fetched
   if (!domains || domains.length === 0) {
@@ -156,7 +153,7 @@ export default function IndicatorTemplate() {
             <IndicatorDropdowns
               currentDomain={resolvedDomainObj}
               currentSubdomain={subdomainObj || { name: resolvedSubdomainName }}
-              currentIndicator={indicatorObj}
+              currentIndicator={indicatorData}
               onIndicatorChange={handleIndicatorChange}
               allowSubdomainClear={false}
             />
@@ -190,21 +187,21 @@ export default function IndicatorTemplate() {
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Category</span><br />
-                {indicatorObj.categorization || "Destination-specific indicators"}
+                {indicatorData.categorization || "Destination-specific indicators"}
               </p>
             </div>
             <div>
               <p className="mb-4">
                 <span className="font-semibold">Measurement Unit</span><br />
-                {indicatorObj.characteristics?.unit_of_measure || indicatorObj.unit_of_measure || "N/A"}
+                {indicatorData.characteristics?.unit_of_measure || indicatorData.unit_of_measure || "N/A"}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Source</span><br />
-                {indicatorObj.characteristics?.source || indicatorObj.font || indicatorObj.source || "N/A"}
+                {indicatorData.characteristics?.source || indicatorData.font || indicatorData.source || "N/A"}
               </p>
               <p className="mb-4">
                 <span className="font-semibold">Periodicity</span><br />
-                {indicatorObj.characteristics?.periodicity || indicatorObj.periodicity || "N/A"}
+                {indicatorData.characteristics?.periodicity || indicatorData.periodicity || "N/A"}
               </p>
             </div>
           </div>

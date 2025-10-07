@@ -176,6 +176,17 @@ export const routesList = [
         )
     },
     {
+        path: '/search',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Search Results</title>
+                </Helmet>
+                <DomainTemplate />
+            </>
+        )
+    },
+    {
         path: '/:domainPath',
         element: (
             <>

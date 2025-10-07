@@ -9,10 +9,12 @@ export default function ManagementTemplate({
   visibleColumns,
   actions,
   renderCellContent,
-  headerActions
+  headerActions,
+  sortingInfo,
+  showSearchBox = true
 }) {
   return (
-    <PageTemplate>
+    <PageTemplate showSearchBox={showSearchBox}>
       <div className="flex justify-center">
         <div className="p-8 rounded-lg shadow-lg w-full">
           <h1 className="text-xl font-bold text-center mb-6">{title}</h1>
@@ -32,6 +34,7 @@ export default function ManagementTemplate({
             emptyMessage={emptyMessage}
             visibleColumns={visibleColumns}
             actions={actions}
+            sortingInfo={sortingInfo}
           />
         </div>
       </div>

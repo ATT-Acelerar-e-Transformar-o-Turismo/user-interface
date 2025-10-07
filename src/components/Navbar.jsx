@@ -1,14 +1,26 @@
 import { Link } from "react-router-dom"
+import SearchBox from "./SearchBox"
+import PropTypes from 'prop-types'
 
-export default function Navbar() {
+export default function Navbar({ showSearchBox = true }) {
     return (
-        <div className="navbar bg-base-300 px-4 flex justify-between">
-            <div className="">
+        <div className="navbar bg-base-300 px-4">
+            {/* Left side - Logo */}
+            <div className="navbar-start">
                 <Link to={'/home'} className="flex-1">
                     <div className="btn btn-ghost text-xl text-base-content">ATT</div>
                 </Link>
             </div>
-            <div className="flex-none">
+
+            {/* Center - Search Box */}
+            <div className="navbar-center flex-1 max-w-md mx-4">
+                {showSearchBox && (
+                    <SearchBox />
+                )}
+            </div>
+
+            {/* Right side - Menu */}
+            <div className="navbar-end">
                 <ul className="menu menu-horizontal px-1">
                     <li>
                         <details className="dropdown dropdown-end">
@@ -44,3 +56,7 @@ export default function Navbar() {
         </div>
     )
 }
+
+Navbar.propTypes = {
+    showSearchBox: PropTypes.bool,
+};

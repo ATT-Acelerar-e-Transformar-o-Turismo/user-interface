@@ -495,7 +495,7 @@
                                 "periodicity": "annual",
                                 "scale": "local"
                             },
-                            "categorization": "Destination-specific indicators",
+                            "categorization": "Required indicators (baseline) or specific indicators (according to source)",
                             "id": 40
                         },
                         {

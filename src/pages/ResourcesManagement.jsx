@@ -141,6 +141,7 @@ export default function ResourcesManagement() {
       visibleColumns={visibleColumns}
       actions={actions}
       headerActions={<AddDataDropdown onDataTypeSelect={handleDataTypeSelect} />}
+      showSearchBox={false}
     />
   );
 }
