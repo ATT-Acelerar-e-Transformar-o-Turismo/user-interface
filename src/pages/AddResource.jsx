@@ -321,6 +321,10 @@ export default function AddResource() {
                                 }
                             })
                             .then(() => {
+                                // Small delay to ensure cache clearing completes
+                                return new Promise(resolve => setTimeout(resolve, 500));
+                            })
+                            .then(() => {
                                 navigate(`/resources-management/${targetIndicatorId}`);
                             })
                             .catch(err => {
