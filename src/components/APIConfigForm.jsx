@@ -12,8 +12,6 @@ export default function APIConfigForm({ onConfigChange }) {
         rate_limit_per_minute: 60,
         timeout_seconds: 30,
         retry_attempts: 3,
-        date_field: '',
-        value_field: '',
         custom_headers: {},
         query_params: {}
     });
@@ -180,29 +178,6 @@ export default function APIConfigForm({ onConfigChange }) {
                         className="input input-bordered w-full"
                         value={config.retry_attempts}
                         onChange={(e) => handleChange('retry_attempts', parseInt(e.target.value))}
-                    />
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1">Date Field (in API response)</label>
-                    <input
-                        type="text"
-                        className="input input-bordered w-full"
-                        value={config.date_field}
-                        onChange={(e) => handleChange('date_field', e.target.value)}
-                        placeholder="e.g., timestamp, dt, date"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1">Value Field (in API response)</label>
-                    <input
-                        type="text"
-                        className="input input-bordered w-full"
-                        value={config.value_field}
-                        onChange={(e) => handleChange('value_field', e.target.value)}
-                        placeholder="e.g., value, temp, data.value"
                     />
                 </div>
             </div>

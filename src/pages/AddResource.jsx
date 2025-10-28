@@ -84,8 +84,6 @@ export default function AddResource() {
                             rate_limit_per_minute: wrapper.source_config.rate_limit_per_minute || 60,
                             timeout_seconds: wrapper.source_config.timeout_seconds || 30,
                             retry_attempts: wrapper.source_config.retry_attempts || 3,
-                            date_field: wrapper.source_config.date_field || '',
-                            value_field: wrapper.source_config.value_field || '',
                             custom_headers: wrapper.source_config.custom_headers || {},
                             query_params: wrapper.source_config.query_params || {}
                         });
