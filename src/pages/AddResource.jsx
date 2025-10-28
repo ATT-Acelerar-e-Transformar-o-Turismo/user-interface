@@ -314,6 +314,9 @@ export default function AddResource() {
                                 }
                             })
                             .then(() => {
+                                return indicatorService.insertFakeCsvData(targetIndicatorId);
+                            })
+                            .then(() => {
                                 navigate(`/resources-management/${targetIndicatorId}`);
                             })
                             .catch(err => {
