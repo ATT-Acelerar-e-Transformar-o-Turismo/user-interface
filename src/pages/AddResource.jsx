@@ -295,7 +295,7 @@ export default function AddResource() {
             startPolling(wrapper.wrapper_id, 2000, (updatedWrapper) => {
                 setWrapperStatus(updatedWrapper.status);
 
-                if (updatedWrapper.status === 'completed') {
+                if (updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') {
                     if (updatedWrapper.resource_id) {
                         const targetIndicatorId = indicatorId || indicatorIdParam;
 
@@ -319,7 +319,7 @@ export default function AddResource() {
                                 navigate(`/resources-management/${targetIndicatorId}`);
                             })
                             .catch(err => {
-                                setError(`Wrapper completed but failed to update resource: ${err.userMessage || err.message}`);
+                                setError(`Wrapper ${updatedWrapper.status} but failed to update resource: ${err.userMessage || err.message}`);
                                 setIsGenerating(false);
                             });
                     } else {

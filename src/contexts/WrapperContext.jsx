@@ -67,7 +67,7 @@ export const WrapperProvider = ({ children }) => {
           onStatusChange(wrapper);
         }
 
-        if (wrapper.status === 'completed' || wrapper.status === 'error') {
+        if (wrapper.status === 'completed' || wrapper.status === 'executing' || wrapper.status === 'error') {
           stopPolling(wrapperId);
         }
       } catch (error) {
