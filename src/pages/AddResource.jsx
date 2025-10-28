@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useWrapper } from '../contexts/WrapperContext';
 import indicatorService from '../services/indicatorService';
 import resourceService from '../services/resourceService';
+const { executeWrapper } = resourceService;
 
 export default function AddResource() {
     const location = useLocation();
@@ -314,6 +315,11 @@ export default function AddResource() {
                                 if (isEditMode) {
                                     return indicatorService.addResource(targetIndicatorId, updatedWrapper.resource_id);
                                 }
+                            })
+                            .then(() => {
+                                // Execute wrapper after resource is linked to indicator
+                                // This ensures data arrives after the indicator-resource link exists
+                                return executeWrapper(wrapper.wrapper_id);
                             })
                             .then(() => {
                                 navigate(`/resources-management/${targetIndicatorId}`);
