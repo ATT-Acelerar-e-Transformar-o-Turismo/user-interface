@@ -314,7 +314,11 @@ export default function AddResource() {
                                 }
                             })
                             .then(() => {
-                                return indicatorService.insertFakeCsvData(targetIndicatorId);
+                                if (sourceConfig.source_type === 'API') {
+                                    return indicatorService.insertFakeApiData(targetIndicatorId);
+                                } else {
+                                    return indicatorService.insertFakeCsvData(targetIndicatorId);
+                                }
                             })
                             .then(() => {
                                 navigate(`/resources-management/${targetIndicatorId}`);

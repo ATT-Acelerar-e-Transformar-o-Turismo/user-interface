@@ -126,6 +126,11 @@ export const indicatorService = {
   async insertFakeCsvData(indicatorId) {
     const response = await apiClient.post(`/api/indicators/fake/insert-csv-data/${indicatorId}`);
     return response.data;
+  },
+
+  async insertFakeApiData(indicatorId) {
+    const response = await apiClient.post(`/api/indicators/fake/insert-api-data/${indicatorId}`);
+    return response.data;
   }
 };
 
