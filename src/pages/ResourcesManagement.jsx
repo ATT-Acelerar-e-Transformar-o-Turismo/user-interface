@@ -61,10 +61,8 @@ export default function ResourcesManagement() {
     }
   };
 
-  const handleDelete = async (resource) => {
+  const handleDelete = async (resourceId) => {
     try {
-      const resourceId = resource.id;
-      
       // Delete the resource
       await resourceService.delete(resourceId);
       
@@ -80,8 +78,7 @@ export default function ResourcesManagement() {
     }
   };
 
-  const handleEdit = (resource) => {
-    const resourceId = resource.id;
+  const handleEdit = (resourceId) => {
     navigate(`/edit_resource/${resourceId}`);
   };
 

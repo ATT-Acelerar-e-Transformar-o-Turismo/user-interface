@@ -13,6 +13,24 @@ export const resourceService = {
     return response.data;
   },
 
+  // Get resource data (time series data points)
+  async getResourceData(resourceId, skip = 0, limit = 100, sort = 'asc', startDate = null, endDate = null) {
+    try {
+      let url = `/api/resources/${resourceId}/data?skip=${skip}&limit=${limit}&sort=${sort}`;
+      if (startDate) {
+        url += `&start_date=${startDate.toISOString()}`;
+      }
+      if (endDate) {
+        url += `&end_date=${endDate.toISOString()}`;
+      }
+      const response = await apiClient.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching resource data:', error);
+      return [];
+    }
+  },
+
   // Create resource
   async create(resourceData) {
     const response = await apiClient.post('/api/resources/', resourceData);
