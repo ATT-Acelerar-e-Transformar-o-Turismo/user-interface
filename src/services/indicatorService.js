@@ -83,15 +83,9 @@ export const indicatorService = {
     return response.data;
   },
 
-  // Update indicator (full update)
+  // Update indicator
   async update(indicatorId, indicatorData) {
     const response = await apiClient.put(`/api/indicators/${indicatorId}`, indicatorData);
-    return response.data;
-  },
-
-  // Patch indicator (partial update)
-  async patch(indicatorId, indicatorData) {
-    const response = await apiClient.patch(`/api/indicators/${indicatorId}`, indicatorData);
     return response.data;
   },
 
