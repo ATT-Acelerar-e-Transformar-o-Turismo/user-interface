@@ -27,9 +27,13 @@ export function IndicatorProvider({ children }) {
                 return;
             }
             
-            // Keep indicators as-is from API (preserving domain object structure)
+            // Normalize indicators to ensure consistent domain ID format
             const normalizedIndicators = data.map(indicator => ({
-                ...indicator
+                ...indicator,
+                // Ensure domain is always a string ID, never an object
+                domain: typeof indicator.domain === 'object' 
+                    ? (indicator.domain.id || indicator.domain._id || indicator.domain)
+                    : indicator.domain
             }));
             
             setIndicators(normalizedIndicators || []);
@@ -81,13 +85,12 @@ export function IndicatorProvider({ children }) {
     const patchIndicator = async (indicatorId, updates) => {
         try {
             setError(null);
-            const updatedIndicator = await indicatorService.patch(indicatorId, updates);
             setIndicators(prev => 
                 prev.map(indicator => 
-                    indicator.id === indicatorId ? updatedIndicator : indicator
+                    indicator.id === indicatorId ? { ...indicator, ...updates } : indicator
                 )
             );
-            return updatedIndicator;
+            return indicators.find(indicator => indicator.id === indicatorId);
         } catch (err) {
             setError(err.message);
             console.error('Failed to patch indicator:', err);
