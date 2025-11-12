@@ -5,6 +5,7 @@ import { routesList } from './routes.jsx'
 import { DomainProvider } from './contexts/DomainContext';
 import { IndicatorProvider } from './contexts/IndicatorContext';
 import { ResourceProvider } from './contexts/ResourceContext';
+import { WrapperProvider } from './contexts/WrapperContext';
 
 const router = createBrowserRouter(routesList)
 
@@ -13,10 +14,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <DomainProvider>
       <IndicatorProvider>
         <ResourceProvider>
-          <RouterProvider 
-            router={router} 
-            future={{ v7_startTransition: true ,}}
-          />
+          <WrapperProvider>
+            <RouterProvider
+              router={router}
+              future={{ v7_startTransition: true ,}}
+            />
+          </WrapperProvider>
         </ResourceProvider>
       </IndicatorProvider>
     </DomainProvider>

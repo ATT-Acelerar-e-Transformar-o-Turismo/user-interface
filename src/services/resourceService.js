@@ -35,6 +35,43 @@ export const resourceService = {
   async delete(resourceId) {
     const response = await apiClient.delete(`/api/resources/${resourceId}`);
     return response.data;
+  },
+
+  // Wrapper-related methods
+  async uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post('/api/resources/wrappers/files/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  async generateWrapper(wrapperRequest) {
+    const response = await apiClient.post('/api/resources/wrappers/generate', wrapperRequest);
+    return response.data;
+  },
+
+  async getWrapper(wrapperId) {
+    const response = await apiClient.get(`/api/resources/wrappers/${wrapperId}`);
+    return response.data;
+  },
+
+  async executeWrapper(wrapperId) {
+    const response = await apiClient.post(`/api/resources/wrappers/${wrapperId}/execute`);
+    return response.data;
+  },
+
+  async listWrappers(skip = 0, limit = 10) {
+    const response = await apiClient.get(`/api/resources/wrappers?skip=${skip}&limit=${limit}`);
+    return response.data;
+  },
+
+  async getWrapperLogs(wrapperId, limit = 200) {
+    const response = await apiClient.get(`/api/resources/wrappers/${wrapperId}/logs?limit=${limit}`);
+    return response.data;
   }
 };
 

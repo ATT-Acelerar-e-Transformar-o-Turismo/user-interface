@@ -19,7 +19,7 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data') => {
         setError(null);
         
         // Fetch real data from API
-        const apiData = await dataService.getIndicatorData(indicatorId, 0, 50, 'desc');
+        const apiData = await dataService.getIndicatorData(indicatorId, 0, 10000, 'desc');
         
         if (apiData && apiData.length > 0) {
           // Transform real data for chart
