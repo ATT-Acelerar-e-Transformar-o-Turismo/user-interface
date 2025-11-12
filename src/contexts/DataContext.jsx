@@ -27,7 +27,7 @@ export const DataProvider = ({ children }) => {
     setErrorStates(prev => new Map(prev).set(indicatorId, null));
 
     try {
-      const apiData = await dataService.getIndicatorData(indicatorId, 0, 50, 'desc');
+      const apiData = await dataService.getIndicatorData(indicatorId, 0, 10000, 'desc');
       
       if (apiData && apiData.length > 0) {
         const chartData = dataService.transformDataForChart(apiData, indicatorName);

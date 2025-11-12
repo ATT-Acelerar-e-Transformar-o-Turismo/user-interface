@@ -176,6 +176,17 @@ export const routesList = [
         )
     },
     {
+        path: '/edit_resource/:resourceId',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Edit Resource</title>
+                </Helmet>
+                <AddResource />
+            </>
+        )
+    },
+    {
         path: '/search',
         element: (
             <>

@@ -137,8 +137,10 @@ export default function NewIndicator() {
         description: formData.description.trim() || "",
         font: formData.font.trim() || "",
         scale: formData.scale.trim() || "",
+        unit: formData.unit?.trim() || "",
         periodicity: formData.periodicity.trim() || "",
         governance: formData.governance,
+        carrying_capacity: formData.carrying_capacity || null,
         favourites: formData.favourites || 0,
       };
 
@@ -182,8 +184,12 @@ export default function NewIndicator() {
   const handleAddData = async () => {
     try {
       const result = await saveIndicator();
-      const id = result.id;
-    navigate(`/add_data_resource/${id}`);
+      const id = indicatorId || result?.id;
+      if (!id) {
+        setError('Unable to determine indicator ID. Please try again.');
+        return;
+      }
+      navigate(`/add_data_resource/${id}`);
     } catch (err) {
       // Error is already set in saveIndicator
       console.error('Error saving indicator:', err);

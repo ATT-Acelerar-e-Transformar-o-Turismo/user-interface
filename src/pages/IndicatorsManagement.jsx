@@ -198,6 +198,16 @@ export default function IndicatorsManagement() {
         </span>
       );
     }
+    if (selectedOption === 'indicators' && column === 'name') {
+      return (
+        <button
+          onClick={() => navigate(`/resources-management/${row.id}`)}
+          className="text-primary hover:underline cursor-pointer text-left w-full"
+        >
+          {value}
+        </button>
+      );
+    }
     if (selectedOption === 'domains' && column === 'name') {
       return row.name;
     }
