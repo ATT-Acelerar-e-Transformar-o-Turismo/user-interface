@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import indicatorService from '../services/indicatorService';
 import { highlightSearchTerms } from '../services/searchUtils';
 
-export default function SearchBox() {
+const SearchBox = forwardRef((props, ref) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -14,8 +14,16 @@ export default function SearchBox() {
   
   const navigate = useNavigate();
   const searchRef = useRef(null);
+  const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const itemRefs = useRef([]);
+
+  // Expose focus method to parent via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus();
+    }
+  }));
 
   // Load recent items from localStorage on mount
   useEffect(() => {
@@ -351,6 +359,7 @@ export default function SearchBox() {
             </g>
           </svg>
           <input
+            ref={inputRef}
             type="search"
             className="grow focus:outline-none"
             placeholder="Search for indicators..."
@@ -381,4 +390,8 @@ export default function SearchBox() {
       </div>
     </>
   );
-}
+});
+
+SearchBox.displayName = 'SearchBox';
+
+export default SearchBox;
