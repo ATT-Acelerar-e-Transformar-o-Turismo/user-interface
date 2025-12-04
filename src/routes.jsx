@@ -8,6 +8,10 @@ import NewIndicator from "./pages/NewIndicator";
 import IndicatorsManagement from "./pages/IndicatorsManagement";
 import ResourcesManagement from "./pages/ResourcesManagement";
 import NewDomain from "./pages/NewDomain";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import BlogManagement from "./pages/BlogManagement";
+import BlogPostForm from "./pages/BlogPostForm";
 
 export const routesList = [
     {
@@ -194,6 +198,61 @@ export const routesList = [
                     <title>ATT - Search Results</title>
                 </Helmet>
                 <DomainTemplate />
+            </>
+        )
+    },
+    {
+        path: '/blog',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Blog</title>
+                </Helmet>
+                <BlogPage />
+            </>
+        )
+    },
+    {
+        path: '/blog/:postId',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Blog Post</title>
+                </Helmet>
+                <BlogPostPage />
+            </>
+        )
+    },
+    {
+        path: '/admin/blog',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Blog Management</title>
+                </Helmet>
+                <BlogManagement />
+            </>
+        )
+    },
+    {
+        path: '/admin/blog/create',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Create Blog Post</title>
+                </Helmet>
+                <BlogPostForm />
+            </>
+        )
+    },
+    {
+        path: '/admin/blog/edit/:postId',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Edit Blog Post</title>
+                </Helmet>
+                <BlogPostForm />
             </>
         )
     },

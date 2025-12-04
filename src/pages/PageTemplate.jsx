@@ -5,11 +5,9 @@ export default function PageTemplate({ children, showSearchBox = true }) {
     return (
         <>
             <Navbar showSearchBox={showSearchBox} />
-            <div className="container mx-auto w-screen">
-                <div className="p-4">
-                    {children}
-                </div>
-            </div>
+            <main className="w-full">
+                {children}
+            </main>
         </>
     )
 }

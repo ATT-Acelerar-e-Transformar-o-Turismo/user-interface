@@ -29,3 +29,4 @@ dist-ssr
 # Playwright reports
 playwright-report
 test-results
+.env
