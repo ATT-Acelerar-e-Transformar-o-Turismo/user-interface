@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
+import RichTextEditor from '../components/RichTextEditor'
 import blogService from '../services/blogService'
 
 export default function BlogPostForm() {
@@ -29,14 +30,68 @@ export default function BlogPostForm() {
     const [thumbnailPreview, setThumbnailPreview] = useState(null)
     const [attachmentFiles, setAttachmentFiles] = useState([])
     const [existingAttachments, setExistingAttachments] = useState([])
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+    const [initialFormData, setInitialFormData] = useState(null)
 
     useEffect(() => {
         if (isEditing) {
             loadPost()
         } else {
             setLoading(false)
+            // Set initial empty form data for new posts
+            setInitialFormData({
+                title: '',
+                content: '',
+                excerpt: '',
+                author: '',
+                status: 'draft',
+                tags: []
+            })
         }
     }, [postId])
+
+    // Track form changes to detect unsaved changes
+    useEffect(() => {
+        if (initialFormData) {
+            const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData) ||
+                              thumbnailFile !== null ||
+                              attachmentFiles.length > 0
+            setHasUnsavedChanges(hasChanges)
+        }
+    }, [formData, thumbnailFile, attachmentFiles, initialFormData])
+
+    // Add beforeunload warning for unsaved changes
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (hasUnsavedChanges) {
+                const message = 'Você tem alterações não salvas. Tem certeza que deseja sair?'
+                e.preventDefault()
+                e.returnValue = message
+                return message
+            }
+        }
+
+        const handlePopState = (e) => {
+            if (hasUnsavedChanges) {
+                const confirmLeave = window.confirm('Você tem alterações não salvas. Tem certeza que deseja sair?')
+                if (!confirmLeave) {
+                    e.preventDefault()
+                    window.history.pushState(null, '', window.location.href)
+                }
+            }
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        window.addEventListener('popstate', handlePopState)
+
+        // Push a state to handle back button
+        window.history.pushState(null, '', window.location.href)
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+            window.removeEventListener('popstate', handlePopState)
+        }
+    }, [hasUnsavedChanges])
 
     const loadPost = async () => {
         try {
@@ -45,14 +100,16 @@ export default function BlogPostForm() {
 
             const postData = await blogService.getPost(postId)
             setPost(postData)
-            setFormData({
+            const loadedFormData = {
                 title: postData.title,
                 content: postData.content,
                 excerpt: postData.excerpt || '',
                 author: postData.author,
                 status: postData.status,
                 tags: postData.tags || []
-            })
+            }
+            setFormData(loadedFormData)
+            setInitialFormData(loadedFormData) // Set initial data for change tracking
             setThumbnailPreview(postData.thumbnail_url ? blogService.getFileUrl(postData.thumbnail_url) : null)
             setExistingAttachments(postData.attachments || [])
         } catch (err) {
@@ -67,6 +124,13 @@ export default function BlogPostForm() {
         setFormData(prev => ({
             ...prev,
             [name]: value
+        }))
+    }
+
+    const handleContentChange = (content) => {
+        setFormData(prev => ({
+            ...prev,
+            content: content
         }))
     }
 
@@ -123,6 +187,16 @@ export default function BlogPostForm() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
+        // Confirmation dialog for publishing
+        if (formData.status === 'published') {
+            const confirmPublish = window.confirm(
+                'Tem certeza que deseja publicar este post? Uma vez publicado, ele estará visível publicamente.'
+            )
+            if (!confirmPublish) {
+                return // Prevent form submission
+            }
+        }
+
         try {
             setSaving(true)
             setError(null)
@@ -151,6 +225,12 @@ export default function BlogPostForm() {
             for (const file of attachmentFiles) {
                 await blogService.uploadAttachment(savedPost.id, file)
             }
+
+            // Clear unsaved changes warning since the post was saved successfully
+            setHasUnsavedChanges(false)
+            setInitialFormData(formData)
+            setAttachmentFiles([])
+            setThumbnailFile(null)
 
             // Redirect to blog management
             navigate('/admin/blog')
@@ -266,18 +346,28 @@ export default function BlogPostForm() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Conteúdo *
                             </label>
-                            <textarea
-                                name="content"
+                            <RichTextEditor
                                 value={formData.content}
-                                onChange={handleInputChange}
-                                required
-                                rows={15}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                                placeholder="Escreva o conteúdo do post aqui..."
+                                onChange={handleContentChange}
+                                placeholder="Escreva o conteúdo do post aqui... (suporta Markdown: **negrito**, *itálico*, ## títulos, - listas, > citações)"
                             />
-                            <p className="text-sm text-gray-500 mt-1">
-                                Você pode usar HTML para formatação avançada
-                            </p>
+                            <div className="text-sm text-gray-500 mt-2">
+                                <p className="mb-1">Use a barra de ferramentas acima ou digite comandos Markdown:</p>
+                                <div className="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <strong>Formatação:</strong> **negrito**, *itálico*, ~~riscado~~
+                                    </div>
+                                    <div>
+                                        <strong>Títulos:</strong> # H1, ## H2, ### H3
+                                    </div>
+                                    <div>
+                                        <strong>Listas:</strong> - item, 1. numerada
+                                    </div>
+                                    <div>
+                                        <strong>Citação:</strong> &gt; texto da citação
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Tags */}
@@ -406,7 +496,13 @@ export default function BlogPostForm() {
                         <div className="flex justify-end space-x-4">
                             <button
                                 type="button"
-                                onClick={() => navigate('/admin/blog')}
+                                onClick={() => {
+                                    if (hasUnsavedChanges) {
+                                        const confirmLeave = window.confirm('Você tem alterações não salvas. Tem certeza que deseja cancelar?')
+                                        if (!confirmLeave) return
+                                    }
+                                    navigate('/admin/blog')
+                                }}
                                 className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                                 disabled={saving}
                             >

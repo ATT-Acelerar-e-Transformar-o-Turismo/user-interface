@@ -198,31 +198,36 @@ export default function BlogPostPage() {
                             <h2 className="text-xl font-bold text-gray-900 mb-6">
                                 Arquivos Anexos
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {post.attachments.map((attachment, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-                                        onClick={() => handleDownload(attachment)}
-                                    >
-                                        <div className="flex-shrink-0 p-2 rounded" style={{backgroundColor: '#e8f5e8', color: '#009367'}}>
-                                            {getFileIcon(attachment.mime_type)}
+                            <div className="max-w-3xl">
+                                <div className="grid grid-cols-1 gap-4">
+                                    {post.attachments.map((attachment, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer hover:border-green-200"
+                                            onClick={() => handleDownload(attachment)}
+                                            style={{backgroundColor: '#fafffe'}}
+                                        >
+                                            <div className="flex-shrink-0 p-3 rounded-lg" style={{backgroundColor: '#e8f5e8', color: '#009367'}}>
+                                                {getFileIcon(attachment.mime_type)}
+                                            </div>
+                                            <div className="ml-6 flex-1">
+                                                <p className="text-base font-semibold text-gray-900 mb-1">
+                                                    {attachment.original_filename || attachment.filename}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    {formatFileSize(attachment.size)} • Clique para baixar
+                                                </p>
+                                            </div>
+                                            <div className="flex-shrink-0 ml-4">
+                                                <div className="p-2 rounded-full transition-colors" style={{backgroundColor: '#f0fdf4'}}>
+                                                    <svg className="w-5 h-5" style={{color: '#009367'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="ml-4 flex-1">
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {attachment.original_filename || attachment.filename}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {formatFileSize(attachment.size)}
-                                            </p>
-                                        </div>
-                                        <div className="flex-shrink-0">
-                                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </section>
                     )}

@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import indicatorService from '../services/indicatorService';
 import { highlightSearchTerms } from '../services/searchUtils';
 
-const SearchBox = forwardRef((props, ref) => {
+const SearchBox = forwardRef(function SearchBox(props, ref) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -18,12 +18,14 @@ const SearchBox = forwardRef((props, ref) => {
   const dropdownRef = useRef(null);
   const itemRefs = useRef([]);
 
-  // Expose focus method to parent via ref
+  // Expose focus method to parent component
   useImperativeHandle(ref, () => ({
     focus: () => {
-      inputRef.current?.focus();
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
-  }));
+  }), []);
 
   // Load recent items from localStorage on mount
   useEffect(() => {
