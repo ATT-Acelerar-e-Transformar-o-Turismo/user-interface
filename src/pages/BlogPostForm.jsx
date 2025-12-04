@@ -349,7 +349,7 @@ export default function BlogPostForm() {
                             <RichTextEditor
                                 value={formData.content}
                                 onChange={handleContentChange}
-                                placeholder="Escreva o conteúdo do post aqui... (suporta Markdown: **negrito**, *itálico*, ## títulos, - listas, > citações)"
+                                placeholder="Escreva o conteúdo do post aqui... (suporta Markdown: **negrito**, *itálico*, ## títulos, - listas, > citações, [texto](url))"
                             />
                             <div className="text-sm text-gray-500 mt-2">
                                 <p className="mb-1">Use a barra de ferramentas acima ou digite comandos Markdown:</p>
