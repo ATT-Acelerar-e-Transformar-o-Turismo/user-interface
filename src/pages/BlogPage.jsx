@@ -43,65 +43,135 @@ export default function BlogPage() {
     }
 
     const renderPostCard = (post) => (
-        <article key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            {post.thumbnail_url && (
-                <div className="aspect-video overflow-hidden">
+        <article
+            key={post.id}
+            className="bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group"
+            style={{
+                boxShadow: '0 8px 32px rgba(0, 147, 103, 0.08)',
+                minHeight: '400px'
+            }}
+        >
+            {/* Image Section */}
+            {post.thumbnail_url ? (
+                <Link to={`/blog/${post.id}`} className="block aspect-[16/9] overflow-hidden bg-gray-100">
                     <img
                         src={blogService.getFileUrl(post.thumbnail_url)}
                         alt={post.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                </div>
+                </Link>
+            ) : (
+                <Link to={`/blog/${post.id}`} className="block aspect-[16/9] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </Link>
             )}
-            <div className="p-6">
-                <div className="flex items-center gap-2 text-sm mb-3" style={{color: '#084d91'}}>
-                    <span>{blogService.formatDate(post.published_at || post.created_at)}</span>
-                    <span>•</span>
-                    <span>Por {post.author}</span>
-                    {post.view_count > 0 && (
-                        <>
-                            <span>•</span>
-                            <span>{post.view_count} visualizações</span>
-                        </>
+
+            {/* Content Section */}
+            <div className="p-8">
+                {/* Metadata */}
+                <div className="mb-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <time className="text-sm font-medium" style={{color: '#084d91'}}>
+                            {blogService.formatDate(post.published_at || post.created_at)}
+                        </time>
+                        {post.view_count > 0 && (
+                            <span className="flex items-center gap-1 text-xs text-gray-500">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                {post.view_count}
+                            </span>
+                        )}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                        <span>Por {post.author}</span>
+                    </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-xl font-bold mb-4 leading-tight">
+                    <Link
+                        to={`/blog/${post.id}`}
+                        className="text-gray-900 hover:text-green-600 transition-colors duration-200 line-clamp-2"
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            minHeight: '3rem'
+                        }}
+                    >
+                        {post.title}
+                    </Link>
+                </h2>
+
+                {/* Excerpt */}
+                <div className="mb-6">
+                    {post.excerpt ? (
+                        <p
+                            className="text-gray-600 leading-relaxed text-sm"
+                            style={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                minHeight: '3.75rem'
+                            }}
+                        >
+                            {post.excerpt}
+                        </p>
+                    ) : (
+                        <div style={{minHeight: '3.75rem'}} />
                     )}
                 </div>
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                    {post.title}
-                </h2>
-
-                {post.excerpt && (
-                    <p className="text-gray-600 mb-4 line-clamp-3">
-                        {post.excerpt}
-                    </p>
-                )}
-
-                {post.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {post.tags.map((tag, index) => (
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-6 min-h-[2rem]">
+                        {post.tags.slice(0, 2).map((tag, index) => (
                             <span
                                 key={index}
-                                className="px-2 py-1 text-xs font-medium rounded-full"
-                                style={{backgroundColor: '#fffdfb', color: '#009367'}}
+                                className="px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap"
+                                style={{
+                                    backgroundColor: '#f0fdf4',
+                                    color: '#009367',
+                                    borderColor: '#d1fae5'
+                                }}
                             >
-                                {tag}
+                                {tag.length > 12 ? `${tag.substring(0, 12)}...` : tag}
                             </span>
                         ))}
+                        {post.tags.length > 2 && (
+                            <span className="px-3 py-1 text-xs font-medium text-gray-400 whitespace-nowrap">
+                                +{post.tags.length - 2}
+                            </span>
+                        )}
                     </div>
                 )}
 
-                <Link
-                    to={`/blog/${post.id}`}
-                    className="inline-flex items-center font-medium transition-colors"
-                    style={{color: '#009367'}}
-                    onMouseEnter={(e) => e.target.style.color = '#007a5a'}
-                    onMouseLeave={(e) => e.target.style.color = '#009367'}
-                >
-                    Ler mais
-                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </Link>
+                {/* CTA Button */}
+                <div className="pt-4 border-t border-gray-50">
+                    <Link
+                        to={`/blog/${post.id}`}
+                        className="inline-flex items-center font-semibold text-sm transition-all duration-200 group-hover:translate-x-1"
+                        style={{color: '#009367'}}
+                        onMouseEnter={(e) => e.target.style.color = '#007a5a'}
+                        onMouseLeave={(e) => e.target.style.color = '#009367'}
+                    >
+                        Ler artigo completo
+                        <svg
+                            className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </Link>
+                </div>
             </div>
         </article>
     )
@@ -136,7 +206,7 @@ export default function BlogPage() {
                             Blog
                         </h1>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Insights, análises e novidades sobre sustentabilidade e indicadores ambientais
+                            Insights, análises e novidades sobre sustentabilidade e indicadores
                         </p>
                     </div>
 
