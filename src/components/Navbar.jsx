@@ -469,9 +469,6 @@ export default function Navbar({ showSearchBox = false }) {
                         <div className="flex items-center gap-3">
                             {isAuthenticated ? (
                                 <>
-                                    <span className="text-sm text-gray-700 font-['Onest',sans-serif] hidden lg:block">
-                                        Olá, {user?.full_name || user?.email}
-                                    </span>
                                     <button
                                         onClick={logout}
                                         className="font-['Onest',sans-serif] text-base px-8 py-3.5 rounded-full transition-colors text-black hover:text-[#009367] whitespace-nowrap"
