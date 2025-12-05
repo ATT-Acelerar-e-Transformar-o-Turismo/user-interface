@@ -394,4 +394,6 @@ const SearchBox = forwardRef(function SearchBox(props, ref) {
   );
 });
 
+SearchBox.displayName = 'SearchBox';
+
 export default SearchBox;

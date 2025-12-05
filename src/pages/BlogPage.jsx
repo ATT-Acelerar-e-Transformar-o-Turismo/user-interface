@@ -22,7 +22,10 @@ export default function BlogPage() {
             setLoading(true)
             setError(null)
 
-            const newPosts = await blogService.getPublishedPosts(currentPage * limit, limit)
+            const response = await blogService.getPublishedPosts(currentPage * limit, limit)
+
+            // Handle both array response and object with posts array
+            const newPosts = Array.isArray(response) ? response : (response?.posts || [])
 
             if (currentPage === 0) {
                 setPosts(newPosts)
