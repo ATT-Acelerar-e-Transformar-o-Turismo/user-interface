@@ -115,10 +115,10 @@ export const indicatorService = {
 
   // Get data points for an indicator
   async getData(indicatorId, startDate = null, endDate = null, limit = 100) {
-    let url = `/api/indicators/${indicatorId}/data/by-date?limit=${limit}`;
+    let url = `/api/indicators/${indicatorId}/data?limit=${limit}`;
     if (startDate) url += `&start_date=${startDate}`;
     if (endDate) url += `&end_date=${endDate}`;
-    
+
     const response = await apiClient.get(url);
     return response.data;
   }
