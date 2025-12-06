@@ -5,11 +5,20 @@ import ErrorDisplay from './components/ErrorDisplay'
 import PageTemplate from './pages/PageTemplate'
 import { useDomain } from './contexts/DomainContext'
 import { Link } from 'react-router-dom'
-import partnerLogos from './assets/partner-logos.png'
+
+import nextgeneu from './assets/partners/nextgeneu.png'
+import republic from './assets/partners/republica.png'
+import prr from './assets/partners/prr_logo.png'
 
 
 function App() {
   const { domains, loading, error } = useDomain();
+
+  const partners = [
+    { name: 'NextGen EU', logo: nextgeneu },
+    { name: 'República', logo: republic },
+    { name: 'PRR', logo: prr }
+  ];
 
   const renderDomainCards = () => {
     if (loading) {
@@ -62,18 +71,27 @@ function App() {
           </section>
 
           {/* Partners Section */}
-          <section className="py-16 px-4" style={{backgroundColor: '#fffdfb'}}>
-            <div className="max-w-6xl mx-auto text-center">
-              <h2 className="text-lg text-gray-600 mb-12">Com o apoio de</h2>
-              <div className="flex justify-center items-center">
-                <img
-                  src={partnerLogos}
-                  alt="Logótipos dos parceiros"
-                  className="max-w-full h-auto opacity-80"
-                />
+          {partners.length > 0 && (
+            <section className="py-8 px-4" style={{backgroundColor: '#f5f5f5'}}>
+              <div className="max-w-6xl mx-auto text-center">
+                <h2 className="text-2xl font-semibold text-black mb-12">Com o apoio de</h2>
+                <div className="flex flex-wrap justify-center items-center gap-6 px-4">
+                  {partners.map((partner, index) => (
+                    <div
+                      key={index}
+                      className="bg-white rounded-[40px] px-12 py-8 shadow-sm hover:shadow-md transition-shadow min-w-[200px] flex items-center justify-center"
+                    >
+                      <img
+                        src={partner.logo}
+                        alt={partner.name}
+                        className="max-h-16 w-auto object-contain opacity-70"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Featured Domains Section */}
           <section className="py-16 px-4">

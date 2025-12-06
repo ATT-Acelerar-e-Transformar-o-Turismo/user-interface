@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import ManagementTemplate from '../components/ManagementTemplate';
 import Pagination from '../components/Pagination';
 import indicatorService from '../services/indicatorService';
 import domainService from '../services/domainService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
-import { getOptimalTextColor } from '../services/colorUtils';
+import ActionCard from '../components/ActionCard';
+import AdminNavbar from '../components/AdminNavbar';
 
 export default function IndicatorsManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -263,98 +263,175 @@ export default function IndicatorsManagement() {
   };
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="min-h-screen bg-white">
+        <AdminNavbar />
+        <LoadingSkeleton />
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorDisplay error={error} onRetry={loadData} />;
+    return (
+      <div className="min-h-screen bg-white">
+        <AdminNavbar />
+        <ErrorDisplay error={error} onRetry={loadData} />
+      </div>
+    );
   }
 
   return (
-    <>
-    <ManagementTemplate
-      title={selectedOption === 'indicators' ? 'Indicators' : 'Domains'}
-      tableContent={tableContent}
-      emptyMessage={`There are no ${selectedOption} yet`}
-      visibleColumns={visibleColumns}
-      actions={actions}
-      renderCellContent={renderCellContent}
-      sortingInfo={selectedOption === 'indicators' ? { sortBy, sortOrder, handleSort, sortableColumns } : null}
-      showSearchBox={false}
-      headerActions={
-        <div className="flex w-full mb-4 justify-between">
-          <div className="flex items-center gap-4">
-            {/* Search Status */}
-            {isSearchMode && (
-              <div className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                <i className="fas fa-search text-primary text-sm"></i>
-                <span className="text-sm font-medium">Search: "{searchQuery}"</span>
-                <button
-                  onClick={clearSearch}
-                  className="text-primary hover:text-primary-focus transition-colors"
-                  title="Clear search"
-                >
-                  <i className="fas fa-times text-xs"></i>
-                </button>
-              </div>
-            )}
-            
-            {!isSearchMode && (
-              <div>
-                <button
-                  className={`btn ${selectedOption === 'indicators' ? 'btn-primary' : 'btn-base-300'} rounded-r-none`}
-                  onClick={() => handleOptionChange('indicators')}
-                >
-                  Indicators
-                </button>
-                <button
-                  className={`btn ${selectedOption === 'domains' ? 'btn-primary' : 'btn-base-300'} rounded-l-none`}
-                  onClick={() => handleOptionChange('domains')}
-                >
-                  Domains
-                </button>
-              </div>
-            )}
-            
-            {/* Governance Filter - only show for indicators and not in search mode */}
-            {selectedOption === 'indicators' && !isSearchMode && (
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm"
-                    checked={governanceFilter === true}
-                    onChange={(e) => {
-                      handleGovernanceFilter(e.target.checked ? true : null);
-                    }}
-                  />
-                  <span className="text-sm font-medium">Governance only</span>
-                </label>
-              </div>
-            )}
-          </div>
-          
-          <div className='flex-grow'></div>
-          <a href={selectedOption === 'indicators' ? 'new_indicator' : 'new_domain'}>
-            <button className="btn btn-success">
-              {selectedOption === 'indicators' ? 'Create New Indicator' : 'Create New Domain'}
+    <div className="min-h-screen bg-white">
+      {/* Admin Navbar */}
+      <AdminNavbar />
+
+      {/* Main Content Area */}
+      <div className="relative px-6 py-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Edit Panel Link */}
+          <div className="absolute top-6 right-6">
+            <button className="text-base font-['Inter',sans-serif] font-medium text-black hover:text-gray-600 transition-colors">
+              Editar painel
             </button>
-          </a>
+          </div>
+
+          {/* Grid Layout: Left = Table, Right = Action Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
+            {/* Left Column - Indicators Table */}
+            <div className="bg-[#f1f0f0] rounded-[23px] p-8">
+              {/* Title */}
+              <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
+                Indicadores
+              </h1>
+
+              {/* Table Header Row */}
+              <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black">Nome</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">Dimensão</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">Governança</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">Opções</p>
+              </div>
+
+              {/* Table Rows */}
+              <div className="space-y-3">
+                {tableContent.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    Ainda não existem indicadores
+                  </div>
+                ) : (
+                  tableContent.map((indicator) => (
+                    <div
+                      key={indicator.id}
+                      className="bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_1fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors"
+                    >
+                      {/* Indicator Name with Icon */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center">
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <button
+                          onClick={() => navigate(`/resources-management/${indicator.id}`)}
+                          className="font-['Onest',sans-serif] font-normal text-sm text-black hover:underline text-left"
+                        >
+                          {indicator.name}
+                        </button>
+                      </div>
+
+                      {/* Domain Badge */}
+                      <div className="flex justify-center">
+                        <span
+                          className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
+                          style={{ borderColor: indicator.color || '#CCCCCC' }}
+                        >
+                          {indicator.domain}
+                        </span>
+                      </div>
+
+                      {/* Governance Icon */}
+                      <div className="flex justify-center">
+                        {indicator.governance ? (
+                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => handleEdit(indicator.id)}
+                          className="p-2 hover:bg-gray-400 rounded transition-colors"
+                          title="Editar"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Pagination */}
+              {selectedOption === 'indicators' && tableContent.length > 0 && (
+                <div className="mt-6">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    hasNextPage={hasNextPage}
+                    onPageChange={handlePageChange}
+                    loading={loading}
+                    showItemCount={true}
+                    itemName="indicadores"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Action Cards */}
+            <div className="flex flex-col gap-6">
+              {/* Add Indicator Card */}
+              <ActionCard
+                icon={
+                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                }
+                title={`Adicionar\nIndicador`}
+                to="/new_indicator"
+                className="w-[210px]"
+              />
+
+              {/* View Drafts Card */}
+              <ActionCard
+                icon={
+                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                }
+                title={`Ver\nRascunhos`}
+                onClick={() => alert('Ver Rascunhos - Funcionalidade em desenvolvimento')}
+                className="w-[210px]"
+              />
+
+              {/* Additional Info Card */}
+              <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
+                  Total: {totalItems} indicadores
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      }
-    />
-    {selectedOption === 'indicators' && (
-      <Pagination
-        currentPage={currentPage}
-        totalItems={totalItems}
-        pageSize={pageSize}
-        hasNextPage={hasNextPage}
-        onPageChange={handlePageChange}
-        loading={loading}
-        showItemCount={true}
-        itemName="indicators"
-      />
-    )}
-    </>
+      </div>
+    </div>
   );
 }

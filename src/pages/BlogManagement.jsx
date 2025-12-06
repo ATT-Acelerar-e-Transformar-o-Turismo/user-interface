@@ -171,7 +171,7 @@ export default function BlogManagement() {
                                                             <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
                                                                 {post.title}
                                                             </div>
-                                                            {post.tags.length > 0 && (
+                                                            {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
                                                                 <div className="text-xs text-gray-500">
                                                                     {post.tags.slice(0, 2).join(', ')}
                                                                     {post.tags.length > 2 && '...'}
