@@ -1,10 +1,42 @@
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, Extension, InputRule } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Typography from '@tiptap/extension-typography'
-import { useCallback } from 'react'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import { common, createLowlight } from 'lowlight'
+import { useCallback, useState } from 'react'
+import IndicatorSelectorModal from './IndicatorSelectorModal'
+import BlogIndicatorNode from './tiptap/BlogIndicatorNode'
+import indicatorService from '../services/indicatorService'
+
+// Setup lowlight for code highlighting
+const lowlight = createLowlight(common)
+
+// Extension to support Markdown-style links: [text](url)
+const MarkdownLink = Extension.create({
+  name: 'markdownLink',
+  addInputRules() {
+    return [
+      new InputRule({
+        find: /\[(?<text>[^\]]+)\]\((?<href>[^)]+)\)$/,
+        handler: ({ state, range, match }) => {
+          const { tr } = state
+          const start = range.from
+          const end = range.to
+          const { text, href } = match.groups
+
+          tr.replaceWith(start, end, state.schema.text(text))
+          tr.addMark(start, start + text.length, state.schema.marks.link.create({ href }))
+        },
+      }),
+    ]
+  },
+})
 
 export default function RichTextEditor({ value = '', onChange, placeholder = 'Escreva aqui...' }) {
+  const [showIndicatorModal, setShowIndicatorModal] = useState(false)
+  const [editingIndicatorPos, setEditingIndicatorPos] = useState(null)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -20,9 +52,14 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
           keepMarks: true,
           keepAttributes: false,
         },
+        codeBlock: false, // Disable default codeBlock to use Lowlight
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
       }),
       Link.configure({
         openOnClick: false,
+        autolink: true,
         HTMLAttributes: {
           class: 'text-blue-600 underline',
         },
@@ -37,11 +74,27 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
         emDash: '—',
         enDash: '–',
       }),
+      MarkdownLink,
+      BlogIndicatorNode,
     ],
     content: value,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       onChange(html)
+    },
+    onCreate: ({ editor }) => {
+      // Add click handler for editing indicators
+      const editorElement = editor.view.dom
+      const handleIndicatorClick = (e) => {
+        const indicatorElement = e.target.closest('.blog-indicator-preview')
+        if (indicatorElement && indicatorElement.dataset.editable === 'true') {
+          e.preventDefault()
+          const pos = editor.view.posAtDOM(indicatorElement, 0)
+          setEditingIndicatorPos(pos)
+          setShowIndicatorModal(true)
+        }
+      }
+      editorElement.addEventListener('click', handleIndicatorClick)
     },
     editorProps: {
       attributes: {
@@ -97,6 +150,55 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
     // update link
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
   }, [editor])
+
+  const handleIndicatorSelected = async (indicator, vizType) => {
+    try {
+      // Fetch full indicator details to get domain name
+      const fullIndicator = await indicatorService.getById(indicator.id)
+
+      const domainName = typeof fullIndicator.domain === 'object' ? fullIndicator.domain.name : fullIndicator.domain
+
+      const indicatorAttrs = {
+        id: fullIndicator.id,
+        type: vizType,
+        name: fullIndicator.name,
+        domain: domainName,
+        subdomain: fullIndicator.subdomain
+      }
+
+      if (editingIndicatorPos !== null) {
+        // Update existing indicator
+        editor.chain().focus().setNodeSelection(editingIndicatorPos).updateAttributes('blogIndicator', indicatorAttrs).run()
+        setEditingIndicatorPos(null)
+      } else {
+        // Insert new indicator
+        editor.chain().focus().insertContent({
+          type: 'blogIndicator',
+          attrs: indicatorAttrs
+        }).run()
+      }
+    } catch (error) {
+      console.error('Error fetching indicator details:', error)
+      // Fallback to using the indicator data as-is
+      const indicatorAttrs = {
+        id: indicator.id,
+        type: vizType,
+        name: indicator.name,
+        domain: typeof indicator.domain === 'object' ? indicator.domain.name : indicator.domain,
+        subdomain: indicator.subdomain
+      }
+
+      if (editingIndicatorPos !== null) {
+        editor.chain().focus().setNodeSelection(editingIndicatorPos).updateAttributes('blogIndicator', indicatorAttrs).run()
+        setEditingIndicatorPos(null)
+      } else {
+        editor.chain().focus().insertContent({
+          type: 'blogIndicator',
+          attrs: indicatorAttrs
+        }).run()
+      }
+    }
+  }
 
   if (!editor) {
     return null
@@ -200,7 +302,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             </button>
           </div>
 
-          {/* Quote and Link */}
+          {/* Quote, Code Block, Link and Indicator */}
           <div className="flex gap-1">
             <button
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -212,6 +314,16 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
               <i className="fas fa-quote-right"></i>
             </button>
             <button
+              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+              className={`p-2 rounded text-sm hover:bg-gray-200 ${
+                editor.isActive('codeBlock') ? 'bg-gray-300' : ''
+              }`}
+              type="button"
+              title="Code Block"
+            >
+              <i className="fas fa-code"></i>
+            </button>
+            <button
               onClick={setLink}
               className={`p-2 rounded text-sm hover:bg-gray-200 ${
                 editor.isActive('link') ? 'bg-gray-300' : ''
@@ -219,6 +331,14 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
               type="button"
             >
               <i className="fas fa-link"></i>
+            </button>
+            <button
+              onClick={() => setShowIndicatorModal(true)}
+              className="p-2 rounded text-sm hover:bg-gray-200 text-gray-600"
+              type="button"
+              title="Inserir Indicador"
+            >
+              <i className="fas fa-chart-bar"></i>
             </button>
           </div>
         </div>
@@ -234,6 +354,16 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
           className="h-full"
         />
       </div>
+
+      {/* Modal */}
+      <IndicatorSelectorModal
+        isOpen={showIndicatorModal}
+        onClose={() => {
+          setShowIndicatorModal(false)
+          setEditingIndicatorPos(null)
+        }}
+        onSelect={handleIndicatorSelected}
+      />
 
       {/* Global Styles for the Editor */}
       <style dangerouslySetInnerHTML={{
@@ -313,6 +443,35 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             font-style: italic;
             color: #6b7280;
           }
+
+          .rich-text-editor .ProseMirror pre {
+            background: #0d0d0d;
+            color: #fff;
+            font-family: 'JetBrainsMono', monospace;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+          }
+          
+          .rich-text-editor .ProseMirror pre code {
+            color: inherit;
+            padding: 0;
+            background: none;
+            font-size: 0.8rem;
+          }
+          
+          /* Highlight.js styles (Atom One Dark) */
+          .hljs-comment, .hljs-quote { color: #5c6370; font-style: italic; }
+          .hljs-doctag, .hljs-keyword, .hljs-formula { color: #c678dd; }
+          .hljs-section, .hljs-name, .hljs-selector-tag, .hljs-deletion, .hljs-subst { color: #e06c75; }
+          .hljs-literal { color: #56b6c2; }
+          .hljs-string, .hljs-regexp, .hljs-addition, .hljs-attribute, .hljs-meta-string { color: #98c379; }
+          .hljs-built_in, .hljs-class .hljs-title { color: #e6c07b; }
+          .hljs-attr, .hljs-variable, .hljs-template-variable, .hljs-type, .hljs-selector-class, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-number { color: #d19a66; }
+          .hljs-symbol, .hljs-bullet, .hljs-link, .hljs-meta, .hljs-selector-id, .hljs-title { color: #61aeee; }
+          .hljs-emphasis { font-style: italic; }
+          .hljs-strong { font-weight: bold; }
+          .hljs-link { text-decoration: underline; }
 
           .rich-text-editor .ProseMirror a {
             color: #009367;
