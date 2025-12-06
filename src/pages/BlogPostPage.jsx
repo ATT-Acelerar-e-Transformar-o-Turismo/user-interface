@@ -4,6 +4,9 @@ import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
+import hljs from 'highlight.js'
+import parse from 'html-react-parser'
+import BlogIndicatorWidget from '../components/BlogIndicatorWidget'
 
 export default function BlogPostPage() {
     const { postId } = useParams()
@@ -14,6 +17,19 @@ export default function BlogPostPage() {
     useEffect(() => {
         loadPost()
     }, [postId])
+
+    useEffect(() => {
+        if (post && post.content) {
+            // Apply syntax highlighting to code blocks
+            // We need a small delay because html-react-parser renders asynchronously in effect? 
+            // actually no, it renders in the flow. But useEffect runs after render.
+            // So this should still work for standard PRE blocks.
+            // For custom components, they are React components.
+            document.querySelectorAll('.blog-content pre code').forEach((block) => {
+                hljs.highlightElement(block)
+            })
+        }
+    }, [post])
 
     const loadPost = async () => {
         try {
@@ -28,6 +44,22 @@ export default function BlogPostPage() {
             setLoading(false)
         }
     }
+
+    const parseOptions = {
+        replace: (domNode) => {
+            if (domNode.name === 'blog-indicator') {
+                const { id, type } = domNode.attribs;
+                return <BlogIndicatorWidget indicatorId={id} vizType={type} />;
+            }
+            // Handle new format with div elements
+            if (domNode.name === 'div' && domNode.attribs?.class === 'blog-indicator-preview') {
+                const { id, type } = domNode.attribs;
+                const indicatorId = id || domNode.attribs['data-indicator-id'];
+                const vizType = type || 'line';
+                return <BlogIndicatorWidget indicatorId={indicatorId} vizType={vizType} />;
+            }
+        }
+    };
 
     const handleDownload = (attachment) => {
         const link = document.createElement('a')
@@ -186,10 +218,43 @@ export default function BlogPostPage() {
 
                     {/* Article Content */}
                     <article className="prose prose-lg max-w-none mb-12">
-                        <div
-                            className="text-gray-800 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: post.content }}
-                        />
+                        <div className="text-gray-800 leading-relaxed blog-content">
+                            {parse(post.content, parseOptions)}
+                        </div>
+                        <style dangerouslySetInnerHTML={{
+                            __html: `
+                                .blog-content h1 { font-size: 2.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; line-height: 1.2; color: #111827; }
+                                .blog-content h2 { font-size: 1.875rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.75rem; line-height: 1.3; color: #1f2937; }
+                                .blog-content h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; line-height: 1.4; color: #374151; }
+                                .blog-content h4 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; line-height: 1.4; color: #374151; }
+                                .blog-content p { margin-bottom: 1.25rem; }
+                                .blog-content ul { list-style-type: disc; padding-left: 1.625rem; margin-bottom: 1.25rem; }
+                                .blog-content ol { list-style-type: decimal; padding-left: 1.625rem; margin-bottom: 1.25rem; }
+                                .blog-content li { margin-bottom: 0.5rem; }
+                                .blog-content blockquote { border-left: 4px solid #009367; padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: #f9fafb; padding: 1rem; border-radius: 0.375rem; }
+                                .blog-content a { color: #009367; text-decoration: underline; font-weight: 500; }
+                                .blog-content a:hover { color: #007a5a; }
+                                .blog-content strong { font-weight: 700; color: #111827; }
+                                .blog-content em { font-style: italic; }
+                                .blog-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
+                                .blog-content hr { border-color: #e5e7eb; margin: 2rem 0; }
+                                .blog-content pre { background: #0d0d0d; color: #fff; font-family: monospace; padding: 0.75rem 1rem; border-radius: 0.5rem; margin: 1.5rem 0; overflow-x: auto; }
+                                .blog-content pre code { color: inherit; padding: 0; background: none; font-size: 0.875rem; }
+                                
+                                /* Highlight.js styles */
+                                .hljs-comment, .hljs-quote { color: #5c6370; font-style: italic; }
+                                .hljs-doctag, .hljs-keyword, .hljs-formula { color: #c678dd; }
+                                .hljs-section, .hljs-name, .hljs-selector-tag, .hljs-deletion, .hljs-subst { color: #e06c75; }
+                                .hljs-literal { color: #56b6c2; }
+                                .hljs-string, .hljs-regexp, .hljs-addition, .hljs-attribute, .hljs-meta-string { color: #98c379; }
+                                .hljs-built_in, .hljs-class .hljs-title { color: #e6c07b; }
+                                .hljs-attr, .hljs-variable, .hljs-template-variable, .hljs-type, .hljs-selector-class, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-number { color: #d19a66; }
+                                .hljs-symbol, .hljs-bullet, .hljs-link, .hljs-meta, .hljs-selector-id, .hljs-title { color: #61aeee; }
+                                .hljs-emphasis { font-style: italic; }
+                                .hljs-strong { font-weight: bold; }
+                                .hljs-link { text-decoration: underline; }
+                            `
+                        }} />
                     </article>
 
                     {/* Attachments */}
