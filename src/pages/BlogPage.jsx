@@ -50,7 +50,7 @@ export default function BlogPage() {
             key={post.id}
             className="bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group"
             style={{
-                boxShadow: '0 8px 32px rgba(0, 147, 103, 0.08)',
+                boxShadow: '0 8px 32px hsla(from var(--color-primary) h s l / 0.08)',
                 minHeight: '400px'
             }}
         >
@@ -76,7 +76,7 @@ export default function BlogPage() {
                 {/* Metadata */}
                 <div className="mb-4 space-y-2">
                     <div className="flex items-center justify-between">
-                        <time className="text-sm font-medium" style={{color: '#084d91'}}>
+                        <time className="text-sm font-medium text-primary">
                             {blogService.formatDate(post.published_at || post.created_at)}
                         </time>
                         {post.view_count > 0 && (
@@ -98,7 +98,7 @@ export default function BlogPage() {
                 <h2 className="text-xl font-bold mb-4 leading-tight">
                     <Link
                         to={`/blog/${post.id}`}
-                        className="text-gray-900 hover:text-green-600 transition-colors duration-200 line-clamp-2"
+                        className="text-gray-900 hover:text-primary transition-colors duration-200 line-clamp-2"
                         style={{
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -139,9 +139,9 @@ export default function BlogPage() {
                                 key={index}
                                 className="px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap"
                                 style={{
-                                    backgroundColor: '#f0fdf4',
-                                    color: '#009367',
-                                    borderColor: '#d1fae5'
+                                    backgroundColor: 'var(--color-base-200)',
+                                    color: 'var(--color-primary)',
+                                    borderColor: 'var(--color-base-300)'
                                 }}
                             >
                                 {tag.length > 12 ? `${tag.substring(0, 12)}...` : tag}
@@ -159,10 +159,7 @@ export default function BlogPage() {
                 <div className="pt-4 border-t border-gray-50">
                     <Link
                         to={`/blog/${post.id}`}
-                        className="inline-flex items-center font-semibold text-sm transition-all duration-200 group-hover:translate-x-1"
-                        style={{color: '#009367'}}
-                        onMouseEnter={(e) => e.target.style.color = '#007a5a'}
-                        onMouseLeave={(e) => e.target.style.color = '#009367'}
+                        className="inline-flex items-center font-semibold text-sm transition-all duration-200 group-hover:translate-x-1 text-primary hover:text-primary-content"
                     >
                         Ler artigo completo
                         <svg
@@ -201,7 +198,7 @@ export default function BlogPage() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8 px-4" style={{backgroundColor: '#fffdfb'}}>
+            <div className="min-h-screen py-8 px-4 bg-base-100">
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
                     <div className="text-center mb-12">
@@ -236,10 +233,7 @@ export default function BlogPage() {
                                     <button
                                         onClick={loadMore}
                                         disabled={loading}
-                                        className="px-8 py-3 text-white font-medium rounded-full transition-colors disabled:opacity-50"
-                                        style={{backgroundColor: '#009367'}}
-                                        onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#007a5a')}
-                                        onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#009367')}
+                                        className="px-8 py-3 bg-primary text-primary-content font-medium rounded-full transition-colors disabled:opacity-50 hover:bg-primary/90"
                                     >
                                         {loading ? 'Carregando...' : 'Carregar Mais'}
                                     </button>

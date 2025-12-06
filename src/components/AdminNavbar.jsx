@@ -46,7 +46,7 @@ export default function AdminNavbar() {
     <nav className="bg-white px-6 py-4">
       <div className="max-w-7xl mx-auto">
         {/* Pill-style container matching main Navbar */}
-        <div className="bg-[#f1f0f0] rounded-[50px] py-2 px-8 flex items-center justify-between">
+        <div style={{backgroundColor: 'var(--color-surface)'}} className="rounded-[50px] py-2 px-8 flex items-center justify-between">
           {/* Left side - Logo */}
           <div className="flex items-center">
             <Link to="/" className="block">
@@ -62,8 +62,8 @@ export default function AdminNavbar() {
                 to={tab.path}
                 className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
                   activeTab === tab.id
-                    ? 'bg-[#00855d] text-[#fffefb]'
-                    : 'text-black hover:text-[#009367]'
+                    ? 'bg-primary text-primary-content'
+                    : 'text-black hover:text-primary'
                 }`}
               >
                 {tab.label}

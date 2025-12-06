@@ -60,10 +60,7 @@ function App() {
               </p>
               <Link
                 to="/domains"
-                className="inline-block text-white font-semibold py-4 px-8 rounded-full transition-colors duration-200"
-                style={{backgroundColor: '#009367'}}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#007a5a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#009367'}
+                className="inline-block bg-primary text-primary-content font-semibold py-4 px-8 rounded-full transition-colors duration-200 hover:bg-primary/90"
               >
                 Ver Indicadores
               </Link>

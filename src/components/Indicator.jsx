@@ -11,7 +11,7 @@ const chartDataSample = {
   annotations: {
     xaxis: [{
       x: new Date('03/01/2020').getTime(),
-      borderColor: '#775DD0',
+      borderColor: 'var(--color-primary)',
       label: {
         text: 'test'
       }
@@ -184,47 +184,72 @@ const Indicator = ({ charts }) => {
   };
 
   return (
-    <div className='mx-2'>
+    <div className='w-full h-full'>
       {/* Desktop */}
       {chartData.length === 1 && (
         <>
-          <h2 className='text-2xl font-bold'>{chartData[0].title}</h2>
-          <p className='text-sm text-neutral'>{chartData[0].period}</p>
-          <div className='hidden md:block'>
-            <label className="sr-only">Example range</label>
-            <div className='flex flex-row'>
-              <Filter
-                filters={chartData[0].availableFilters}
-                activeFilters={activeFilters.chart1}
-                onFilterChange={(filterGroup, values) => handleFilterChange('chart1', filterGroup, values)}
-              />
-              <div className='flex-grow'>
-                <GChart key={chartData[0].chartId} {...chartData[0]} height={500} />
+          <div className='hidden md:block h-full'>
+            <div className='flex flex-col h-full'>
+              {/* Minimal chart header with just filters */}
+              <div className='flex items-center mb-4'>
+                <Filter
+                  filters={chartData[0].availableFilters}
+                  activeFilters={activeFilters.chart1}
+                  onFilterChange={(filterGroup, values) => handleFilterChange('chart1', filterGroup, values)}
+                />
               </div>
-              <div className='flex flex-col gap-2'>
-                <Views
-                  size={width > 640 ? 'sm' : 'xs'}
-                  activeView={activeView[0]}
-                  onViewChange={(view) => handleViewChange(view, 0)}
+
+              {/* Chart takes remaining space with cleaner styling */}
+              <div className='flex-1 min-h-0'>
+                <GChart
+                  key={chartData[0].chartId}
+                  {...chartData[0]}
+                  height='100%'
+                  options={{
+                    ...chartData[0].options,
+                    toolbar: {
+                      show: false  // Hide the toolbar for cleaner look
+                    },
+                    chart: {
+                      ...chartData[0].options?.chart,
+                      toolbar: {
+                        show: false
+                      }
+                    },
+                    stroke: {
+                      curve: 'smooth',
+                      width: 2
+                    },
+                    markers: {
+                      size: 0,  // Hide individual point markers for cleaner line
+                      strokeWidth: 0,
+                      hover: {
+                        size: 4
+                      }
+                    },
+                    grid: {
+                      borderColor: 'var(--color-base-300)',
+                      strokeDashArray: 0
+                    }
+                  }}
                 />
               </div>
             </div>
           </div>
         </>
       ) || (
-        <div className={`hidden md:grid gap-4 grid-cols-2`}>
+        <div className={`hidden md:grid gap-4 grid-cols-2 h-full`}>
           {chartData.map((data, index) => (
-            <div className='' key={data.chartId}>
-              <h2 className='text-2xl font-bold'>{data.title}</h2>
-              <p className='text-sm text-neutral'>{data.period}</p>
-              <div className='flex flex-row'>
+            <div className='flex flex-col h-full' key={data.chartId}>
+              <h2 className='text-xl font-bold'>{data.title}</h2>
+              <p className='text-xs text-neutral mb-4'>{data.period}</p>
+              <div className='flex items-center justify-between mb-4'>
                 <Filter
                   filters={data.availableFilters}
                   activeFilters={activeFilters[data.chartId]}
                   onFilterChange={(filterGroup, values) => handleFilterChange(data.chartId, filterGroup, values)}
                 />
-                <div className='flex-grow'></div>
-                <div className='flex flex-row gap-2 mt-6 mb-4'>
+                <div className='flex items-center gap-2'>
                   <Views
                     size={width > 640 ? 'sm' : 'xs'}
                     activeView={activeView[index]}
@@ -232,7 +257,9 @@ const Indicator = ({ charts }) => {
                   />
                 </div>
               </div>
-              <GChart key={data.chartId} {...data} height={500} />
+              <div className='flex-1 min-h-0'>
+                <GChart key={data.chartId} {...data} height='100%' />
+              </div>
             </div>
           ))}
         </div>
@@ -240,16 +267,13 @@ const Indicator = ({ charts }) => {
       {/* Mobile */}
       {chartDataMobile.map((data, index) => (
         <div className='md:hidden w-full' key={data.chartId}>
-          <h2 className='text-2xl font-bold'>{data.title}</h2>
-          <p className='text-sm text-neutral'>{data.period}</p>
-          <div className='flex flex-row'>
+          <div className='flex flex-row items-center justify-between mb-4'>
             <Filter
               filters={data.availableFilters}
               activeFilters={activeFilters[data.chartId.split('_')[0]]}
               onFilterChange={(filterGroup, values) => handleFilterChange(data.chartId.split('_')[0], filterGroup, values)}
             />
-            <div className='flex-grow'></div>
-            <div className='flex flex-row gap-2 mt-6 mb-4'>
+            <div className='flex items-center gap-2'>
               <Views
                 size={width > 640 ? 'sm' : 'xs'}
                 activeView={activeView[index]}
@@ -257,7 +281,7 @@ const Indicator = ({ charts }) => {
               />
             </div>
           </div>
-          <GChart key={data.chartId} {...data} height={500} />
+          <GChart key={data.chartId} {...data} height={350} />
         </div>
       ))}
     </div>

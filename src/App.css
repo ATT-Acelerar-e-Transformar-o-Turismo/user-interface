@@ -8,8 +8,11 @@
     --color-base-200: oklch(98% 0 0);
     --color-base-300: oklch(95% 0 0);
     --color-base-content: oklch(21% 0.006 285.885);
-    --color-primary: oklch(45% 0.24 277.023);
-    --color-primary-content: oklch(93% 0.034 272.788);
+    --color-primary: #009367;
+    --color-primary-content: #ffffff;
+    --color-surface: #f1f0f0;
+    --color-surface-variant: #d9d9d9;
+    --color-primary-hover: #007a5a;
     --color-secondary: oklch(65% 0.241 354.308);
     --color-secondary-content: oklch(94% 0.028 342.258);
     --color-accent: oklch(77% 0.152 181.912);
@@ -69,3 +72,13 @@
     --noise: 0;
 }
 */
+
+/* Global link styling - simple and clean */
+a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+a:hover {
+    opacity: 0.8;
+}

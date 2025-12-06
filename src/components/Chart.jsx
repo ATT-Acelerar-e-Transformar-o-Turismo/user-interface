@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import ApexCharts from 'apexcharts'
 
 const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true }) => {
-    const [labelColor, setLabelColor] = useState(themeMode === 'dark' ? '#ffffff' : '#000000')
+    const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
     const chartContainerRef = useRef(null)
@@ -145,7 +145,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 xaxis: annotations.xaxis.map(annotation => ({
                     x: annotation.value,
                     strokeDashArray: 8,
-                    borderColor: '#000000',
+                    borderColor: 'var(--color-base-content)',
                     opacity: 0.1,
                     label: {
                         text: annotation.label,
@@ -153,13 +153,13 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 })),
                 yaxis: annotations.yaxis.map(annotation => ({
                     y: annotation.value,
-                    borderColor: '#775DD0',
+                    borderColor: 'var(--color-primary)',
                     label: {
-                        borderColor: "#775DD0",
+                        borderColor: "var(--color-primary)",
                         text: annotation.label,
                         style: {
-                            color: '#fff',
-                            background: '#775DD0'
+                            color: 'var(--color-primary-content)',
+                            background: 'var(--color-primary)'
                         }
                     },
                 }))

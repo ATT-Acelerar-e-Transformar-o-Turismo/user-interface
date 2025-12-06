@@ -229,7 +229,7 @@ export default function Navbar({ showSearchBox = false }) {
             <nav className="bg-white px-6 py-4">
                 <div className="max-w-7xl mx-auto">
                     {/* Pill-style container matching Figma design */}
-                    <div className="bg-[#f1f0f0] rounded-[50px] py-2 px-8 flex items-center justify-between">
+                    <div style={{backgroundColor: 'var(--color-surface)'}} className="rounded-[50px] py-2 px-8 flex items-center justify-between">
                         {/* Left side - Logo */}
                         <div className="flex items-center">
                             <Link to="/" className="block">
@@ -243,8 +243,8 @@ export default function Navbar({ showSearchBox = false }) {
                                 to="/about"
                                 className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
                                     location.pathname === '/about'
-                                        ? 'bg-[#00855d] text-[#fffefb]'
-                                        : 'text-black hover:text-[#009367]'
+                                        ? 'bg-primary text-primary-content'
+                                        : 'text-black hover:text-primary'
                                 }`}
                             >
                                 Quem Somos
@@ -253,8 +253,8 @@ export default function Navbar({ showSearchBox = false }) {
                                 to="/domains"
                                 className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
                                     location.pathname === '/domains' || location.pathname.startsWith('/indicator') || location.pathname.startsWith('/search')
-                                        ? 'bg-[#00855d] text-[#fffefb]'
-                                        : 'text-black hover:text-[#009367]'
+                                        ? 'bg-primary text-primary-content'
+                                        : 'text-black hover:text-primary'
                                 }`}
                             >
                                 Indicadores
@@ -264,7 +264,7 @@ export default function Navbar({ showSearchBox = false }) {
                             {!isSearchOpen ? (
                                 <button
                                     onClick={toggleSearch}
-                                    className="text-black font-['Onest',sans-serif]  text-base transition-colors hover:text-[#009367] whitespace-nowrap px-8 py-3.5 rounded-full"
+                                    className="text-black font-['Onest',sans-serif]  text-base transition-colors hover:text-primary whitespace-nowrap px-8 py-3.5 rounded-full"
                                 >
                                     Pesquisar
                                 </button>
@@ -338,7 +338,7 @@ export default function Navbar({ showSearchBox = false }) {
                                                                 >
                                                                     <i
                                                                         className="fas fa-chart-line text-sm"
-                                                                        style={{ color: indicator.domain?.color || '#6366f1' }}
+                                                                        style={{ color: indicator.domain?.color || 'var(--color-primary)' }}
                                                                     ></i>
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="font-medium text-sm truncate">
@@ -393,7 +393,7 @@ export default function Navbar({ showSearchBox = false }) {
                                                                         <>
                                                                             <i
                                                                                 className="fas fa-chart-line text-sm"
-                                                                                style={{ color: item.value.domain?.color || '#6366f1' }}
+                                                                                style={{ color: item.value.domain?.color || 'var(--color-primary)' }}
                                                                             ></i>
                                                                             <div className="flex-1 min-w-0">
                                                                                 <div className="font-medium text-sm truncate">
@@ -426,8 +426,8 @@ export default function Navbar({ showSearchBox = false }) {
                                 to="/blog"
                                 className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
                                     location.pathname === '/blog' || location.pathname.startsWith('/blog/')
-                                        ? 'bg-[#00855d] text-[#fffefb]'
-                                        : 'text-black hover:text-[#009367]'
+                                        ? 'bg-primary text-primary-content'
+                                        : 'text-black hover:text-primary'
                                 }`}
                             >
                                 Blog
@@ -437,7 +437,7 @@ export default function Navbar({ showSearchBox = false }) {
                             {isAuthenticated && user?.role === 'admin' && (
                                 <div className="relative">
                                     <details className="dropdown">
-                                        <summary className="font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full text-black hover:text-[#009367] cursor-pointer list-none flex items-center gap-1">
+                                        <summary className="font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full text-black hover:text-primary cursor-pointer list-none flex items-center gap-1">
                                             Admin
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -471,7 +471,7 @@ export default function Navbar({ showSearchBox = false }) {
                                 <>
                                     <button
                                         onClick={logout}
-                                        className="font-['Onest',sans-serif] text-base px-8 py-3.5 rounded-full transition-colors text-black hover:text-[#009367] whitespace-nowrap"
+                                        className="font-['Onest',sans-serif] text-base px-8 py-3.5 rounded-full transition-colors text-black hover:text-primary whitespace-nowrap"
                                     >
                                         Sair
                                     </button>
@@ -481,8 +481,8 @@ export default function Navbar({ showSearchBox = false }) {
                                     onClick={() => setIsLoginModalOpen(true)}
                                     className={`font-['Onest',sans-serif] text-base px-8 py-3.5 rounded-full transition-colors whitespace-nowrap ${
                                         location.pathname === '/' || location.pathname === '/login'
-                                            ? 'bg-[#00855d] text-[#fffefb] hover:bg-[#006b4a]'
-                                            : 'text-black hover:text-[#009367]'
+                                            ? 'bg-primary text-primary-content hover:bg-primary/90'
+                                            : 'text-black hover:text-primary'
                                     }`}
                                 >
                                     Login

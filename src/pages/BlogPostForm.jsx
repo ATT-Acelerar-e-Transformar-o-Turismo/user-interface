@@ -263,7 +263,7 @@ export default function BlogPostForm() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8 px-4" style={{backgroundColor: '#fffdfb'}}>
+            <div className="min-h-screen py-8 px-4 bg-base-100">
                 <div className="max-w-4xl mx-auto">
                     {/* Header */}
                     <div className="mb-8">
@@ -288,8 +288,7 @@ export default function BlogPostForm() {
                                 value={formData.title}
                                 onChange={handleInputChange}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                                style={{'--tw-ring-color': '#009367'}}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary"
                                 placeholder="Digite o título do post"
                             />
                         </div>
@@ -379,8 +378,7 @@ export default function BlogPostForm() {
                                 {formData.tags.map((tag, index) => (
                                     <span
                                         key={index}
-                                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
-                                        style={{backgroundColor: '#e8f5e8', color: '#009367'}}
+                                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
                                     >
                                         {tag}
                                         <button
@@ -511,10 +509,7 @@ export default function BlogPostForm() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="px-6 py-2 text-white font-medium rounded-md transition-colors disabled:opacity-50"
-                                style={{backgroundColor: '#009367'}}
-                                onMouseEnter={(e) => !saving && (e.target.style.backgroundColor = '#007a5a')}
-                                onMouseLeave={(e) => !saving && (e.target.style.backgroundColor = '#009367')}
+                                className="px-6 py-2 bg-primary text-primary-content font-medium rounded-md transition-colors disabled:opacity-50 hover:bg-primary/90"
                             >
                                 {saving ? 'Salvando...' : (isEditing ? 'Atualizar' : 'Criar Post')}
                             </button>
