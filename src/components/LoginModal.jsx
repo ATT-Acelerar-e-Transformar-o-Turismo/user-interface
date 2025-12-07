@@ -1,15 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
-export default function LoginModal({ isOpen, onClose, onLogin }) {
+export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
+    const [isRegisterMode, setIsRegisterMode] = useState(false)
+    const [isClosing, setIsClosing] = useState(false)
     const [formData, setFormData] = useState({
+        name: '',
         email: '',
         password: '',
+        confirmPassword: '',
         rememberMe: false
     })
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
     const [showPassword, setShowPassword] = useState(false)
+
+    // Reset closing state when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setIsClosing(false)
+        }
+    }, [isOpen])
+
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target
@@ -20,39 +32,100 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
         setError('')
     }
 
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
         setError('')
 
+        if (isRegisterMode && formData.password !== formData.confirmPassword) {
+            setError('As palavras passe não coincidem')
+            setIsLoading(false)
+            return
+        }
+
         try {
-            await onLogin(formData)
+            if (isRegisterMode) {
+                await onRegister(formData)
+            } else {
+                await onLogin(formData)
+            }
+            handleClose()
         } catch (error) {
-            setError(error.message || 'Erro ao fazer login')
-        } finally {
+            setError(error.message || (isRegisterMode ? 'Erro ao registar' : 'Erro ao fazer login'))
             setIsLoading(false)
         }
     }
 
     const handleForgotPassword = () => {
-        // TODO: Implement forgot password functionality
         alert('Funcionalidade de recuperação de palavra-passe em desenvolvimento')
     }
 
-    const handleSignUp = () => {
-        // TODO: Implement sign up functionality
-        alert('Funcionalidade de registo em desenvolvimento')
+    const handleClose = () => {
+        setIsClosing(true)
+        setTimeout(() => {
+            onClose()
+            setIsClosing(false)
+        }, 120)
     }
 
-    if (!isOpen) return null
+    const toggleMode = () => {
+        setIsRegisterMode(!isRegisterMode)
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+            rememberMe: false
+        })
+        setError('')
+        setShowPassword(false)
+    }
+
+    // Keep in DOM during animation, don't unmount
+    if (!isOpen && !isClosing) return null
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 relative">
+        <>
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+                @keyframes modalSlideIn {
+                    from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+                    to { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes modalSlideOut {
+                    from { opacity: 1; transform: scale(1) translateY(0); }
+                    to { opacity: 0; transform: scale(0.9) translateY(-20px); }
+                }
+            `}</style>
+            <div
+                className="fixed inset-0 flex items-center justify-center z-50"
+                style={{
+                    animation: isClosing ? 'fadeOut 0.12s ease-out' : 'fadeIn 0.12s ease-out',
+                    pointerEvents: isClosing ? 'none' : 'auto',
+                    backdropFilter: 'blur(4px) brightness(1.05)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                }}
+                onClick={isClosing ? undefined : handleClose}
+            >
+            <div
+                className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 relative shadow-2xl border border-gray-200"
+                style={{
+                    animation: isClosing ? 'modalSlideOut 0.12s ease-out' : 'modalSlideIn 0.12s ease-out',
+                    transformOrigin: 'center center',
+                    willChange: 'transform, opacity'
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Close Button */}
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,11 +135,29 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
 
                 {/* Title */}
                 <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-                    Iniciar Sessão
+                    {isRegisterMode ? 'Criar Conta' : 'Iniciar Sessão'}
                 </h2>
 
-
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Name Field - only for register */}
+                    {isRegisterMode && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Nome
+                            </label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                                style={{'--tw-ring-color': '#009367'}}
+                                placeholder="Digite seu nome"
+                                required
+                            />
+                        </div>
+                    )}
+
                     {/* Email Field */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -114,7 +205,27 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
                         </div>
                     </div>
 
-                    {/* Remember Me Checkbox */}
+                    {/* Confirm Password Field - only for register */}
+                    {isRegisterMode && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Confirmar Palavra Passe
+                            </label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                                style={{'--tw-ring-color': '#009367'}}
+                                placeholder="Confirme sua palavra-passe"
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {/* Remember Me Checkbox - only for login */}
+                    {!isRegisterMode && (
                     <div className="flex items-center">
                         <input
                             type="checkbox"
@@ -128,17 +239,20 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
                             Guardar credenciais
                         </label>
                     </div>
+                    )}
 
-                    {/* Forgot Password Link */}
-                    <div className="text-center">
-                        <button
-                            type="button"
-                            onClick={handleForgotPassword}
-                            className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                        >
-                            Esqueci-me da palavra passe
-                        </button>
-                    </div>
+                    {/* Forgot Password Link - only for login */}
+                    {!isRegisterMode && (
+                        <div className="text-center">
+                            <button
+                                type="button"
+                                onClick={handleForgotPassword}
+                                className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                            >
+                                Esqueci-me da palavra passe
+                            </button>
+                        </div>
+                    )}
 
                     {/* Error Message */}
                     {error && (
@@ -153,26 +267,28 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
                         disabled={isLoading}
                         className="w-full py-3 bg-primary text-white font-medium rounded-full transition-all duration-200 hover:bg-primary/90 disabled:opacity-70"
                     >
-                        {isLoading ? 'Aguarde...' : 'Iniciar Sessão'}
+                        {isLoading ? 'Aguarde...' : (isRegisterMode ? 'Criar Conta' : 'Iniciar Sessão')}
                     </button>
                 </form>
 
-                {/* Sign Up Link */}
+                {/* Toggle between Login/Register */}
                 <div className="text-center mt-6">
                     <button
-                        onClick={handleSignUp}
+                        onClick={toggleMode}
                         className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
                     >
-                        Ainda não tem conta? Clique aqui!
+                        {isRegisterMode ? 'Já tem conta? Clique aqui para entrar!' : 'Ainda não tem conta? Clique aqui!'}
                     </button>
                 </div>
             </div>
-        </div>
+            </div>
+        </>
     )
 }
 
 LoginModal.propTypes = {
     isOpen: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-    onLogin: PropTypes.func.isRequired
+    onLogin: PropTypes.func.isRequired,
+    onRegister: PropTypes.func.isRequired
 }
