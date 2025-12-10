@@ -5,12 +5,12 @@ import ActionCard from '../components/ActionCard';
 import Pagination from '../components/Pagination';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
-import AddDimensionModal from '../components/wizard/AddDimensionModal';
+import DomainWizard from '../components/wizard/DomainWizard';
 import domainService from '../services/domainService';
 import indicatorService from '../services/indicatorService';
 
-export default function DimensionsManagement() {
-  const [dimensions, setDimensions] = useState([]);
+export default function DomainsManagement() {
+  const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -23,126 +23,100 @@ export default function DimensionsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal state
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
+  const [editingDomainId, setEditingDomainId] = useState(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadDimensions();
+    loadDomains();
   }, [currentPage, sortBy, sortOrder, searchQuery]);
 
-  const loadDimensions = async () => {
+  const loadDomains = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch all domains (which contain subdomains)
-      const domains = await domainService.getAll();
+      // Fetch all domains
+      const domainsData = await domainService.getAll();
 
-      // Extract subdomains from domains and count indicators
-      const dimensionsListPromises = [];
+      // Enhance domains with indicator counts and subdomain counts
+      const enhancedDomainsPromises = domainsData.map(async (domain) => {
+        const subdomainCount = (domain.subdomains || domain.subdominios || []).length;
 
-      domains.forEach(domain => {
-        const subdomains = domain.subdomains || domain.subdominios || [];
+        // Use the count endpoint for efficiency
+        let indicatorCount = 0;
+        try {
+          indicatorCount = await indicatorService.getCountByDomain(domain.id);
+        } catch (err) {
+          console.warn(`Failed to get indicator count for domain ${domain.id}:`, err);
+        }
 
-        subdomains.forEach(subdomain => {
-          const subdomainName = typeof subdomain === 'string' ? subdomain : subdomain.name;
-
-          // Create a promise to get the indicator count for this subdomain
-          const dimensionPromise = (async () => {
-            let indicatorCount = 0;
-            try {
-              indicatorCount = await indicatorService.getCountBySubdomain(domain.id, subdomainName);
-            } catch (err) {
-              console.warn(`Failed to get indicator count for subdomain ${subdomainName}:`, err);
-            }
-
-            return {
-              id: `${domain.id}-${subdomainName}`, // Composite ID
-              name: subdomainName,
-              description: `Subdomínio de ${domain.name}`,
-              domainId: domain.id,
-              domainName: domain.name,
-              domainColor: domain.color,
-              indicatorCount: indicatorCount
-            };
-          })();
-
-          dimensionsListPromises.push(dimensionPromise);
-        });
+        return {
+          ...domain,
+          indicatorCount,
+          subdomainCount
+        };
       });
 
-      const dimensionsList = await Promise.all(dimensionsListPromises);
+      const enhancedDomains = await Promise.all(enhancedDomainsPromises);
 
       // Apply search filter
-      let filteredDimensions = dimensionsList;
+      let filteredDomains = enhancedDomains;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        filteredDimensions = dimensionsList.filter(dim =>
-          dim.name.toLowerCase().includes(query) ||
-          dim.domainName.toLowerCase().includes(query)
+        filteredDomains = enhancedDomains.filter(domain =>
+          domain.name.toLowerCase().includes(query)
         );
       }
 
       // Apply sorting
-      filteredDimensions.sort((a, b) => {
+      filteredDomains.sort((a, b) => {
         let comparison = 0;
 
         if (sortBy === 'name') {
           comparison = a.name.localeCompare(b.name);
         } else if (sortBy === 'indicatorCount') {
           comparison = a.indicatorCount - b.indicatorCount;
+        } else if (sortBy === 'subdomainCount') {
+          comparison = a.subdomainCount - b.subdomainCount;
         }
 
         return sortOrder === 'asc' ? comparison : -comparison;
       });
 
       // Apply pagination
-      setTotalItems(filteredDimensions.length);
+      setTotalItems(filteredDomains.length);
       const start = currentPage * pageSize;
       const end = start + pageSize;
-      const paginatedDimensions = filteredDimensions.slice(start, end);
+      const paginatedDomains = filteredDomains.slice(start, end);
 
-      setDimensions(paginatedDimensions);
+      setDomains(paginatedDomains);
 
     } catch (err) {
-      setError(err.message || 'Falha ao carregar dimensões');
-      console.error('Error loading dimensions:', err);
+      setError(err.message || 'Falha ao carregar domínios');
+      console.error('Error loading domains:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (dimension) => {
-    // Navigate to domain edit with subdomain context
-    navigate(`/edit_domain/${dimension.domainId}`, {
-      state: { highlightSubdomain: dimension.name }
-    });
+  const handleEdit = (domain) => {
+    setEditingDomainId(domain.id);
+    setIsDomainWizardOpen(true);
   };
 
-  const handleDelete = async (dimension) => {
-    if (!window.confirm(`Tem certeza que deseja eliminar a dimensão "${dimension.name}"?`)) {
+  const handleDelete = async (domain) => {
+    if (!window.confirm(`Tem certeza que deseja eliminar o domínio "${domain.name}"?`)) {
       return;
     }
 
     try {
-      // To delete a subdomain, we need to update the domain
-      const domain = await domainService.getById(dimension.domainId);
-      const subdomains = (domain.subdomains || domain.subdominios || [])
-        .filter(sub => {
-          const subName = typeof sub === 'string' ? sub : sub.name;
-          return subName !== dimension.name;
-        });
-
-      await domainService.patch(dimension.domainId, {
-        subdomains: subdomains
-      });
-
-      // Reload dimensions
-      loadDimensions();
+      await domainService.delete(domain.id);
+      loadDomains();
     } catch (err) {
-      setError(err.message || 'Falha ao eliminar dimensão');
-      console.error('Error deleting dimension:', err);
+      setError(err.message || 'Falha ao eliminar domínio');
+      console.error('Error deleting domain:', err);
     }
   };
 
@@ -178,7 +152,7 @@ export default function DimensionsManagement() {
     return (
       <div className="min-h-screen bg-white">
         <AdminNavbar />
-        <ErrorDisplay error={error} onRetry={loadDimensions} />
+        <ErrorDisplay error={error} onRetry={loadDomains} />
       </div>
     );
   }
@@ -198,14 +172,14 @@ export default function DimensionsManagement() {
 
           {/* Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
-            {/* Left Column - Dimensions Table */}
+            {/* Left Column - Domains Table */}
             <div className="bg-[#f1f0f0] rounded-[23px] p-8">
               <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                Dimensões
+                Domínios
               </h1>
 
               {/* Table Header */}
-              <div className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 mb-4">
+              <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
                 <button
                   onClick={() => handleSort('name')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-[#00855d] flex items-center gap-1"
@@ -221,7 +195,21 @@ export default function DimensionsManagement() {
                     </svg>
                   )}
                 </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">Domínio</p>
+                <button
+                  onClick={() => handleSort('subdomainCount')}
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
+                >
+                  Dimensões
+                  {sortBy === 'subdomainCount' && (
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {sortOrder === 'asc' ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      )}
+                    </svg>
+                  )}
+                </button>
                 <button
                   onClick={() => handleSort('indicatorCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
@@ -242,49 +230,49 @@ export default function DimensionsManagement() {
 
               {/* Table Rows */}
               <div className="space-y-3">
-                {dimensions.length === 0 ? (
+                {domains.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    Ainda não existem dimensões
+                    Ainda não existem domínios
                   </div>
                 ) : (
-                  dimensions.map((dimension) => (
+                  domains.map((domain) => (
                     <div
-                      key={dimension.id}
-                      className="bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_2fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors"
+                      key={domain.id}
+                      className="bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_1fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors"
                     >
-                      {/* Name */}
+                      {/* Name with Color Badge */}
                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                        <div
+                          className="w-7 h-7 rounded-md flex items-center justify-center"
+                          style={{ backgroundColor: domain.color || '#CCCCCC' }}
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                           </svg>
                         </div>
                         <span className="font-['Onest',sans-serif] font-normal text-sm text-black">
-                          {dimension.name}
+                          {domain.name}
                         </span>
                       </div>
 
-                      {/* Domain Badge */}
+                      {/* Subdomain Count */}
                       <div className="flex justify-center">
-                        <span
-                          className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
-                          style={{ borderColor: dimension.domainColor || '#CCCCCC' }}
-                        >
-                          {dimension.domainName}
+                        <span className="font-['Onest',sans-serif] font-medium text-sm text-black">
+                          {domain.subdomainCount}
                         </span>
                       </div>
 
                       {/* Indicator Count */}
                       <div className="flex justify-center">
                         <span className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                          {dimension.indicatorCount}
+                          {domain.indicatorCount}
                         </span>
                       </div>
 
                       {/* Actions */}
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleEdit(dimension)}
+                          onClick={() => handleEdit(domain)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
                           title="Editar"
                         >
@@ -293,7 +281,7 @@ export default function DimensionsManagement() {
                           </svg>
                         </button>
                         <button
-                          onClick={() => handleDelete(dimension)}
+                          onClick={() => handleDelete(domain)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
                           title="Eliminar"
                         >
@@ -308,17 +296,17 @@ export default function DimensionsManagement() {
               </div>
 
               {/* Pagination */}
-              {dimensions.length > 0 && (
+              {domains.length > 0 && (
                 <div className="mt-6">
                   <Pagination
                     currentPage={currentPage}
                     totalItems={totalItems}
                     pageSize={pageSize}
-                    hasNextPage={currentPage * pageSize + dimensions.length < totalItems}
+                    hasNextPage={currentPage * pageSize + domains.length < totalItems}
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName="dimensões"
+                    itemName="domínios"
                   />
                 </div>
               )}
@@ -332,14 +320,17 @@ export default function DimensionsManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 }
-                title={`Adicionar\nDimensão`}
-                onClick={() => setIsAddModalOpen(true)}
+                title={`Adicionar\nDomínio`}
+                onClick={() => {
+                  setEditingDomainId(null);
+                  setIsDomainWizardOpen(true);
+                }}
                 className="w-[210px]"
               />
 
               <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  Total: {totalItems} dimensões
+                  Total: {totalItems} domínios
                 </p>
               </div>
             </div>
@@ -347,13 +338,16 @@ export default function DimensionsManagement() {
         </div>
       </div>
 
-      {/* Add Dimension Modal */}
-      <AddDimensionModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+      {/* Domain Wizard Modal */}
+      <DomainWizard
+        isOpen={isDomainWizardOpen}
+        onClose={() => {
+          setIsDomainWizardOpen(false);
+          setEditingDomainId(null);
+        }}
+        domainId={editingDomainId}
         onSuccess={() => {
-          // Reload dimensions after adding
-          loadDimensions();
+          loadDomains();
         }}
       />
     </div>

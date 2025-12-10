@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ManagementTemplate from '../components/ManagementTemplate';
 import AddDataDropdown from '../components/AddDataDropdown';
+import ResourceWizard from '../components/wizard/ResourceWizard';
 import indicatorService from '../services/indicatorService';
 import resourceService from '../services/resourceService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -23,6 +24,10 @@ export default function ResourcesManagement() {
   const [showAdvancedLogs, setShowAdvancedLogs] = useState(false);
   const [wrapperLogs, setWrapperLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
+
+  // Resource wizard state
+  const [isResourceWizardOpen, setIsResourceWizardOpen] = useState(false);
+  const [editingResourceId, setEditingResourceId] = useState(null);
 
   // Load data on component mount
   useEffect(() => {
@@ -133,6 +138,17 @@ export default function ResourcesManagement() {
   };
 
   const handleDataTypeSelect = (dataType) => {
+    // Open ResourceWizard modal instead of navigating
+    setEditingResourceId(null);
+    setIsResourceWizardOpen(true);
+  };
+
+  const handleEditResource = (resourceId) => {
+    setEditingResourceId(resourceId);
+    setIsResourceWizardOpen(true);
+  };
+
+  const handleDataTypeSelect_OLD = (dataType) => {
     navigate(`/add_data_resource/${indicator}`, {
       state: {
         dataToSend: {
@@ -347,6 +363,23 @@ export default function ResourcesManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Resource Wizard Modal */}
+      {indicator && (
+        <ResourceWizard
+          isOpen={isResourceWizardOpen}
+          onClose={() => {
+            setIsResourceWizardOpen(false);
+            setEditingResourceId(null);
+          }}
+          indicatorId={indicator}
+          resourceId={editingResourceId}
+          onSuccess={() => {
+            // Reload resources after successful add/edit
+            loadData();
+          }}
+        />
       )}
     </>
   );
