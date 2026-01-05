@@ -98,7 +98,7 @@ export default function BlogPage() {
                 <h2 className="text-xl font-bold mb-4 leading-tight">
                     <Link
                         to={`/blog/${post.id}`}
-                        className="text-gray-900 hover:text-primary transition-colors duration-200 line-clamp-2"
+                        className="text-gray-900 hover:text-primary transition-colors duration-200 line-clamp-2 no-underline"
                         style={{
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -233,7 +233,7 @@ export default function BlogPage() {
                                     <button
                                         onClick={loadMore}
                                         disabled={loading}
-                                        className="px-8 py-3 bg-primary text-primary-content font-medium rounded-full transition-colors disabled:opacity-50 hover:bg-primary/90"
+                                        className="px-8 py-3 bg-gray-900 text-white font-medium rounded-full transition-colors disabled:opacity-50 hover:bg-gray-800"
                                     >
                                         {loading ? 'Carregando...' : 'Carregar Mais'}
                                     </button>

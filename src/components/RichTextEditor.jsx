@@ -372,7 +372,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             min-height: 300px;
             outline: none;
             border: none;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            font-family: 'Onest', sans-serif;
             line-height: 1.6;
           }
 

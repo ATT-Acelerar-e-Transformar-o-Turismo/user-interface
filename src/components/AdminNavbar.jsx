@@ -62,8 +62,8 @@ export default function AdminNavbar() {
                 to={tab.path}
                 className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
                   activeTab === tab.id
-                    ? 'bg-primary text-primary-content'
-                    : 'text-black hover:text-primary'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-black hover:text-gray-600'
                 }`}
               >
                 {tab.label}

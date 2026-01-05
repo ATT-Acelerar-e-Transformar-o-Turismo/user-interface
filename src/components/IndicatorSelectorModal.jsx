@@ -171,7 +171,7 @@ export default function IndicatorSelectorModal({ isOpen, onClose, onSelect }) {
                     <button 
                         onClick={handleConfirm}
                         disabled={!selectedIndicator}
-                        className="px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Inserir Indicador
                     </button>

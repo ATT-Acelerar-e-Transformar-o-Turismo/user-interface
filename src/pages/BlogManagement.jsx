@@ -100,7 +100,7 @@ export default function BlogManagement() {
                         </div>
                         <Link
                             to="/admin/blog/create"
-                            className="px-6 py-3 bg-primary text-primary-content font-medium rounded-lg transition-colors hover:bg-primary/90"
+                            className="px-6 py-3 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                         >
                             Novo Post
                         </Link>
@@ -119,7 +119,7 @@ export default function BlogManagement() {
                                 <p className="text-gray-600 mb-6">Comece criando seu primeiro post do blog!</p>
                                 <Link
                                     to="/admin/blog/create"
-                                    className="inline-block px-6 py-2 bg-primary text-primary-content font-medium rounded-lg transition-colors hover:bg-primary/90"
+                                    className="inline-block px-6 py-2 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                                 >
                                     Criar Primeiro Post
                                 </Link>

@@ -4,16 +4,16 @@
     name: "light";
     default: true;
     prefersdark: true; /* use the light theme even if browser is in darkmode */
-    --color-base-100: oklch(100% 0 0);
-    --color-base-200: oklch(98% 0 0);
+    --color-base-100: oklch(1 0 0);
+    --color-base-200: oklch(0.9537 0.0021 17.2);
     --color-base-300: oklch(95% 0 0);
     --color-base-content: oklch(21% 0.006 285.885);
-    --color-primary: #009367;
+    --color-primary: oklch(0.5869 0.126 163.46);
     --color-primary-content: #ffffff;
-    --color-surface: #f1f0f0;
+    --color-surface: oklch(99% 0 0);
     --color-surface-variant: #d9d9d9;
     --color-primary-hover: #007a5a;
-    --color-secondary: oklch(65% 0.241 354.308);
+    --color-secondary: oklch(0.4226 0.1297 254.21);
     --color-secondary-content: oklch(94% 0.028 342.258);
     --color-accent: oklch(77% 0.152 181.912);
     --color-accent-content: oklch(38% 0.063 188.416);
@@ -72,13 +72,3 @@
     --noise: 0;
 }
 */
-
-/* Global link styling - simple and clean */
-a {
-    color: var(--color-primary);
-    text-decoration: underline;
-}
-
-a:hover {
-    opacity: 0.8;
-}

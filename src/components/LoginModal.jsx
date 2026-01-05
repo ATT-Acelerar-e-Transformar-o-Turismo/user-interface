@@ -151,7 +151,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                                style={{'--tw-ring-color': '#009367'}}
+                                style={{'--tw-ring-color': 'var(--color-primary)'}}
                                 placeholder="Digite seu nome"
                                 required
                             />
@@ -217,7 +217,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                                style={{'--tw-ring-color': '#009367'}}
+                                style={{'--tw-ring-color': 'var(--color-primary)'}}
                                 placeholder="Confirme sua palavra-passe"
                                 required
                             />

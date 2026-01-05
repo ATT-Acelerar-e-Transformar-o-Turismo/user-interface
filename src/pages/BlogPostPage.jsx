@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import PageTemplate from './PageTemplate'
-import LoadingSkeleton from '../components/LoadingSkeleton'
+import BlogLoadingSkeleton from '../components/BlogLoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import hljs from 'highlight.js'
@@ -116,7 +116,7 @@ export default function BlogPostPage() {
         return (
             <PageTemplate>
                 <div className="py-8">
-                    <LoadingSkeleton />
+                    <BlogLoadingSkeleton />
                 </div>
             </PageTemplate>
         )
@@ -140,7 +140,7 @@ export default function BlogPostPage() {
                         <h1 className="text-2xl font-bold text-gray-900 mb-4">Post não encontrado</h1>
                         <Link
                             to="/blog"
-                            className="bg-primary text-primary-content px-6 py-2 rounded-full transition-colors hover:bg-primary/90"
+                            className="bg-gray-900 text-white px-6 py-2 rounded-full transition-colors hover:bg-gray-800"
                         >
                             Voltar para o Blog
                         </Link>
@@ -226,9 +226,9 @@ export default function BlogPostPage() {
                                 .blog-content ul { list-style-type: disc; padding-left: 1.625rem; margin-bottom: 1.25rem; }
                                 .blog-content ol { list-style-type: decimal; padding-left: 1.625rem; margin-bottom: 1.25rem; }
                                 .blog-content li { margin-bottom: 0.5rem; }
-                                .blog-content blockquote { border-left: 4px solid #009367; padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: #f9fafb; padding: 1rem; border-radius: 0.375rem; }
-                                .blog-content a { color: #009367; text-decoration: underline; font-weight: 500; }
-                                .blog-content a:hover { color: #007a5a; }
+                                .blog-content blockquote { border-left: 4px solid var(--color-primary); padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: var(--color-base-200); padding: 1rem; border-radius: 0.375rem; }
+                                .blog-content a { color: var(--color-primary); text-decoration: underline; font-weight: 500; }
+                                .blog-content a:hover { color: var(--color-primary-hover); }
                                 .blog-content strong { font-weight: 700; color: #111827; }
                                 .blog-content em { font-style: italic; }
                                 .blog-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }

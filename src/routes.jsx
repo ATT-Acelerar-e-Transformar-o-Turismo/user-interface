@@ -48,33 +48,22 @@ export const routesList = [
         )
     },
     {
-        path: '/environment',
+        path: '/indicators',
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Environment</title>
+                    <title>ATT - All Indicators</title>
                 </Helmet>
                 <DomainTemplate />
             </>
         )
     },
     {
-        path: '/economy',
+        path: '/indicators/:domainPath',
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Economy</title>
-                </Helmet>
-                <DomainTemplate />
-            </>
-        )
-    },
-    {
-        path: '/sociaty',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Sociaty</title>
+                    <title>ATT - Domain Indicators</title>
                 </Helmet>
                 <DomainTemplate />
             </>
@@ -256,15 +245,15 @@ export const routesList = [
             </>
         )
     },
-    {
-        path: '/:domainPath',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Domain</title>
-                </Helmet>
-                <DomainTemplate />
-            </>
-        )
-    }
+    // {
+    //     path: '/:domainPath',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - Domain</title>
+    //             </Helmet>
+    //             <DomainTemplate />
+    //         </>
+    //     )
+    // }
 ];

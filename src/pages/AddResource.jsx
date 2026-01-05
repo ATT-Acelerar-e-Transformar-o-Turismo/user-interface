@@ -348,9 +348,9 @@ export default function AddResource() {
                                 <p><strong>Source:</strong> {indicator.font || "N/A"}</p>
                                 <p><strong>Scale:</strong> {indicator.scale || "N/A"}</p>
                                 <p><strong>Units:</strong> {indicator.unit || "N/A"}</p>
-                                <p><strong>Periodicity:</strong> {indicator.periodicity || "N/A"}</p>
-                                <p><strong>Domain:</strong> {indicator.domain?.name || indicator.domain || "N/A"}</p>
-                                <p><strong>Subdomain:</strong> {indicator.subdomain || "N/A"}</p>
+                                    <p><strong>Domain:</strong> {indicator.domain.name || indicator.domain || "N/A"}</p>
+                                    <p><strong>Dimensão:</strong> {indicator.subdomain || "N/A"}</p>
+                                    <p><strong>Periodicity:</strong> {indicator.periodicity || "N/A"}</p>
                                 <p><strong>Governance:</strong> {indicator.governance ? "Yes" : "No"}</p>
                                 <p><strong>Carrying Capacity:</strong> {indicator.carrying_capacity || "N/A"}</p>
                             </div>

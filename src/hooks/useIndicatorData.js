@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import dataService from '../services/dataService';
 
-export const useIndicatorData = (indicatorId, indicatorName = 'Data') => {
+export const useIndicatorData = (indicatorId, indicatorName = 'Data', options = {}) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { granularity = '0', startDate = null, endDate = null, limit = 1000 } = options;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,8 +20,8 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data') => {
         setLoading(true);
         setError(null);
         
-        // Fetch real data from API
-        const apiData = await dataService.getIndicatorData(indicatorId, 0, 10000, 'desc');
+        // Fetch real data from API with dynamic options
+        const apiData = await dataService.getIndicatorData(indicatorId, 0, limit, 'desc', granularity, startDate, endDate);
         
         if (apiData && apiData.length > 0) {
           // Transform real data for chart
@@ -27,7 +29,7 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data') => {
           setData(chartData);
         } else {
           // No data available
-          console.log(`No data available for indicator ${indicatorId}`);
+          // console.log(`No data available for indicator ${indicatorId}`);
           setData(null);
         }
       } catch (err) {
@@ -40,7 +42,7 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data') => {
     };
 
     fetchData();
-  }, [indicatorId, indicatorName]);
+  }, [indicatorId, indicatorName, granularity, startDate, endDate, limit]);
 
   return { data, loading, error };
 };

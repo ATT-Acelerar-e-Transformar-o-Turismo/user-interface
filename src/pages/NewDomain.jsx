@@ -145,43 +145,26 @@ export default function NewDomain() {
                             />
                         </div>
 
-                        <div>
-                            <label htmlFor="subdomains-input" className="block mb-2 text-sm font-medium text-neutral">Subdomains</label>
-                            <div className="flex space-x-2">
+                        <div className="mb-6">
+                            <label htmlFor="subdomains-input" className="block mb-2 text-sm font-medium text-neutral">Dimensões</label>
+                            <div className="flex gap-2">
                                 <input
                                     type="text"
                                     id="subdomains-input"
                                     value={subdomainInput}
                                     onChange={(e) => setSubdomainInput(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    disabled={loading}
-                                    className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
-                                    placeholder="Enter subdomain name"
+                                    className="input input-bordered flex-1"
+                                    placeholder="Nome da dimensão"
                                 />
                                 <button 
                                     type="button" 
-                                    onClick={handleAddSubdomain} 
+                                    className="btn btn-primary text-white"
+                                    onClick={handleAddSubdomain}
                                     disabled={loading || !subdomainInput.trim()}
-                                    className="btn btn-primary"
                                 >
-                                    Add
+                                    Adicionar
                                 </button>
                             </div>
-                            <ul className="mt-2">
-                                {subdomains.map((subdomain, index) => (
-                                    <li key={index} className="flex justify-between items-center bg-base-200 p-2 rounded-lg mt-1">
-                                        {subdomain}
-                                        <button 
-                                            type="button" 
-                                            onClick={() => handleRemoveSubdomain(index)} 
-                                            disabled={loading}
-                                            className="text-error btn btn-sm btn-ghost"
-                                        >
-                                            Remove
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
                         </div>
 
                         <div>

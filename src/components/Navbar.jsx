@@ -226,35 +226,25 @@ export default function Navbar({ showSearchBox = false }) {
 
     return (
         <>
-            <nav className="bg-white px-6 py-4">
+            <nav className="bg-base-100 px-6 py-4">
                 <div className="max-w-7xl mx-auto">
                     {/* Pill-style container matching Figma design */}
-                    <div style={{backgroundColor: 'var(--color-surface)'}} className="rounded-[50px] py-2 px-8 flex items-center justify-between">
+                    <div className="bg-base-200 rounded-[50px] py-2 px-8 flex items-center justify-between">
                         {/* Left side - Logo */}
                         <div className="flex items-center">
                             <Link to="/" className="block">
-                                <img src={logoRoots} alt="ROOTS" className="h-11 w-auto" />
+                                <img src={logoRoots} alt="ROOTS" className="h-8 md:h-11 w-auto" />
                             </Link>
                         </div>
 
                         {/* Center - Navigation Menu with integrated search */}
-                        <div className="hidden md:flex items-center gap-12">
+                        <div className="hidden md:flex items-center gap-2 lg:gap-4">
                             <Link
-                                to="/about"
-                                className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
-                                    location.pathname === '/about'
+                                to="/indicators"
+                                className={`font-['Onest',sans-serif] font-medium text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
+                                    location.pathname === '/indicators' || location.pathname.startsWith('/indicators/') || location.pathname.startsWith('/indicator/') || location.pathname.startsWith('/search')
                                         ? 'bg-primary text-primary-content'
-                                        : 'text-black hover:text-primary'
-                                }`}
-                            >
-                                Quem Somos
-                            </Link>
-                            <Link
-                                to="/domains"
-                                className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
-                                    location.pathname === '/domains' || location.pathname.startsWith('/indicator') || location.pathname.startsWith('/search')
-                                        ? 'bg-primary text-primary-content'
-                                        : 'text-black hover:text-primary'
+                                        : 'text-black hover:text-gray-600'
                                 }`}
                             >
                                 Indicadores
@@ -264,7 +254,7 @@ export default function Navbar({ showSearchBox = false }) {
                             {!isSearchOpen ? (
                                 <button
                                     onClick={toggleSearch}
-                                    className="text-black font-['Onest',sans-serif]  text-base transition-colors hover:text-primary whitespace-nowrap px-8 py-3.5 rounded-full"
+                                    className="text-black font-['Onest',sans-serif] font-medium text-base transition-colors hover:text-gray-600 whitespace-nowrap px-8 py-3.5 rounded-full cursor-pointer"
                                 >
                                     Pesquisar
                                 </button>
@@ -424,10 +414,10 @@ export default function Navbar({ showSearchBox = false }) {
 
                             <Link
                                 to="/blog"
-                                className={`font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
+                                className={`font-['Onest',sans-serif] font-medium text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
                                     location.pathname === '/blog' || location.pathname.startsWith('/blog/')
                                         ? 'bg-primary text-primary-content'
-                                        : 'text-black hover:text-primary'
+                                        : 'text-black hover:text-gray-600'
                                 }`}
                             >
                                 Blog
@@ -437,7 +427,7 @@ export default function Navbar({ showSearchBox = false }) {
                             {isAuthenticated && user?.role === 'admin' && (
                                 <div className="relative">
                                     <details className="dropdown">
-                                        <summary className="font-['Onest',sans-serif] text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full text-black hover:text-primary cursor-pointer list-none flex items-center gap-1">
+                                        <summary className="font-['Onest',sans-serif] font-medium text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full text-black hover:text-gray-600 cursor-pointer list-none flex items-center gap-1">
                                             Admin
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -471,7 +461,7 @@ export default function Navbar({ showSearchBox = false }) {
                                 <>
                                     <button
                                         onClick={logout}
-                                        className="font-['Onest',sans-serif] text-base px-8 py-3.5 rounded-full transition-colors text-black hover:text-primary whitespace-nowrap"
+                                        className="font-['Onest',sans-serif] font-medium text-base px-8 py-3.5 rounded-full transition-colors text-black hover:text-gray-600 whitespace-nowrap cursor-pointer"
                                     >
                                         Sair
                                     </button>
@@ -479,10 +469,10 @@ export default function Navbar({ showSearchBox = false }) {
                             ) : (
                                 <button
                                     onClick={() => setIsLoginModalOpen(true)}
-                                    className={`font-['Onest',sans-serif] text-base px-8 py-3.5 rounded-full transition-colors whitespace-nowrap ${
+                                    className={`font-['Onest',sans-serif] font-medium text-base px-8 py-3.5 rounded-full transition-colors whitespace-nowrap cursor-pointer ${
                                         location.pathname === '/' || location.pathname === '/login'
                                             ? 'bg-primary text-primary-content hover:bg-primary/90'
-                                            : 'text-black hover:text-primary'
+                                            : 'text-black hover:text-gray-600'
                                     }`}
                                 >
                                     Login
@@ -498,8 +488,7 @@ export default function Navbar({ showSearchBox = false }) {
                                         </svg>
                                     </summary>
                                     <ul className="dropdown-content menu bg-white rounded-box z-10 w-52 p-2 shadow-lg border">
-                                        <li><Link to="/about" className="text-gray-700">Quem Somos</Link></li>
-                                        <li><Link to="/domains" className="text-gray-700">Indicadores</Link></li>
+                                        <li><Link to="/indicators" className="text-gray-700">Indicadores</Link></li>
                                         <li><button onClick={toggleSearch} className="text-gray-700">Pesquisar</button></li>
                                         <li><Link to="/blog" className="text-gray-700">Blog</Link></li>
                                         {isAuthenticated && user?.role === 'admin' && (

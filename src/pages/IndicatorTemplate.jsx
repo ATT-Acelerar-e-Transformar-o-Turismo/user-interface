@@ -5,31 +5,177 @@ import { useAuth } from "../contexts/AuthContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns";
-import Indicator from "../components/Indicator";
+import GChart from "../components/Chart";
+import Views from "../components/Views";
 import indicatorService from "../services/indicatorService";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import useIndicatorData from "../hooks/useIndicatorData";
 
 export default function IndicatorTemplate() {
   const navigate = useNavigate();
-  const { indicatorId } = useParams(); // Extract from URL params
+  const { indicatorId } = useParams();
   const { domains } = useDomain();
   const { user, isAuthenticated } = useAuth();
+  const indicatorChartRef = useRef(null);
 
   const { getIndicatorById, loading } = useIndicator();
 
+  // UI State for filters (not applied yet)
+  const [uiStartDate, setUiStartDate] = useState('');
+  const [uiEndDate, setUiEndDate] = useState('');
+  const [uiGranularity, setUiGranularity] = useState('0');
+
+  // Debug: Log when component mounts with scroll functionality
+  console.log('🚀 IndicatorTemplate mounted with horizontal scroll functionality for:', indicatorId);
+
+  // Applied State for fetching (triggers hook)
+  const [fetchParams, setFetchParams] = useState({
+    granularity: '0',
+    startDate: null,
+    endDate: null,
+    limit: 100 // Limit to last 100 datapoints
+  });
+
   // Move the hook to the top level, before any conditional returns
-  const { data: chartData, loading: dataLoading } = useIndicatorData(indicatorId, "Indicator Data");
+  const { data: chartData, loading: dataLoading } = useIndicatorData(indicatorId, "Indicator Data", fetchParams);
+  
   const [indicatorData, setIndicatorData] = useState(null);
   const [error, setError] = useState(null);
   const [indicatorLoading, setIndicatorLoading] = useState(false);
-  const [filteredChartData, setFilteredChartData] = useState(null);
-  const [startDate, setStartDate] = useState('2019');
-  const [endDate, setEndDate] = useState('2025');
+  const [chartType, setChartType] = useState('line');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [allLoadedData, setAllLoadedData] = useState(null); // Store all loaded data chunks
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [viewport, setViewport] = useState({ min: null, max: null });
 
   // Check if current user is admin
-  const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
+  const isAdmin = user?.role === 'admin';
+
+  const handleViewportChange = useCallback((newViewport) => {
+    // Update viewport state for export consistency and potential data loading triggers
+    if (newViewport.min !== viewport.min || newViewport.max !== viewport.max) {
+        setViewport(newViewport);
+    }
+  }, [viewport.min, viewport.max]);
+
+  // Auto-apply filters when UI values change
+  useEffect(() => {
+    // Reset pagination when filters change
+    setCurrentPage(0);
+    setAllLoadedData(null);
+    setIsLoadingMore(false);
+    setViewport({ min: null, max: null }); // Reset viewport state
+    setFetchParams({
+      granularity: uiGranularity,
+      startDate: uiStartDate ? new Date(uiStartDate).toISOString() : null,
+      endDate: uiEndDate ? new Date(uiEndDate).toISOString() : null,
+      limit: 100
+    });
+    // After first user interaction, disable animations
+    if (!isInitialLoad) {
+      // This is a filter change, not initial load
+    }
+  }, [uiGranularity, uiStartDate, uiEndDate, isInitialLoad]);
+
+  // Track when data loads for the first time
+  useEffect(() => {
+    if (chartData && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [chartData, isInitialLoad]);
+
+  // Handle new data chunks and merge with existing data
+  useEffect(() => {
+    if (chartData) {
+      setAllLoadedData(prevData => {
+        if (!prevData) {
+          // First load - replace all data
+          setIsLoadingMore(false);
+          return chartData;
+        } else {
+          // Merge new data with existing data, removing duplicates
+          const mergedData = {
+            ...chartData,
+            series: chartData.series.map((newSeries, seriesIndex) => {
+              const prevSeries = prevData.series[seriesIndex];
+              if (!prevSeries) return newSeries;
+
+              // Combine data and remove duplicates based on x (time) value
+              const existingDataMap = new Map(
+                prevSeries.data.map(point => [new Date(point.x).getTime(), point])
+              );
+
+              // Add new data points, overwriting duplicates
+              newSeries.data.forEach(point => {
+                existingDataMap.set(new Date(point.x).getTime(), point);
+              });
+
+              // Convert back to array and sort by date
+              const combinedData = Array.from(existingDataMap.values())
+                .sort((a, b) => new Date(a.x) - new Date(b.x));
+
+              return {
+                ...newSeries,
+                data: combinedData
+              };
+            })
+          };
+          setIsLoadingMore(false);
+          return mergedData;
+        }
+      });
+    }
+  }, [chartData]);
+
+  // Safety check: if loading finishes and no data came back, reset loading state
+  useEffect(() => {
+    if (!dataLoading && isLoadingMore && !chartData) {
+      console.log('📉 Data fetch completed with no results. Resetting loading state.');
+      setIsLoadingMore(false);
+    }
+  }, [dataLoading, isLoadingMore, chartData]);
+
+  // Effect to load more data when viewport approaches earliest data
+  useEffect(() => {
+    // Only fetch if data exists, not already loading, and viewport min is approaching earliest data
+    if (viewport.min && allLoadedData?.series?.[0]?.data?.length > 1 && !dataLoading && !isLoadingMore) {
+        const earliestDataPoint = allLoadedData.series[0].data[0];
+        const earliestDataTime = new Date(earliestDataPoint.x).getTime();
+        const visibleStartTime = new Date(viewport.min).getTime();
+
+        const binSize = allLoadedData.series[0].data[1].x - earliestDataPoint.x;
+        const loadMargin = binSize * 20;
+
+        if (visibleStartTime < earliestDataTime + loadMargin) {
+            console.log('TRIGGERING LOAD MORE DATA:', { visibleStartTime, earliestDataTime, loadMargin });
+            setIsLoadingMore(true);
+            setFetchParams(prev => ({
+                ...prev,
+                startDate: null, // Allow fetching older data without lower bound
+                endDate: earliestDataTime.toISOString(),
+                limit: 100
+            }));
+        }
+    }
+  }, [viewport.min, allLoadedData, dataLoading, isLoadingMore]);
+
+  const handleResetFilters = () => {
+    setUiStartDate('');
+    setUiEndDate('');
+    setUiGranularity('0');
+    setCurrentPage(0);
+    setAllLoadedData(null);
+    setIsLoadingMore(false);
+    setViewport({ min: null, max: null }); // Reset viewport state
+    setFetchParams({
+      granularity: '0',
+      startDate: null,
+      endDate: null,
+      limit: 100
+    });
+  };
 
   // Export functionality
   const handleExportCSV = () => {
@@ -51,26 +197,98 @@ export default function IndicatorTemplate() {
     window.URL.revokeObjectURL(url);
   };
 
-  const handleExportImage = () => {
+  const handleExportImage = async () => {
+    try {
+      // Use the tracked viewport state for "What You See Is What You Get" export
+      let exportStartDate = fetchParams.startDate;
+      let exportEndDate = fetchParams.endDate;
+      
+      if (viewport.min && viewport.max) {
+         exportStartDate = new Date(viewport.min).toISOString();
+         exportEndDate = new Date(viewport.max).toISOString();
+      }
+
+      const exportPayload = {
+        chart_type: chartType,
+        theme: 'light',
+        width: 1200,
+        height: 600,
+        granularity: fetchParams.granularity,
+        start_date: exportStartDate,
+        end_date: exportEndDate,
+        title: indicatorData?.name || 'Indicator',
+        xaxis_type: 'datetime',
+        colors: ['#009367', '#084d92', '#00d1b2', '#3abff8'],
+        annotations: { xaxis: [], yaxis: [] }
+      };
+
+      const blob = await indicatorService.exportChartImage(indicatorId, exportPayload);
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${indicatorData?.name || 'indicator'}_chart.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      
+      // Try to read the blob error message
+      if (error.response && error.response.data instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          console.error('Export error details:', reader.result);
+        };
+        reader.readAsText(error.response.data);
+      }
+      
+      alert('Falha ao exportar imagem. Por favor tente novamente.');
+    }
+  };
+
+  const fallbackImageExport = () => {
     const chartElement = document.querySelector('.apexcharts-canvas svg');
+    console.log('🖼️ Chart element found:', !!chartElement);
+
     if (chartElement) {
+      console.log('🖼️ Using fallback SVG export method');
       const svgData = new XMLSerializer().serializeToString(chartElement);
+      console.log('🖼️ SVG data length:', svgData.length);
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
 
       img.onload = () => {
+        console.log('🖼️ Image loaded successfully, dimensions:', img.width, 'x', img.height);
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
+        const dataURL = canvas.toDataURL('image/png');
+        console.log('🖼️ Canvas dataURL created, length:', dataURL.length);
+
         const a = document.createElement('a');
-        a.href = canvas.toDataURL('image/png');
+        a.href = dataURL;
         a.download = `${indicatorData?.name || 'indicator'}_chart.png`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
+        console.log('🖼️ Download triggered');
       };
 
-      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+      img.onerror = (error) => {
+        console.error('🖼️ Image load failed:', error);
+      };
+
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      img.src = svgUrl;
+      console.log('🖼️ Image src set to:', svgUrl);
+    } else {
+      console.error('🖼️ No chart found for export');
     }
   };
 
@@ -108,14 +326,10 @@ export default function IndicatorTemplate() {
   };
 
   const handleSourceView = (sourceName) => {
-    console.log('Filtering chart to show only:', sourceName);
-    setFilteredChartData({
-      ...chartData,
-      series: chartData.series.map(serie => ({
-        ...serie,
-        hidden: serie.name !== sourceName
-      }))
-    });
+    // Optional: Implement server-side filtering by source if API supports it, 
+    // or client-side filtering on the current 'chartData'.
+    // For now, we'll just log it as the old logic was removed.
+    console.log('Filtering by source not fully implemented yet:', sourceName);
   };
 
   const handleSourceDelete = (sourceName) => {
@@ -123,40 +337,6 @@ export default function IndicatorTemplate() {
       console.log('Deleting source:', sourceName);
       window.location.reload();
     }
-  };
-
-  const filterDataByDateRange = (data, start, end) => {
-    if (!data?.series?.[0]?.data) return data;
-
-    const startYear = parseInt(start);
-    const endYear = parseInt(end);
-
-    const filteredSeries = data.series.map(serie => ({
-      ...serie,
-      data: serie.data.filter(point => {
-        const pointDate = new Date(point.x);
-        const pointYear = pointDate.getFullYear();
-        return pointYear >= startYear && pointYear <= endYear;
-      })
-    }));
-
-    return {
-      ...data,
-      series: filteredSeries
-    };
-  };
-
-  const applyDateFilter = () => {
-    if (chartData) {
-      const filtered = filterDataByDateRange(chartData, startDate, endDate);
-      setFilteredChartData(filtered);
-    }
-  };
-
-  const resetDateFilter = () => {
-    setFilteredChartData(null);
-    setStartDate('2019');
-    setEndDate('2025');
   };
 
   // Fetch indicator data from API (must be declared before any returns)
@@ -275,50 +455,108 @@ export default function IndicatorTemplate() {
         xaxis: [],
         yaxis: []
       },
-      series: (filteredChartData || chartData)?.series || []
+      series: chartData?.series || []
     }
   ];
 
   return (
     <PageTemplate>
-      <Carousel images={images} />
+      <div className="min-h-screen bg-base-100">
+        {/* Hero Section - Matches Home Page Style */}
+        <section className="text-center pt-20 pb-12 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight font-['Onest',sans-serif]">
+              {indicatorData.name}
+            </h1>
+            <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto leading-relaxed">
+              {indicatorData.description || `Explore os dados e a evolução do indicador ${indicatorData.name}.`}
+            </p>
+          </div>
+        </section>
 
-      <div className="container mx-auto max-w-7xl px-4">
-        {/* Navigation/Breadcrumb Section */}
-        <div className="p-4 border-b border-base-300">
-          {resolvedDomainObj && (
-            <IndicatorDropdowns
-              currentDomain={resolvedDomainObj}
-              currentSubdomain={subdomainObj || { name: resolvedSubdomainName }}
-              currentIndicator={indicatorData}
-              onIndicatorChange={handleIndicatorChange}
-              allowSubdomainClear={false}
-            />
-          )}
-        </div>
+        <div className="container mx-auto max-w-7xl px-4 pb-12">
+          {/* Navigation/Breadcrumb Section */}
+          <div className="p-4 border-b border-base-300 mb-8">
+            {resolvedDomainObj && (
+              <IndicatorDropdowns
+                currentDomain={resolvedDomainObj}
+                currentSubdomain={subdomainObj || { name: resolvedSubdomainName }}
+                currentIndicator={indicatorData}
+                onIndicatorChange={handleIndicatorChange}
+                allowSubdomainClear={false}
+              />
+            )}
+          </div>
 
-        {/* Main Content Area */}
-        <div className="p-6">
+          {/* Main Content Area */}
           <div className="flex flex-col xl:flex-row gap-4">
             {/* Left Side - Chart Area */}
             <div className="flex-1 min-h-0">
-              <div className="bg-base-100 p-4">
-                <h2 className="text-xl font-bold mb-4">{indicatorData.name}</h2>
+              <div className="bg-base-200 p-8 rounded-2xl">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-base-content/70">
+                    Última atualização: {new Date().toLocaleDateString('pt-PT')}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Views
+                      size="sm"
+                      activeView={chartType}
+                      onViewChange={setChartType}
+                    />
+                  </div>
+                </div>
 
-                <div className="h-80">
-                  {dataLoading ? (
-                    <div className="flex justify-center items-center h-full">
-                      <div className="loading loading-spinner loading-lg"></div>
+                <div className="h-[600px] relative">
+                  {/* Loading spinner in top-right corner when loading */}
+                  {dataLoading && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <div className="loading loading-spinner loading-sm text-primary"></div>
                     </div>
-                   ) : chartData?.series?.[0]?.data?.length > 0 ? (
-                    <Indicator charts={realCharts} />
+                  )}
+
+                  {/* Chart - always show if data exists */}
+                  {(allLoadedData || chartData)?.series?.[0]?.data?.length > 0 ? (
+                    <div className="h-full">
+                      <GChart
+                        ref={indicatorChartRef}
+                        chartId={`indicator-${indicatorId}`}
+                        chartType={chartType}
+                        xaxisType="datetime"
+                        series={((allLoadedData || chartData)?.series || []).map(s => ({
+                          ...s,
+                          name: indicatorData?.name || s.name
+                        }))}
+                        height="100%"
+                        showToolbar={true}
+                        showLegend={true}
+                        themeMode="light"
+                        disableAnimations={!isInitialLoad}
+                        onViewportChange={handleViewportChange}
+                      />
+                    </div>
                   ) : (
-                    <div className="flex justify-center items-center h-full">
-                      <div className="text-center text-base-content/60">
-                        <div className="text-xl mb-2">No data available</div>
-                        <div className="text-sm">This indicator does not have any data yet.</div>
+                    /* Empty state - only show if no data AND not loading initial data */
+                    !dataLoading ? (
+                      <div className="absolute inset-0 flex justify-center items-center bg-gray-50 rounded-xl">
+                        <div className="text-center">
+                          <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                          </div>
+                          <div className="text-xl font-medium text-gray-900 mb-2">Dados não disponíveis</div>
+                          <div className="text-gray-500">Este indicador ainda não possui dados para visualização.</div>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      /* Show loading spinner in center only for initial load when no previous data */
+                      <div className="absolute inset-0 flex justify-center items-center bg-gray-50/50 rounded-xl">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="loading loading-spinner loading-lg text-primary"></div>
+                          <div className="text-sm text-gray-500">Carregando dados...</div>
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
               </div>
@@ -327,45 +565,60 @@ export default function IndicatorTemplate() {
             {/* Right Side - Tools Panel */}
             <div className="w-full xl:w-72 space-y-3">
               {/* Ferramentas Panel */}
-              <div className="bg-base-100 rounded-lg shadow-sm border border-base-300 p-6">
+              <div className="bg-base-200 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 text-base-content">Ferramentas</h3>
 
-                {/* Time Range Controls */}
                 <div className="space-y-4">
+                  {/* Granularity Selector */}
+                  <div>
+                    <label className="text-xs font-medium text-base-content/80 mb-2 block">Granularidade</label>
+                    <div className="flex flex-wrap gap-1">
+                      {[
+                        { label: 'Raw', value: '0' },
+                        { label: 'Dia', value: '1d' },
+                        { label: 'Sem', value: '1w' },
+                        { label: 'Mês', value: '1M' },
+                        { label: 'Ano', value: '1y' },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setUiGranularity(option.value)}
+                          className={`px-2 py-1 text-xs rounded border transition-colors ${
+                            uiGranularity === option.value
+                              ? 'bg-primary text-primary-content border-primary'
+                              : 'bg-white border-base-300 text-base-content hover:bg-base-100'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-base-content/80">Início</span>
                     <input
-                      type="number"
-                      min="2015"
-                      max="2030"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-20 px-2 py-1 text-sm bg-base-100 border border-base-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary"
+                      type="date"
+                      value={uiStartDate}
+                      onChange={(e) => setUiStartDate(e.target.value)}
+                      className="w-32 px-2 py-1 text-sm bg-white border border-base-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-base-content/80">Fim</span>
                     <input
-                      type="number"
-                      min="2015"
-                      max="2030"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-20 px-2 py-1 text-sm bg-base-100 border border-base-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary"
+                      type="date"
+                      value={uiEndDate}
+                      onChange={(e) => setUiEndDate(e.target.value)}
+                      className="w-32 px-2 py-1 text-sm bg-white border border-base-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="pt-2">
                     <button
-                      onClick={applyDateFilter}
-                      className="flex-1 px-3 py-2 bg-primary text-primary-content text-sm rounded hover:bg-primary/90 transition-colors"
-                    >
-                      Aplicar
-                    </button>
-                    <button
-                      onClick={resetDateFilter}
-                      className="px-3 py-2 bg-base-300 text-base-content text-sm rounded hover:bg-base-300/80 transition-colors"
+                      onClick={handleResetFilters}
+                      className="w-full px-3 py-2 bg-white border border-base-300 text-base-content text-sm rounded hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       Reset
                     </button>
@@ -374,13 +627,13 @@ export default function IndicatorTemplate() {
               </div>
 
               {/* Opções Panel */}
-              <div className="bg-base-100 rounded-lg shadow-sm border border-base-300 p-6">
+              <div className="bg-base-200 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 text-base-content">Opções</h3>
 
                 <div className="space-y-3">
                   <button
                     onClick={handleExportCSV}
-                    className="w-full flex items-center justify-start gap-3 p-3 hover:bg-base-200 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-start gap-3 p-3 bg-white border border-base-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -390,7 +643,7 @@ export default function IndicatorTemplate() {
 
                   <button
                     onClick={handleExportImage}
-                    className="w-full flex items-center justify-start gap-3 p-3 hover:bg-base-200 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-start gap-3 p-3 bg-white border border-base-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -400,7 +653,7 @@ export default function IndicatorTemplate() {
 
                   <button
                     onClick={handleCopyReference}
-                    className="w-full flex items-center justify-start gap-3 p-3 hover:bg-base-200 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-start gap-3 p-3 bg-white border border-base-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -422,7 +675,7 @@ export default function IndicatorTemplate() {
               {isAdmin && (
                 <button
                   onClick={handleEditInformation}
-                  className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
+                  className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
                 >
                   Editar Informações
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -475,7 +728,7 @@ export default function IndicatorTemplate() {
               {isAdmin && (
                 <button
                   onClick={handleAddSources}
-                  className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
+                  className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
                 >
                   Adicionar Fontes
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

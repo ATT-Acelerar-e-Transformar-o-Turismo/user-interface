@@ -1,12 +1,23 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import PropTypes from 'prop-types'
 import ApexCharts from 'apexcharts'
 
-const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [], yaxis: [] }, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true }) => {
+const DEFAULT_ANNOTATIONS = { xaxis: [], yaxis: [] }
+
+const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, disableAnimations = false, onViewportChange }, ref) => {
     const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
     const chartContainerRef = useRef(null)
+    const onViewportChangeRef = useRef(onViewportChange)
+
+    useImperativeHandle(ref, () => ({
+        chart: chartRef.current
+    }));
+
+    useEffect(() => {
+        onViewportChangeRef.current = onViewportChange;
+    }, [onViewportChange]);
 
     useEffect(() => {
         // Obtém os estilos computados do elemento raiz
@@ -34,23 +45,49 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
 
         const _series = series.filter(s => !s.hidden)
 
+        const brandColors = [
+            'var(--color-primary)', // Primary green
+            'var(--color-primary-hover)', // Primary hover green
+            'var(--color-secondary)', // Secondary
+            'var(--color-accent)', // Accent
+            'var(--color-info)', // Info
+            'oklch(76% 0.177 163.223)', // Success
+            'oklch(82% 0.18659 84.429)', // Warning
+            'oklch(71% 0.194 13.428)' // Error
+        ]
+
+        // Calculate default zoom range (last 20%) for datetime charts
+        let xaxisMin = undefined;
+        let xaxisMax = undefined;
+
+        if (xaxisType === 'datetime' && _series.length > 0 && _series[0].data.length > 0) {
+            const allData = _series.flatMap(s => s.data);
+            const dataMin = Math.min(...allData.map(d => d.x));
+            const dataMax = Math.max(...allData.map(d => d.x));
+            
+            // Show last 50% of the data range
+            xaxisMin = dataMax - (dataMax - dataMin) * 0.5;
+            xaxisMax = dataMax;
+        }
+
         const chartOptions = {
+            colors: brandColors,
             chart: {
                 type: chartType === 'column' ? 'bar' : chartType,
                 id: chartId,
                 group: group,
                 background: 'transparent',
                 animations: {
-                    enabled: true,
+                    enabled: !disableAnimations,
                     easing: 'easeinout',
-                    speed: 500,
+                    speed: disableAnimations ? 0 : 500,
                     animateGradually: {
-                        enabled: true,
-                        delay: 100
+                        enabled: !disableAnimations,
+                        delay: disableAnimations ? 0 : 100
                     },
                     dynamicAnimation: {
-                        enabled: true,
-                        speed: 150
+                        enabled: !disableAnimations,
+                        speed: disableAnimations ? 0 : 150
                     }
                 },
                 height: height,
@@ -60,10 +97,19 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                     enabled: allowUserInteraction,
                     autoScaleYaxis: allowUserInteraction
                 },
+                pan: {
+                    enabled: allowUserInteraction,
+                    type: 'x',
+                    rangeX: undefined // Allow unlimited panning
+                },
+                selection: {
+                    enabled: allowUserInteraction,
+                    type: 'x'
+                },
                 toolbar: {
                     show: showToolbar,
                     tools: {
-                        download: true,
+                        download: false,
                         selection: allowUserInteraction,
                         zoom: allowUserInteraction,
                         zoomin: allowUserInteraction,
@@ -71,7 +117,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                         pan: allowUserInteraction,
                         reset: allowUserInteraction
                     },
-                    autoSelected: allowUserInteraction ? 'zoom' : undefined,
+                    autoSelected: allowUserInteraction ? 'pan' : undefined,
                     export: {
                         csv: {
                             headerCategory: 'x',
@@ -81,6 +127,7 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                 },
                 events: {
                     beforeMount: function (chart) {
+                        console.log('Chart mounting with scroll functionality');
                         // Add custom CSS to style the toolbar and menu
                         const style = document.createElement('style')
                         style.innerHTML = `
@@ -96,6 +143,24 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
                             }
                         `
                         document.head.appendChild(style)
+                    },
+                    mounted: function(chart) {
+                        console.log('Chart mounted, pan enabled:', chart.opts.chart.pan);
+                    },
+                    zoomed: function(chartContext, { xaxis, yaxis }) {
+                        if (onViewportChangeRef.current && xaxis) {
+                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                        }
+                    },
+                    updated: function(chartContext, { xaxis }) {
+                        if (onViewportChangeRef.current && xaxis) {
+                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                        }
+                    },
+                    scrolled: function(chartContext, { xaxis }) {
+                        if (onViewportChangeRef.current && xaxis) {
+                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                        }
                     }
                 }
             },
@@ -106,6 +171,38 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
             },
             dataLabels: {
                 enabled: false
+            },
+            stroke: {
+                width: 2,
+                curve: 'smooth'
+            },
+            fill: {
+                opacity: 0.8
+            },
+            grid: {
+                borderColor: 'var(--color-base-300)',
+                strokeDashArray: 0,
+                padding: compact ? {
+                    top: -20,
+                    right: 0,
+                    bottom: 0,
+                    left: 0
+                } : {
+                    top: 0,
+                    right: 10,
+                    bottom: 20,
+                    left: 10
+                },
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                },
+                yaxis: {
+                    lines: {
+                        show: true
+                    }
+                }
             },
             // sort series
             series: xaxisType == 'category' ? _series : _series.map(s => ({
@@ -122,11 +219,23 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
             },
             xaxis: {
                 type: chartType === 'bar' || chartType === 'column' ? 'category' : xaxisType,
+                min: xaxisMin,
+                max: xaxisMax,
                 labels: {
                     style: {
-                        colors: labelColor
+                        colors: '#000000',
+                        fontSize: compact ? '8px' : '12px',
+                        fontFamily: 'Onest, sans-serif'
                     },
                     formatter: formatValue
+                },
+                axisBorder: {
+                    show: !compact,
+                    color: '#000000'
+                },
+                axisTicks: {
+                    show: !compact,
+                    color: '#000000'
                 },
                 tooltip: {
                     enabled: false
@@ -135,8 +244,19 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
             yaxis: {
                 labels: {
                     style: {
-                        colors: labelColor
-                    }
+                        colors: '#000000',
+                        fontSize: compact ? '8px' : '12px',
+                        fontFamily: 'Onest, sans-serif'
+                    },
+                    offsetX: compact ? -15 : 0 // Shift labels left in compact mode
+                },
+                axisBorder: {
+                    show: !compact,
+                    color: '#000000'
+                },
+                axisTicks: {
+                    show: !compact,
+                    color: '#000000'
                 },
                 logarithmic: log == null ? false : true,
                 logBase: log == null ? 10 : log
@@ -230,8 +350,8 @@ const GChart = ({ title, chartId, chartType, xaxisType, annotations = { xaxis: [
         }
     }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction])
 
-    return <div ref={chartContainerRef} />
-}
+    return <div ref={chartContainerRef} className="w-full h-full" />
+})
 
 GChart.propTypes = {
     title: PropTypes.string,
@@ -263,7 +383,10 @@ GChart.propTypes = {
     showLegend: PropTypes.bool,
     showToolbar: PropTypes.bool,
     showTooltip: PropTypes.bool,
-    allowUserInteraction: PropTypes.bool
+    allowUserInteraction: PropTypes.bool,
+    compact: PropTypes.bool,
+    disableAnimations: PropTypes.bool,
+    onViewportChange: PropTypes.func
 }
 
 GChart.defaultProps = {
@@ -272,7 +395,9 @@ GChart.defaultProps = {
     showLegend: true,
     showToolbar: true,
     showTooltip: true,
-    allowUserInteraction: true
+    allowUserInteraction: true,
+    compact: false,
+    disableAnimations: false
 }
 
 export default GChart

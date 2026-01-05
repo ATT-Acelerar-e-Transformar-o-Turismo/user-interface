@@ -118,8 +118,16 @@ export const indicatorService = {
     let url = `/api/indicators/${indicatorId}/data?limit=${limit}`;
     if (startDate) url += `&start_date=${startDate}`;
     if (endDate) url += `&end_date=${endDate}`;
-
+    
     const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  // Export chart image
+  async exportChartImage(indicatorId, exportConfig) {
+    const response = await apiClient.post(`/api/indicators/${indicatorId}/export/image`, exportConfig, {
+      responseType: 'blob'
+    });
     return response.data;
   }
 };

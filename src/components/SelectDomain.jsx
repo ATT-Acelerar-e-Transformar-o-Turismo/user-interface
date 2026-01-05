@@ -70,39 +70,57 @@ function SelectDomain({
     };
 
     return (
-        <div ref={containerRef} className="container mx-auto">
-            <details ref={domainRef} className="dropdown dropdown-right">
-                <summary className="btn m-1">
-                    {selectedLocalDomain?.name || "Escolha o Domínio"}
+        <div ref={containerRef} className="container mx-auto flex flex-col md:flex-row gap-4">
+            <details ref={domainRef} className="dropdown">
+                <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
+                    <span className={`${selectedLocalDomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                        {selectedLocalDomain?.name || "Escolha o Domínio"}
+                    </span>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                 </summary>
-                <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
                     {domains.map((domain, index) => (
                         <li key={domain?.name || index}>
-                            <a onClick={() => { handleSelectDomain(domain); }}>{domain?.name || "Unnamed Domain"}</a>
+                            <a 
+                                onClick={() => { handleSelectDomain(domain); }}
+                                className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
+                            >
+                                {domain?.name || "Unnamed Domain"}
+                            </a>
                         </li>
                     ))}
                 </ul>
             </details>
 
             {selectedLocalDomain && (
-                <details ref={subdomainRef} className="dropdown dropdown-right">
-                    <summary className="btn m-1">
+                <details ref={subdomainRef} className="dropdown">
+                    <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
                         {
                         selectedLocalSubdomain 
                         ? (
                             <div className="flex items-center gap-2">
-                                {selectedLocalSubdomain}
+                                <span className="text-gray-900 font-medium">{selectedLocalSubdomain}</span>
                             </div>) 
                         : (
-                            "Escolha o Subdomínio")
+                            <span className="text-gray-500">Escolha a Dimensão</span>)
                         }
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                     </summary>
-                    <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                    <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
                         {(getSubdomains()).map((subdom) => {
                             const subName = typeof subdom === 'string' ? subdom : subdom.name;
                             return (
                                 <li key={subName}>
-                                    <a onClick={() => { handleSelectSubdomain(subdom); }}>{subName}</a>
+                                    <a 
+                                        onClick={() => { handleSelectSubdomain(subdom); }}
+                                        className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
+                                    >
+                                        {subName}
+                                    </a>
                                 </li>
                             );
                         })}

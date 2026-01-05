@@ -509,7 +509,7 @@ export default function BlogPostForm() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="px-6 py-2 bg-primary text-primary-content font-medium rounded-md transition-colors disabled:opacity-50 hover:bg-primary/90"
+                                className="px-6 py-2 bg-gray-900 text-white font-medium rounded-md transition-colors disabled:opacity-50 hover:bg-gray-800"
                             >
                                 {saving ? 'Salvando...' : (isEditing ? 'Atualizar' : 'Criar Post')}
                             </button>

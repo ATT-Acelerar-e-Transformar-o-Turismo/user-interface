@@ -179,7 +179,7 @@ export default function APIConfigForm({ onConfigChange }) {
                     />
                     <button
                         type="button"
-                        className="btn btn-sm btn-primary"
+                        className="btn btn-sm btn-neutral"
                         onClick={addCustomHeader}
                     >
                         Add
@@ -222,7 +222,7 @@ export default function APIConfigForm({ onConfigChange }) {
                     />
                     <button
                         type="button"
-                        className="btn btn-sm btn-primary"
+                        className="btn btn-sm btn-neutral"
                         onClick={addQueryParam}
                     >
                         Add

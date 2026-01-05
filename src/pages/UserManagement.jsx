@@ -92,8 +92,8 @@ export default function UserManagement() {
     }
 
     return (
-        <PageTemplate>
-            <div className="min-h-screen py-8 px-4" style={{backgroundColor: '#fffdfb'}}>
+        <AdminPageLayout title="User Management">
+            <div className="min-h-screen py-8 px-4 bg-base-100">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-8">

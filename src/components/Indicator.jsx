@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import GChart from './Chart'
 import Views from './Views'
-import Filter from './Filter'
 import { useWindowSize } from '../hooks/useWindowSize'
 
 const chartDataSample = {
@@ -120,7 +119,6 @@ const Indicator = ({ charts }) => {
   const { width } = useWindowSize();
   const [chartData, setChartData] = useState([]);
   const [chartDataMobile, setChartDataMobile] = useState([]);
-  const [activeFilters, setActiveFilters] = useState({});
   const [activeView, setActiveView] = useState([]);
 
   useEffect(() => {
@@ -137,40 +135,11 @@ const Indicator = ({ charts }) => {
     }));
     setChartData(chartsWithIds);
 
-    const initialFilters = chartsWithIds.reduce((acc, chart) => {
-      acc[chart.chartId] = chart.activeFilters;
-      return acc;
-    }, {});
-    setActiveFilters(initialFilters);
 
     setActiveView(chartsWithIds.map(() => 'line'));
   }, [charts]);
 
-  useEffect(() => {
-    setChartData(prev => prev.map(chart => ({
-      ...chart,
-      series: chart.series.map(serie => ({
-        ...serie,
-        hidden: !(
-          activeFilters[chart.chartId] &&
-          activeFilters[chart.chartId].every(
-            filter => filter.values.includes(
-              serie.filterValues.find(f => f.label === filter.label)?.value
-            )
-          )
-        )
-      }))
-    })));
-  }, [activeFilters]);
 
-  const handleFilterChange = (chartId, filterGroup, values) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      [chartId]: prev[chartId].map(filter =>
-        filter.label === filterGroup ? { ...filter, values } : filter
-      )
-    }));
-  };
 
   const handleViewChange = (newView, index) => {
     setActiveView(prev => ({
@@ -190,14 +159,6 @@ const Indicator = ({ charts }) => {
         <>
           <div className='hidden md:block h-full'>
             <div className='flex flex-col h-full'>
-              {/* Minimal chart header with just filters */}
-              <div className='flex items-center mb-4'>
-                <Filter
-                  filters={chartData[0].availableFilters}
-                  activeFilters={activeFilters.chart1}
-                  onFilterChange={(filterGroup, values) => handleFilterChange('chart1', filterGroup, values)}
-                />
-              </div>
 
               {/* Chart takes remaining space with cleaner styling */}
               <div className='flex-1 min-h-0'>
@@ -243,12 +204,7 @@ const Indicator = ({ charts }) => {
             <div className='flex flex-col h-full' key={data.chartId}>
               <h2 className='text-xl font-bold'>{data.title}</h2>
               <p className='text-xs text-neutral mb-4'>{data.period}</p>
-              <div className='flex items-center justify-between mb-4'>
-                <Filter
-                  filters={data.availableFilters}
-                  activeFilters={activeFilters[data.chartId]}
-                  onFilterChange={(filterGroup, values) => handleFilterChange(data.chartId, filterGroup, values)}
-                />
+              <div className='flex items-center justify-end mb-4'>
                 <div className='flex items-center gap-2'>
                   <Views
                     size={width > 640 ? 'sm' : 'xs'}
@@ -267,12 +223,7 @@ const Indicator = ({ charts }) => {
       {/* Mobile */}
       {chartDataMobile.map((data, index) => (
         <div className='md:hidden w-full' key={data.chartId}>
-          <div className='flex flex-row items-center justify-between mb-4'>
-            <Filter
-              filters={data.availableFilters}
-              activeFilters={activeFilters[data.chartId.split('_')[0]]}
-              onFilterChange={(filterGroup, values) => handleFilterChange(data.chartId.split('_')[0], filterGroup, values)}
-            />
+          <div className='flex flex-row items-center justify-end mb-4'>
             <div className='flex items-center gap-2'>
               <Views
                 size={width > 640 ? 'sm' : 'xs'}
