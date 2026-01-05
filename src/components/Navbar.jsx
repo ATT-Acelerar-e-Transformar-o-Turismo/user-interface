@@ -445,6 +445,11 @@ export default function Navbar({ showSearchBox = false }) {
                                                 </Link>
                                             </li>
                                             <li>
+                                                <Link to="/admin/users" className="text-gray-700 hover:bg-gray-50">
+                                                    Gestão de Utilizadores
+                                                </Link>
+                                            </li>
+                                            <li>
                                                 <Link to="/favorites" className="text-gray-700 hover:bg-gray-50">
                                                     Favoritos
                                                 </Link>

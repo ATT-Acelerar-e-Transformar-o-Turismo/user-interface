@@ -15,6 +15,7 @@ import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostForm from "./pages/BlogPostForm";
+import UserManagement from "./pages/UserManagement";
 
 export const routesList = [
     {
@@ -293,6 +294,17 @@ export const routesList = [
                     <title>ROOTS - Edit Blog Post</title>
                 </Helmet>
                 <BlogPostForm />
+            </>
+        )
+    },
+    {
+        path: '/admin/users',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - User Management</title>
+                </Helmet>
+                <UserManagement />
             </>
         )
     },

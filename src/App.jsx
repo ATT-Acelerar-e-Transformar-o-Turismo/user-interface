@@ -60,7 +60,7 @@ function App() {
                 através de dados que importam.
               </p>
               <Link
-                to="/domains"
+                to="/indicators"
                 className="inline-block bg-primary text-primary-content font-semibold py-4 px-8 rounded-full transition-colors duration-200 hover:bg-primary/90"
               >
                 Ver Indicadores

@@ -439,6 +439,18 @@ export default function ResourceWizard({
     navigate(`/resources-management/${indicatorId}`);
   };
 
+  const handleAddNewResource = () => {
+    // Keep the modal closed and reset the wizard state for new resource
+    setShowSuccessModal(false);
+    wizard.reset();
+    setPreviewData([]);
+    setChartSeries([]);
+    setWrapperStatus(null);
+    setWrappersData([]);
+    setGeneratingWrappers(false);
+    // Don't navigate away - stay in wizard to add another resource
+  };
+
   const handleWizardClose = () => {
     if (!wizard.isSubmitting) {
       wizard.reset();
@@ -604,9 +616,9 @@ export default function ResourceWizard({
                               {wrapperInfo.fileName}
                             </p>
                             <p className="font-['Onest',sans-serif] text-xs text-gray-600">
-                              {isComplete && '✅ Concluído'}
-                              {isError && '❌ Erro'}
-                              {isProcessing && '🔄 A processar...'}
+                              {isComplete && 'Concluído'}
+                              {isError && 'Erro'}
+                              {isProcessing && 'A processar...'}
                             </p>
                           </div>
                         </div>
@@ -661,7 +673,7 @@ export default function ResourceWizard({
                       {isComplete && !wrapperInfo.resourceData && (
                         <div className="mt-4 bg-[#f1f0f0] rounded-lg p-3">
                           <p className="font-['Onest',sans-serif] text-xs text-center text-gray-600">
-                            ⏳ A carregar dados do recurso...
+                            A carregar dados do recurso...
                           </p>
                         </div>
                       )}
@@ -670,9 +682,9 @@ export default function ResourceWizard({
                       {isProcessing && (
                         <div className="mt-4 bg-[#f1f0f0] rounded-lg p-3">
                           <p className="font-['Onest',sans-serif] text-xs text-center text-gray-600">
-                            {wrapperInfo.status === 'pending' && '⏳ Aguardando geração...'}
-                            {wrapperInfo.status === 'generating' && '🔄 A gerar wrapper...'}
-                            {wrapperInfo.status === 'creating_resource' && '📝 A criar recurso...'}
+                            {wrapperInfo.status === 'pending' && 'Aguardando geração...'}
+                            {wrapperInfo.status === 'generating' && 'A gerar wrapper...'}
+                            {wrapperInfo.status === 'creating_resource' && 'A criar recurso...'}
                           </p>
                         </div>
                       )}
@@ -714,8 +726,12 @@ export default function ResourceWizard({
             : 'Parabéns, a fonte foi adicionada com sucesso'
         }
         primaryAction={{
-          label: 'Continuar',
+          label: 'Sair',
           onClick: handleFinish
+        }}
+        secondaryAction={{
+          label: 'Adicionar Nova Fonte',
+          onClick: handleAddNewResource
         }}
       />
     </>
