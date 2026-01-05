@@ -39,7 +39,7 @@ export default function AdminNavbar() {
     { id: 'overview', label: 'Overview', path: '/admin' },
     { id: 'indicadores', label: 'Indicadores', path: '/indicators-management' },
     { id: 'dimensoes', label: 'Dimensões', path: '/dimensions' },
-    { id: 'dominios', label: 'Dominios', path: '/domains' }
+    { id: 'dominios', label: 'Dominios', path: '/domains-management' }
   ];
 
   return (

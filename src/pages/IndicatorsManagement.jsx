@@ -8,6 +8,7 @@ import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import ActionCard from '../components/ActionCard';
 import AdminNavbar from '../components/AdminNavbar';
+import IndicatorWizard from '../components/wizard/IndicatorWizard';
 
 export default function IndicatorsManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,6 +18,10 @@ export default function IndicatorsManagement() {
   const [error, setError] = useState(null);
   const [indicators, setIndicators] = useState([]);
   const [domains, setDomains] = useState([]);
+
+  // Wizard state
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [editingIndicatorId, setEditingIndicatorId] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -105,8 +110,15 @@ export default function IndicatorsManagement() {
       setError('Invalid item ID. Cannot edit.');
       return;
     }
-    
-    navigate(selectedOption === 'indicators' ? `/edit_indicator/${id}` : `/edit_domain/${id}`);
+
+    if (selectedOption === 'indicators') {
+      // Open wizard for editing indicator
+      setEditingIndicatorId(id);
+      setIsWizardOpen(true);
+    } else {
+      // Navigate to domain edit page (not yet migrated to wizard)
+      navigate(`/edit_domain/${id}`);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -363,7 +375,7 @@ export default function IndicatorsManagement() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEdit(indicator.id)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
@@ -371,6 +383,19 @@ export default function IndicatorsManagement() {
                         >
                           <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Tem certeza que deseja eliminar o indicador "${indicator.name}"?`)) {
+                              handleDelete(indicator.id);
+                            }
+                          }}
+                          className="p-2 hover:bg-gray-400 rounded transition-colors"
+                          title="Eliminar"
+                        >
+                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </div>
@@ -406,7 +431,10 @@ export default function IndicatorsManagement() {
                   </svg>
                 }
                 title={`Adicionar\nIndicador`}
-                to="/new_indicator"
+                onClick={() => {
+                  setEditingIndicatorId(null);
+                  setIsWizardOpen(true);
+                }}
                 className="w-[210px]"
               />
 
@@ -432,6 +460,21 @@ export default function IndicatorsManagement() {
           </div>
         </div>
       </div>
+
+      {/* Indicator Wizard Modal */}
+      <IndicatorWizard
+        key="indicator-wizard"
+        isOpen={isWizardOpen}
+        onClose={() => {
+          setIsWizardOpen(false);
+          setEditingIndicatorId(null);
+        }}
+        indicatorId={editingIndicatorId}
+        onSuccess={() => {
+          // Reload indicators after successful create/update
+          loadData();
+        }}
+      />
     </div>
   );
 }

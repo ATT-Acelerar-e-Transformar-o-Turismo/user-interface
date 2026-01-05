@@ -1,11 +1,14 @@
 import App from "./App";
-import AddResource from "./pages/AddResource";
+// import AddResource from "./pages/AddResource"; // Replaced by ResourceWizard modal
 import DomainTemplate from "./pages/DomainTemplate";
+import DomainSelectionPage from "./pages/DomainSelectionPage";
+import DomainsManagement from "./pages/DomainsManagement";
 import FavoritesPage from "./pages/FavoritesPage";
 import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
-import NewIndicator from "./pages/NewIndicator";
+// import NewIndicator from "./pages/NewIndicator"; // Replaced by IndicatorWizard modal
 import IndicatorsManagement from "./pages/IndicatorsManagement";
+import DimensionsManagement from "./pages/DimensionsManagement";
 import ResourcesManagement from "./pages/ResourcesManagement";
 import NewDomain from "./pages/NewDomain";
 import BlogPage from "./pages/BlogPage";
@@ -80,47 +83,93 @@ export const routesList = [
             </>
         )
     },
-    {
-        path: '/new_indicator',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - New Indicator</title>
-                </Helmet>
-                <NewIndicator />
-            </>
-        )
-    },
-    {
-        path: '/add_data_resource',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Add Data Resource</title>
-                </Helmet>
-                <AddResource />
-            </>
-        )
-    },
-    {
-        path: '/add_data_resource/:indicator',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Add Data Resource</title>
-                </Helmet>
-                <AddResource />
-            </>
-        )
-    },
+    // Removed - replaced by IndicatorWizard modal in IndicatorsManagement
+    // {
+    //     path: '/new_indicator',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - New Indicator</title>
+    //             </Helmet>
+    //             <NewIndicator />
+    //         </>
+    //     )
+    // },
+    // Removed - replaced by ResourceWizard modal (TODO: update ResourcesManagement to use modal)
+    // {
+    //     path: '/add_data_resource',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - Add Data Resource</title>
+    //             </Helmet>
+    //             <AddResource />
+    //         </>
+    //     )
+    // },
+    // {
+    //     path: '/add_data_resource/:indicator',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - Add Data Resource</title>
+    //             </Helmet>
+    //             <AddResource />
+    //         </>
+    //     )
+    // },
     {
         path: '/indicators-management',
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Indicators</title>
+                    <title>ATT - Indicators Management</title>
                 </Helmet>
                 <IndicatorsManagement />
+            </>
+        )
+    },
+    {
+        path: '/admin',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Admin Overview</title>
+                </Helmet>
+                <IndicatorsManagement />
+            </>
+        )
+    },
+    {
+        path: '/dimensions',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Dimensions Management</title>
+                </Helmet>
+                <DimensionsManagement />
+            </>
+        )
+    },
+    {
+        path: '/domains',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Indicadores por Domínio</title>
+                </Helmet>
+                <DomainSelectionPage />
+            </>
+        )
+    },
+    {
+        path: '/domains-management',
+        element: (
+            <>
+                <Helmet>
+                    <title>ATT - Domains Management</title>
+                </Helmet>
+                <DomainsManagement />
             </>
         )
     },
@@ -146,17 +195,18 @@ export const routesList = [
             </>
         )
     },
-    {
-        path: '/edit_indicator/:indicatorId',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Edit Indicator</title>
-                </Helmet>
-                <NewIndicator />
-            </>
-        )
-    },
+    // Removed - editing is handled by IndicatorWizard modal in IndicatorsManagement
+    // {
+    //     path: '/edit_indicator/:indicatorId',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - Edit Indicator</title>
+    //             </Helmet>
+    //             <NewIndicator />
+    //         </>
+    //     )
+    // },
     {
         path: '/edit_domain/:id',
         element: (
@@ -168,17 +218,18 @@ export const routesList = [
             </>
         )
     },
-    {
-        path: '/edit_resource/:resourceId',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Edit Resource</title>
-                </Helmet>
-                <AddResource />
-            </>
-        )
-    },
+    // Removed - editing is handled by ResourceWizard modal (TODO: update ResourcesManagement to use modal)
+    // {
+    //     path: '/edit_resource/:resourceId',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - Edit Resource</title>
+    //             </Helmet>
+    //             <AddResource />
+    //         </>
+    //     )
+    // },
     {
         path: '/search',
         element: (
