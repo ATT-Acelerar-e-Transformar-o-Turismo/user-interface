@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import PageTemplate from './PageTemplate'
-import LoadingSkeleton from '../components/LoadingSkeleton'
+import BlogLoadingSkeleton from '../components/BlogLoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import hljs from 'highlight.js'
@@ -116,7 +116,7 @@ export default function BlogPostPage() {
         return (
             <PageTemplate>
                 <div className="py-8">
-                    <LoadingSkeleton />
+                    <BlogLoadingSkeleton />
                 </div>
             </PageTemplate>
         )
@@ -140,8 +140,7 @@ export default function BlogPostPage() {
                         <h1 className="text-2xl font-bold text-gray-900 mb-4">Post não encontrado</h1>
                         <Link
                             to="/blog"
-                            className="text-white px-6 py-2 rounded-full transition-colors"
-                            style={{backgroundColor: '#009367'}}
+                            className="bg-gray-900 text-white px-6 py-2 rounded-full transition-colors hover:bg-gray-800"
                         >
                             Voltar para o Blog
                         </Link>
@@ -153,16 +152,13 @@ export default function BlogPostPage() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8" style={{backgroundColor: '#fffdfb'}}>
+            <div className="min-h-screen py-8 bg-base-100">
                 <div className="max-w-4xl mx-auto px-4">
                     {/* Breadcrumb */}
                     <nav className="mb-8">
                         <Link
                             to="/blog"
-                            className="inline-flex items-center text-sm transition-colors"
-                            style={{color: '#009367'}}
-                            onMouseEnter={(e) => e.target.style.color = '#007a5a'}
-                            onMouseLeave={(e) => e.target.style.color = '#009367'}
+                            className="inline-flex items-center text-sm transition-colors text-primary hover:text-primary/80"
                         >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -174,7 +170,7 @@ export default function BlogPostPage() {
                     {/* Article Header */}
                     <header className="mb-8">
                         <div className="mb-4">
-                            <div className="flex items-center gap-2 text-sm mb-4" style={{color: '#084d91'}}>
+                            <div className="flex items-center gap-2 text-sm mb-4 text-primary">
                                 <span>{blogService.formatDate(post.published_at || post.created_at)}</span>
                                 <span>•</span>
                                 <span>Por {post.author}</span>
@@ -195,8 +191,7 @@ export default function BlogPostPage() {
                                     {post.tags.map((tag, index) => (
                                         <span
                                             key={index}
-                                            className="px-3 py-1 text-sm font-medium rounded-full"
-                                            style={{backgroundColor: '#e8f5e8', color: '#009367'}}
+                                            className="px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
                                         >
                                             {tag}
                                         </span>
@@ -231,9 +226,9 @@ export default function BlogPostPage() {
                                 .blog-content ul { list-style-type: disc; padding-left: 1.625rem; margin-bottom: 1.25rem; }
                                 .blog-content ol { list-style-type: decimal; padding-left: 1.625rem; margin-bottom: 1.25rem; }
                                 .blog-content li { margin-bottom: 0.5rem; }
-                                .blog-content blockquote { border-left: 4px solid #009367; padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: #f9fafb; padding: 1rem; border-radius: 0.375rem; }
-                                .blog-content a { color: #009367; text-decoration: underline; font-weight: 500; }
-                                .blog-content a:hover { color: #007a5a; }
+                                .blog-content blockquote { border-left: 4px solid var(--color-primary); padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: var(--color-base-200); padding: 1rem; border-radius: 0.375rem; }
+                                .blog-content a { color: var(--color-primary); text-decoration: underline; font-weight: 500; }
+                                .blog-content a:hover { color: var(--color-primary-hover); }
                                 .blog-content strong { font-weight: 700; color: #111827; }
                                 .blog-content em { font-style: italic; }
                                 .blog-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
@@ -268,11 +263,10 @@ export default function BlogPostPage() {
                                     {post.attachments.map((attachment, index) => (
                                         <div
                                             key={index}
-                                            className="flex items-center p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer hover:border-green-200"
+                                            className="flex items-center p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer hover:border-primary bg-base-200"
                                             onClick={() => handleDownload(attachment)}
-                                            style={{backgroundColor: '#fafffe'}}
                                         >
-                                            <div className="flex-shrink-0 p-3 rounded-lg" style={{backgroundColor: '#e8f5e8', color: '#009367'}}>
+                                            <div className="flex-shrink-0 p-3 rounded-lg bg-base-300 text-primary">
                                                 {getFileIcon(attachment.mime_type)}
                                             </div>
                                             <div className="ml-6 flex-1">
@@ -284,8 +278,8 @@ export default function BlogPostPage() {
                                                 </p>
                                             </div>
                                             <div className="flex-shrink-0 ml-4">
-                                                <div className="p-2 rounded-full transition-colors" style={{backgroundColor: '#f0fdf4'}}>
-                                                    <svg className="w-5 h-5" style={{color: '#009367'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div className="p-2 rounded-full transition-colors bg-base-300">
+                                                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
                                                 </div>

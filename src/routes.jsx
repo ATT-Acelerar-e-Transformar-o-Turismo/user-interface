@@ -15,6 +15,7 @@ import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostForm from "./pages/BlogPostForm";
+import UserManagement from "./pages/UserManagement";
 
 export const routesList = [
     {
@@ -51,33 +52,22 @@ export const routesList = [
         )
     },
     {
-        path: '/environment',
+        path: '/indicators',
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Environment</title>
+                    <title>ATT - All Indicators</title>
                 </Helmet>
                 <DomainTemplate />
             </>
         )
     },
     {
-        path: '/economy',
+        path: '/indicators/:domainPath',
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Economy</title>
-                </Helmet>
-                <DomainTemplate />
-            </>
-        )
-    },
-    {
-        path: '/sociaty',
-        element: (
-            <>
-                <Helmet>
-                    <title>ATT - Sociaty</title>
+                    <title>ATT - Domain Indicators</title>
                 </Helmet>
                 <DomainTemplate />
             </>
@@ -308,14 +298,25 @@ export const routesList = [
         )
     },
     {
-        path: '/:domainPath',
+        path: '/admin/users',
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Domain</title>
+                    <title>ATT - User Management</title>
                 </Helmet>
-                <DomainTemplate />
+                <UserManagement />
             </>
         )
-    }
+    },
+    // {
+    //     path: '/:domainPath',
+    //     element: (
+    //         <>
+    //             <Helmet>
+    //                 <title>ATT - Domain</title>
+    //             </Helmet>
+    //             <DomainTemplate />
+    //         </>
+    //     )
+    // }
 ];

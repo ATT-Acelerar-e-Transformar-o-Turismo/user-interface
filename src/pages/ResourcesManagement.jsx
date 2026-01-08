@@ -294,10 +294,9 @@ export default function ResourcesManagement() {
                       <div className="bg-base-200 p-4 rounded">
                         <h4 className="font-semibold mb-2">Metadata</h4>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div><strong>Domain:</strong> {selectedWrapper.metadata.domain}</div>
-                          <div><strong>Subdomain:</strong> {selectedWrapper.metadata.subdomain}</div>
-                          <div><strong>Unit:</strong> {selectedWrapper.metadata.unit || 'N/A'}</div>
-                          <div><strong>Periodicity:</strong> {selectedWrapper.metadata.periodicity}</div>
+                                    <div><strong>Domain:</strong> {selectedWrapper.metadata.domain}</div>
+                                    <div><strong>Dimensão:</strong> {selectedWrapper.metadata.subdomain}</div>
+                                    <div><strong>Description:</strong> {selectedWrapper.metadata.description || 'N/A'}</div>
                         </div>
                       </div>
                     )}

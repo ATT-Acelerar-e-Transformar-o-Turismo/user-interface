@@ -346,8 +346,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
 
       {/* Editor */}
       <div
-        className="min-h-[300px] focus-within:ring-2 focus-within:ring-opacity-50 rounded-b-md rich-text-editor"
-        style={{'--tw-ring-color': '#009367'}}
+        className="min-h-[300px] focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-50 rounded-b-md rich-text-editor"
       >
         <EditorContent
           editor={editor}
@@ -373,7 +372,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             min-height: 300px;
             outline: none;
             border: none;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            font-family: 'Onest', sans-serif;
             line-height: 1.6;
           }
 
@@ -381,7 +380,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             font-size: 2rem;
             font-weight: 700;
             margin: 1.5rem 0 1rem 0;
-            color: #1f2937;
+            color: var(--color-base-content);
             line-height: 1.2;
           }
 
@@ -389,7 +388,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             font-size: 1.5rem;
             font-weight: 600;
             margin: 1.25rem 0 0.75rem 0;
-            color: #374151;
+            color: var(--color-base-content);
             line-height: 1.3;
           }
 
@@ -397,18 +396,18 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
             font-size: 1.25rem;
             font-weight: 600;
             margin: 1rem 0 0.5rem 0;
-            color: #4b5563;
+            color: var(--color-base-content);
             line-height: 1.4;
           }
 
           .rich-text-editor .ProseMirror p {
             margin: 0.75rem 0;
-            color: #374151;
+            color: var(--color-base-content);
           }
 
           .rich-text-editor .ProseMirror strong {
             font-weight: 700;
-            color: #1f2937;
+            color: var(--color-base-content);
           }
 
           .rich-text-editor .ProseMirror em {
@@ -437,11 +436,12 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
           }
 
           .rich-text-editor .ProseMirror blockquote {
-            border-left: 4px solid #009367;
+            border-left: 4px solid var(--color-primary);
             padding-left: 1rem;
             margin: 1.5rem 0;
             font-style: italic;
-            color: #6b7280;
+            color: var(--color-base-content);
+            opacity: 0.7;
           }
 
           .rich-text-editor .ProseMirror pre {
@@ -474,12 +474,13 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
           .hljs-link { text-decoration: underline; }
 
           .rich-text-editor .ProseMirror a {
-            color: #009367;
+            color: var(--color-primary);
             text-decoration: underline;
           }
 
           .rich-text-editor .ProseMirror a:hover {
-            color: #007a5a;
+            color: var(--color-primary);
+            opacity: 0.8;
           }
 
           .rich-text-editor .ProseMirror.ProseMirror-focused {
@@ -488,14 +489,16 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
 
           .rich-text-editor .ProseMirror:empty:before {
             content: attr(data-placeholder);
-            color: #9ca3af;
+            color: var(--color-base-content);
+            opacity: 0.4;
             pointer-events: none;
             position: absolute;
           }
 
           .rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
             content: attr(data-placeholder);
-            color: #9ca3af;
+            color: var(--color-base-content);
+            opacity: 0.4;
             pointer-events: none;
             height: 0;
             float: left;

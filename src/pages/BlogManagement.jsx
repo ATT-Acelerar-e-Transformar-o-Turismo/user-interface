@@ -86,7 +86,7 @@ export default function BlogManagement() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8 px-4" style={{backgroundColor: '#fffdfb'}}>
+            <div className="min-h-screen py-8 px-4 bg-base-100">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-8">
@@ -100,10 +100,7 @@ export default function BlogManagement() {
                         </div>
                         <Link
                             to="/admin/blog/create"
-                            className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
-                            style={{backgroundColor: '#009367'}}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#007a5a'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = '#009367'}
+                            className="px-6 py-3 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                         >
                             Novo Post
                         </Link>
@@ -122,8 +119,7 @@ export default function BlogManagement() {
                                 <p className="text-gray-600 mb-6">Comece criando seu primeiro post do blog!</p>
                                 <Link
                                     to="/admin/blog/create"
-                                    className="inline-block px-6 py-2 text-white font-medium rounded-lg transition-colors"
-                                    style={{backgroundColor: '#009367'}}
+                                    className="inline-block px-6 py-2 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                                 >
                                     Criar Primeiro Post
                                 </Link>
@@ -206,8 +202,7 @@ export default function BlogManagement() {
                                                         )}
                                                         <Link
                                                             to={`/admin/blog/edit/${post.id}`}
-                                                            style={{color: '#009367'}}
-                                                            className="hover:underline"
+                                                            className="text-primary hover:text-primary/80 hover:underline"
                                                         >
                                                             Editar
                                                         </Link>

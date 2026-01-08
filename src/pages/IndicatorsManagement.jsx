@@ -302,7 +302,7 @@ export default function IndicatorsManagement() {
         <div className="max-w-7xl mx-auto">
           {/* Edit Panel Link */}
           <div className="absolute top-6 right-6">
-            <button className="text-base font-['Inter',sans-serif] font-medium text-black hover:text-gray-600 transition-colors">
+            <button className="text-base font-['Onest',sans-serif] font-medium text-black hover:text-gray-600 transition-colors">
               Editar painel
             </button>
           </div>

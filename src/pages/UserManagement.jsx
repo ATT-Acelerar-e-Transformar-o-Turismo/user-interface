@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import PageTemplate from './PageTemplate'
+import AdminPageLayout from '../components/AdminPageLayout'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import userService from '../services/userService'
@@ -38,12 +38,13 @@ export default function UserManagement() {
                     : user
             ))
         } catch (err) {
-            alert('Erro ao alterar role do usuário: ' + err.message)
+            const errorMessage = err.userMessage || err.response?.data?.detail || err.message || 'Erro desconhecido'
+            alert('Erro ao alterar role do utilizador: ' + errorMessage)
         }
     }
 
     const handleDeleteUser = async (userId) => {
-        if (!window.confirm('Tem certeza que deseja excluir este usuário?')) {
+        if (!window.confirm('Tem a certeza que deseja excluir este utilizador?')) {
             return
         }
 
@@ -51,7 +52,8 @@ export default function UserManagement() {
             await userService.deleteUser(userId)
             setUsers(users.filter(user => user.id !== userId))
         } catch (err) {
-            alert('Erro ao excluir usuário: ' + err.message)
+            const errorMessage = err.userMessage || err.response?.data?.detail || err.message || 'Erro desconhecido'
+            alert('Erro ao excluir utilizador: ' + errorMessage)
         }
     }
 
@@ -73,27 +75,27 @@ export default function UserManagement() {
 
     if (loading) {
         return (
-            <PageTemplate>
+            <AdminPageLayout title="User Management">
                 <div className="py-8">
                     <LoadingSkeleton />
                 </div>
-            </PageTemplate>
+            </AdminPageLayout>
         )
     }
 
     if (error) {
         return (
-            <PageTemplate>
+            <AdminPageLayout title="User Management">
                 <div className="py-8">
                     <ErrorDisplay error={error} />
                 </div>
-            </PageTemplate>
+            </AdminPageLayout>
         )
     }
 
     return (
-        <PageTemplate>
-            <div className="min-h-screen py-8 px-4" style={{backgroundColor: '#fffdfb'}}>
+        <AdminPageLayout title="User Management">
+            <div className="min-h-screen py-8 px-4 bg-base-100">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-8">
@@ -202,6 +204,6 @@ export default function UserManagement() {
                     </div>
                 </div>
             </div>
-        </PageTemplate>
+        </AdminPageLayout>
     )
 }

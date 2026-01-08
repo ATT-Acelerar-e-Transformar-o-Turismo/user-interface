@@ -47,23 +47,21 @@ function App() {
   return (
     <>
       <PageTemplate showSearchBox={false}>
-        <div className="min-h-screen" style={{backgroundColor: '#fffdfb'}}>
+        <div className="min-h-screen bg-base-100">
           {/* Hero Section */}
           <section className="text-center py-20 px-4">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <div className="max-w-5xl mx-auto">
+              <h1 className="text-7xl font-bold text-gray-900 mb-6 leading-tight">
                 A raíz das<br />
                 decisões certas.
               </h1>
-              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                A plataforma que conecta pessoas, negócios e cidades através de dados que importam.
+              <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto">
+                A plataforma que conecta pessoas, negócios e cidades<br />
+                através de dados que importam.
               </p>
               <Link
-                to="/domains"
-                className="inline-block text-white font-semibold py-4 px-8 rounded-full transition-colors duration-200"
-                style={{backgroundColor: '#009367'}}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#007a5a'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#009367'}
+                to="/indicators"
+                className="inline-block bg-primary text-primary-content font-semibold py-4 px-8 rounded-full transition-colors duration-200 hover:bg-primary/90"
               >
                 Ver Indicadores
               </Link>

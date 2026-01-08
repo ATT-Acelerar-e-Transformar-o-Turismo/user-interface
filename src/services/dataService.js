@@ -1,9 +1,16 @@
 import apiClient from './apiClient';
 
 export const dataService = {
-  async getIndicatorData(indicatorId, skip = 0, limit = 50, sort = 'asc') {
+  async getIndicatorData(indicatorId, skip = 0, limit = 100, sort = 'asc', granularity = '0', startDate = null, endDate = null) {
     try {
-      const response = await apiClient.get(`/api/indicators/${indicatorId}/data?skip=${skip}&limit=${limit}&sort=${sort}`);
+      let url = `/api/indicators/${indicatorId}/data?skip=${skip}&limit=${limit}&sort=${sort}&granularity=${granularity}`;
+      if (startDate) {
+        url += `&start_date=${startDate}`;
+      }
+      if (endDate) {
+        url += `&end_date=${endDate}`;
+      }
+      const response = await apiClient.get(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching indicator data:', error);
@@ -39,10 +46,25 @@ export const dataService = {
       };
     }
 
-    const transformedData = data.map(point => ({
-      x: new Date(point.x).getTime(), // Convert to timestamp
-      y: Number(point.y.toFixed(2)) // Format to 2 decimal places
-    }));
+    const transformedData = data.map(point => {
+      let dateStr = point.x;
+      // Ensure ISO format is treated as UTC if timezone is missing
+      if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+        dateStr += 'Z';
+      }
+      
+      const timestamp = new Date(dateStr).getTime();
+      
+      if (isNaN(timestamp)) {
+        console.warn('Invalid date encountered:', point.x);
+        return null;
+      }
+
+      return {
+        x: timestamp,
+        y: Number(point.y.toFixed(2))
+      };
+    }).filter(p => p !== null); // Remove invalid points
 
     return {
       series: [{

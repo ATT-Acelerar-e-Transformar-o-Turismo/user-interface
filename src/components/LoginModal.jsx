@@ -151,7 +151,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                                style={{'--tw-ring-color': '#009367'}}
+                                style={{'--tw-ring-color': 'var(--color-primary)'}}
                                 placeholder="Digite seu nome"
                                 required
                             />
@@ -168,8 +168,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                            style={{'--tw-ring-color': '#009367'}}
+                            className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
                             placeholder="Digite seu e-mail"
                             required
                         />
@@ -186,9 +185,8 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 pr-12"
-                                style={{'--tw-ring-color': '#009367'}}
-                                placeholder="Digite sua palavra-passe"
+                                className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 pr-12"
+                                    placeholder="Digite sua palavra-passe"
                                 required
                             />
                             <button
@@ -219,7 +217,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                                style={{'--tw-ring-color': '#009367'}}
+                                style={{'--tw-ring-color': 'var(--color-primary)'}}
                                 placeholder="Confirme sua palavra-passe"
                                 required
                             />
@@ -235,8 +233,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                             name="rememberMe"
                             checked={formData.rememberMe}
                             onChange={handleInputChange}
-                            className="w-4 h-4 rounded border-gray-300 focus:ring-opacity-50"
-                            style={{'--tw-ring-color': '#009367'}}
+                            className="w-4 h-4 rounded border-gray-300 focus:ring-primary focus:ring-opacity-50"
                         />
                         <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
                             Guardar credenciais
@@ -268,13 +265,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-3 text-white font-medium rounded-full transition-all duration-200 disabled:opacity-50"
-                        style={{
-                            backgroundColor: '#009367',
-                            opacity: isLoading ? 0.7 : 1
-                        }}
-                        onMouseEnter={(e) => !isLoading && (e.target.style.backgroundColor = '#007a5a')}
-                        onMouseLeave={(e) => !isLoading && (e.target.style.backgroundColor = '#009367')}
+                        className="w-full py-3 bg-primary text-white font-medium rounded-full transition-all duration-200 hover:bg-primary/90 disabled:opacity-70"
                     >
                         {isLoading ? 'Aguarde...' : (isRegisterMode ? 'Criar Conta' : 'Iniciar Sessão')}
                     </button>

@@ -23,11 +23,11 @@ export default function DomainTemplate() {
   const isSearchMode = Boolean(searchQuery);
   
   // Determine domain from state or URL path
-  // Convert URL path back to domain name (e.g., /ambiente -> Ambiente, /nova-economia -> Nova Economia)
   const pathToDomainName = (path) => {
     if (!path || typeof path !== 'string') return "";
-    const cleanPath = path.replace("/", "");
-    if (!cleanPath) return "";
+    // Remove leading /indicators/ or /
+    const cleanPath = path.replace(/^\/indicators\//, "").replace(/^\//, "");
+    if (!cleanPath || cleanPath === "indicators") return "";
     return cleanPath
       .split("-")
       .map(word => word && word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : "")
@@ -36,31 +36,30 @@ export default function DomainTemplate() {
   };
   
   const inferredDomainName = domainName || pathToDomainName(domainPath || location.pathname);
-  
+  const isAllIndicatorsMode = !inferredDomainName && !isSearchMode;
+
   // Debug logging
   console.log("DomainTemplate Debug:", {
     domainPath,
     locationPathname: location.pathname,
     domainName,
     inferredDomainName,
+    isAllIndicatorsMode,
     domainsLength: domains.length,
     domains: domains.map(d => ({ id: d?.id, name: d?.name }))
   });
   
-  // Find domain by name or fallback to mock domain for testing
+  // Find domain by name or fallback
   const foundDomain = domains.find(dom => 
     dom?.name === domainName || dom?.name === inferredDomainName
   ) || getDomainByName(inferredDomainName);
   
-  const selectedDomainObj = foundDomain || {
+  const selectedDomainObj = foundDomain || (isAllIndicatorsMode ? null : {
     id: location.pathname.replace("/", ""),
     name: inferredDomainName || "Test Domain",
     subdomains: [],
-    DomainCarouselImages: [
-      "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
-      "https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
-    ]
-  };
+    DomainCarouselImages: []
+  });
   
   console.log("Selected Domain Object:", selectedDomainObj);
   console.log("Subdomains detail:", selectedDomainObj?.subdomains);
@@ -123,11 +122,40 @@ export default function DomainTemplate() {
         if (isSearchMode && searchQuery) {
           // Search mode: use search API with sorting and filtering
           data = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter);
-          // For search mode, estimate total based on current results
           const hasMoreData = data.length === pageSize;
           totalCount = hasMoreData ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + data.length;
+        } else if (isAllIndicatorsMode) {
+          // All Indicators mode
+          // Check if we are filtering by domain via dropdown in All Indicators mode
+          if (domainFilter) {
+             if (subdomainFilter) {
+                // Filter by specific subdomain within a domain
+                const [indicatorsData, count] = await Promise.all([
+                  indicatorService.getBySubdomain(domainFilter, subdomainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter),
+                  indicatorService.getCountBySubdomain(domainFilter, subdomainFilter, governanceFilter)
+                ]);
+                data = indicatorsData;
+                totalCount = count;
+             } else {
+                // Filter by specific domain
+                const [indicatorsData, count] = await Promise.all([
+                  indicatorService.getByDomain(domainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter),
+                  indicatorService.getCountByDomain(domainFilter, governanceFilter)
+                ]);
+                data = indicatorsData;
+                totalCount = count;
+             }
+          } else {
+             // No domain filter, get everything
+             const [indicatorsData, count] = await Promise.all([
+               indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter),
+               indicatorService.getCount()
+             ]);
+             data = indicatorsData;
+             totalCount = count;
+          }
         } else {
-          // Domain mode: wait for domains to load and use domain filtering
+          // Specific Domain mode (legacy /environment etc or /indicators/environment)
           if (domains.length === 0) {
             setLoading(false);
             return;
@@ -192,7 +220,7 @@ export default function DomainTemplate() {
     };
 
     loadIndicators();
-  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize, domains, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isSearchMode, searchQuery]);
+  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize, domains, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isSearchMode, searchQuery, isAllIndicatorsMode]);
 
   // Reset pagination when subdomain changes
   const handleSubdomainChange = (subdomain) => {
@@ -223,240 +251,273 @@ export default function DomainTemplate() {
 
   return (
     <PageTemplate>
-      {!isSearchMode && <Carousel images={images} />}
-      <div className="p-4">
-        {/* Search Results Header or Domain Navigation */}
-        {isSearchMode ? (
-          <div className="space-y-4 mb-6">
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl shadow-sm border border-primary/20 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-search text-primary text-lg"></i>
-                  <div>
-                    <h1 className="text-xl font-bold text-base-content">Search Results</h1>
-                    <p className="text-sm text-base-content/70">
-                      Results for: <span className="font-semibold text-primary">"{searchQuery}"</span>
-                    </p>
+      <div className="min-h-screen bg-base-100">
+        {/* Hero Section - Matches Home Page Style */}
+        <section className="text-center py-20 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              {isSearchMode
+                ? `Resultados para "${searchQuery}"`
+                : selectedDomainObj?.name || (isAllIndicatorsMode ? 'Todos os Indicadores' : inferredDomainName || 'Indicadores')}
+            </h1>
+            <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto">
+              {isSearchMode
+                ? `Encontrámos ${indicators.length} indicador${indicators.length !== 1 ? 'es' : ''} que corresponde${indicators.length === 1 ? '' : 'm'} à sua pesquisa.`
+                : isAllIndicatorsMode 
+                  ? "Explore a lista completa de indicadores de sustentabilidade disponíveis na plataforma."
+                  : `Explore os indicadores de sustentabilidade do domínio ${selectedDomainObj?.name || inferredDomainName}.`
+              }
+            </p>
+          </div>
+        </section>
+
+        <div className="max-w-7xl mx-auto px-6 pb-12">
+          {/* Filters Section - Seamless Style */}
+          {(isSearchMode || isAllIndicatorsMode) ? (
+            <div className="mb-12">
+              <div className="flex flex-col gap-6">
+                {/* Header for Filters */}
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <i className={`fas ${isSearchMode ? 'fa-search' : 'fa-globe'} text-primary text-xl`}></i>
+                    <span className="text-lg font-semibold text-gray-700">
+                      {totalIndicators > 0 ? `${totalIndicators} Indicadores Disponíveis` : 'Nenhum indicador encontrado'}
+                    </span>
                   </div>
                 </div>
-                <div className="text-sm text-base-content/60">
-                  {totalIndicators > 0 ? `${totalIndicators} result${totalIndicators === 1 ? '' : 's'} found` : 'No results found'}
+                
+                {/* Filter Controls */}
+                <div className="w-full flex justify-center">
+                  <div className="flex flex-wrap items-center gap-6 bg-white p-2 rounded-full border border-gray-200 shadow-sm px-6">
+                    {/* Sort Controls */}
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-600">Ordenar:</span>
+                      <select
+                        className="select select-sm select-ghost focus:bg-transparent focus:text-primary transition-colors"
+                        value={sortBy}
+                        onChange={(e) => handleSort(e.target.value)}
+                      >
+                        <option value="name">Nome</option>
+                        <option value="periodicity">Periodicidade</option>
+                        <option value="favourites">Favoritos</option>
+                      </select>
+                      <button 
+                        className="btn btn-sm btn-ghost btn-circle text-primary"
+                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                        title={`Ordenar ${sortOrder === 'asc' ? 'Descendente' : 'Ascendente'}`}
+                      >
+                        {sortOrder === 'asc' ? (
+                          <i className="fas fa-sort-alpha-down"></i>
+                        ) : (
+                          <i className="fas fa-sort-alpha-up"></i>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="w-px h-6 bg-gray-200"></div>
+
+                    {/* Domain Filter */}
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-600">Domínio:</span>
+                      <select
+                        className="select select-sm select-ghost focus:bg-transparent focus:text-primary transition-colors min-w-[120px]"
+                        value={domainFilter || ''}
+                        onChange={(e) => {
+                          setDomainFilter(e.target.value || null);
+                          setSubdomainFilter(null); // Reset subdomain when domain changes
+                          setCurrentPage(0);
+                        }}
+                      >
+                        <option value="">Todos</option>
+                        {domains.map(domain => (
+                          <option key={domain.id} value={domain.id}>
+                            {domain.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="w-px h-6 bg-gray-200"></div>
+
+                    {/* Subdomain Filter */}
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-600">Dimensão:</span>
+                      <select
+                        className="select select-sm select-ghost focus:bg-transparent focus:text-primary transition-colors min-w-[140px]"
+                        value={subdomainFilter || ''}
+                        onChange={(e) => {
+                          setSubdomainFilter(e.target.value || null);
+                          setCurrentPage(0);
+                        }}
+                        disabled={!domainFilter}
+                      >
+                        <option value="">Todos</option>
+                        {domainFilter && domains.find(d => d.id === domainFilter)?.subdomains?.map(subdomain => (
+                          <option key={subdomain.name || subdomain} value={subdomain.name || subdomain}>
+                            {subdomain.name || subdomain}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="w-px h-6 bg-gray-200"></div>
+
+                    {/* Governance Filter */}
+                    <div className="flex items-center gap-2">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-sm checkbox-primary"
+                          checked={governanceFilter === true}
+                          onChange={(e) => {
+                            setGovernanceFilter(e.target.checked ? true : null);
+                            setCurrentPage(0);
+                          }}
+                        />
+                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary transition-colors">
+                          Governança
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            {/* Search Results Sorting and Filtering Controls */}
-            <div className="w-full">
-              <div className="flex flex-wrap items-center gap-4">
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-12 pb-6 border-b border-gray-200">
+              {/* Left side: Domain/Subdomain Selection */}
+              <div className="flex items-center gap-4">
+                <Dropdowns
+                  selectedDomain={selectedDomainObj}
+                  setSelectedDomain={setSelectedDomain}
+                  selectedSubdomain={selectedSubdomain}
+                  setSelectedSubdomain={handleSubdomainChange}
+                  showIndicatorDropdown={false}
+                  redirectOnDomainChange={true}
+                  allowSubdomainClear={true}
+                />
+              </div>
+              
+              {/* Right side: Sorting and Filtering Controls */}
+              <div className="flex flex-wrap items-center gap-6">
                 {/* Sort Controls */}
-                <div className="flex items-center gap-2">
-                  <i className="fas fa-sort text-primary"></i>
-                  <span className="font-semibold text-sm">Sort:</span>
-                  <select
-                    className="select select-sm select-bordered bg-base-100 border-base-300 focus:border-primary transition-colors"
-                    value={sortBy}
-                    onChange={(e) => handleSort(e.target.value)}
-                  >
-                    <option value="name">Name</option>
-                    <option value="periodicity">Periodicity</option>
-                    <option value="favourites">Favourites</option>
-                  </select>
-                  <button 
-                    className="btn btn-sm btn-outline btn-primary hover:btn-primary"
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
-                  >
-                    {sortOrder === 'asc' ? (
-                      <i className="fas fa-sort-alpha-down"></i>
-                    ) : (
-                      <i className="fas fa-sort-alpha-up"></i>
-                    )}
-                  </button>
-                </div>
-
-                {/* Domain Filter */}
-                <div className="flex items-center gap-2">
-                  <i className="fas fa-layer-group text-primary"></i>
-                  <span className="font-semibold text-sm">Domain:</span>
-                  <select
-                    className="select select-sm select-bordered bg-base-100 border-base-300 focus:border-primary transition-colors min-w-[120px]"
-                    value={domainFilter || ''}
-                    onChange={(e) => {
-                      setDomainFilter(e.target.value || null);
-                      setSubdomainFilter(null); // Reset subdomain when domain changes
-                      setCurrentPage(0);
-                    }}
-                  >
-                    <option value="">All Domains</option>
-                    {domains.map(domain => (
-                      <option key={domain.id} value={domain.id}>
-                        {domain.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Subdomain Filter */}
-                <div className="flex items-center gap-2">
-                  <i className="fas fa-sitemap text-primary"></i>
-                  <span className="font-semibold text-sm">Subdomain:</span>
-                  <select
-                    className="select select-sm select-bordered bg-base-100 border-base-300 focus:border-primary transition-colors min-w-[140px]"
-                    value={subdomainFilter || ''}
-                    onChange={(e) => {
-                      setSubdomainFilter(e.target.value || null);
-                      setCurrentPage(0);
-                    }}
-                    disabled={!domainFilter}
-                  >
-                    <option value="">All Subdomains</option>
-                    {domainFilter && domains.find(d => d.id === domainFilter)?.subdomains?.map(subdomain => (
-                      <option key={subdomain.name || subdomain} value={subdomain.name || subdomain}>
-                        {subdomain.name || subdomain}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex items-center gap-2 bg-white p-2 rounded-full border border-gray-200 shadow-sm px-4">
+                  <span className="font-semibold text-sm text-gray-600">Ordenar:</span>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="select select-sm select-ghost focus:bg-transparent focus:text-primary transition-colors"
+                      value={sortBy}
+                      onChange={(e) => handleSort(e.target.value)}
+                    >
+                      <option value="name">Nome</option>
+                      <option value="periodicity">Periodicidade</option>
+                      <option value="favourites">Favoritos</option>
+                    </select>
+                    <button 
+                      className="btn btn-sm btn-ghost btn-circle text-primary"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      title={`Ordenar ${sortOrder === 'asc' ? 'Descendente' : 'Ascendente'}`}
+                    >
+                      {sortOrder === 'asc' ? (
+                        <i className="fas fa-sort-alpha-down"></i>
+                      ) : (
+                        <i className="fas fa-sort-alpha-up"></i>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Governance Filter */}
-                <div className="flex items-center gap-2">
-                  <i className="fas fa-filter text-secondary"></i>
+                <div className="flex items-center gap-2 bg-white p-2 rounded-full border border-gray-200 shadow-sm px-4">
                   <label className="flex items-center gap-2 cursor-pointer group">
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-sm checkbox-secondary"
+                      className="checkbox checkbox-sm checkbox-primary"
                       checked={governanceFilter === true}
                       onChange={(e) => {
-                        setGovernanceFilter(e.target.checked ? true : null);
-                        setCurrentPage(0);
+                        handleGovernanceFilter(e.target.checked ? true : null);
                       }}
                     />
-                    <span className="text-sm font-medium text-base-content group-hover:text-secondary transition-colors">
-                      Governance only
+                    <span className="text-sm font-medium text-gray-600 group-hover:text-primary transition-colors">
+                      Governança
                     </span>
                   </label>
                 </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            {/* Left side: Domain/Subdomain Selection */}
-            <div className="flex items-center gap-4">
-              <Dropdowns
-                selectedDomain={selectedDomainObj}
-                setSelectedDomain={setSelectedDomain}
-                selectedSubdomain={selectedSubdomain}
-                setSelectedSubdomain={handleSubdomainChange}
-                showIndicatorDropdown={false}
-                redirectOnDomainChange={true}
-                allowSubdomainClear={true}
-              />
-            </div>
-            
-            {/* Right side: Sorting and Filtering Controls */}
-            <div className="flex flex-wrap items-center gap-6">
-              {/* Sort Controls */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-base-content">
-                  <i className="fas fa-sort text-primary"></i>
-                  <span className="font-semibold text-sm">Sort by:</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    className="select select-sm select-bordered bg-base-100 border-base-300 focus:border-primary transition-colors"
-                    value={sortBy}
-                    onChange={(e) => handleSort(e.target.value)}
-                  >
-                    <option value="name">Name</option>
-                    <option value="periodicity">Periodicity</option>
-                    <option value="favourites">Favourites</option>
-                  </select>
-                  <button 
-                    className="btn btn-sm btn-outline btn-primary hover:btn-primary"
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
-                  >
-                    {sortOrder === 'asc' ? (
-                      <i className="fas fa-sort-alpha-down"></i>
-                    ) : (
-                      <i className="fas fa-sort-alpha-up"></i>
-                    )}
-                  </button>
-                </div>
-              </div>
 
-              {/* Governance Filter */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-base-content">
-                  <i className="fas fa-filter text-secondary"></i>
-                  <span className="font-semibold text-sm">Filter:</span>
-                </div>
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm checkbox-secondary"
-                    checked={governanceFilter === true}
-                    onChange={(e) => {
-                      handleGovernanceFilter(e.target.checked ? true : null);
-                    }}
-                  />
-                  <span className="text-sm font-medium group-hover:text-secondary transition-colors">
-                    Governance only
-                  </span>
-                </label>
               </div>
-
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {loading && <LoadingSkeleton />}
-      
-      {error && <ErrorDisplay error={error} />}
-      
-      {!loading && !error && (
-        <>
-          <div className="flex flex-wrap place-content-center gap-4">
-            {indicators
-              .filter(indicator => indicator && indicator.name && indicator.id)
-              .map((indicator) => (
-                <IndicatorCard
-                  key={indicator.id}
-                  IndicatorTitle={isSearchMode ? highlightSearchTerms(indicator.name, searchQuery) : indicator.name}
-                  IndicatorId={indicator.id}
-                  GraphTypes={GraphTypes}
-                  domain={indicator.domain?.name || selectedDomainObj?.name}
-                  subdomain={isSearchMode ? (indicator.subdomain || indicator.domain?.name) : (typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain?.name)}
-                />
-              ))}
-          </div>
-          
-          {indicators.length === 0 && (
-            <div className="text-center p-8">
-              <h2 className="text-xl">
-                {isSearchMode 
-                  ? `No indicators found matching "${searchQuery}"`
-                  : selectedSubdomain && (typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name)
-                    ? `No indicators found for ${typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name}` 
-                    : `No indicators found for ${selectedDomainObj?.name || inferredDomainName}`}
-              </h2>
             </div>
           )}
-          
-          <Pagination
-            currentPage={currentPage}
-            totalItems={totalIndicators}
-            pageSize={pageSize}
-            hasNextPage={hasNextPage}
-            onPageChange={handlePageChange}
-            loading={loading}
-            showItemCount={true}
-            itemName="indicators"
-          />
-        </>
-      )}
+        
+        {loading && <LoadingSkeleton />}
+        
+        {error && <ErrorDisplay error={error} />}
+        
+        {!loading && !error && (
+          <>
+            {/* Indicators Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {indicators
+                .filter(indicator => indicator && indicator.name && indicator.id)
+                .map((indicator) => (
+                  <IndicatorCard
+                    key={indicator.id}
+                    IndicatorTitle={isSearchMode ? highlightSearchTerms(indicator.name, searchQuery) : indicator.name}
+                    IndicatorId={indicator.id}
+                    GraphTypes={GraphTypes}
+                    domain={indicator.domain?.name || selectedDomainObj?.name}
+                    subdomain={isSearchMode ? (indicator.subdomain || indicator.domain?.name) : (typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain?.name)}
+                    description={indicator.description}
+                    unit={indicator.unit}
+                  />
+                ))}
+            </div>
+
+            {/* Empty State */}
+            {indicators.length === 0 && (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 text-gray-300">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2 font-['Onest',sans-serif]">
+                  Nenhum indicador encontrado
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {isSearchMode
+                    ? `Não encontrámos indicadores correspondentes a "${searchQuery}". Tente ajustar os termos de pesquisa.`
+                    : selectedSubdomain && (typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name)
+                      ? `Não existem indicadores disponíveis para ${typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name}.`
+                      : `Não existem indicadores disponíveis para ${selectedDomainObj?.name || inferredDomainName}.`}
+                </p>
+                {isSearchMode && (
+                  <button
+                    onClick={() => window.history.back()}
+                    className="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors cursor-pointer"
+                  >
+                    Voltar atrás
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Pagination */}
+            <div className="mt-12">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalIndicators}
+                pageSize={pageSize}
+                hasNextPage={hasNextPage}
+                onPageChange={handlePageChange}
+                loading={loading}
+                showItemCount={true}
+                itemName="indicadores"
+              />
+            </div>
+          </>
+        )}
+        </div>
+      </div>
     </PageTemplate>
   );
 }

@@ -49,18 +49,23 @@ export default function BlogIndicatorWidget({ indicatorId, vizType }) {
             zoom: { enabled: false },
             fontFamily: 'inherit'
         },
-        colors: ['#009367'],
+        colors: ['var(--color-primary)'],
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 2 },
         xaxis: {
             type: 'datetime',
-            tooltip: { enabled: false }
+            tooltip: { enabled: false },
+            labels: { style: { colors: 'var(--color-base-content)' } }
+        },
+        yaxis: {
+            labels: { style: { colors: 'var(--color-base-content)' } }
         },
         tooltip: {
-            x: { format: 'dd MMM yyyy' }
+            x: { format: 'dd MMM yyyy' },
+            theme: 'light'
         },
         grid: {
-            borderColor: '#f3f4f6',
+            borderColor: 'var(--color-base-300)',
             strokeDashArray: 4,
         }
     };
@@ -71,33 +76,36 @@ export default function BlogIndicatorWidget({ indicatorId, vizType }) {
     }];
 
     return (
-        <div className="my-8 border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white not-prose">
-            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="font-semibold text-gray-700 m-0 text-sm uppercase tracking-wide">
-                    {indicator.name}
-                </h3>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
-                        {indicator.periodicity}
-                    </span>
-                    <Link
-                        to={`/indicator/${indicatorId}`}
-                        className="text-2xl hover:opacity-80 transition-opacity"
-                        style={{ color: '#009367', textDecoration: 'none' }}
+        <div className="my-8 border border-base-300 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-base-100 not-prose">
+            <div className="bg-base-200 px-4 py-2 border-b border-base-300 flex justify-between items-center">
+                <div className="flex items-center gap-1">
+                    <h3 className="font-semibold text-base-content m-0 text-sm uppercase tracking-wide">
+                        {indicator.name}
+                    </h3>
+                    <Link 
+                        to={`/indicator/${indicator.id}`}
+                        target="_blank"
+                        className="text-base-content/50 hover:text-primary transition-colors"
+                        title="Abrir indicador"
                     >
-                        ↗
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
                     </Link>
                 </div>
+                <span className="text-xs text-base-content/70 bg-base-100 border border-base-300 px-2 py-1 rounded-full">
+                    {indicator.periodicity}
+                </span>
             </div>
 
             <div className="p-6">
                 {vizType === 'value' && (
                     <div className="text-center">
-                        <div className="text-4xl font-bold text-gray-900" style={{ color: '#009367' }}>
+                        <div className="text-4xl font-bold" style={{ color: 'var(--color-primary)' }}>
                             {typeof lastValue === 'number' ? lastValue.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) : lastValue}
-                            <span className="text-xl text-gray-500 ml-1">{unit}</span>
+                            <span className="text-xl text-base-content/60 ml-1">{unit}</span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-2">Última atualização: {data.length > 0 ? new Date(data[data.length - 1].x).toLocaleDateString('pt-BR') : '-'}</p>
+                        <p className="text-sm text-base-content/70 my-2">Última atualização: {data.length > 0 ? new Date(data[data.length - 1].x).toLocaleDateString('pt-BR') : '-'}</p>
                     </div>
                 )}
 
@@ -111,7 +119,7 @@ export default function BlogIndicatorWidget({ indicatorId, vizType }) {
                                 height="100%"
                             />
                         ) : (
-                            <div className="h-full flex items-center justify-center text-gray-400">
+                            <div className="h-full flex items-center justify-center text-base-content/40">
                                 Sem dados para exibir
                             </div>
                         )}
@@ -120,7 +128,7 @@ export default function BlogIndicatorWidget({ indicatorId, vizType }) {
             </div>
             
             {indicator.description && (
-                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+                <div className="px-4 py-3 bg-base-200 border-t border-base-300 text-xs text-base-content/70">
                    {indicator.description}
                 </div>
             )}

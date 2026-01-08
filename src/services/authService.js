@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost'
 const authService = {
   async login(credentials) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/users/auth/login`, {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
         email: credentials.email,
         password: credentials.password,
         remember_me: credentials.rememberMe
@@ -24,7 +24,7 @@ const authService = {
 
   async logout() {
     try {
-      await axios.post(`${API_BASE_URL}/api/users/auth/logout`)
+      await axios.post(`${API_BASE_URL}/api/auth/logout`)
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
@@ -38,7 +38,7 @@ const authService = {
       const token = localStorage.getItem('token')
       if (!token) return null
 
-      const response = await axios.get(`${API_BASE_URL}/api/users/auth/me`, {
+      const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

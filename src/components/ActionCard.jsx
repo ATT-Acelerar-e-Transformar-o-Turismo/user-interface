@@ -7,11 +7,11 @@ import { Link } from 'react-router-dom';
  */
 export default function ActionCard({ icon, title, to, onClick, className = '' }) {
   const content = (
-    <div className={`bg-[#f1f0f0] rounded-[23px] p-6 flex flex-col items-center justify-center gap-4 hover:bg-gray-200 transition-colors cursor-pointer ${className}`}>
+    <div className={`rounded-[23px] p-6 flex flex-col items-center justify-center gap-4 hover:bg-base-200 transition-colors cursor-pointer ${className}`} style={{backgroundColor: 'var(--color-surface)'}}>
       {/* Icon Container */}
-      <div className="bg-[#d9d9d9] rounded-[15px] w-20 h-20 flex items-center justify-center">
+      <div className="rounded-[15px] w-20 h-20 flex items-center justify-center" style={{backgroundColor: 'var(--color-surface-variant)'}}>
         {typeof icon === 'string' ? (
-          <i className={`${icon} text-3xl text-gray-600`}></i>
+          <i className={`${icon} text-3xl text-base-content/60`}></i>
         ) : (
           icon
         )}

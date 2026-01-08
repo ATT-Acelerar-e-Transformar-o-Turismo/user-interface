@@ -55,7 +55,7 @@ export default Node.create({
       'div',
       mergeAttributes(HTMLAttributes, {
         class: 'blog-indicator-preview',
-        style: 'display: block !important; margin: 16px 0 !important; padding: 16px !important; max-width: 400px !important; background: linear-gradient(135deg, #f8fffe 0%, #f0fdf9 100%) !important; border: 2px dashed #009367 !important; border-radius: 8px !important; text-align: center !important; color: #009367 !important; font-family: inherit !important; cursor: pointer !important; box-sizing: border-box !important;',
+        style: 'display: block !important; margin: 16px 0 !important; padding: 16px !important; max-width: 400px !important; background: linear-gradient(135deg, var(--color-base-100) 0%, var(--color-base-200) 100%) !important; border: 2px dashed var(--color-primary) !important; border-radius: 8px !important; text-align: center !important; color: var(--color-primary) !important; font-family: inherit !important; cursor: pointer !important; box-sizing: border-box !important;',
         'data-indicator-id': id,
         'data-editable': 'true',
         'id': id,
