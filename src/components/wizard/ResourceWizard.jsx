@@ -250,6 +250,15 @@ export default function ResourceWizard({
         const wrapper = await generateWrapper(wrapperRequest);
         console.log(`Wrapper generated for ${file.name}:`, wrapper);
 
+        if (wrapper.resource_id && !isEditMode) {
+          try {
+            await indicatorService.addResource(indicatorId, wrapper.resource_id);
+            console.log(`Resource ${wrapper.resource_id} linked to indicator ${indicatorId}`);
+          } catch (linkError) {
+            console.error(`Failed to link resource ${wrapper.resource_id} to indicator:`, linkError);
+          }
+        }
+
         wrappers.push({
           fileName: file.name,
           wrapper: wrapper,
