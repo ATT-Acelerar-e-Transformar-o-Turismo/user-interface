@@ -1,24 +1,8 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost';
+import apiClient from './apiClient';
 
 class BlogService {
     constructor() {
-        this.api = axios.create({
-            baseURL: API_BASE_URL,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        // Response interceptor for error handling
-        this.api.interceptors.response.use(
-            (response) => response,
-            (error) => {
-                console.error('Blog API Error:', error.response?.data || error.message);
-                throw error;
-            }
-        );
+        this.api = apiClient;
     }
 
     // Public blog methods
@@ -159,7 +143,7 @@ class BlogService {
 
     // Utility methods
     getFileUrl(path) {
-        return `${API_BASE_URL}${path}`;
+        return `${this.api.defaults.baseURL}${path}`;
     }
 
     formatDate(dateString) {
