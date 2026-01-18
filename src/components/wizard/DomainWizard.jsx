@@ -27,7 +27,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     name: '',
     color: '#00855d',
     subdomains: [],
-    image: ''
+    image: '',
+    icon: ''
   };
 
   const wizard = useWizard(steps.length, initialData, handleSubmit);
@@ -48,7 +49,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
           name: domain.name || '',
           color: domain.color || '#00855d',
           subdomains: Array.isArray(domain.subdomains) ? domain.subdomains : [],
-          image: domain.image || ''
+          image: domain.image || '',
+          icon: domain.icon || ''
         });
       }
     } catch (error) {
@@ -105,7 +107,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
         name: data.name.trim(),
         color: data.color || '#00855d',
         subdomains: data.subdomains || [],
-        image: data.image || ''
+        image: data.image || '',
+        icon: data.icon || ''
       };
 
       if (domainId) {
@@ -196,6 +199,15 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
               value={wizard.formData.image}
               onChange={(value) => wizard.updateFormData('image', value)}
               placeholder="https://exemplo.com/imagem.png"
+              type="url"
+            />
+
+            <FormInput
+              label="URL do Ícone"
+              name="icon"
+              value={wizard.formData.icon}
+              onChange={(value) => wizard.updateFormData('icon', value)}
+              placeholder="https://exemplo.com/icone.png"
               type="url"
             />
 

@@ -10,6 +10,7 @@ export default function NewDomain() {
     const [name, setName] = useState('');
     const [color, setColor] = useState('#000000');
     const [image, setImage] = useState('');
+    const [icon, setIcon] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function NewDomain() {
                         setColor(domain.color || '#000000');
                         setSubdomains(Array.isArray(domain.subdomains) ? domain.subdomains : []);
                         setImage(domain.image || '');
+                        setIcon(domain.icon || '');
             }
                 } catch (err) {
                     setError('Failed to load domain: ' + (err.userMessage || err.message));
@@ -61,11 +63,12 @@ export default function NewDomain() {
         setError(null);
 
         try {
-            const domainData = { 
-                name: name.trim(), 
-                color: color || '#000000', 
+            const domainData = {
+                name: name.trim(),
+                color: color || '#000000',
                 subdomains: subdomains || [],
-                image: image || ''
+                image: image || '',
+                icon: icon || ''
         };
         
 
@@ -179,7 +182,20 @@ export default function NewDomain() {
                                 className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
                                 />
                         </div>
-                        
+
+                        <div>
+                            <label htmlFor="icon-input" className="block mb-2 text-sm font-medium text-neutral">Icon URL</label>
+                                <input
+                                type="text"
+                                    id="icon-input"
+                                value={icon}
+                                onChange={(e) => setIcon(e.target.value)}
+                                disabled={loading}
+                                placeholder="Enter icon URL"
+                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+                                />
+                        </div>
+
                         <div className="flex justify-end mt-4 space-x-2">
                             <button 
                                 type="button" 
