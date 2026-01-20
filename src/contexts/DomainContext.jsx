@@ -27,6 +27,7 @@ export function DomainProvider({ children }) {
                 DomainPage: domain.name ? `/${domain.name.toLowerCase()}` : '/unknown-domain',
                 DomainColor: domain.color,
                 DomainImage: domain.image,
+                DomainIcon: domain.icon,
                 DomainCarouselImages: [domain.image],
                 subdomains: domain.subdomains ? domain.subdomains.filter(subdomain => subdomain != null).map(subdomain => ({ name: subdomain })) : []
             }));

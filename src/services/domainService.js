@@ -15,7 +15,7 @@ export const domainService = {
 
   // Create domain
   async create(domainData) {
-    const response = await apiClient.post('/api/domains', domainData);
+    const response = await apiClient.post('/api/domains/', domainData);
     return response.data;
   },
 
