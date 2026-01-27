@@ -17,12 +17,10 @@ export const DataProvider = ({ children }) => {
   const [errorStates, setErrorStates] = useState(new Map());
 
   const fetchIndicatorData = async (indicatorId, indicatorName = 'Data') => {
-    // Check if we already have data for this indicator
     if (dataCache.has(indicatorId)) {
       return dataCache.get(indicatorId);
     }
 
-    // Set loading state
     setLoadingStates(prev => new Map(prev).set(indicatorId, true));
     setErrorStates(prev => new Map(prev).set(indicatorId, null));
 

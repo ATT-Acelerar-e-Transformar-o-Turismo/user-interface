@@ -1,17 +1,19 @@
 import apiClient from './apiClient'
+import { API_ENDPOINTS } from '../constants/api'
+import { STORAGE_KEYS } from '../constants/app'
 
 const authService = {
   async login(credentials) {
     try {
-      const response = await apiClient.post('/api/auth/login', {
+      const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, {
         email: credentials.email,
         password: credentials.password,
         remember_me: credentials.rememberMe
       })
 
       if (response.data.access_token) {
-        localStorage.setItem('token', response.data.access_token)
-        localStorage.setItem('user', JSON.stringify(response.data.user))
+        localStorage.setItem(STORAGE_KEYS.TOKEN, response.data.access_token)
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.data.user))
       }
 
       return response.data
@@ -22,21 +24,21 @@ const authService = {
 
   async logout() {
     try {
-      await apiClient.post('/api/auth/logout')
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT)
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      localStorage.removeItem(STORAGE_KEYS.TOKEN)
+      localStorage.removeItem(STORAGE_KEYS.USER)
     }
   },
 
   async getCurrentUser() {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN)
       if (!token) return null
 
-      const response = await apiClient.get('/api/auth/me')
+      const response = await apiClient.get(API_ENDPOINTS.AUTH.ME)
 
       return response.data
     } catch (error) {
@@ -47,11 +49,11 @@ const authService = {
   },
 
   getToken() {
-    return localStorage.getItem('token')
+    return localStorage.getItem(STORAGE_KEYS.TOKEN)
   },
 
   getUser() {
-    const userStr = localStorage.getItem('user')
+    const userStr = localStorage.getItem(STORAGE_KEYS.USER)
     return userStr ? JSON.parse(userStr) : null
   },
 

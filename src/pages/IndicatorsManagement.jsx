@@ -40,7 +40,6 @@ export default function IndicatorsManagement() {
   
   const navigate = useNavigate();
 
-  // Handle search from URL parameters
   useEffect(() => {
     const search = searchParams.get('q');
     if (search) {
@@ -50,7 +49,6 @@ export default function IndicatorsManagement() {
     }
   }, [searchParams]);
 
-  // Load data based on selected option
   useEffect(() => {
     loadData();
   }, [selectedOption, currentPage, pageSize, sortBy, sortOrder, governanceFilter, searchQuery, isSearchMode]);
@@ -64,16 +62,13 @@ export default function IndicatorsManagement() {
         const skip = currentPage * pageSize;
         
         if (isSearchMode && searchQuery.trim()) {
-          // Search mode
           const searchResults = await indicatorService.search(searchQuery, pageSize, skip);
           setIndicators(searchResults || []);
-          
-          // For search, we estimate pagination based on results
+
           const hasMore = searchResults && searchResults.length === pageSize;
           setHasNextPage(hasMore);
           setTotalItems(hasMore ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + (searchResults?.length || 0));
         } else {
-          // Normal mode - Load indicators with pagination and total count
           const [indicatorsData, totalCount] = await Promise.all([
             indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter),
             indicatorService.getCount()
@@ -81,17 +76,14 @@ export default function IndicatorsManagement() {
 
           setIndicators(indicatorsData || []);
           setTotalItems(totalCount || 0);
-          
-          // Determine if there are more pages based on total count
+
           const hasMore = skip + pageSize < totalCount;
           setHasNextPage(hasMore);
         }
-        
-        // Also load domains for mapping (always needed for display)
+
         const domainsData = await domainService.getAll();
         setDomains(domainsData || []);
       } else {
-        // Load domains (domains don't use pagination)
         const domainsData = await domainService.getAll();
         setDomains(domainsData || []);
         setHasNextPage(false);
@@ -112,28 +104,23 @@ export default function IndicatorsManagement() {
     }
 
     if (selectedOption === 'indicators') {
-      // Open wizard for editing indicator
       setEditingIndicatorId(id);
       setIsWizardOpen(true);
     } else {
-      // Navigate to domain edit page (not yet migrated to wizard)
       navigate(`/edit_domain/${id}`);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      // id is already the string ID, no need to extract it from an object
       if (selectedOption === 'indicators') {
         await indicatorService.delete(id);
         const updatedIndicators = indicators.filter(indicator => indicator.id !== id);
         setIndicators(updatedIndicators);
-        
-        // If we deleted the last item on this page and we're not on the first page, go back
+
         if (updatedIndicators.length === 0 && currentPage > 0) {
           setCurrentPage(currentPage - 1);
         }
-        // Always reload data to ensure pagination state and counts are correct
         loadData();
       } else {
         await domainService.delete(id);
@@ -147,25 +134,22 @@ export default function IndicatorsManagement() {
 
   const handleOptionChange = (option) => {
     setSelectedOption(option);
-    setCurrentPage(0); // Reset pagination when switching tabs
+    setCurrentPage(0);
     setHasNextPage(false);
     setTotalItems(0);
   };
 
-  // Prepare table content
-  const tableContent = selectedOption === 'indicators' 
+  const tableContent = selectedOption === 'indicators'
       ? indicators.map(indicator => {
-        // Map domain data for indicators
         let domainInfo = null;
         if (indicator.domain) {
           if (typeof indicator.domain === 'object') {
             domainInfo = indicator.domain;
           } else {
-            // If domain is just an ID, find it in domains array
             domainInfo = domains.find(domain => domain.id === indicator.domain);
           }
         }
-        
+
         return {
           ...indicator,
           domain: domainInfo?.name || indicator.subdomain || 'Unknown Domain',
@@ -174,9 +158,6 @@ export default function IndicatorsManagement() {
       })
       : domains;
 
-
-
-  // Define sortable columns for indicators
   const sortableColumns = ['name', 'periodicity', 'favourites'];
   
   const visibleColumns =
@@ -184,8 +165,7 @@ export default function IndicatorsManagement() {
       ? ['name', 'periodicity', 'domain', 'favourites', 'governance']
       : ['name', 'color'];
 
-  // Create enhanced column headers with sorting
-  const enhancedColumns = selectedOption === 'indicators' 
+  const enhancedColumns = selectedOption === 'indicators'
     ? visibleColumns.map(column => ({
         key: column,
         label: column.charAt(0).toUpperCase() + column.slice(1),
@@ -237,31 +217,29 @@ export default function IndicatorsManagement() {
     return value;
   };
 
-  // Sorting handlers
   const handleSort = (column) => {
-    if (selectedOption !== 'indicators') return; // Only sort indicators
-    
+    if (selectedOption !== 'indicators') return;
+
+
     if (sortBy === column) {
-      // Toggle sort order
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      // New column, default to ascending
       setSortBy(column);
       setSortOrder('asc');
     }
-    setCurrentPage(0); // Reset pagination when sorting
+    setCurrentPage(0);
   };
 
   const handleGovernanceFilter = (value) => {
     setGovernanceFilter(value);
-    setCurrentPage(0); // Reset pagination when filtering
+    setCurrentPage(0);
   };
 
   const clearSearch = () => {
     setSearchQuery('');
     setIsSearchMode(false);
     setCurrentPage(0);
-    setSearchParams({}); // Clear URL search params
+    setSearchParams({});
   };
 
   const actions = [
@@ -269,7 +247,6 @@ export default function IndicatorsManagement() {
     { label: 'Delete', className: 'btn-secondary', onClick: handleDelete }
   ];
 
-  // Page change handler
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };

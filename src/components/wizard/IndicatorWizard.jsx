@@ -14,11 +14,6 @@ import { validateRequired, validateForm, hasErrors } from '../../utils/formValid
 import indicatorService from '../../services/indicatorService';
 import domainService from '../../services/domainService';
 
-/**
- * IndicatorWizard - Multi-step wizard for creating/editing indicators
- * Step 1: Name & Description (with domain/subdomain selection)
- * Step 2: Units & Measures
- */
 export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, onSuccess = null }) {
   const navigate = useNavigate();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -27,24 +22,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   const [domains, setDomains] = useState([]);
   const [subdomains, setSubdomains] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Track component lifecycle
-  useEffect(() => {
-    console.log('IndicatorWizard: Component MOUNTED');
-    return () => {
-      console.log('IndicatorWizard: Component UNMOUNTED');
-    };
-  }, []);
-
-  // Track when showSuccessModal changes
-  useEffect(() => {
-    console.log('IndicatorWizard: showSuccessModal changed to:', showSuccessModal);
-  }, [showSuccessModal]);
-
-  // Track when createdIndicatorId changes
-  useEffect(() => {
-    console.log('IndicatorWizard: createdIndicatorId changed to:', createdIndicatorId);
-  }, [createdIndicatorId]);
 
   const steps = ['Nome & Descrição', 'Unidades & Medidas'];
 
@@ -87,11 +64,9 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     try {
       setLoading(true);
 
-      // Load domains
       const domainsData = await domainService.getAll();
       setDomains(domainsData || []);
 
-      // If editing, load indicator data
       if (indicatorId) {
         const indicator = await indicatorService.getById(indicatorId);
         if (indicator) {
@@ -121,7 +96,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     const errors = {};
 
     if (stepIndex === 0) {
-      // Step 1: Name & Description
       const nameError = validateRequired(wizard.formData.name, 'Nome');
       if (nameError) errors.name = nameError;
 
@@ -147,8 +121,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
 
   async function handleSubmit(data) {
     try {
-      console.log('IndicatorWizard: Starting submission...', data);
-
       const indicatorData = {
         name: data.name.trim(),
         description: data.description.trim() || '',
@@ -167,52 +139,31 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
       let savedIndicatorId;
 
       if (indicatorId) {
-        // Update existing indicator
         indicatorData.domain = data.domain;
         indicatorData.subdomain = data.subdomain;
         result = await indicatorService.update(indicatorId, indicatorData);
         savedIndicatorId = indicatorId;
-        console.log('IndicatorWizard: Updated indicator:', savedIndicatorId);
       } else {
-        // Create new indicator
-        console.log('IndicatorWizard: Creating indicator with domain:', data.domain, 'subdomain:', data.subdomain);
         result = await indicatorService.create(data.domain, data.subdomain, indicatorData);
         savedIndicatorId = result?.id || result?.indicator_id;
-        console.log('IndicatorWizard: Created indicator, result:', result, 'savedId:', savedIndicatorId);
       }
 
-      // Store created indicator ID for success modal actions
-      // Use a functional update to ensure we have the latest state
       setCreatedIndicatorId(savedIndicatorId);
-      console.log('IndicatorWizard: Set createdIndicatorId to:', savedIndicatorId);
-
-      // Show success modal
       setShowSuccessModal(true);
-      console.log('IndicatorWizard: Set showSuccessModal to true');
-
-      // DON'T call onSuccess immediately - it causes parent re-render which resets our state
-      // We'll call it when the user finishes the entire flow
-      // if (onSuccess) {
-      //   onSuccess(result);
-      // }
     } catch (error) {
-      console.error('IndicatorWizard: Error saving indicator:', error);
+      console.error('Error saving indicator:', error);
       throw error;
     }
   }
 
   const handleAddResources = () => {
-    console.log('IndicatorWizard: handleAddResources called, createdIndicatorId:', createdIndicatorId);
     setShowSuccessModal(false);
     setShowResourceWizard(true);
-    console.log('IndicatorWizard: Set showSuccessModal=false, showResourceWizard=true');
   };
 
   const handleFinish = () => {
-    console.log('IndicatorWizard: handleFinish called');
     setShowSuccessModal(false);
 
-    // Call parent's onSuccess callback now that user is done
     if (onSuccess) {
       onSuccess();
     }
@@ -222,10 +173,8 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   };
 
   const handleResourceWizardClose = () => {
-    console.log('IndicatorWizard: handleResourceWizardClose called');
     setShowResourceWizard(false);
 
-    // Call parent's onSuccess callback now that user is done
     if (onSuccess) {
       onSuccess();
     }
@@ -276,7 +225,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         isSubmitting={wizard.isSubmitting}
         disableNext={loading}
       >
-        {/* Step 1: Name & Description */}
         {wizard.currentStep === 0 && (
           <WizardStep
             title="Nome & Descrição"
@@ -330,7 +278,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
           </WizardStep>
         )}
 
-        {/* Step 2: Units & Measures */}
         {wizard.currentStep === 1 && (
           <WizardStep
             title="Unidades & Medidas"
@@ -397,7 +344,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         )}
       </Wizard>
 
-      {/* Success Modal */}
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleFinish}
@@ -406,7 +352,7 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         primaryAction={{
           label: 'Adicionar Fontes',
           onClick: handleAddResources,
-          closeAfter: false  // Don't auto-close, we're opening another wizard
+          closeAfter: false
         }}
         secondaryAction={{
           label: 'Adicionar fontes mais tarde',
@@ -414,16 +360,12 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         }}
       />
 
-      {/* Resource Wizard */}
       {createdIndicatorId && (
         <ResourceWizard
           isOpen={showResourceWizard}
           onClose={handleResourceWizardClose}
           indicatorId={createdIndicatorId}
-          onSuccess={() => {
-            // Resource added successfully, close everything
-            handleResourceWizardClose();
-          }}
+          onSuccess={handleResourceWizardClose}
         />
       )}
     </>

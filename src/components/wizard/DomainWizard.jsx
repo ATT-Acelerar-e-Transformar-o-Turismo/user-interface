@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Wizard from './Wizard';
 import WizardStep from './WizardStep';
 import SuccessModal from './SuccessModal';
 import FormInput from '../forms/FormInput';
+import FileUpload from '../forms/FileUpload';
 import useWizard from '../../hooks/useWizard';
 import { validateRequired, hasErrors } from '../../utils/formValidation';
 import domainService from '../../services/domainService';
+import uploadService from '../../services/uploadService';
 import { useDomain } from '../../contexts/DomainContext';
 
 /**
@@ -15,7 +16,6 @@ import { useDomain } from '../../contexts/DomainContext';
  * Fields: name, color, subdomains, image URL
  */
 export default function DomainWizard({ isOpen, onClose, domainId = null, onSuccess = null }) {
-  const navigate = useNavigate();
   const { refreshDomains } = useDomain();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -193,22 +193,24 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
               </div>
             </div>
 
-            <FormInput
-              label="URL da Imagem"
+            <FileUpload
+              label="Imagem do Domínio"
               name="image"
               value={wizard.formData.image}
               onChange={(value) => wizard.updateFormData('image', value)}
-              placeholder="https://exemplo.com/imagem.png"
-              type="url"
+              onUpload={uploadService.uploadDomainImage}
+              accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+              showPreview={true}
             />
 
-            <FormInput
-              label="URL do Ícone"
+            <FileUpload
+              label="Ícone do Domínio"
               name="icon"
               value={wizard.formData.icon}
               onChange={(value) => wizard.updateFormData('icon', value)}
-              placeholder="https://exemplo.com/icone.png"
-              type="url"
+              onUpload={uploadService.uploadDomainIcon}
+              accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+              showPreview={true}
             />
 
             {/* Subdomains Management */}

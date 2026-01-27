@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react"
 import PropTypes from 'prop-types'
 import logoRoots from '../assets/logo-roots.png'
 import indicatorService from '../services/indicatorService'
-import { highlightSearchTerms } from '../services/searchUtils'
+import { highlightSearchTerms } from '../utils/searchUtils'
 import LoginModal from './LoginModal'
 import { useAuth } from '../contexts/AuthContext'
 

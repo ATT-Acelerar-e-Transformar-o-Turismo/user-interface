@@ -8,7 +8,6 @@ const apiClient = axios.create({
   },
 });
 
-// Add request interceptor to include auth token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -25,7 +24,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Log detailed error information for debugging
     console.error('API Error:', {
       status: error.response?.status,
       statusText: error.response?.statusText,
@@ -34,14 +32,12 @@ apiClient.interceptors.response.use(
       method: error.config?.method,
       requestData: error.config?.data
     });
-    
-    // Create a more user-friendly error message
-    const errorMessage = error.response?.data?.detail || 
-                        error.response?.data?.message || 
-                        error.message || 
+
+    const errorMessage = error.response?.data?.detail ||
+                        error.response?.data?.message ||
+                        error.message ||
                         'An unexpected error occurred';
-    
-    // Attach the user-friendly message to the error
+
     error.userMessage = errorMessage;
     
     return Promise.reject(error);
