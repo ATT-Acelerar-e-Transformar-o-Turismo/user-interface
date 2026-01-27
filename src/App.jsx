@@ -5,6 +5,7 @@ import ErrorDisplay from './components/ErrorDisplay'
 import PageTemplate from './pages/PageTemplate'
 import { useDomain } from './contexts/DomainContext'
 import { Link } from 'react-router-dom'
+import { ROUTES } from './constants/routes'
 
 import nextgeneu from './assets/partners/nextgeneu.png'
 import republic from './assets/partners/republica.png'
@@ -60,7 +61,7 @@ function App() {
                 através de dados que importam.
               </p>
               <Link
-                to="/indicators"
+                to={ROUTES.INDICATORS}
                 className="inline-block bg-primary text-primary-content font-semibold py-4 px-8 rounded-full transition-colors duration-200 hover:bg-primary/90"
               >
                 Ver Indicadores

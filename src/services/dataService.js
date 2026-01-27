@@ -35,7 +35,6 @@ export const dataService = {
     }
   },
 
-  // Transform API data to chart format
   transformDataForChart(data, indicatorName = 'Data') {
     if (!data || !Array.isArray(data)) {
       return {
@@ -48,7 +47,6 @@ export const dataService = {
 
     const transformedData = data.map(point => {
       let dateStr = point.x;
-      // Ensure ISO format is treated as UTC if timezone is missing
       if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
         dateStr += 'Z';
       }
@@ -64,7 +62,7 @@ export const dataService = {
         x: timestamp,
         y: Number(point.y.toFixed(2))
       };
-    }).filter(p => p !== null); // Remove invalid points
+    }).filter(p => p !== null);
 
     return {
       series: [{

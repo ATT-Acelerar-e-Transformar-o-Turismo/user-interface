@@ -20,7 +20,6 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     }, [onViewportChange]);
 
     useEffect(() => {
-        // Obtém os estilos computados do elemento raiz
         const computedStyle = getComputedStyle(document.documentElement)
         const baseContentColor = computedStyle.getPropertyValue('--color-base-content').trim()
 
@@ -42,21 +41,19 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     useEffect(() => {
 
         const shape = series.map(s => s.shape)
-
         const _series = series.filter(s => !s.hidden)
 
         const brandColors = [
-            'var(--color-primary)', // Primary green
-            'var(--color-primary-hover)', // Primary hover green
-            'var(--color-secondary)', // Secondary
-            'var(--color-accent)', // Accent
-            'var(--color-info)', // Info
-            'oklch(76% 0.177 163.223)', // Success
-            'oklch(82% 0.18659 84.429)', // Warning
-            'oklch(71% 0.194 13.428)' // Error
+            'var(--color-primary)',
+            'var(--color-primary-hover)',
+            'var(--color-secondary)',
+            'var(--color-accent)',
+            'var(--color-info)',
+            'oklch(76% 0.177 163.223)',
+            'oklch(82% 0.18659 84.429)',
+            'oklch(71% 0.194 13.428)'
         ]
 
-        // Calculate default zoom range (last 20%) for datetime charts
         let xaxisMin = undefined;
         let xaxisMax = undefined;
 
@@ -64,8 +61,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             const allData = _series.flatMap(s => s.data);
             const dataMin = Math.min(...allData.map(d => d.x));
             const dataMax = Math.max(...allData.map(d => d.x));
-            
-            // Show last 50% of the data range
+
             xaxisMin = dataMax - (dataMax - dataMin) * 0.5;
             xaxisMax = dataMax;
         }
@@ -100,7 +96,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 pan: {
                     enabled: allowUserInteraction,
                     type: 'x',
-                    rangeX: undefined // Allow unlimited panning
+                    rangeX: undefined
                 },
                 selection: {
                     enabled: allowUserInteraction,
@@ -128,7 +124,6 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 events: {
                     beforeMount: function (chart) {
                         console.log('Chart mounting with scroll functionality');
-                        // Add custom CSS to style the toolbar and menu
                         const style = document.createElement('style')
                         style.innerHTML = `
                             .apexcharts-toolbar {
@@ -258,8 +253,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     show: !compact,
                     color: '#000000'
                 },
-                logarithmic: log == null ? false : true,
-                logBase: log == null ? 10 : log
+                logarithmic: !!log,
+                logBase: log || 10
             },
             annotations: {
                 xaxis: annotations.xaxis.map(annotation => ({
@@ -330,19 +325,14 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             }
         }
 
-        // Destruir o gráfico anterior se existir
         if (chartRef.current) {
             chartRef.current.destroy()
         }
 
-        // Criar e renderizar o novo gráfico
         const chart = new ApexCharts(chartContainerRef.current, chartOptions)
         chart.render()
-
-        // Guardar a referência do gráfico
         chartRef.current = chart
 
-        // Cleanup quando o componente for desmontado
         return () => {
             if (chartRef.current) {
                 chartRef.current.destroy()

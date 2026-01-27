@@ -1,8 +1,10 @@
 import apiClient from './apiClient';
+import { API_ENDPOINTS } from '../constants/api';
+import { APP_CONFIG } from '../constants/app';
 
 export const indicatorService = {
-  async getAll(skip = 0, limit = 10, sortBy = 'name', sortOrder = 'asc', governanceFilter = null) {
-    let url = `/api/indicators/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+  async getAll(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null) {
+    let url = `${API_ENDPOINTS.INDICATORS.BASE}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
@@ -11,12 +13,12 @@ export const indicatorService = {
   },
 
   async getCount() {
-    const response = await apiClient.get('/api/indicators/count');
+    const response = await apiClient.get(API_ENDPOINTS.INDICATORS.COUNT);
     return response.data;
   },
 
   async getCountByDomain(domainId, governanceFilter = null) {
-    let url = `/api/indicators/domain/${domainId}/count`;
+    let url = API_ENDPOINTS.INDICATORS.COUNT_BY_DOMAIN(domainId);
     if (governanceFilter !== null) {
       url += `?governance_filter=${governanceFilter}`;
     }
@@ -25,8 +27,7 @@ export const indicatorService = {
   },
 
   async getCountBySubdomain(domainId, subdomainName, governanceFilter = null) {
-    const encodedSubdomainName = encodeURIComponent(subdomainName);
-    let url = `/api/indicators/domain/${domainId}/subdomain/${encodedSubdomainName}/count`;
+    let url = API_ENDPOINTS.INDICATORS.COUNT_BY_SUBDOMAIN(domainId, subdomainName);
     if (governanceFilter !== null) {
       url += `?governance_filter=${governanceFilter}`;
     }
@@ -34,11 +35,11 @@ export const indicatorService = {
     return response.data;
   },
 
-  async search(query, limit = 10, skip = 0, sortBy = 'name', sortOrder = 'asc', governanceFilter = null, domainFilter = null, subdomainFilter = null) {
-    if (!query || query.trim().length < 2) {
+  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, domainFilter = null, subdomainFilter = null) {
+    if (!query || query.trim().length < APP_CONFIG.MIN_SEARCH_QUERY_LENGTH) {
       return [];
     }
-    let url = `/api/indicators/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    let url = `${API_ENDPOINTS.INDICATORS.SEARCH}?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
@@ -52,8 +53,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async getByDomain(domainId, skip = 0, limit = 10, sortBy = 'name', sortOrder = 'asc', governanceFilter = null) {
-    let url = `/api/indicators/domain/${domainId}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+  async getByDomain(domainId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null) {
+    let url = `${API_ENDPOINTS.INDICATORS.BY_DOMAIN(domainId)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
@@ -61,9 +62,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async getBySubdomain(domainId, subdomainName, skip = 0, limit = 10, sortBy = 'name', sortOrder = 'asc', governanceFilter = null) {
-    const encodedSubdomainName = encodeURIComponent(subdomainName);
-    let url = `/api/indicators/domain/${domainId}/subdomain/${encodedSubdomainName}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+  async getBySubdomain(domainId, subdomainName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null) {
+    let url = `${API_ENDPOINTS.INDICATORS.BY_SUBDOMAIN(domainId, subdomainName)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
@@ -72,60 +72,51 @@ export const indicatorService = {
   },
 
   async getById(indicatorId) {
-    const response = await apiClient.get(`/api/indicators/${indicatorId}`);
+    const response = await apiClient.get(API_ENDPOINTS.INDICATORS.BY_ID(indicatorId));
     return response.data;
   },
 
-  // Create indicator
   async create(domainId, subdomainName, indicatorData) {
-    const encodedSubdomainName = encodeURIComponent(subdomainName);
-    const response = await apiClient.post(`/api/indicators/${domainId}/${encodedSubdomainName}/`, indicatorData);
+    const response = await apiClient.post(API_ENDPOINTS.INDICATORS.CREATE(domainId, subdomainName), indicatorData);
     return response.data;
   },
 
-  // Update indicator
   async update(indicatorId, indicatorData) {
-    const response = await apiClient.put(`/api/indicators/${indicatorId}`, indicatorData);
+    const response = await apiClient.put(API_ENDPOINTS.INDICATORS.BY_ID(indicatorId), indicatorData);
     return response.data;
   },
 
-  // Delete indicator
   async delete(indicatorId) {
-    const response = await apiClient.delete(`/api/indicators/${indicatorId}`);
+    const response = await apiClient.delete(API_ENDPOINTS.INDICATORS.BY_ID(indicatorId));
     return response.data;
   },
 
-  // Get resources for an indicator
   async getResources(indicatorId) {
-    const response = await apiClient.get(`/api/indicators/${indicatorId}/resources`);
+    const response = await apiClient.get(API_ENDPOINTS.INDICATORS.RESOURCES(indicatorId));
     return response.data;
   },
 
-  // Add resource to indicator
   async addResource(indicatorId, resourceId) {
-    const response = await apiClient.post(`/api/indicators/${indicatorId}/resources`, { resource_id: resourceId });
+    const response = await apiClient.post(API_ENDPOINTS.INDICATORS.RESOURCES(indicatorId), { resource_id: resourceId });
     return response.data;
   },
 
-  // Remove resource from indicator
   async removeResource(indicatorId, resourceId) {
-    const response = await apiClient.delete(`/api/indicators/${indicatorId}/resources/${resourceId}`);
+    const response = await apiClient.delete(API_ENDPOINTS.INDICATORS.RESOURCES_BY_ID(indicatorId, resourceId));
     return response.data;
   },
 
-  // Get data points for an indicator
   async getData(indicatorId, startDate = null, endDate = null, limit = 100) {
-    let url = `/api/indicators/${indicatorId}/data?limit=${limit}`;
+    let url = `${API_ENDPOINTS.INDICATORS.DATA(indicatorId)}?limit=${limit}`;
     if (startDate) url += `&start_date=${startDate}`;
     if (endDate) url += `&end_date=${endDate}`;
-    
+
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  // Export chart image
   async exportChartImage(indicatorId, exportConfig) {
-    const response = await apiClient.post(`/api/indicators/${indicatorId}/export/image`, exportConfig, {
+    const response = await apiClient.post(API_ENDPOINTS.INDICATORS.EXPORT_IMAGE(indicatorId), exportConfig, {
       responseType: 'blob'
     });
     return response.data;

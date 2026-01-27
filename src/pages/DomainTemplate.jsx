@@ -9,7 +9,7 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorDisplay from "../components/ErrorDisplay";
 import Pagination from "../components/Pagination";
 import indicatorService from "../services/indicatorService";
-import { highlightSearchTerms } from "../services/searchUtils";
+import { highlightSearchTerms } from "../utils/searchUtils";
 
 export default function DomainTemplate() {
   const location = useLocation();

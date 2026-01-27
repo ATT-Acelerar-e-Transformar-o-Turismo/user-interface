@@ -22,7 +22,6 @@ export default function useWizard(totalSteps, initialData = {}, onSubmit = null)
       ...prev,
       [field]: value
     }));
-    // Clear error for this field when user updates it
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
