@@ -68,7 +68,6 @@ export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
   useEffect(() => {
-    // Check if user is already logged in on app start
     const token = authService.getToken()
     const user = authService.getUser()
 

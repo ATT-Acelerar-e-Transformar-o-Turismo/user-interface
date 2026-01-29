@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import indicatorService from '../services/indicatorService';
-import { highlightSearchTerms } from '../services/searchUtils';
+import { highlightSearchTerms } from '../utils/searchUtils';
 
 const SearchBox = forwardRef(function SearchBox(props, ref) {
   const [isExpanded, setIsExpanded] = useState(false);

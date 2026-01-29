@@ -1,39 +1,34 @@
 import apiClient from './apiClient';
+import { API_ENDPOINTS } from '../constants/api';
 
 export const domainService = {
-  // Get all domains
   async getAll() {
-    const response = await apiClient.get('/api/domains');
+    const response = await apiClient.get(API_ENDPOINTS.DOMAINS.BASE);
     return response.data;
   },
 
-  // Get domain by ID
   async getById(domainId) {
-    const response = await apiClient.get(`/api/domains/${domainId}`);
+    const response = await apiClient.get(API_ENDPOINTS.DOMAINS.BY_ID(domainId));
     return response.data;
   },
 
-  // Create domain
   async create(domainData) {
-    const response = await apiClient.post('/api/domains/', domainData);
+    const response = await apiClient.post(`${API_ENDPOINTS.DOMAINS.BASE}/`, domainData);
     return response.data;
   },
 
-  // Update domain
   async update(domainId, domainData) {
-    const response = await apiClient.put(`/api/domains/${domainId}`, domainData);
+    const response = await apiClient.put(API_ENDPOINTS.DOMAINS.BY_ID(domainId), domainData);
     return response.data;
   },
 
-  // Patch domain (partial update)
   async patch(domainId, domainData) {
-    const response = await apiClient.patch(`/api/domains/${domainId}`, domainData);
+    const response = await apiClient.patch(API_ENDPOINTS.DOMAINS.BY_ID(domainId), domainData);
     return response.data;
   },
 
-  // Delete domain
   async delete(domainId) {
-    const response = await apiClient.delete(`/api/domains/${domainId}`);
+    const response = await apiClient.delete(API_ENDPOINTS.DOMAINS.BY_ID(domainId));
     return response.data;
   }
 };

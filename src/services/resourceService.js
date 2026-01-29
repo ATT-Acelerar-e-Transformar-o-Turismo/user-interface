@@ -1,43 +1,38 @@
 import apiClient from './apiClient';
+import { API_ENDPOINTS } from '../constants/api';
+import { APP_CONFIG } from '../constants/app';
 
 export const resourceService = {
-  // Get all resources with pagination
-  async getAll(skip = 0, limit = 10) {
-    const response = await apiClient.get(`/api/resources/?skip=${skip}&limit=${limit}`);
+  async getAll(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE) {
+    const response = await apiClient.get(`${API_ENDPOINTS.RESOURCES.BASE}/?skip=${skip}&limit=${limit}`);
     return response.data;
   },
 
-  // Get resource by ID
   async getById(resourceId) {
-    const response = await apiClient.get(`/api/resources/${resourceId}`);
+    const response = await apiClient.get(API_ENDPOINTS.RESOURCES.BY_ID(resourceId));
     return response.data;
   },
 
-  // Create resource
   async create(resourceData) {
-    const response = await apiClient.post('/api/resources/', resourceData);
+    const response = await apiClient.post(`${API_ENDPOINTS.RESOURCES.BASE}/`, resourceData);
     return response.data;
   },
 
-  // Update resource
   async update(resourceId, resourceData) {
-    const response = await apiClient.put(`/api/resources/${resourceId}`, resourceData);
+    const response = await apiClient.put(API_ENDPOINTS.RESOURCES.BY_ID(resourceId), resourceData);
     return response.data;
   },
 
-  // Patch resource (partial update)
   async patch(resourceId, resourceData) {
-    const response = await apiClient.patch(`/api/resources/${resourceId}`, resourceData);
+    const response = await apiClient.patch(API_ENDPOINTS.RESOURCES.BY_ID(resourceId), resourceData);
     return response.data;
   },
 
-  // Delete resource
   async delete(resourceId) {
-    const response = await apiClient.delete(`/api/resources/${resourceId}`);
+    const response = await apiClient.delete(API_ENDPOINTS.RESOURCES.BY_ID(resourceId));
     return response.data;
   },
 
-  // Wrapper-related methods
   async uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
@@ -64,7 +59,7 @@ export const resourceService = {
     return response.data;
   },
 
-  async listWrappers(skip = 0, limit = 10) {
+  async listWrappers(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE) {
     const response = await apiClient.get(`/api/resources/wrappers?skip=${skip}&limit=${limit}`);
     return response.data;
   },
