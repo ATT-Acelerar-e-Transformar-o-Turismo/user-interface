@@ -4,8 +4,10 @@ import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
+import { useTranslation } from 'react-i18next'
 
 export default function BlogPage() {
+    const { t } = useTranslation()
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -90,7 +92,7 @@ export default function BlogPage() {
                         )}
                     </div>
                     <div className="text-xs text-gray-500">
-                        <span>Por {post.author}</span>
+                        <span>{t('blog.by_author', { author: post.author })}</span>
                     </div>
                 </div>
 
@@ -161,7 +163,7 @@ export default function BlogPage() {
                         to={`/blog/${post.id}`}
                         className="inline-flex items-center font-semibold text-sm transition-all duration-200 group-hover:translate-x-1 text-primary hover:text-primary-content"
                     >
-                        Ler artigo completo
+                        {t('blog.read_full_article')}
                         <svg
                             className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"
                             fill="none"
@@ -203,10 +205,10 @@ export default function BlogPage() {
                     {/* Header */}
                     <div className="text-center mb-12">
                         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                            Blog
+                            {t('blog.header_title')}
                         </h1>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Insights, análises e novidades sobre sustentabilidade e indicadores
+                            {t('blog.header_subtitle')}
                         </p>
                     </div>
 
@@ -218,8 +220,8 @@ export default function BlogPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-medium text-gray-900 mb-2">Nenhum post encontrado</h3>
-                            <p className="text-gray-600">Volte em breve para conferir nossos novos conteúdos!</p>
+                            <h3 className="text-xl font-medium text-gray-900 mb-2">{t('blog.no_posts_found_title')}</h3>
+                            <p className="text-gray-600">{t('blog.no_posts_found_subtitle')}</p>
                         </div>
                     ) : (
                         <>
@@ -235,7 +237,7 @@ export default function BlogPage() {
                                         disabled={loading}
                                         className="px-8 py-3 bg-gray-900 text-white font-medium rounded-full transition-colors disabled:opacity-50 hover:bg-gray-800"
                                     >
-                                        {loading ? 'Carregando...' : 'Carregar Mais'}
+                                        {loading ? t('blog.loading_more') : t('blog.load_more')}
                                     </button>
                                 </div>
                             )}

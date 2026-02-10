@@ -7,6 +7,16 @@ import { DomainProvider } from './contexts/DomainContext';
 import { IndicatorProvider } from './contexts/IndicatorContext';
 import { ResourceProvider } from './contexts/ResourceContext';
 import { WrapperProvider } from './contexts/WrapperContext';
+import './i18n';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
+AOS.init({
+  duration: 1400,
+  easing: 'cubic-bezier(0.88, 0.01, 0.1, 1)',
+  once: false,
+  mirror: true,
+});
 
 const router = createBrowserRouter(routesList)
 

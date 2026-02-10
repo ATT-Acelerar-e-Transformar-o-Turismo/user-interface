@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
+    const { t } = useTranslation();
     const [isRegisterMode, setIsRegisterMode] = useState(false)
     const [isClosing, setIsClosing] = useState(false)
     const [formData, setFormData] = useState({
@@ -38,7 +40,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
         setError('')
 
         if (isRegisterMode && formData.password !== formData.confirmPassword) {
-            setError('As palavras passe não coincidem')
+            setError(t('auth.error_password_mismatch'))
             setIsLoading(false)
             return
         }
@@ -51,13 +53,13 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
             }
             handleClose()
         } catch (error) {
-            setError(error.message || (isRegisterMode ? 'Erro ao registar' : 'Erro ao fazer login'))
+            setError(error.message || (isRegisterMode ? t('auth.error_generic_register') : t('auth.error_generic_login')))
             setIsLoading(false)
         }
     }
 
     const handleForgotPassword = () => {
-        alert('Funcionalidade de recuperação de palavra-passe em desenvolvimento')
+        alert(t('auth.forgot_password_alert'))
     }
 
     const handleClose = () => {
@@ -135,7 +137,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
 
                 {/* Title */}
                 <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-                    {isRegisterMode ? 'Criar Conta' : 'Iniciar Sessão'}
+                    {isRegisterMode ? t('auth.register_title') : t('auth.login_title')}
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -143,7 +145,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                     {isRegisterMode && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Nome
+                                {t('auth.name_label')}
                             </label>
                             <input
                                 type="text"
@@ -152,7 +154,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
                                 style={{'--tw-ring-color': 'var(--color-primary)'}}
-                                placeholder="Digite seu nome"
+                                placeholder={t('auth.name_placeholder')}
                                 required
                             />
                         </div>
@@ -161,7 +163,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                     {/* Email Field */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            E-mail
+                            {t('auth.email_label')}
                         </label>
                         <input
                             type="email"
@@ -169,7 +171,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                             value={formData.email}
                             onChange={handleInputChange}
                             className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
-                            placeholder="Digite seu e-mail"
+                            placeholder={t('auth.email_placeholder')}
                             required
                         />
                     </div>
@@ -177,7 +179,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                     {/* Password Field */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Palavra Passe
+                            {t('auth.password_label')}
                         </label>
                         <div className="relative">
                             <input
@@ -186,7 +188,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 pr-12"
-                                    placeholder="Digite sua palavra-passe"
+                                    placeholder={t('auth.password_placeholder')}
                                 required
                             />
                             <button
@@ -209,7 +211,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                     {isRegisterMode && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Confirmar Palavra Passe
+                                {t('auth.confirm_password_label')}
                             </label>
                             <input
                                 type="password"
@@ -218,7 +220,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
                                 style={{'--tw-ring-color': 'var(--color-primary)'}}
-                                placeholder="Confirme sua palavra-passe"
+                                placeholder={t('auth.confirm_password_placeholder')}
                                 required
                             />
                         </div>
@@ -236,7 +238,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                             className="w-4 h-4 rounded border-gray-300 focus:ring-primary focus:ring-opacity-50"
                         />
                         <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
-                            Guardar credenciais
+                            {t('auth.remember_me')}
                         </label>
                     </div>
                     )}
@@ -249,7 +251,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                                 onClick={handleForgotPassword}
                                 className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
                             >
-                                Esqueci-me da palavra passe
+                                {t('auth.forgot_password')}
                             </button>
                         </div>
                     )}
@@ -267,7 +269,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                         disabled={isLoading}
                         className="w-full py-3 bg-primary text-white font-medium rounded-full transition-all duration-200 hover:bg-primary/90 disabled:opacity-70"
                     >
-                        {isLoading ? 'Aguarde...' : (isRegisterMode ? 'Criar Conta' : 'Iniciar Sessão')}
+                        {isLoading ? t('auth.submit_loading') : (isRegisterMode ? t('auth.submit_register') : t('auth.submit_login'))}
                     </button>
                 </form>
 
@@ -277,7 +279,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
                         onClick={toggleMode}
                         className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
                     >
-                        {isRegisterMode ? 'Já tem conta? Clique aqui para entrar!' : 'Ainda não tem conta? Clique aqui!'}
+                        {isRegisterMode ? t('auth.switch_to_login') : t('auth.switch_to_register')}
                     </button>
                 </div>
             </div>
