@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import logoRoots from '../assets/logo-roots.png'
 import indicatorService from '../services/indicatorService'
@@ -7,7 +8,10 @@ import { highlightSearchTerms } from '../utils/searchUtils'
 import LoginModal from './LoginModal'
 import { useAuth } from '../contexts/AuthContext'
 
+const imgUserIcon = "/assets/figma/user-icon.svg";
+
 export default function Navbar({ showSearchBox = false }) {
+    const { t } = useTranslation();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
@@ -16,6 +20,8 @@ export default function Navbar({ showSearchBox = false }) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isHidden, setIsHidden] = useState(false);
+    const [lastScrollY, setLastScrollY] = useState(0);
 
     const searchInputRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -24,7 +30,24 @@ export default function Navbar({ showSearchBox = false }) {
     const location = useLocation();
     const { user, isAuthenticated, login, logout } = useAuth();
 
-    // Close search when location changes (user navigates)
+    // Scroll behavior to hide/show navbar
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setIsHidden(true);
+            } else {
+                setIsHidden(false);
+            }
+            
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
+
     useEffect(() => {
         setIsSearchOpen(false);
         setSearchQuery('');
@@ -50,7 +73,6 @@ export default function Navbar({ showSearchBox = false }) {
         setIsLoginModalOpen(false);
     };
 
-    // Load recent items from localStorage on mount
     useEffect(() => {
         const saved = localStorage.getItem('recentItems');
         if (saved) {
@@ -62,7 +84,6 @@ export default function Navbar({ showSearchBox = false }) {
         }
     }, []);
 
-    // Focus the search input when it opens
     useEffect(() => {
         if (isSearchOpen && searchInputRef.current) {
             setTimeout(() => {
@@ -71,7 +92,6 @@ export default function Navbar({ showSearchBox = false }) {
         }
     }, [isSearchOpen]);
 
-    // Debounced search for suggestions
     useEffect(() => {
         if (searchQuery.trim().length < 2) {
             setSuggestions([]);
@@ -226,291 +246,111 @@ export default function Navbar({ showSearchBox = false }) {
 
     return (
         <>
-            <nav className="bg-base-100 px-6 py-4">
-                <div className="max-w-7xl mx-auto">
-                    {/* Pill-style container matching Figma design */}
-                    <div className="bg-base-200 rounded-[50px] py-2 px-8 flex items-center justify-between">
-                        {/* Left side - Logo */}
-                        <div className="flex items-center">
-                            <Link to="/" className="block">
-                                <img src={logoRoots} alt="ROOTS" className="h-8 md:h-11 w-auto" />
-                            </Link>
-                        </div>
+            <div className={`w-full fixed top-0 z-50 pointer-events-none font-['Onest'] text-black transition-transform duration-300 bg-base-100/70 backdrop-blur-md ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+		<div className="w-full flex items-center justify-between py-2 px-4 lg:px-12 pointer-events-auto">
 
-                        {/* Center - Navigation Menu with integrated search */}
-                        <div className="hidden md:flex items-center gap-2 lg:gap-4">
+                    {/* Logo - Left Side */}
+                    <div className="flex-shrink-0">
+                        <Link to="/">
+                            <img src={logoRoots} alt="ROOTS" className="h-[30px] lg:h-[50px] w-auto" />
+                        </Link>
+                    </div>
+
+                    {/* Navigation Links - Center */}
+                    <div className="hidden lg:flex items-center gap-10 flex-1 justify-center">
+                        <Link
+                            to="/"
+                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors border-b-2 border-transparent hover:border-[#009368]"
+                        >
+                            {t('nav.home')}
+                        </Link>
+
+                        <button
+                            onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
+                        >
+                            {t('nav.about')}
+                        </button>
+
+                        <Link
+                            to="/indicators"
+                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
+                        >
+                            {t('nav.dimensions')}
+                        </Link>
+
+                        <Link
+                            to="/blog"
+                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
+                        >
+                            {t('nav.blog')}
+                        </Link>
+
+                        <Link
+                            to="/contact"
+                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
+                        >
+                            {t('nav.contact')}
+                        </Link>
+
+                        {isAuthenticated && user?.role === 'admin' && (
                             <Link
-                                to="/indicators"
-                                className={`font-['Onest',sans-serif] font-medium text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
-                                    location.pathname === '/indicators' || location.pathname.startsWith('/indicators/') || location.pathname.startsWith('/indicator/') || location.pathname.startsWith('/search')
-                                        ? 'bg-primary text-primary-content'
-                                        : 'text-black hover:text-gray-600'
-                                }`}
+                                to="/admin"
+                                className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
                             >
-                                Indicadores
+                                {t('nav.admin')}
                             </Link>
+                        )}
+                    </div>
 
-                            {/* Search Button or Search Bar */}
-                            {!isSearchOpen ? (
-                                <button
-                                    onClick={toggleSearch}
-                                    className="text-black font-['Onest',sans-serif] font-medium text-base transition-colors hover:text-gray-600 whitespace-nowrap px-8 py-3.5 rounded-full cursor-pointer"
-                                >
-                                    Pesquisar
-                                </button>
-                            ) : (
-                                <div className="relative">
-                                    <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm animate-in fade-in zoom-in-95 duration-200">
-                                        <svg
-                                            className="w-4 h-4 text-gray-400 cursor-pointer"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            onClick={handleSearch}
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                        <input
-                                            ref={searchInputRef}
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            onKeyDown={handleKeyDown}
-                                            onFocus={() => setShowDropdown(true)}
-                                            placeholder="Pesquisar indicadores..."
-                                            className="bg-transparent outline-none text-sm w-48 placeholder:text-gray-400 text-black font-['Onest',sans-serif]"
-                                        />
-                                        {searchQuery && (
-                                            <button
-                                                onClick={() => setSearchQuery('')}
-                                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={toggleSearch}
-                                            className="text-gray-400 hover:text-gray-600 transition-colors ml-1"
-                                            aria-label="Fechar pesquisa"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
+                    {/* Login Button - Right Side */}
+                    <div className="hidden lg:flex items-center flex-shrink-0">
+                        {isAuthenticated ? (
+                            <button
+                                onClick={logout}
+                                className="bg-[#009368] text-[#fafafa] font-['Onest'] font-medium text-[21px] px-[18px] py-[8px] rounded-full hover:bg-[#007a56] transition-colors flex items-center gap-2 tracking-[0.105px] min-h-[48px]"
+                            >
+                                <img src={imgUserIcon} alt="" className="w-5 h-5" />
+                                <span className="leading-[31.5px]">{t('nav.logout')}</span>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setIsLoginModalOpen(true)}
+                                className="bg-[#009368] text-[#fafafa] font-['Onest'] font-medium text-[21px] px-[18px] py-[8px] rounded-full hover:bg-[#007a56] transition-colors flex items-center gap-2 tracking-[0.105px] min-h-[48px]"
+                            >
+                                <img src={imgUserIcon} alt="" className="w-5 h-5" />
+                                <span className="leading-[31.5px]">{t('nav.login')}</span>
+                            </button>
+                        )}
+                    </div>
 
-                                    {/* Autocomplete Dropdown */}
-                                    {showDropdown && (
-                                        <div
-                                            ref={dropdownRef}
-                                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
-                                        >
-                                            {searchQuery.trim().length >= 2 ? (
-                                                // Show search suggestions
-                                                <>
-                                                    {loading ? (
-                                                        <div className="flex items-center justify-center py-4">
-                                                            <span className="loading loading-spinner loading-sm"></span>
-                                                        </div>
-                                                    ) : suggestions.length > 0 ? (
-                                                        <>
-                                                            {suggestions.map((indicator, index) => (
-                                                                <div
-                                                                    key={indicator.id}
-                                                                    ref={(el) => itemRefs.current[index] = el}
-                                                                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                                                                        selectedIndex === index ? 'bg-gray-100' : 'hover:bg-gray-50'
-                                                                    }`}
-                                                                    onClick={() => handleSuggestionClick(indicator)}
-                                                                    onMouseEnter={() => setSelectedIndex(index)}
-                                                                >
-                                                                    <i
-                                                                        className="fas fa-chart-line text-sm"
-                                                                        style={{ color: indicator.domain?.color || 'var(--color-primary)' }}
-                                                                    ></i>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="font-medium text-sm truncate">
-                                                                            {highlightSearchTerms(indicator.name, searchQuery)}
-                                                                        </div>
-                                                                        {indicator.subdomain && (
-                                                                            <div className="text-xs text-gray-500 truncate">
-                                                                                {highlightSearchTerms(indicator.subdomain, searchQuery)}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </>
-                                                    ) : (
-                                                        <div className="text-center py-4 text-gray-500 text-sm">
-                                                            Nenhum indicador encontrado
-                                                        </div>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                // Show recent items
-                                                <>
-                                                    {recentItems.length > 0 && (
-                                                        <div className="flex justify-end py-2 px-4">
-                                                            <button
-                                                                onClick={clearRecentItems}
-                                                                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                                                            >
-                                                                Limpar
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                    {recentItems.length > 0 ? (
-                                                        <>
-                                                            {recentItems.map((item, index) => (
-                                                                <div
-                                                                    key={`${item.type}-${item.timestamp}-${index}`}
-                                                                    ref={(el) => itemRefs.current[index] = el}
-                                                                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                                                                        selectedIndex === index ? 'bg-gray-100' : 'hover:bg-gray-50'
-                                                                    }`}
-                                                                    onClick={() => handleRecentItemClick(item)}
-                                                                    onMouseEnter={() => setSelectedIndex(index)}
-                                                                >
-                                                                    {item.type === 'search' ? (
-                                                                        <>
-                                                                            <i className="fas fa-history text-gray-400 text-sm"></i>
-                                                                            <span className="text-sm">{item.value}</span>
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <i
-                                                                                className="fas fa-chart-line text-sm"
-                                                                                style={{ color: item.value.domain?.color || 'var(--color-primary)' }}
-                                                                            ></i>
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <div className="font-medium text-sm truncate">
-                                                                                    {item.value.name}
-                                                                                </div>
-                                                                                {item.value.subdomain && (
-                                                                                    <div className="text-xs text-gray-500 truncate">
-                                                                                        {item.value.subdomain}
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-                                                            ))}
-                                                        </>
-                                                    ) : (
-                                                        <div className="text-center py-4 text-gray-500 text-sm">
-                                                            Nenhum item recente
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
+                    {/* Mobile Menu */}
+                    <div className="lg:hidden">
+                        <div className="dropdown dropdown-end">
+                            <label tabIndex={0} className="btn btn-ghost btn-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                            </label>
+                            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                                <li><Link to="/">{t('nav.home')}</Link></li>
+                                <li><button onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}>{t('nav.about')}</button></li>
+                                <li><Link to="/indicators">{t('nav.dimensions')}</Link></li>
+                                <li><Link to="/blog">{t('nav.blog')}</Link></li>
+                                <li><Link to="/contact">{t('nav.contact')}</Link></li>
+                                {isAuthenticated && user?.role === 'admin' && (
+                                    <li><Link to="/admin">{t('nav.admin')}</Link></li>
+                                )}
+                                <li>
+                                    {isAuthenticated ? (
+                                        <button onClick={logout}>{t('nav.logout')}</button>
+                                    ) : (
+                                        <button onClick={() => setIsLoginModalOpen(true)}>{t('nav.login')}</button>
                                     )}
-                                </div>
-                            )}
-
-                            <Link
-                                to="/blog"
-                                className={`font-['Onest',sans-serif] font-medium text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full ${
-                                    location.pathname === '/blog' || location.pathname.startsWith('/blog/')
-                                        ? 'bg-primary text-primary-content'
-                                        : 'text-black hover:text-gray-600'
-                                }`}
-                            >
-                                Blog
-                            </Link>
-
-                            {/* Admin dropdown menu */}
-                            {isAuthenticated && user?.role === 'admin' && (
-                                <div className="relative">
-                                    <details className="dropdown">
-                                        <summary className="font-['Onest',sans-serif] font-medium text-base transition-colors whitespace-nowrap px-8 py-3.5 rounded-full text-black hover:text-gray-600 cursor-pointer list-none flex items-center gap-1">
-                                            Admin
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </summary>
-                                        <ul className="dropdown-content menu bg-white rounded-box z-50 w-52 p-2 shadow-lg border border-gray-200 mt-1">
-                                            <li>
-                                                <Link to="/indicators-management" className="text-gray-700 hover:bg-gray-50">
-                                                    Gestão de Indicadores
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link to="/admin/blog" className="text-gray-700 hover:bg-gray-50">
-                                                    Gestão de Blog
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link to="/admin/users" className="text-gray-700 hover:bg-gray-50">
-                                                    Gestão de Utilizadores
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link to="/favorites" className="text-gray-700 hover:bg-gray-50">
-                                                    Favoritos
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    </details>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Right side - Login/User Section */}
-                        <div className="flex items-center gap-3">
-                            {isAuthenticated ? (
-                                <>
-                                    <button
-                                        onClick={logout}
-                                        className="font-['Onest',sans-serif] font-medium text-base px-8 py-3.5 rounded-full transition-colors text-black hover:text-gray-600 whitespace-nowrap cursor-pointer"
-                                    >
-                                        Sair
-                                    </button>
-                                </>
-                            ) : (
-                                <button
-                                    onClick={() => setIsLoginModalOpen(true)}
-                                    className={`font-['Onest',sans-serif] font-medium text-base px-8 py-3.5 rounded-full transition-colors whitespace-nowrap cursor-pointer ${
-                                        location.pathname === '/' || location.pathname === '/login'
-                                            ? 'bg-primary text-primary-content hover:bg-primary/90'
-                                            : 'text-black hover:text-gray-600'
-                                    }`}
-                                >
-                                    Login
-                                </button>
-                            )}
-
-                            {/* Mobile menu button */}
-                            <div className="md:hidden ml-4">
-                                <details className="dropdown dropdown-end">
-                                    <summary className="btn btn-ghost">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                        </svg>
-                                    </summary>
-                                    <ul className="dropdown-content menu bg-white rounded-box z-10 w-52 p-2 shadow-lg border">
-                                        <li><Link to="/indicators" className="text-gray-700">Indicadores</Link></li>
-                                        <li><button onClick={toggleSearch} className="text-gray-700">Pesquisar</button></li>
-                                        <li><Link to="/blog" className="text-gray-700">Blog</Link></li>
-                                        {isAuthenticated && user?.role === 'admin' && (
-                                            <>
-                                                <div className="divider my-2"></div>
-                                                <li><Link to="/indicators-management" className="text-gray-700">Admin - Indicadores</Link></li>
-                                                <li><Link to="/admin/blog" className="text-gray-700">Admin - Blog</Link></li>
-                                                <li><Link to="/favorites" className="text-gray-700">Favoritos</Link></li>
-                                            </>
-                                        )}
-                                    </ul>
-                                </details>
-                            </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </nav>
+            </div>
 
             <LoginModal
                 isOpen={isLoginModalOpen}

@@ -1,10 +1,32 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@font-face {
+  font-family: 'Onest';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url('/fonts/Onest-Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Onest';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/Onest-Bold.ttf') format('truetype');
+}
+
+@theme {
+  --font-family-sans: "Onest", sans-serif;
+  --font-family-headings: "Onest", sans-serif;
+  --font-family-body: "Onest", sans-serif;
+}
 @plugin "daisyui/theme" {
     name: "light";
     default: true;
     prefersdark: true; /* use the light theme even if browser is in darkmode */
-    --color-base-100: oklch(1 0 0);
+    --color-base-100: #f3f4f6;
     --color-base-200: oklch(0.9537 0.0021 17.2);
     --color-base-300: oklch(95% 0 0);
     --color-base-content: oklch(21% 0.006 285.885);
