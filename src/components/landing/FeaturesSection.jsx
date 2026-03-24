@@ -5,9 +5,9 @@ const imgEllipse3 = "/assets/figma/feature-ellipse.svg";
 const imgButtonArrow = "/assets/figma/button-arrow.svg";
 
 // Correct Icon Assets (Composite parts or full icons from Figma)
-const imgEye = "/assets/figma/feature-eye.svg"; 
-const imgChart = "/assets/figma/feature-chart.svg";
-const imgGoal = "/assets/figma/feature-goal.svg";
+const imgEye = "/assets/icons/eye.svg"; 
+const imgChart = "/assets/icons/chart-spline.svg";
+const imgGoal = "/assets/icons/goal.svg";
 
 function FeatureItem({ title, description, iconSrc, delay = 0, className = "" }) {
   return (

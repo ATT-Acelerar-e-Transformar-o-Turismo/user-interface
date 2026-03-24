@@ -12,8 +12,8 @@ export default function HeroSection() {
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden">
-      {/* Floating Images - Positioned from document right */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* Floating Images - Positioned relative to visible area below navbar */}
+      <div className="absolute right-0 bottom-0 left-0 pointer-events-none" style={{ top: 'var(--navbar-height)' }}>
         {/* Image 1 (Top Right) */}
         <div className="absolute top-[10%] right-[10%] w-[440px] h-[285px] rounded-[15px] shadow-lg z-0 hidden lg:block pointer-events-auto" data-aos="fade-left" data-aos-delay="200">
           <img src={imgRectangle66} alt="" className="w-full h-full object-cover rounded-[15px]" />

@@ -40,7 +40,7 @@ export default function DomainCard({
       <div className="absolute left-0 top-[1%] w-[98.7%] h-[99%] flex flex-col items-end justify-center px-4 py-6 md:px-6 md:py-8 gap-8 md:gap-16">
         {/* Title */}
         <div className="w-full px-2 md:px-4">
-          <h3 className="font-['Onest'] font-semibold text-[32px] xs:text-[40px] md:text-[48px] leading-none text-black tracking-[-0.48px] break-words">
+          <h3 className="font-['Onest'] font-semibold text-[32px] leading-none text-black tracking-[-0.32px] break-words">
             {title}
           </h3>
         </div>
@@ -48,16 +48,21 @@ export default function DomainCard({
         {/* Indicators List */}
         <ul className="w-full space-y-3 md:space-y-6 px-2 md:px-4">
           {indicators.slice(0, 4).map((ind, i) => (
-            <li key={i} className="font-['Onest'] font-normal text-[16px] xs:text-[20px] md:text-[24px] leading-[1.5] text-black underline underline-offset-4 decoration-1 line-clamp-1">
+            <li key={i} className="font-['Onest'] font-normal text-[24px] leading-[1.5] text-black underline underline-offset-4 decoration-1 line-clamp-1">
               {ind}
             </li>
           ))}
         </ul>
 
-        {/* Button */}
-        <div className="px-2 md:px-4">
+        {/* Bottom row: page dots + button */}
+        <div className="w-full px-2 md:px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-black" />
+            <div className="w-2 h-2 rounded-full bg-black opacity-30" />
+            <div className="w-2 h-2 rounded-full bg-black opacity-30" />
+          </div>
           <button className="bg-base-100 text-[#009368] px-4 py-2 md:px-[17px] md:py-[6.4px] min-h-[40px] md:min-h-[51px] rounded-full flex items-center justify-center gap-2 md:gap-3 font-medium hover:bg-gray-100 transition-colors shadow-sm">
-            <span className="font-['Onest'] font-medium text-[18px] xs:text-[22px] md:text-[25.62px] leading-tight md:leading-[34.165px]">Ver todos</span>
+            <span className="font-['Onest'] font-medium text-[25.62px] leading-[34.165px]">Ver todos</span>
             <img src={arrowRight} alt="" className="w-[20px] h-[20px] md:w-[28px] md:h-[28px]" />
           </button>
         </div>

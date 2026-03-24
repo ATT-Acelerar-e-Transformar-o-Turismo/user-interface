@@ -263,7 +263,7 @@ export default function BlogPostForm() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8 px-4 bg-base-100">
+            <div className="min-h-screen pb-8 px-4 bg-base-100">
                 <div className="max-w-4xl mx-auto">
                     {/* Header */}
                     <div className="mb-8">

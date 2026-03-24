@@ -11,15 +11,6 @@ export default function AdminPageLayout({ children, showEditPanel = true }) {
       <AdminNavbar />
 
       <main className="relative">
-        {/* Edit Panel Link */}
-        {showEditPanel && (
-          <div className="absolute top-6 right-6">
-            <button className="text-base font-medium text-black hover:text-gray-600 transition-colors">
-              Editar painel
-            </button>
-          </div>
-        )}
-
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-6 py-8">
           {children}

@@ -30,7 +30,7 @@ export default function DimensionsSection() {
         )}
 
         {!loading && !error && (
-          <div className="flex flex-wrap justify-center gap-8">
+          <div className="flex flex-wrap justify-center gap-8 lg:gap-[120px]">
             {domains.map((domain, index) => (
               <DomainCard
                 key={domain.id}

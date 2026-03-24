@@ -152,7 +152,7 @@ export default function BlogPostPage() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8 bg-base-100">
+            <div className="min-h-screen pb-8 bg-base-100">
                 <div className="max-w-4xl mx-auto px-4">
                     {/* Breadcrumb */}
                     <nav className="mb-8">
