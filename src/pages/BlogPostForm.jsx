@@ -233,7 +233,7 @@ export default function BlogPostForm() {
             setThumbnailFile(null)
 
             // Redirect to blog management
-            navigate('/admin/blog')
+            navigate('/admin/news-events')
         } catch (err) {
             setError(err.message)
         } finally {
@@ -499,7 +499,7 @@ export default function BlogPostForm() {
                                         const confirmLeave = window.confirm('Você tem alterações não salvas. Tem certeza que deseja cancelar?')
                                         if (!confirmLeave) return
                                     }
-                                    navigate('/admin/blog')
+                                    navigate('/admin/news-events')
                                 }}
                                 className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                                 disabled={saving}
