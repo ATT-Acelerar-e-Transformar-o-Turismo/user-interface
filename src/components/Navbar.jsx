@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const imgUserIcon = "/assets/figma/user-icon.svg";
 
-export default function Navbar({ showSearchBox = false }) {
+export default function Navbar({ navItems = null, rightContent = null, showSearchBox = false }) {
     const { t, i18n } = useTranslation();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -26,24 +26,34 @@ export default function Navbar({ showSearchBox = false }) {
     const searchInputRef = useRef(null);
     const dropdownRef = useRef(null);
     const itemRefs = useRef([]);
+    const navbarWrapperRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
     const { user, isAuthenticated, login, logout } = useAuth();
+
+    // Keep --navbar-height in sync with the wrapper's rendered height
+    useEffect(() => {
+        const el = navbarWrapperRef.current;
+        if (!el) return;
+        const observer = new ResizeObserver(() => {
+            document.documentElement.style.setProperty('--navbar-height', `${el.offsetHeight}px`);
+        });
+        observer.observe(el);
+        document.documentElement.style.setProperty('--navbar-height', `${el.offsetHeight}px`);
+        return () => observer.disconnect();
+    }, []);
 
     // Scroll behavior to hide/show navbar
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
-            
             if (currentScrollY > lastScrollY && currentScrollY > 100) {
                 setIsHidden(true);
             } else {
                 setIsHidden(false);
             }
-            
             setLastScrollY(currentScrollY);
         };
-
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, [lastScrollY]);
@@ -54,19 +64,6 @@ export default function Navbar({ showSearchBox = false }) {
         setShowDropdown(false);
         setSelectedIndex(-1);
     }, [location.pathname]);
-
-    const toggleSearch = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsSearchOpen(!isSearchOpen);
-        if (!isSearchOpen) {
-            setSearchQuery('');
-            setShowDropdown(false);
-            setSelectedIndex(-1);
-        } else {
-            setShowDropdown(true);
-        }
-    };
 
     const handleLogin = async (formData) => {
         await login(formData);
@@ -86,9 +83,7 @@ export default function Navbar({ showSearchBox = false }) {
 
     useEffect(() => {
         if (isSearchOpen && searchInputRef.current) {
-            setTimeout(() => {
-                searchInputRef.current?.focus();
-            }, 100);
+            setTimeout(() => { searchInputRef.current?.focus(); }, 100);
         }
     }, [isSearchOpen]);
 
@@ -99,7 +94,6 @@ export default function Navbar({ showSearchBox = false }) {
             itemRefs.current = [];
             return;
         }
-
         const timeoutId = setTimeout(async () => {
             try {
                 setLoading(true);
@@ -116,42 +110,21 @@ export default function Navbar({ showSearchBox = false }) {
                 setLoading(false);
             }
         }, 300);
-
         return () => clearTimeout(timeoutId);
     }, [searchQuery]);
 
     const saveRecentItem = (item) => {
         if (!item) return;
-
         let newItem;
         if (typeof item === 'string') {
-            newItem = {
-                type: 'search',
-                value: item.trim(),
-                timestamp: Date.now()
-            };
+            newItem = { type: 'search', value: item.trim(), timestamp: Date.now() };
         } else {
-            newItem = {
-                type: 'indicator',
-                value: {
-                    id: item.id,
-                    name: item.name,
-                    subdomain: item.subdomain,
-                    domain: item.domain
-                },
-                timestamp: Date.now()
-            };
+            newItem = { type: 'indicator', value: { id: item.id, name: item.name, subdomain: item.subdomain, domain: item.domain }, timestamp: Date.now() };
         }
-
         const filtered = recentItems.filter(existingItem => {
             if (existingItem.type !== newItem.type) return true;
-            if (newItem.type === 'search') {
-                return existingItem.value !== newItem.value;
-            } else {
-                return existingItem.value.id !== newItem.value.id;
-            }
+            return newItem.type === 'search' ? existingItem.value !== newItem.value : existingItem.value.id !== newItem.value.id;
         });
-
         const updated = [newItem, ...filtered].slice(0, 8);
         setRecentItems(updated);
         localStorage.setItem('recentItems', JSON.stringify(updated));
@@ -193,23 +166,17 @@ export default function Navbar({ showSearchBox = false }) {
         if (index >= 0 && itemRefs.current[index] && dropdownRef.current) {
             const selectedElement = itemRefs.current[index];
             const container = dropdownRef.current;
-
             const elementTop = selectedElement.offsetTop;
             const elementBottom = elementTop + selectedElement.offsetHeight;
             const containerTop = container.scrollTop;
             const containerBottom = containerTop + container.clientHeight;
-
-            if (elementTop < containerTop) {
-                container.scrollTop = elementTop;
-            } else if (elementBottom > containerBottom) {
-                container.scrollTop = elementBottom - container.clientHeight;
-            }
+            if (elementTop < containerTop) container.scrollTop = elementTop;
+            else if (elementBottom > containerBottom) container.scrollTop = elementBottom - container.clientHeight;
         }
     };
 
     const handleKeyDown = (e) => {
         const currentItems = searchQuery.trim().length >= 2 ? suggestions : recentItems;
-
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             const newIndex = selectedIndex < currentItems.length - 1 ? selectedIndex + 1 : selectedIndex;
@@ -224,11 +191,8 @@ export default function Navbar({ showSearchBox = false }) {
             e.preventDefault();
             if (selectedIndex >= 0 && selectedIndex < currentItems.length) {
                 const selectedItem = currentItems[selectedIndex];
-                if (searchQuery.trim().length >= 2) {
-                    handleSuggestionClick(selectedItem);
-                } else {
-                    handleRecentItemClick(selectedItem);
-                }
+                if (searchQuery.trim().length >= 2) handleSuggestionClick(selectedItem);
+                else handleRecentItemClick(selectedItem);
             } else {
                 handleSearch(e);
             }
@@ -239,12 +203,7 @@ export default function Navbar({ showSearchBox = false }) {
         }
     };
 
-    const clearRecentItems = () => {
-        setRecentItems([]);
-        localStorage.removeItem('recentItems');
-    };
-
-    // Green pill for active/hover nav items (Figma node 388:2452)
+    // Active/hover green pill — Figma node 388:2452
     const navItemClass = (path, exact = false) => {
         const isActive = exact
             ? location.pathname === path
@@ -255,10 +214,62 @@ export default function Navbar({ showSearchBox = false }) {
             : `${base} text-[#0a0a0a] hover:bg-[#009368] hover:text-[#fffefc]`;
     };
 
+    // Default public nav items (includes admin link when appropriate)
+    const defaultItems = [
+        { label: 'ROOTS', path: '/', exact: true },
+        { label: t('nav.dimensions'), path: '/indicators' },
+        { label: t('nav.blog'), path: '/blog' },
+        ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
+    ];
+
+    const items = navItems ?? defaultItems;
+
+    // Default right section: login/logout + language toggle
+    const defaultRight = (
+        <div className="hidden lg:flex items-center gap-5 shrink-0">
+            {isAuthenticated ? (
+                <button
+                    onClick={logout}
+                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                >
+                    <img src={imgUserIcon} alt="" className="w-4 h-4" />
+                    <span>{t('nav.logout')}</span>
+                </button>
+            ) : (
+                <button
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                >
+                    <img src={imgUserIcon} alt="" className="w-4 h-4" />
+                    <span>{t('nav.login')}</span>
+                </button>
+            )}
+            <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
+            <button
+                onClick={() => i18n.changeLanguage(i18n.language?.startsWith('pt') ? 'en' : 'pt')}
+                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+            >
+                {i18n.language?.startsWith('pt') ? 'PT' : 'EN'}
+            </button>
+        </div>
+    );
+
+    // Default mobile items
+    const defaultMobileItems = [
+        { label: t('nav.home'), path: '/' },
+        { label: t('nav.dimensions'), path: '/indicators' },
+        { label: t('nav.blog'), path: '/blog' },
+        ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
+    ];
+
+    const mobileItems = navItems
+        ? items.map(item => ({ label: item.label, path: item.path }))
+        : defaultMobileItems;
+
     return (
         <>
             {/* Floating pill navbar — Figma node 724:1948 */}
-            <div className={`fixed top-0 left-0 right-0 z-50 px-12 pt-5 mb-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+            <div ref={navbarWrapperRef} className={`fixed top-0 left-0 right-0 z-50 px-12 pt-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
                 <nav className="bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] flex items-center h-[72px] px-9 pointer-events-auto">
 
                     {/* Logo */}
@@ -266,52 +277,17 @@ export default function Navbar({ showSearchBox = false }) {
                         <img src={logoRoots} alt="ROOTS" className="h-9 w-auto" />
                     </Link>
 
-                    {/* Nav Items — desktop, auto-sized and centered via mx-auto */}
+                    {/* Nav Items — desktop, auto-sized and centered */}
                     <div className="hidden lg:flex mx-auto items-center h-full gap-4">
-                        <Link to="/" className={navItemClass('/', true)}>ROOTS</Link>
-                        <Link to="/indicators" className={navItemClass('/indicators')}>
-                            {t('nav.dimensions')}
-                        </Link>
-                        <Link to="/blog" className={navItemClass('/blog')}>
-                            {t('nav.blog')}
-                        </Link>
-                        <Link to="/contact" className={navItemClass('/contact')}>
-                            {t('nav.contact')}
-                        </Link>
-                        {isAuthenticated && user?.role === 'admin' && (
-                            <Link to="/admin" className={navItemClass('/admin')}>
-                                {t('nav.admin')}
+                        {items.map(item => (
+                            <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
+                                {item.label}
                             </Link>
-                        )}
+                        ))}
                     </div>
 
-                    {/* Right — login + divider + language toggle (desktop) */}
-                    <div className="hidden lg:flex items-center gap-5 shrink-0">
-                        {isAuthenticated ? (
-                            <button
-                                onClick={logout}
-                                className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
-                            >
-                                <img src={imgUserIcon} alt="" className="w-4 h-4" />
-                                <span>{t('nav.logout')}</span>
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => setIsLoginModalOpen(true)}
-                                className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
-                            >
-                                <img src={imgUserIcon} alt="" className="w-4 h-4" />
-                                <span>{t('nav.login')}</span>
-                            </button>
-                        )}
-                        <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
-                        <button
-                            onClick={() => i18n.changeLanguage(i18n.language?.startsWith('pt') ? 'en' : 'pt')}
-                            className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
-                        >
-                            {i18n.language?.startsWith('pt') ? 'PT' : 'EN'}
-                        </button>
-                    </div>
+                    {/* Right section */}
+                    {rightContent ?? defaultRight}
 
                     {/* Mobile Menu */}
                     <div className="lg:hidden ml-auto">
@@ -320,35 +296,40 @@ export default function Navbar({ showSearchBox = false }) {
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                             </label>
                             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><Link to="/">{t('nav.home')}</Link></li>
-                                <li><Link to="/indicators">{t('nav.dimensions')}</Link></li>
-                                <li><Link to="/blog">{t('nav.blog')}</Link></li>
-                                <li><Link to="/contact">{t('nav.contact')}</Link></li>
-                                {isAuthenticated && user?.role === 'admin' && (
-                                    <li><Link to="/admin">{t('nav.admin')}</Link></li>
+                                {mobileItems.map(item => (
+                                    <li key={item.path}><Link to={item.path}>{item.label}</Link></li>
+                                ))}
+                                {!rightContent && (
+                                    <li>
+                                        {isAuthenticated
+                                            ? <button onClick={logout}>{t('nav.logout')}</button>
+                                            : <button onClick={() => setIsLoginModalOpen(true)}>{t('nav.login')}</button>
+                                        }
+                                    </li>
                                 )}
-                                <li>
-                                    {isAuthenticated ? (
-                                        <button onClick={logout}>{t('nav.logout')}</button>
-                                    ) : (
-                                        <button onClick={() => setIsLoginModalOpen(true)}>{t('nav.login')}</button>
-                                    )}
-                                </li>
                             </ul>
                         </div>
                     </div>
                 </nav>
             </div>
 
-            <LoginModal
-                isOpen={isLoginModalOpen}
-                onClose={() => setIsLoginModalOpen(false)}
-                onLogin={handleLogin}
-            />
+            {!rightContent && (
+                <LoginModal
+                    isOpen={isLoginModalOpen}
+                    onClose={() => setIsLoginModalOpen(false)}
+                    onLogin={handleLogin}
+                />
+            )}
         </>
-    )
+    );
 }
 
 Navbar.propTypes = {
+    navItems: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string.isRequired,
+        path: PropTypes.string.isRequired,
+        exact: PropTypes.bool,
+    })),
+    rightContent: PropTypes.node,
     showSearchBox: PropTypes.bool,
 };

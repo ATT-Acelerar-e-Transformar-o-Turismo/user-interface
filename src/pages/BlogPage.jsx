@@ -200,14 +200,14 @@ export default function BlogPage() {
 
     return (
         <PageTemplate>
-            <div className="min-h-screen py-8 px-4 bg-base-100">
+            <div className="min-h-screen pb-16 px-4 bg-base-100">
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
                             {t('blog.header_title')}
                         </h1>
-                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                        <p className="font-['Onest',sans-serif] text-lg text-center text-gray-600 max-w-2xl mx-auto">
                             {t('blog.header_subtitle')}
                         </p>
                     </div>

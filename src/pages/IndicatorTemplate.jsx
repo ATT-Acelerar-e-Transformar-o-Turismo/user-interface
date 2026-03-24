@@ -403,7 +403,7 @@ export default function IndicatorTemplate() {
   return (
     <PageTemplate>
       <div className="min-h-screen bg-base-100">
-        <section className="text-center pt-20 pb-12 px-4">
+        <section className="text-center pb-12 px-4">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight font-['Onest',sans-serif]">
               {indicatorData.name}

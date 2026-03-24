@@ -48,7 +48,7 @@ export default function DomainSelectionPage() {
 
   return (
     <PageTemplate showSearchBox={true}>
-      <div className="min-h-screen py-16 px-4" style={{backgroundColor: '#fffdfb'}}>
+      <div className="min-h-screen pb-16 px-4" style={{backgroundColor: '#fffdfb'}}>
         <div className="max-w-6xl mx-auto">
           <h1 className="font-['Onest',sans-serif] font-semibold text-5xl text-center text-black mb-4">
             {t('home.title')}

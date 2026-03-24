@@ -7,7 +7,7 @@ import domainService from '../services/domainService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import ActionCard from '../components/ActionCard';
-import AdminNavbar from '../components/AdminNavbar';
+import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorWizard from '../components/wizard/IndicatorWizard';
 
 export default function IndicatorsManagement() {
@@ -253,37 +253,26 @@ export default function IndicatorsManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <AdminNavbar />
+    <AdminPageTemplate>
         <LoadingSkeleton />
-      </div>
+      </AdminPageTemplate>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
-        <AdminNavbar />
+    <AdminPageTemplate>
         <ErrorDisplay error={error} onRetry={loadData} />
-      </div>
+      </AdminPageTemplate>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Admin Navbar */}
-      <AdminNavbar />
+    <AdminPageTemplate>
 
       {/* Main Content Area */}
       <div className="relative px-6 py-6">
         <div className="max-w-7xl mx-auto">
-          {/* Edit Panel Link */}
-          <div className="absolute top-6 right-6">
-            <button className="text-base font-['Onest',sans-serif] font-medium text-black hover:text-gray-600 transition-colors">
-              Editar painel
-            </button>
-          </div>
-
           {/* Grid Layout: Left = Table, Right = Action Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
             {/* Left Column - Indicators Table */}
@@ -452,6 +441,6 @@ export default function IndicatorsManagement() {
           loadData();
         }}
       />
-    </div>
+    </AdminPageTemplate>
   );
 }

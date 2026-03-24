@@ -253,7 +253,7 @@ export default function DomainTemplate() {
     <PageTemplate>
       <div className="min-h-screen bg-base-100">
         {/* Hero Section - Matches Home Page Style */}
-        <section className="text-center py-20 px-4">
+        <section className="text-center pb-20 px-4">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               {isSearchMode

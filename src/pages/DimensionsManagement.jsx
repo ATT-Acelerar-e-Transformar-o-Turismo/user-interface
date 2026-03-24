@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminNavbar from '../components/AdminNavbar';
+import AdminPageTemplate from './AdminPageTemplate';
 import ActionCard from '../components/ActionCard';
 import Pagination from '../components/Pagination';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -167,35 +167,25 @@ export default function DimensionsManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <AdminNavbar />
+    <AdminPageTemplate>
         <LoadingSkeleton />
-      </div>
+      </AdminPageTemplate>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
-        <AdminNavbar />
+    <AdminPageTemplate>
         <ErrorDisplay error={error} onRetry={loadDimensions} />
-      </div>
+      </AdminPageTemplate>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <AdminNavbar />
+    <AdminPageTemplate>
 
       <div className="relative px-6 py-6">
         <div className="max-w-7xl mx-auto">
-          {/* Edit Panel Link */}
-          <div className="absolute top-6 right-6">
-            <button className="text-base font-['Onest',sans-serif] font-medium text-black hover:text-gray-600 transition-colors">
-              Editar painel
-            </button>
-          </div>
-
           {/* Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
             {/* Left Column - Dimensions Table */}
@@ -356,6 +346,6 @@ export default function DimensionsManagement() {
           loadDimensions();
         }}
       />
-    </div>
+    </AdminPageTemplate>
   );
 }
