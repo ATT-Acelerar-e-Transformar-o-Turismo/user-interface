@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import PageTemplate from './PageTemplate'
+import AdminPageTemplate from './AdminPageTemplate'
 import BlogLoadingSkeleton from '../components/BlogLoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
@@ -114,27 +114,27 @@ export default function BlogPostPage() {
 
     if (loading) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="py-8">
                     <BlogLoadingSkeleton />
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     if (error) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="py-8">
                     <ErrorDisplay error={error} />
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     if (!post) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="min-h-screen py-8 flex items-center justify-center">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gray-900 mb-4">Post não encontrado</h1>
@@ -146,12 +146,12 @@ export default function BlogPostPage() {
                         </Link>
                     </div>
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     return (
-        <PageTemplate>
+        <AdminPageTemplate>
             <div className="min-h-screen pb-8 bg-base-100">
                 <div className="max-w-4xl mx-auto px-4">
                     {/* Breadcrumb */}
@@ -292,6 +292,6 @@ export default function BlogPostPage() {
                     )}
                 </div>
             </div>
-        </PageTemplate>
+        </AdminPageTemplate>
     )
 }

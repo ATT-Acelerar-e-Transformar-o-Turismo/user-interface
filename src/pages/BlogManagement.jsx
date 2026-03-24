@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import PageTemplate from './PageTemplate'
+import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
@@ -66,26 +66,26 @@ export default function BlogManagement() {
 
     if (loading) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="py-8">
                     <LoadingSkeleton />
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     if (error) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="py-8">
                     <ErrorDisplay error={error} />
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     return (
-        <PageTemplate>
+        <AdminPageTemplate>
             <div className="min-h-screen py-8 px-4 bg-base-100">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
@@ -223,6 +223,6 @@ export default function BlogManagement() {
                     </div>
                 </div>
             </div>
-        </PageTemplate>
+        </AdminPageTemplate>
     )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import PageTemplate from './PageTemplate'
+import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import RichTextEditor from '../components/RichTextEditor'
@@ -243,26 +243,26 @@ export default function BlogPostForm() {
 
     if (loading) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="py-8">
                     <LoadingSkeleton />
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     if (error && !formData.title) {
         return (
-            <PageTemplate>
+            <AdminPageTemplate>
                 <div className="py-8">
                     <ErrorDisplay error={error} />
                 </div>
-            </PageTemplate>
+            </AdminPageTemplate>
         )
     }
 
     return (
-        <PageTemplate>
+        <AdminPageTemplate>
             <div className="min-h-screen pb-8 px-4 bg-base-100">
                 <div className="max-w-4xl mx-auto">
                     {/* Header */}
@@ -517,6 +517,6 @@ export default function BlogPostForm() {
                     </form>
                 </div>
             </div>
-        </PageTemplate>
+        </AdminPageTemplate>
     )
 }
