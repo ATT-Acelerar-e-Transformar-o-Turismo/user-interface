@@ -18,7 +18,7 @@ function BlogPostCard({ post, delay = 0 }) {
     };
 
     const handleClick = () => {
-        navigate(`/blog/${post.id}`);
+        navigate(`/news-events/${post.id}`);
     };
 
     return (
@@ -88,7 +88,7 @@ export default function BlogSection() {
   }, []);
 
   const handleViewAll = () => {
-    navigate('/blog');
+    navigate('/news-events');
   };
 
   return (

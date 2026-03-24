@@ -194,7 +194,7 @@ export default function BlogManagement() {
                                                     <div className="flex space-x-2">
                                                         {post.status === 'published' && (
                                                             <Link
-                                                                to={`/blog/${post.id}`}
+                                                                to={`/news-events/${post.id}`}
                                                                 className="text-blue-600 hover:text-blue-900"
                                                             >
                                                                 Ver
