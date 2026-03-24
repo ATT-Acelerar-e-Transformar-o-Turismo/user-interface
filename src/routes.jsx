@@ -83,7 +83,7 @@ export const routesList = [
         )
     },
     {
-        path: '/indicators-management',
+        path: '/admin/indicators-management',
         element: (
             <>
                 <Helmet>
@@ -105,7 +105,7 @@ export const routesList = [
         )
     },
     {
-        path: '/dimensions',
+        path: '/admin/dimensions',
         element: (
             <>
                 <Helmet>
@@ -116,7 +116,7 @@ export const routesList = [
         )
     },
     {
-        path: '/domains',
+        path: '/admin/domains',
         element: (
             <>
                 <Helmet>
@@ -127,7 +127,7 @@ export const routesList = [
         )
     },
     {
-        path: '/domains-management',
+        path: '/admin/domains-management',
         element: (
             <>
                 <Helmet>
@@ -138,7 +138,7 @@ export const routesList = [
         )
     },
     {
-        path: '/resources-management/:indicator',
+        path: '/admin/resources-management/:indicator',
         element: (
             <>
                 <Helmet>
@@ -149,7 +149,7 @@ export const routesList = [
         )
     },
     {
-        path: '/new_domain',
+        path: '/admin/new_domain',
         element: (
             <>
                 <Helmet>
@@ -160,7 +160,7 @@ export const routesList = [
         )
     },
     {
-        path: '/edit_domain/:id',
+        path: '/admin/edit_domain/:id',
         element: (
             <>
                 <Helmet>
@@ -182,7 +182,7 @@ export const routesList = [
         )
     },
     {
-        path: '/blog',
+        path: '/news-events',
         element: (
             <>
                 <Helmet>
@@ -193,7 +193,7 @@ export const routesList = [
         )
     },
     {
-        path: '/blog/:postId',
+        path: '/news-events/:postId',
         element: (
             <>
                 <Helmet>
@@ -204,7 +204,7 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/blog',
+        path: '/admin/news-events',
         element: (
             <>
                 <Helmet>
@@ -215,7 +215,7 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/blog/create',
+        path: '/admin/news-events/create',
         element: (
             <>
                 <Helmet>
@@ -226,7 +226,7 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/blog/edit/:postId',
+        path: '/admin/news-events/edit/:postId',
         element: (
             <>
                 <Helmet>

@@ -139,7 +139,7 @@ export default function BlogPostPage() {
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gray-900 mb-4">Post não encontrado</h1>
                         <Link
-                            to="/blog"
+                            to="/news-events"
                             className="bg-gray-900 text-white px-6 py-2 rounded-full transition-colors hover:bg-gray-800"
                         >
                             Voltar para o Blog
@@ -157,7 +157,7 @@ export default function BlogPostPage() {
                     {/* Breadcrumb */}
                     <nav className="mb-8">
                         <Link
-                            to="/blog"
+                            to="/news-events"
                             className="inline-flex items-center text-sm transition-colors text-primary hover:text-primary/80"
                         >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

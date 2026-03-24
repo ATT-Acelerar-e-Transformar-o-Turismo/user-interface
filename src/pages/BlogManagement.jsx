@@ -99,7 +99,7 @@ export default function BlogManagement() {
                             </p>
                         </div>
                         <Link
-                            to="/admin/blog/create"
+                            to="/admin/news-events/create"
                             className="px-6 py-3 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                         >
                             Novo Post
@@ -118,7 +118,7 @@ export default function BlogManagement() {
                                 <h3 className="text-xl font-medium text-gray-900 mb-2">Nenhum post encontrado</h3>
                                 <p className="text-gray-600 mb-6">Comece criando seu primeiro post do blog!</p>
                                 <Link
-                                    to="/admin/blog/create"
+                                    to="/admin/news-events/create"
                                     className="inline-block px-6 py-2 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                                 >
                                     Criar Primeiro Post
@@ -194,14 +194,14 @@ export default function BlogManagement() {
                                                     <div className="flex space-x-2">
                                                         {post.status === 'published' && (
                                                             <Link
-                                                                to={`/blog/${post.id}`}
+                                                                to={`/news-events/${post.id}`}
                                                                 className="text-blue-600 hover:text-blue-900"
                                                             >
                                                                 Ver
                                                             </Link>
                                                         )}
                                                         <Link
-                                                            to={`/admin/blog/edit/${post.id}`}
+                                                            to={`/admin/news-events/edit/${post.id}`}
                                                             className="text-primary hover:text-primary/80 hover:underline"
                                                         >
                                                             Editar

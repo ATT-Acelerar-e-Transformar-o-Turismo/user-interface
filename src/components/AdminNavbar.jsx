@@ -5,10 +5,10 @@ import Navbar from './Navbar';
 
 const adminNavItems = [
     { label: 'Overview', path: '/admin', exact: true },
-    { label: 'Indicadores', path: '/indicators-management' },
-    { label: 'Dimensões', path: '/dimensions' },
-    { label: 'Dominios', path: '/domains-management' },
-    { label: 'Notícias e Eventos', path: '/blog-management' },
+    { label: 'Indicadores', path: '/admin/indicators-management' },
+    { label: 'Dimensões', path: '/admin/dimensions' },
+    { label: 'Dominios', path: '/admin/domains-management' },
+    { label: 'Notícias e Eventos', path: '/admin/news-events' },
 ];
 
 function AdminRightContent() {
