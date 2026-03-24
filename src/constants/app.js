@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  NAME: 'ATT Platform',
+  NAME: 'ROOTS Platform',
   DEFAULT_ITEMS_PER_PAGE: 10,
   DEFAULT_SORT_ORDER: 'asc',
   DEFAULT_SORT_BY: 'name',

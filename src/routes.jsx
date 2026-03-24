@@ -21,7 +21,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Home</title>
+                    <title>Home</title>
                 </Helmet>
                 <App />
             </>
@@ -32,7 +32,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Home</title>
+                    <title>Home</title>
                 </Helmet>
                 <App />
             </>
@@ -43,7 +43,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Favorites</title>
+                    <title>Favorites</title>
                 </Helmet>
                 <FavoritesPage />
             </>
@@ -54,7 +54,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - All Indicators</title>
+                    <title>All Indicators</title>
                 </Helmet>
                 <DomainTemplate />
             </>
@@ -65,7 +65,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Domain Indicators</title>
+                    <title>Domain Indicators</title>
                 </Helmet>
                 <DomainTemplate />
             </>
@@ -76,7 +76,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Indicator</title>
+                    <title>Indicator</title>
                 </Helmet>
                 <IndicatorTemplate />
             </>
@@ -87,7 +87,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Indicators Management</title>
+                    <title>Indicators Management</title>
                 </Helmet>
                 <IndicatorsManagement />
             </>
@@ -98,7 +98,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Admin Overview</title>
+                    <title>Admin Overview</title>
                 </Helmet>
                 <IndicatorsManagement />
             </>
@@ -109,7 +109,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Dimensions Management</title>
+                    <title>Dimensions Management</title>
                 </Helmet>
                 <DimensionsManagement />
             </>
@@ -120,7 +120,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Indicadores por Domínio</title>
+                    <title>Indicadores por Domínio</title>
                 </Helmet>
                 <DomainSelectionPage />
             </>
@@ -131,7 +131,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Domains Management</title>
+                    <title>Domains Management</title>
                 </Helmet>
                 <DomainsManagement />
             </>
@@ -142,7 +142,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Resources</title>
+                    <title>Resources</title>
                 </Helmet>
                 <ResourcesManagement />
             </>
@@ -153,7 +153,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - New Domain</title>
+                    <title>New Domain</title>
                 </Helmet>
                 <NewDomain />
             </>
@@ -164,7 +164,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Edit Domain</title>
+                    <title>Edit Domain</title>
                 </Helmet>
                 <NewDomain />
             </>
@@ -175,7 +175,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - Search Results</title>
+                    <title>Search Results</title>
                 </Helmet>
                 <DomainTemplate />
             </>
@@ -186,7 +186,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ROOTS - Blog</title>
+                    <title>News & Events</title>
                 </Helmet>
                 <BlogPage />
             </>
@@ -197,7 +197,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ROOTS - Blog Post</title>
+                    <title>News & Events - Post</title>
                 </Helmet>
                 <BlogPostPage />
             </>
@@ -208,7 +208,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ROOTS - Blog Management</title>
+                    <title>News & Events - Management</title>
                 </Helmet>
                 <BlogManagement />
             </>
@@ -219,7 +219,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ROOTS - Create Blog Post</title>
+                    <title>News & Events - Create Post</title>
                 </Helmet>
                 <BlogPostForm />
             </>
@@ -230,7 +230,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ROOTS - Edit Blog Post</title>
+                    <title>News & Events - Edit Post</title>
                 </Helmet>
                 <BlogPostForm />
             </>
@@ -241,7 +241,7 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>ATT - User Management</title>
+                    <title>User Management</title>
                 </Helmet>
                 <UserManagement />
             </>
