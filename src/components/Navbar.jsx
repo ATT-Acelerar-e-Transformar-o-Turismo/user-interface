@@ -11,7 +11,7 @@ import { useAuth } from '../contexts/AuthContext'
 const imgUserIcon = "/assets/figma/user-icon.svg";
 
 export default function Navbar({ showSearchBox = false }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
@@ -244,95 +244,83 @@ export default function Navbar({ showSearchBox = false }) {
         localStorage.removeItem('recentItems');
     };
 
+    // Green pill for active/hover nav items (Figma node 388:2452)
+    const navItemClass = (path, exact = false) => {
+        const isActive = exact
+            ? location.pathname === path
+            : location.pathname === path || location.pathname.startsWith(path + '/');
+        const base = 'flex items-center justify-center px-[24px] py-[16px] font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap rounded-full transition-all duration-200';
+        return isActive
+            ? `${base} bg-[#009368] text-[#fffefc]`
+            : `${base} text-[#0a0a0a] hover:bg-[#009368] hover:text-[#fffefc]`;
+    };
+
     return (
         <>
-            <div className={`w-full fixed top-0 z-50 pointer-events-none font-['Onest'] text-black transition-transform duration-300 bg-base-100/70 backdrop-blur-md ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-		<div className="w-full flex items-center justify-between py-2 px-4 lg:px-12 pointer-events-auto">
+            {/* Floating pill navbar — Figma node 724:1948 */}
+            <div className={`fixed top-0 left-0 right-0 z-50 px-12 pt-5 mb-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+                <nav className="bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] flex items-center h-[72px] px-9 pointer-events-auto">
 
-                    {/* Logo - Left Side */}
-                    <div className="flex-shrink-0">
-                        <Link to="/">
-                            <img src={logoRoots} alt="ROOTS" className="h-[30px] lg:h-[50px] w-auto" />
-                        </Link>
-                    </div>
+                    {/* Logo */}
+                    <Link to="/" className="shrink-0 flex items-center">
+                        <img src={logoRoots} alt="ROOTS" className="h-9 w-auto" />
+                    </Link>
 
-                    {/* Navigation Links - Center */}
-                    <div className="hidden lg:flex items-center gap-10 flex-1 justify-center">
-                        <Link
-                            to="/"
-                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors border-b-2 border-transparent hover:border-[#009368]"
-                        >
-                            {t('nav.home')}
-                        </Link>
-
-                        <button
-                            onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
-                        >
-                            {t('nav.about')}
-                        </button>
-
-                        <Link
-                            to="/indicators"
-                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
-                        >
+                    {/* Nav Items — desktop, auto-sized and centered via mx-auto */}
+                    <div className="hidden lg:flex mx-auto items-center h-full gap-4">
+                        <Link to="/" className={navItemClass('/', true)}>ROOTS</Link>
+                        <Link to="/indicators" className={navItemClass('/indicators')}>
                             {t('nav.dimensions')}
                         </Link>
-
-                        <Link
-                            to="/blog"
-                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
-                        >
+                        <Link to="/blog" className={navItemClass('/blog')}>
                             {t('nav.blog')}
                         </Link>
-
-                        <Link
-                            to="/contact"
-                            className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
-                        >
+                        <Link to="/contact" className={navItemClass('/contact')}>
                             {t('nav.contact')}
                         </Link>
-
                         {isAuthenticated && user?.role === 'admin' && (
-                            <Link
-                                to="/admin"
-                                className="font-['Onest'] font-medium text-[24px] leading-none text-[#0a0a0a] tracking-[-0.24px] py-2 hover:text-[#009368] transition-colors"
-                            >
+                            <Link to="/admin" className={navItemClass('/admin')}>
                                 {t('nav.admin')}
                             </Link>
                         )}
                     </div>
 
-                    {/* Login Button - Right Side */}
-                    <div className="hidden lg:flex items-center flex-shrink-0">
+                    {/* Right — login + divider + language toggle (desktop) */}
+                    <div className="hidden lg:flex items-center gap-5 shrink-0">
                         {isAuthenticated ? (
                             <button
                                 onClick={logout}
-                                className="bg-[#009368] text-[#fafafa] font-['Onest'] font-medium text-[21px] px-[18px] py-[8px] rounded-full hover:bg-[#007a56] transition-colors flex items-center gap-2 tracking-[0.105px] min-h-[48px]"
+                                className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
                             >
-                                <img src={imgUserIcon} alt="" className="w-5 h-5" />
-                                <span className="leading-[31.5px]">{t('nav.logout')}</span>
+                                <img src={imgUserIcon} alt="" className="w-4 h-4" />
+                                <span>{t('nav.logout')}</span>
                             </button>
                         ) : (
                             <button
                                 onClick={() => setIsLoginModalOpen(true)}
-                                className="bg-[#009368] text-[#fafafa] font-['Onest'] font-medium text-[21px] px-[18px] py-[8px] rounded-full hover:bg-[#007a56] transition-colors flex items-center gap-2 tracking-[0.105px] min-h-[48px]"
+                                className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
                             >
-                                <img src={imgUserIcon} alt="" className="w-5 h-5" />
-                                <span className="leading-[31.5px]">{t('nav.login')}</span>
+                                <img src={imgUserIcon} alt="" className="w-4 h-4" />
+                                <span>{t('nav.login')}</span>
                             </button>
                         )}
+                        <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
+                        <button
+                            onClick={() => i18n.changeLanguage(i18n.language?.startsWith('pt') ? 'en' : 'pt')}
+                            className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                        >
+                            {i18n.language?.startsWith('pt') ? 'PT' : 'EN'}
+                        </button>
                     </div>
 
                     {/* Mobile Menu */}
-                    <div className="lg:hidden">
+                    <div className="lg:hidden ml-auto">
                         <div className="dropdown dropdown-end">
                             <label tabIndex={0} className="btn btn-ghost btn-circle">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                             </label>
                             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                                 <li><Link to="/">{t('nav.home')}</Link></li>
-                                <li><button onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}>{t('nav.about')}</button></li>
                                 <li><Link to="/indicators">{t('nav.dimensions')}</Link></li>
                                 <li><Link to="/blog">{t('nav.blog')}</Link></li>
                                 <li><Link to="/contact">{t('nav.contact')}</Link></li>
@@ -349,7 +337,7 @@ export default function Navbar({ showSearchBox = false }) {
                             </ul>
                         </div>
                     </div>
-                </div>
+                </nav>
             </div>
 
             <LoginModal
