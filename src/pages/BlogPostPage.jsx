@@ -249,7 +249,7 @@ export default function BlogPostPage() {
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-['Onest'] font-medium text-lg text-[#0a0a0a] line-clamp-1">{rp.title}</span>
-                                                    <span className="font-['Onest'] text-sm text-[#0a0a0a]">{rp.excerpt?.slice(0, 60)}...</span>
+                                                    <span className="font-['Onest'] text-sm text-[#0a0a0a]">{rp.excerpt ? `${rp.excerpt.slice(0, 60)}...` : ''}</span>
                                                 </div>
                                             </Link>
                                         ))}
