@@ -49,7 +49,19 @@ export default function DomainCard({
         {/* Indicators List */}
         <ul className="w-full flex flex-col gap-6">
           {indicators.slice(0, 4).map((ind, i) => (
-            <li key={i} className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate" style={{ fontSize: 'clamp(0.75rem, 6cqi, 1.5rem)' }}>
+            <li
+              key={i}
+              className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-[#009368] transition-colors"
+              style={{ fontSize: 'clamp(0.75rem, 6cqi, 1.5rem)' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (page) {
+                  navigate(`${page}?subdomain=${encodeURIComponent(ind)}`, {
+                    state: { domainName: title, subdomain: ind }
+                  });
+                }
+              }}
+            >
               {ind}
             </li>
           ))}

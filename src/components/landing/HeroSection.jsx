@@ -15,17 +15,17 @@ export default function HeroSection() {
       {/* Floating Images - Positioned relative to visible area below navbar */}
       <div className="absolute right-0 bottom-0 left-0 pointer-events-none" style={{ top: 'var(--navbar-height)' }}>
         {/* Image 1 (Top Right) */}
-        <div className="absolute top-[10%] right-[10%] w-[440px] h-[285px] rounded-[15px] shadow-lg z-0 hidden lg:block pointer-events-auto" data-aos="fade-left" data-aos-delay="200">
+        <div className="absolute top-[10%] right-[10%] w-[440px] h-[285px] rounded-[15px] shadow-lg z-0 hidden xl:block pointer-events-auto" data-aos="fade-left" data-aos-delay="200">
           <img src={imgRectangle66} alt="" className="w-full h-full object-cover rounded-[15px]" />
         </div>
 
         {/* Image 2 (Bottom Center-Right) */}
-        <div className="absolute bottom-[18%] right-[20%] w-[300px] h-[380px] rounded-[15px] shadow-lg z-10 hidden lg:block pointer-events-auto" data-aos="fade-up" data-aos-delay="350">
+        <div className="absolute bottom-[18%] right-[20%] w-[300px] h-[380px] rounded-[15px] shadow-lg z-10 hidden xl:block pointer-events-auto" data-aos="fade-up" data-aos-delay="350">
           <img src={imgRectangle65} alt="" className="w-full h-full object-cover rounded-[15px]" />
         </div>
 
         {/* Image 3 (Bottom Right) */}
-        <div className="absolute bottom-[22%] right-[2%] w-[250px] h-[255px] rounded-[15px] shadow-lg z-0 hidden lg:block pointer-events-auto" data-aos="fade-left" data-aos-delay="500">
+        <div className="absolute bottom-[22%] right-[2%] w-[250px] h-[255px] rounded-[15px] shadow-lg z-0 hidden xl:block pointer-events-auto" data-aos="fade-left" data-aos-delay="500">
           <img src={imgRectangle69} alt="" className="w-full h-full object-cover rounded-[15px]" />
         </div>
       </div>

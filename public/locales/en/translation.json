@@ -21,7 +21,8 @@
     "home": {
       "title": "Get to know our tourism numbers",
       "subtitle": "Choose a dimension to understand how the territory is transforming",
-      "no_domains": "No domains available at the moment."
+      "no_domains": "No domains available at the moment.",
+      "view_all_indicators": "View all indicators"
     },
     "auth": {
       "login_title": "Login",

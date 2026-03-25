@@ -18,7 +18,7 @@ export default function DomainSelectionPage() {
           src="/assets/vectors/indicator-vector.svg"
           alt=""
           className="absolute right-0 w-80 pointer-events-none z-0"
-          style={{ top: 'calc(-1 * (var(--navbar-height) + 6rem))', transform: 'translate(10%, 0)' }}
+          style={{ top: 'calc(-1 * (var(--navbar-height) + 6rem))' }}
         />
 
         {/* Content */}

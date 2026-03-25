@@ -88,10 +88,11 @@ export default function DomainTemplate() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [governanceFilter, setGovernanceFilter] = useState(null);
   const [domainFilter, setDomainFilter] = useState(null);
-  const [subdomainFilter, setSubdomainFilter] = useState(null);
+  const initialSubdomain = searchParams.get('subdomain') || location.state?.subdomain || null;
+  const [subdomainFilter, setSubdomainFilter] = useState(initialSubdomain);
 
   // Domain state
-  const [selectedSubdomain, setSelectedSubdomain] = useState(null);
+  const [selectedSubdomain, setSelectedSubdomain] = useState(initialSubdomain);
   const [,setSelectedDomain] = useState(selectedDomainObj);
 
   const images = selectedDomainObj?.DomainCarouselImages || [
