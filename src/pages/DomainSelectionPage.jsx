@@ -63,7 +63,7 @@ export default function DomainSelectionPage() {
               to="/all-indicators"
               className="font-['Onest'] font-medium text-lg text-[#0a0a0a] border border-[#d4d4d4] rounded-full px-6 py-2 hover:bg-white/60 transition-colors shadow-sm"
             >
-              Ver todos os indicadores
+              {t('home.view_all_indicators')}
             </Link>
           </div>
         </div>
