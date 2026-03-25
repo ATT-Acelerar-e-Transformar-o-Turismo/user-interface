@@ -2,12 +2,12 @@ import { useNavigate } from "react-router-dom";
 import PropTypes from 'prop-types';
 import arrowRight from '../assets/images/arrow-right.svg';
 
-export default function DomainCard({ 
-  title, 
-  page, 
-  color = "#C3F25E", 
-  icon, 
-  indicators = [], 
+export default function DomainCard({
+  title,
+  page,
+  color = "#C3F25E",
+  icon,
+  indicators = [],
   shadowColor,
   className = "",
   ...props
@@ -24,7 +24,8 @@ export default function DomainCard({
   };
 
   return (
-    <div 
+    <div
+      style={{ containerType: 'inline-size' }}
       className={`relative w-full max-w-[392px] aspect-[392/514] group hover:scale-[1.02] transition-transform duration-300 cursor-pointer ${className}`}
       onClick={handleClick}
       {...props}
@@ -36,34 +37,34 @@ export default function DomainCard({
         </svg>
       </div>
 
-      {/* Card Content */}
-      <div className="absolute left-0 top-[1%] w-[98.7%] h-[99%] flex flex-col items-end justify-center px-4 py-6 md:px-6 md:py-8 gap-8 md:gap-16">
+      {/* Card Content — top-aligned title, bottom-aligned dots+button */}
+      <div className="absolute left-0 top-[1%] w-[98.7%] h-[99%] flex flex-col items-end justify-between px-[6%] py-[6%]">
         {/* Title */}
-        <div className="w-full px-2 md:px-4">
-          <h3 className="font-['Onest'] font-semibold text-[32px] leading-none text-black tracking-[-0.32px] break-words">
+        <div className="w-full">
+          <h3 className="font-['Onest'] font-semibold leading-none text-black tracking-[-0.32px] break-words" style={{ fontSize: 'clamp(1.25rem, 8cqi, 2rem)' }}>
             {title}
           </h3>
         </div>
 
         {/* Indicators List */}
-        <ul className="w-full space-y-3 md:space-y-6 px-2 md:px-4">
+        <ul className="w-full flex flex-col gap-6">
           {indicators.slice(0, 4).map((ind, i) => (
-            <li key={i} className="font-['Onest'] font-normal text-[24px] leading-[1.5] text-black underline underline-offset-4 decoration-1 line-clamp-1">
+            <li key={i} className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate" style={{ fontSize: 'clamp(0.75rem, 6cqi, 1.5rem)' }}>
               {ind}
             </li>
           ))}
         </ul>
 
         {/* Bottom row: page dots + button */}
-        <div className="w-full px-2 md:px-4 flex items-center justify-between">
+        <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-black" />
             <div className="w-2 h-2 rounded-full bg-black opacity-30" />
             <div className="w-2 h-2 rounded-full bg-black opacity-30" />
           </div>
-          <button className="bg-base-100 text-[#009368] px-4 py-2 md:px-[17px] md:py-[6.4px] min-h-[40px] md:min-h-[51px] rounded-full flex items-center justify-center gap-2 md:gap-3 font-medium hover:bg-gray-100 transition-colors shadow-sm">
-            <span className="font-['Onest'] font-medium text-[25.62px] leading-[34.165px]">Ver todos</span>
-            <img src={arrowRight} alt="" className="w-[20px] h-[20px] md:w-[28px] md:h-[28px]" />
+          <button className="bg-base-100 text-[#009368] px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
+            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>Ver todos</span>
+            <img src={arrowRight} alt="" className="w-5 h-5" />
           </button>
         </div>
       </div>

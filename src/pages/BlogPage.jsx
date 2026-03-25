@@ -66,9 +66,9 @@ function PostCard({ post, compact = false, index = 0 }) {
             )}
 
             {/* Author + date + badge */}
-            <div className="flex items-center gap-4 mt-auto">
-                <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden">
+            <div className="flex flex-wrap items-center gap-2 mt-auto min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden shrink-0">
                         {post.author_avatar ? (
                             <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -77,22 +77,22 @@ function PostCard({ post, compact = false, index = 0 }) {
                             </div>
                         )}
                     </div>
-                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a]">
+                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] truncate">
                         {post.author || 'Autor'}
                     </span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
-                        <svg className="w-3 h-3 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-1 shrink-0">
+                    <div className="w-5 h-5 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm shrink-0">
+                        <svg className="w-2.5 h-2.5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a]">
+                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] whitespace-nowrap">
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
                 {post.tags && post.tags[0] && (
-                    <span className="ml-auto font-['Onest'] font-medium text-sm text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
+                    <span className="font-['Onest'] font-medium text-xs text-[#009368] bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
                         {post.tags[0]}
                     </span>
                 )}
