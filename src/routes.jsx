@@ -54,7 +54,18 @@ export const routesList = [
         element: (
             <>
                 <Helmet>
-                    <title>All Indicators</title>
+                    <title>Indicators</title>
+                </Helmet>
+                <DomainSelectionPage />
+            </>
+        )
+    },
+    {
+        path: '/all-indicators',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Todos os Indicadores</title>
                 </Helmet>
                 <DomainTemplate />
             </>

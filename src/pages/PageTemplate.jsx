@@ -6,7 +6,7 @@ export default function PageTemplate({ children, showSearchBox = true, fullBleed
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar showSearchBox={showSearchBox} />
-            <main className="flex-1 w-full" style={fullBleed ? undefined : { paddingTop: 'calc(var(--navbar-height) + 2rem)' }}>
+            <main className="flex-1 w-full" style={fullBleed ? undefined : { paddingTop: 'calc(var(--navbar-height) + 6rem)' }}>
                 {children}
             </main>
             <Footer />

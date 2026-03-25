@@ -35,7 +35,7 @@ export default function DomainTemplate() {
       .join(" ");
   };
   
-  const inferredDomainName = domainName || pathToDomainName(domainPath || location.pathname);
+  const inferredDomainName = domainName || (location.pathname === '/all-indicators' ? '' : pathToDomainName(domainPath || location.pathname));
   const isAllIndicatorsMode = !inferredDomainName && !isSearchMode;
 
   // Debug logging

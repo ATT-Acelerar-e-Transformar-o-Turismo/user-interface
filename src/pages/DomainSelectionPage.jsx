@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import DomainCard from '../components/DomainCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
@@ -5,58 +6,66 @@ import PageTemplate from './PageTemplate';
 import { useDomain } from '../contexts/DomainContext';
 import { useTranslation } from 'react-i18next';
 
-/**
- * DomainSelectionPage - Shows all domain cards for users to select and navigate
- * Used when clicking "Indicadores" in the client navbar
- */
 export default function DomainSelectionPage() {
   const { t } = useTranslation();
   const { domains, loading, error } = useDomain();
 
-  const renderDomainCards = () => {
-    if (loading) {
-      return <LoadingSkeleton />;
-    }
-
-    if (error) {
-      return <ErrorDisplay error={error} />;
-    }
-
-    if (domains.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">{t('home.no_domains')}</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
-        {domains.map((domain, index) => (
-          <DomainCard
-            key={domain?.id || index}
-            title={domain?.name || "Unnamed Domain"}
-            page={domain.DomainPage || (domain?.name ? `/${domain.name.toLowerCase().replace(/\s+/g, '-')}` : '/unknown-domain')}
-            color={domain?.color}
-            icon={domain?.DomainIcon}
-            indicators={domain?.subdomains?.map(s => s.name) || []}
-          />
-        ))}
-      </div>
-    );
-  };
-
   return (
     <PageTemplate showSearchBox={true}>
-      <div className="min-h-screen pb-16 px-4" style={{backgroundColor: '#fffdfb'}}>
-        <div className="max-w-6xl mx-auto">
-          <h1 className="font-['Onest',sans-serif] font-semibold text-5xl text-center text-black mb-4">
-            {t('home.title')}
-          </h1>
-          <p className="font-['Onest',sans-serif] text-lg text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            {t('home.subtitle')}
-          </p>
-          {renderDomainCards()}
+      <div className="min-h-screen bg-[#f3f4f6] relative">
+        {/* Decorative green swoosh — top right, behind content */}
+        <img
+          src="/assets/vectors/indicator-vector.svg"
+          alt=""
+          className="absolute right-0 w-80 pointer-events-none z-0"
+          style={{ top: 'calc(-1 * (var(--navbar-height) + 6rem))', transform: 'translate(10%, 0)' }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-[1512px] mx-auto px-12 pb-20">
+          {/* Header — left-aligned, matching Figma */}
+          <div className="flex flex-col gap-6 mb-16">
+            <h1 className="font-['Onest'] font-semibold text-5xl leading-none text-[#0a0a0a] tracking-tight">
+              {t('home.title')}
+            </h1>
+            <p className="font-['Onest'] font-medium text-2xl leading-snug text-[#0a0a0a]">
+              {t('home.subtitle')}
+            </p>
+          </div>
+
+          {/* Domain cards — row with justify-between on desktop */}
+          {loading && <LoadingSkeleton />}
+          {error && <ErrorDisplay error={error} />}
+          {!loading && !error && domains.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">{t('home.no_domains')}</p>
+            </div>
+          )}
+          {!loading && !error && domains.length > 0 && (
+            <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
+              {domains.map((domain, index) => (
+                <DomainCard
+                  key={domain?.id || index}
+                  title={domain?.name || "Unnamed Domain"}
+                  page={`/indicators/${domain?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
+                  color={domain?.DomainColor || domain?.color}
+                  icon={domain?.DomainIcon}
+                  indicators={domain?.subdomains?.map(s => s.name) || []}
+                  shadowColor={domain?.DomainColor || domain?.color}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* "Ver todos os indicadores" button — centered below cards */}
+          <div className="flex justify-center mt-16">
+            <Link
+              to="/all-indicators"
+              className="font-['Onest'] font-medium text-lg text-[#0a0a0a] border border-[#d4d4d4] rounded-full px-6 py-2 hover:bg-white/60 transition-colors shadow-sm"
+            >
+              {t('home.view_all_indicators')}
+            </Link>
+          </div>
         </div>
       </div>
     </PageTemplate>

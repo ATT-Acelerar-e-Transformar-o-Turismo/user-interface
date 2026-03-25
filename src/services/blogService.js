@@ -142,7 +142,10 @@ class BlogService {
     }
 
     getFileUrl(path) {
-        return `${this.api.defaults.baseURL}${path}`;
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        const base = this.api.defaults.baseURL;
+        return base ? `${base}${path}` : path;
     }
 
     formatDate(dateString) {

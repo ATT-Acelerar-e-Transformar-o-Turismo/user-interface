@@ -31,7 +31,7 @@ export default function HeroSection() {
       </div>
 
       {/* Main Content Container */}
-      <div className="relative max-w-[1512px] mx-auto px-12 h-[90vh] sm:h-auto sm:min-h-[900px] flex flex-col sm:pt-40 sm:justify-center">
+      <div className="relative max-w-[1512px] mx-auto px-12 h-[90vh] sm:h-auto sm:min-h-[900px] flex flex-col sm:justify-center">
 
         {/* Title Section */}
         <div className="relative z-10 flex flex-col items-center sm:items-start text-center sm:text-left pt-28 sm:pt-20">

@@ -5,7 +5,7 @@ export default function AdminPageTemplate({ children }) {
     return (
         <div className="min-h-screen bg-base-100">
             <AdminNavbar />
-            <main style={{ paddingTop: 'calc(var(--navbar-height) + 2rem)' }}>
+            <main style={{ paddingTop: 'calc(var(--navbar-height) + 6rem)' }}>
                 {children}
             </main>
         </div>

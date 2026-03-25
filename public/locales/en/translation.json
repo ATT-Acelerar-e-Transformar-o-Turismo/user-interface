@@ -2,7 +2,7 @@
     "nav": {
       "home": "Home",
       "about": "About",
-      "dimensions": "Dimensions",
+      "domains": "Domains",
       "indicators": "Indicators",
       "search": "Search",
       "search_placeholder": "Search indicators...",
@@ -19,8 +19,8 @@
       "logout": "Logout"
     },
     "home": {
-      "title": "Indicators by Domain",
-      "subtitle": "Select a domain to explore available indicators",
+      "title": "Get to know our tourism numbers",
+      "subtitle": "Choose a dimension to understand how the territory is transforming",
       "no_domains": "No domains available at the moment."
     },
     "auth": {
