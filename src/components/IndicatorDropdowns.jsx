@@ -195,7 +195,7 @@ export default function IndicatorDropdowns({
                 {stagedSubdomain ? (
                   typeof stagedSubdomain === 'string' ? stagedSubdomain : stagedSubdomain?.name
                 ) : (
-                  "Escolha a Dimensão"
+                  "Escolha o Dominío"
                 )}
               </p>
             </div>

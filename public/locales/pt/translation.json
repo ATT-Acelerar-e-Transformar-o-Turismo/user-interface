@@ -21,7 +21,8 @@
     "home": {
       "title": "Indicadores por Domínio",
       "subtitle": "Selecione um domínio para explorar os indicadores disponíveis",
-      "no_domains": "Nenhum domínio disponível no momento."
+      "no_domains": "Nenhum domínio disponível no momento.",
+      "view_all_indicators": "Ver todos os indicadores"
     },
     "auth": {
       "login_title": "Iniciar Sessão",
