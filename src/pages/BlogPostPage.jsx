@@ -43,7 +43,7 @@ export default function BlogPostPage() {
             try {
                 const all = await blogService.getPublishedPosts(0, 10)
                 const posts = Array.isArray(all) ? all : (all?.posts || [])
-                setRelatedPosts(posts.filter(p => p.id !== postId).slice(0, 3))
+                setRelatedPosts(posts.filter(p => String(p.id) !== String(postId)).slice(0, 3))
             } catch { setRelatedPosts([]) }
         } catch (err) {
             setError(err.message)
