@@ -221,7 +221,7 @@ export default function BlogPage() {
     // Keep filter bar in view when featured section disappears/appears
     useEffect(() => {
         if (isSearching && !wasSearching.current && filterRef.current) {
-            filterRef.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+            filterRef.current.scrollIntoView({ behavior: 'auto', block: 'start' })
         }
         wasSearching.current = isSearching
     }, [isSearching])
