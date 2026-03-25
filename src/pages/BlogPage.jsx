@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
@@ -6,36 +6,193 @@ import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 
+// Fallback thumbnails when posts don't have uploaded images
+const FALLBACK_THUMBS = [
+    '/assets/figma/hero-rect-1.png',
+    '/assets/figma/hero-rect-2.png',
+    '/assets/figma/hero-rect-3.png',
+    '/assets/figma/about-rect-1.png',
+    '/assets/figma/about-rect-2.png',
+    '/assets/figma/about-rect-3.png',
+    '/assets/figma/about-rect-4.png',
+    '/assets/figma/blog-thumb-1.png',
+    '/assets/figma/blog-thumb-2.png',
+    '/assets/figma/blog-thumb-3.png',
+]
+
+const getFallbackThumb = (index) => FALLBACK_THUMBS[index % FALLBACK_THUMBS.length]
+
+const CATEGORIES = [
+    { id: 'all', label: 'Todos' },
+    { id: 'Publicações Cientificas', label: 'Publicações Cientificas' },
+    { id: 'Relatórios', label: 'Relatórios' },
+    { id: 'Documentos', label: 'Documentos' },
+    { id: 'Noticias', label: 'Noticias' },
+    { id: 'Eventos', label: 'Eventos' },
+]
+
+function PostCard({ post, compact = false, index = 0 }) {
+    const thumbnail = post.thumbnail_url
+        ? blogService.getFileUrl(post.thumbnail_url)
+        : getFallbackThumb(index)
+
+    return (
+        <Link
+            to={`/news-events/${post.id}`}
+            className="bg-[#fffefc] flex flex-col gap-4 p-6 rounded-xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
+        >
+            {/* Thumbnail */}
+            <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+            </div>
+
+            {/* Title + arrow */}
+            <div className="flex items-start gap-4">
+                <h3 className="font-['Onest'] font-semibold text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
+                    {post.title}
+                </h3>
+                <div className="shrink-0 w-6 h-6 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
+                    <svg className="w-3 h-3 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                    </svg>
+                </div>
+            </div>
+
+            {/* Excerpt */}
+            {!compact && post.excerpt && (
+                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-4">
+                    {post.excerpt}
+                </p>
+            )}
+
+            {/* Author + date + badge */}
+            <div className="flex items-center gap-4 mt-auto">
+                <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden">
+                        {post.author_avatar ? (
+                            <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#009368] to-[#00855d] flex items-center justify-center text-white text-xs font-bold">
+                                {(post.author || 'A')[0].toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a]">
+                        {post.author || 'Autor'}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
+                        <svg className="w-3 h-3 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a]">
+                        {blogService.formatDate(post.published_at || post.created_at)}
+                    </span>
+                </div>
+                {post.tags && post.tags[0] && (
+                    <span className="ml-auto font-['Onest'] font-medium text-sm text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
+                        {post.tags[0]}
+                    </span>
+                )}
+            </div>
+        </Link>
+    )
+}
+
+function FeaturedPost({ post, index = 0 }) {
+    if (!post) return null
+    const thumbnail = post.thumbnail_url
+        ? blogService.getFileUrl(post.thumbnail_url)
+        : getFallbackThumb(index)
+
+    return (
+        <Link
+            to={`/news-events/${post.id}`}
+            className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
+        >
+            {/* Large thumbnail */}
+            <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
+                <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+            </div>
+
+            {/* Title + arrow */}
+            <div className="flex items-start gap-4">
+                <div className="flex-1 flex flex-col gap-4">
+                    <h2 className="font-['Onest'] font-semibold text-3xl leading-none text-[#0a0a0a]">
+                        {post.title}
+                    </h2>
+                    {post.excerpt && (
+                        <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a] leading-normal line-clamp-3">
+                            {post.excerpt}
+                        </p>
+                    )}
+                </div>
+                <div className="shrink-0 w-12 h-12 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
+                    <svg className="w-5 h-5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                    </svg>
+                </div>
+            </div>
+
+            {/* Author + date + badge */}
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                        {post.author_avatar ? (
+                            <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#009368] to-[#00855d] flex items-center justify-center text-white text-sm font-bold">
+                                {(post.author || 'A')[0].toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
+                        {post.author || 'Autor'}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
+                        <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
+                        {blogService.formatDate(post.published_at || post.created_at)}
+                    </span>
+                </div>
+                {post.tags && post.tags[0] && (
+                    <span className="ml-auto font-['Onest'] font-medium text-base text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
+                        {post.tags[0]}
+                    </span>
+                )}
+            </div>
+        </Link>
+    )
+}
+
 export default function BlogPage() {
     const { t } = useTranslation()
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [currentPage, setCurrentPage] = useState(0)
-    const [hasMore, setHasMore] = useState(true)
-    const limit = 6
+    const [activeCategory, setActiveCategory] = useState('all')
+    const [searchQuery, setSearchQuery] = useState('')
+    const filterRef = useRef(null)
+    const wasSearching = useRef(false)
 
     useEffect(() => {
         loadPosts()
-    }, [currentPage])
+    }, [])
 
     const loadPosts = async () => {
         try {
             setLoading(true)
             setError(null)
-
-            const response = await blogService.getPublishedPosts(currentPage * limit, limit)
-
-            // Handle both array response and object with posts array
+            const response = await blogService.getPublishedPosts(0, 50)
             const newPosts = Array.isArray(response) ? response : (response?.posts || [])
-
-            if (currentPage === 0) {
-                setPosts(newPosts)
-            } else {
-                setPosts(prevPosts => [...prevPosts, ...newPosts])
-            }
-
-            setHasMore(newPosts.length === limit)
+            setPosts(newPosts)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -43,147 +200,39 @@ export default function BlogPage() {
         }
     }
 
-    const loadMore = () => {
-        setCurrentPage(prev => prev + 1)
-    }
+    // Normalize: remove diacritics (accents) and lowercase
+    const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
-    const renderPostCard = (post) => (
-        <article
-            key={post.id}
-            className="bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group"
-            style={{
-                boxShadow: '0 8px 32px hsla(from var(--color-primary) h s l / 0.08)',
-                minHeight: '400px'
-            }}
-        >
-            {/* Image Section */}
-            {post.thumbnail_url ? (
-                <Link to={`/news-events/${post.id}`} className="block aspect-[16/9] overflow-hidden bg-gray-100">
-                    <img
-                        src={blogService.getFileUrl(post.thumbnail_url)}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                </Link>
-            ) : (
-                <Link to={`/news-events/${post.id}`} className="block aspect-[16/9] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                    <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                </Link>
-            )}
+    // Filter posts by search and category
+    const filteredPosts = posts.filter(post => {
+        const q = normalize(searchQuery)
+        const matchesSearch = !searchQuery ||
+            normalize(post.title).includes(q) ||
+            normalize(post.excerpt).includes(q) ||
+            normalize(post.content?.replace(/<[^>]*>/g, '')).includes(q) ||
+            normalize(post.author).includes(q)
+        const matchesCategory = activeCategory === 'all' ||
+            post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
+        return matchesSearch && matchesCategory
+    })
 
-            {/* Content Section */}
-            <div className="p-8">
-                {/* Metadata */}
-                <div className="mb-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <time className="text-sm font-medium text-primary">
-                            {blogService.formatDate(post.published_at || post.created_at)}
-                        </time>
-                        {post.view_count > 0 && (
-                            <span className="flex items-center gap-1 text-xs text-gray-500">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                {post.view_count}
-                            </span>
-                        )}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                        <span>{t('blog.by_author', { author: post.author })}</span>
-                    </div>
-                </div>
+    const isSearching = searchQuery.trim().length > 0 || activeCategory !== 'all'
 
-                {/* Title */}
-                <h2 className="text-xl font-bold mb-4 leading-tight">
-                    <Link
-                        to={`/news-events/${post.id}`}
-                        className="text-gray-900 hover:text-primary transition-colors duration-200 line-clamp-2 no-underline"
-                        style={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            minHeight: '3rem'
-                        }}
-                    >
-                        {post.title}
-                    </Link>
-                </h2>
-
-                {/* Excerpt */}
-                <div className="mb-6">
-                    {post.excerpt ? (
-                        <p
-                            className="text-gray-600 leading-relaxed text-sm"
-                            style={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                minHeight: '3.75rem'
-                            }}
-                        >
-                            {post.excerpt}
-                        </p>
-                    ) : (
-                        <div style={{minHeight: '3.75rem'}} />
-                    )}
-                </div>
-
-                {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-6 min-h-[2rem]">
-                        {post.tags.slice(0, 2).map((tag, index) => (
-                            <span
-                                key={index}
-                                className="px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap"
-                                style={{
-                                    backgroundColor: 'var(--color-base-200)',
-                                    color: 'var(--color-primary)',
-                                    borderColor: 'var(--color-base-300)'
-                                }}
-                            >
-                                {tag.length > 12 ? `${tag.substring(0, 12)}...` : tag}
-                            </span>
-                        ))}
-                        {post.tags.length > 2 && (
-                            <span className="px-3 py-1 text-xs font-medium text-gray-400 whitespace-nowrap">
-                                +{post.tags.length - 2}
-                            </span>
-                        )}
-                    </div>
-                )}
-
-                {/* CTA Button */}
-                <div className="pt-4 border-t border-gray-50">
-                    <Link
-                        to={`/news-events/${post.id}`}
-                        className="inline-flex items-center font-semibold text-sm transition-all duration-200 group-hover:translate-x-1 text-primary hover:text-primary-content"
-                    >
-                        {t('blog.read_full_article')}
-                        <svg
-                            className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </Link>
-                </div>
-            </div>
-        </article>
-    )
+    // Keep filter bar in view when featured section disappears/appears
+    useEffect(() => {
+        if (isSearching && !wasSearching.current && filterRef.current) {
+            filterRef.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+        }
+        wasSearching.current = isSearching
+    }, [isSearching])
+    const featuredPost = isSearching ? null : filteredPosts[0]
+    const sidebarPosts = isSearching ? [] : filteredPosts.slice(1, 3)
+    const gridPosts = isSearching ? filteredPosts : filteredPosts.slice(3)
 
     if (loading && posts.length === 0) {
         return (
             <PageTemplate>
-                <div className="py-8">
-                    <LoadingSkeleton />
-                </div>
+                <div className="py-8"><LoadingSkeleton /></div>
             </PageTemplate>
         )
     }
@@ -191,57 +240,89 @@ export default function BlogPage() {
     if (error && posts.length === 0) {
         return (
             <PageTemplate>
-                <div className="py-8">
-                    <ErrorDisplay error={error} />
-                </div>
+                <div className="py-8"><ErrorDisplay error={error} /></div>
             </PageTemplate>
         )
     }
 
     return (
         <PageTemplate>
-            <div className="min-h-screen pb-16 px-4 bg-base-100">
-                <div className="max-w-6xl mx-auto">
+            <div className="min-h-screen bg-[#f3f4f6]">
+                <div className="max-w-[1512px] mx-auto px-12 pb-20">
                     {/* Header */}
-                    <div className="text-center mb-12">
-                        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-                            {t('blog.header_title')}
+                    <div className="flex flex-col gap-4 mb-14">
+                        <h1 className="font-['Onest'] font-semibold text-5xl leading-none text-[#0a0a0a] tracking-tight">
+                            Noticias e Eventos
                         </h1>
-                        <p className="font-['Onest',sans-serif] text-lg text-center text-gray-600 max-w-2xl mx-auto">
-                            {t('blog.header_subtitle')}
+                        <p className="font-['Onest'] text-2xl leading-relaxed text-[#0a0a0a]">
+                            Fique a par das novidades: histórias, dados e projetos ROOTS
                         </p>
                     </div>
 
-                    {/* Blog Posts Grid */}
-                    {posts.length === 0 && !loading ? (
-                        <div className="text-center py-12">
-                            <div className="mx-auto w-24 h-24 mb-4">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full text-gray-400">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                                </svg>
+                    {/* Featured section: only when not searching */}
+                    {!isSearching && featuredPost && (
+                        <div className="flex flex-col lg:flex-row gap-6 mb-14">
+                            <div className="flex-1">
+                                <FeaturedPost post={featuredPost} index={0} />
                             </div>
-                            <h3 className="text-xl font-medium text-gray-900 mb-2">{t('blog.no_posts_found_title')}</h3>
-                            <p className="text-gray-600">{t('blog.no_posts_found_subtitle')}</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {posts.map(renderPostCard)}
-                            </div>
-
-                            {/* Load More Button */}
-                            {hasMore && (
-                                <div className="text-center mt-12">
-                                    <button
-                                        onClick={loadMore}
-                                        disabled={loading}
-                                        className="px-8 py-3 bg-gray-900 text-white font-medium rounded-full transition-colors disabled:opacity-50 hover:bg-gray-800"
-                                    >
-                                        {loading ? t('blog.loading_more') : t('blog.load_more')}
-                                    </button>
+                            {sidebarPosts.length > 0 && (
+                                <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
+                                    {sidebarPosts.map((post, i) => (
+                                        <PostCard key={post.id} post={post} index={i + 1} compact />
+                                    ))}
                                 </div>
                             )}
-                        </>
+                        </div>
+                    )}
+
+                    {/* Filter bar */}
+                    <div ref={filterRef} className="flex items-center justify-between gap-8 mb-6 flex-wrap" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
+                        {/* Category pills */}
+                        <div className="bg-[#fffefc] flex items-center gap-0 rounded-full p-4">
+                            {CATEGORIES.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                    className={`font-['Onest'] font-medium text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
+                                        activeCategory === cat.id
+                                            ? 'bg-[#00855d] text-white'
+                                            : 'text-[#0a0a0a] hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Search input */}
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Pesquisar..."
+                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-12 pl-4 pr-12 w-80 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
+                            />
+                            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    {/* Cards grid — 4 columns */}
+                    {gridPosts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {gridPosts.map((post, i) => (
+                                <PostCard key={post.id} post={post} index={i + 3} />
+                            ))}
+                        </div>
+                    ) : filteredPosts.length === 0 && (
+                        <div className="text-center py-16">
+                            <h3 className="font-['Onest'] text-xl font-medium text-gray-900 mb-2">
+                                Nenhum resultado encontrado
+                            </h3>
+                            <p className="text-gray-600">Tente ajustar os filtros ou a pesquisa.</p>
+                        </div>
                     )}
                 </div>
             </div>
