@@ -13,7 +13,7 @@ export default function DimensionsSection() {
             Conheça os Números do nosso Turismo
             </h2>
             <p className="font-['Onest'] font-medium text-[24px] text-[#0a0a0a] opacity-80">
-            Escolha um Domínio para entender como o território se está a transformar.
+            Escolha uma dimensão para entender como o território se está a transformar.
             </p>
         </div>
 
