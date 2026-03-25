@@ -217,7 +217,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     // Default public nav items (includes admin link when appropriate)
     const defaultItems = [
         { label: 'ROOTS', path: '/', exact: true },
-        { label: t('nav.dimensions'), path: '/indicators' },
+        { label: t('nav.domains'), path: '/indicators' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
     ];
@@ -257,7 +257,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     // Default mobile items
     const defaultMobileItems = [
         { label: t('nav.home'), path: '/' },
-        { label: t('nav.dimensions'), path: '/indicators' },
+        { label: t('nav.domains'), path: '/indicators' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
     ];
