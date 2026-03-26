@@ -258,7 +258,4 @@ AddDimensionModal.propTypes = {
   onSuccess: PropTypes.func,
   editDomainId: PropTypes.string,
   editDimensionName: PropTypes.string,
-  onSuccess: PropTypes.func,
-  editDomainId: PropTypes.string,
-  editDimensionName: PropTypes.string,
 };
