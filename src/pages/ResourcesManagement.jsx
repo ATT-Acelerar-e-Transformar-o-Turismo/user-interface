@@ -212,7 +212,7 @@ export default function ResourcesManagement() {
           <h2 className="text-xl font-semibold mb-2">Indicator Not Found</h2>
           <p className="text-gray-600 mb-4">The requested indicator could not be found.</p>
           <button 
-            onClick={() => navigate('/indicators-management')} 
+            onClick={() => navigate('/admin/indicators-management')}
             className="btn btn-primary"
           >
             Back to Indicators

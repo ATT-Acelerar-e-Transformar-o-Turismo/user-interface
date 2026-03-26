@@ -5,7 +5,7 @@ export const API_ENDPOINTS = {
     ME: '/api/auth/me',
   },
   DOMAINS: {
-    BASE: '/api/domains',
+    BASE: '/api/domains/',
     BY_ID: (id) => `/api/domains/${id}`,
   },
   INDICATORS: {

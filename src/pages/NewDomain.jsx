@@ -81,7 +81,7 @@ export default function NewDomain() {
             
             // Refresh domains in context
             await refreshDomains();
-        navigate('/indicators-management');
+        navigate('/admin/indicators-management');
         } catch (err) {
             setError('Failed to save domain: ' + (err.userMessage || err.message));
         } finally {
@@ -199,7 +199,7 @@ export default function NewDomain() {
                         <div className="flex justify-end mt-4 space-x-2">
                             <button 
                                 type="button" 
-                                onClick={() => navigate('/indicators-management')}
+                                onClick={() => navigate('/admin/indicators-management')}
                                 disabled={loading}
                                 className="btn btn-ghost"
                             >

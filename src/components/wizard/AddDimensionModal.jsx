@@ -4,11 +4,27 @@ import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
 import { validateRequired, hasErrors } from '../../utils/formValidation';
 import domainService from '../../services/domainService';
+import indicatorService from '../../services/indicatorService';
+
+// Fetch all indicators for a domain by paginating through results
+async function fetchAllDomainIndicators(domainId) {
+  const all = [];
+  let skip = 0;
+  const limit = 50;
+  while (true) {
+    const batch = await indicatorService.getByDomain(domainId, skip, limit);
+    all.push(...batch);
+    if (batch.length < limit) break;
+    skip += limit;
+  }
+  return all;
+}
 
 /**
  * AddDimensionModal - Simple modal for adding a dimension (subdomain) to a domain
  */
-export default function AddDimensionModal({ isOpen, onClose, onSuccess }) {
+export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null }) {
+  const isEditing = Boolean(editDomainId && editDimensionName);
   const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState('');
   const [dimensionName, setDimensionName] = useState('');
@@ -18,8 +34,12 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess }) {
   useEffect(() => {
     if (isOpen) {
       loadDomains();
+      if (isEditing) {
+        setSelectedDomain(editDomainId);
+        setDimensionName(editDimensionName);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, editDomainId, editDimensionName]);
 
   const loadDomains = async () => {
     try {
@@ -55,19 +75,43 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess }) {
       setLoading(true);
       setErrors({});
 
-      // Get the domain
-      const domain = await domainService.getById(selectedDomain);
+      if (isEditing && selectedDomain !== editDomainId) {
+        // Moving to a different domain: remove from old, add to new
+        const oldDomain = await domainService.getById(editDomainId);
+        const oldSubs = (oldDomain.subdomains || oldDomain.subdominios || []).filter(s => s !== editDimensionName);
+        await domainService.patch(editDomainId, { subdomains: oldSubs });
 
-      // Add the new subdomain
-      const updatedSubdomains = [
-        ...(domain.subdomains || domain.subdominios || []),
-        dimensionName.trim()
-      ];
+        const newDomain = await domainService.getById(selectedDomain);
+        const newSubs = [...(newDomain.subdomains || newDomain.subdominios || []), dimensionName.trim()];
+        await domainService.patch(selectedDomain, { subdomains: newSubs });
 
-      // Update the domain
-      await domainService.patch(selectedDomain, {
-        subdomains: updatedSubdomains
-      });
+        // Update all indicators: change domain and subdomain name
+        const allIndicators = await fetchAllDomainIndicators(editDomainId);
+        const affected = allIndicators.filter(ind => ind.subdomain === editDimensionName);
+        await Promise.all(affected.map(ind =>
+          indicatorService.patch(ind.id, { subdomain: dimensionName.trim(), domain: selectedDomain })
+        ));
+      } else if (isEditing) {
+        // Same domain: rename
+        const domain = await domainService.getById(selectedDomain);
+        const currentSubdomains = domain.subdomains || domain.subdominios || [];
+        const updatedSubdomains = currentSubdomains.map(s => s === editDimensionName ? dimensionName.trim() : s);
+        await domainService.patch(selectedDomain, { subdomains: updatedSubdomains });
+
+        // Update all indicators with the old subdomain name
+        if (dimensionName.trim() !== editDimensionName) {
+          const allIndicators = await fetchAllDomainIndicators(selectedDomain);
+          const affected = allIndicators.filter(ind => ind.subdomain === editDimensionName);
+          await Promise.all(affected.map(ind =>
+            indicatorService.patch(ind.id, { subdomain: dimensionName.trim() })
+          ));
+        }
+      } else {
+        // Add new subdomain
+        const domain = await domainService.getById(selectedDomain);
+        const currentSubdomains = domain.subdomains || domain.subdominios || [];
+        await domainService.patch(selectedDomain, { subdomains: [...currentSubdomains, dimensionName.trim()] });
+      }
 
       // Reset form
       setSelectedDomain('');
@@ -113,7 +157,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-['Onest',sans-serif] font-semibold text-2xl text-black">
-            Adicionar Dimensão
+            {isEditing ? 'Editar Dimensão' : 'Adicionar Dimensão'}
           </h2>
           <button
             type="button"
@@ -201,7 +245,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess }) {
                   A processar...
                 </>
               ) : (
-                'Adicionar'
+                isEditing ? 'Guardar' : 'Adicionar'
               )}
             </button>
           </div>
@@ -214,5 +258,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess }) {
 AddDimensionModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onSuccess: PropTypes.func
+  onSuccess: PropTypes.func,
+  editDomainId: PropTypes.string,
+  editDimensionName: PropTypes.string,
 };

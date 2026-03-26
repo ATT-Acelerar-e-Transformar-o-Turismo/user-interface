@@ -86,6 +86,11 @@ export const indicatorService = {
     return response.data;
   },
 
+  async patch(indicatorId, data) {
+    const response = await apiClient.patch(API_ENDPOINTS.INDICATORS.BY_ID(indicatorId), data);
+    return response.data;
+  },
+
   async delete(indicatorId) {
     const response = await apiClient.delete(API_ENDPOINTS.INDICATORS.BY_ID(indicatorId));
     return response.data;
