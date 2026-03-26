@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DomainCard from '../components/DomainCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -6,23 +5,10 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import PageTemplate from './PageTemplate';
 import { useDomain } from '../contexts/DomainContext';
 import { useTranslation } from 'react-i18next';
-import indicatorService from '../services/indicatorService';
 
 export default function DomainSelectionPage() {
   const { t } = useTranslation();
   const { domains, loading, error } = useDomain();
-  const [domainIndicators, setDomainIndicators] = useState({});
-
-  // Fetch first 4 indicators per domain for card display
-  useEffect(() => {
-    if (!domains || domains.length === 0) return;
-    domains.forEach(domain => {
-      if (!domain?.id || domainIndicators[domain.id]) return;
-      indicatorService.getByDomain(domain.id, 0, 4).then(indicators => {
-        setDomainIndicators(prev => ({ ...prev, [domain.id]: indicators }));
-      }).catch(() => {});
-    });
-  }, [domains]);
 
   return (
     <PageTemplate showSearchBox={true}>
@@ -57,24 +43,17 @@ export default function DomainSelectionPage() {
           )}
           {!loading && !error && domains.length > 0 && (
             <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
-              {domains.map((domain, index) => {
-                const indicators = domainIndicators[domain.id] || [];
-                // Use fetched indicators (with IDs) or fall back to subdomain names
-                const indicatorItems = indicators.length > 0
-                  ? indicators.map(ind => ({ id: ind.id, name: ind.name }))
-                  : (domain?.subdomains?.map(s => ({ name: s.name || s })) || []);
-                return (
-                  <DomainCard
-                    key={domain?.id || index}
-                    title={domain?.name || "Unnamed Domain"}
-                    page={`/indicators/${domain?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
-                    color={domain?.DomainColor || domain?.color}
-                    icon={domain?.DomainIcon}
-                    indicators={indicatorItems}
-                    shadowColor={domain?.DomainColor || domain?.color}
-                  />
-                );
-              })}
+              {domains.map((domain, index) => (
+                <DomainCard
+                  key={domain?.id || index}
+                  title={domain?.name || "Unnamed Domain"}
+                  page={`/indicators/${domain?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
+                  color={domain?.DomainColor || domain?.color}
+                  icon={domain?.DomainIcon}
+                  indicators={domain?.subdomains?.map(s => s.name || s) || []}
+                  shadowColor={domain?.DomainColor || domain?.color}
+                />
+              ))}
             </div>
           )}
 
