@@ -8,13 +8,7 @@ import hljs from 'highlight.js'
 import parse from 'html-react-parser'
 import BlogIndicatorWidget from '../components/BlogIndicatorWidget'
 
-const FALLBACK_THUMBS = [
-    '/assets/figma/hero-rect-1.png',
-    '/assets/figma/hero-rect-2.png',
-    '/assets/figma/hero-rect-3.png',
-    '/assets/figma/about-rect-1.png',
-    '/assets/figma/about-rect-2.png',
-]
+
 
 export default function BlogPostPage() {
     const { postId } = useParams()
@@ -90,7 +84,7 @@ export default function BlogPostPage() {
 
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
-        : FALLBACK_THUMBS[Math.abs(postId?.charCodeAt(0) || 0) % FALLBACK_THUMBS.length]
+        : null
 
     return (
         <PageTemplate>
@@ -158,10 +152,12 @@ export default function BlogPostPage() {
                                 </div>
                             </div>
 
-                            {/* Hero image */}
-                            <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-[0_0_3px_2px_rgba(0,0,0,0.05)]">
-                                <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-                            </div>
+                            {/* Hero image — only if uploaded */}
+                            {thumbnail && (
+                                <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-[0_0_3px_2px_rgba(0,0,0,0.05)]">
+                                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                                </div>
+                            )}
 
                             {/* Article body */}
                             <article className="blog-content font-['Onest'] text-[#0a0a0a]">
@@ -240,12 +236,12 @@ export default function BlogPostPage() {
                                                 to={`/news-events/${rp.id}`}
                                                 className="flex gap-5 items-start no-underline hover:opacity-80 transition-opacity"
                                             >
-                                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                                                    <img
-                                                        src={rp.thumbnail_url ? blogService.getFileUrl(rp.thumbnail_url) : FALLBACK_THUMBS[i % FALLBACK_THUMBS.length]}
-                                                        alt=""
-                                                        className="w-full h-full object-cover"
-                                                    />
+                                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0 flex items-center justify-center">
+                                                    {rp.thumbnail_url ? (
+                                                        <img src={blogService.getFileUrl(rp.thumbnail_url)} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="font-['Onest'] font-bold text-lg text-gray-400">{(rp.title || '?')[0]}</span>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-['Onest'] font-medium text-lg text-[#0a0a0a] line-clamp-1">{rp.title}</span>

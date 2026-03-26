@@ -6,22 +6,6 @@ import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 
-// Fallback thumbnails when posts don't have uploaded images
-const FALLBACK_THUMBS = [
-    '/assets/figma/hero-rect-1.png',
-    '/assets/figma/hero-rect-2.png',
-    '/assets/figma/hero-rect-3.png',
-    '/assets/figma/about-rect-1.png',
-    '/assets/figma/about-rect-2.png',
-    '/assets/figma/about-rect-3.png',
-    '/assets/figma/about-rect-4.png',
-    '/assets/figma/blog-thumb-1.png',
-    '/assets/figma/blog-thumb-2.png',
-    '/assets/figma/blog-thumb-3.png',
-]
-
-const getFallbackThumb = (index) => FALLBACK_THUMBS[index % FALLBACK_THUMBS.length]
-
 const CATEGORIES = [
     { id: 'all', label: 'Todos' },
     { id: 'Publicações Cientificas', label: 'Publicações Cientificas' },
@@ -31,20 +15,22 @@ const CATEGORIES = [
     { id: 'Eventos', label: 'Eventos' },
 ]
 
-function PostCard({ post, compact = false, index = 0 }) {
+function PostCard({ post, compact = false }) {
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
-        : getFallbackThumb(index)
+        : null
 
     return (
         <Link
             to={`/news-events/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-6 rounded-xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            {/* Thumbnail */}
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
-                <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-            </div>
+            {/* Thumbnail — only if uploaded */}
+            {thumbnail && (
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                </div>
+            )}
 
             {/* Title + arrow */}
             <div className="flex items-start gap-4">
@@ -101,21 +87,23 @@ function PostCard({ post, compact = false, index = 0 }) {
     )
 }
 
-function FeaturedPost({ post, index = 0 }) {
+function FeaturedPost({ post }) {
     if (!post) return null
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
-        : getFallbackThumb(index)
+        : null
 
     return (
         <Link
             to={`/news-events/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            {/* Large thumbnail */}
-            <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
-                <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-            </div>
+            {/* Large thumbnail — only if uploaded */}
+            {thumbnail && (
+                <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
+                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                </div>
+            )}
 
             {/* Title + arrow */}
             <div className="flex items-start gap-4">
@@ -263,12 +251,12 @@ export default function BlogPage() {
                     {!isSearching && featuredPost && (
                         <div className="flex flex-col lg:flex-row gap-6 mb-14">
                             <div className="flex-1">
-                                <FeaturedPost post={featuredPost} index={0} />
+                                <FeaturedPost post={featuredPost} />
                             </div>
                             {sidebarPosts.length > 0 && (
                                 <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
                                     {sidebarPosts.map((post, i) => (
-                                        <PostCard key={post.id} post={post} index={i + 1} compact />
+                                        <PostCard key={post.id} post={post} compact />
                                     ))}
                                 </div>
                             )}
@@ -313,7 +301,7 @@ export default function BlogPage() {
                     {gridPosts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {gridPosts.map((post, i) => (
-                                <PostCard key={post.id} post={post} index={i + 3} />
+                                <PostCard key={post.id} post={post} />
                             ))}
                         </div>
                     ) : filteredPosts.length === 0 && (
