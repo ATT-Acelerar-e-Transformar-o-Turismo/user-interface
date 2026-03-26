@@ -38,7 +38,7 @@ function Dropdowns({
     if (!domainName || selectedDomain?.name === domainName) return;
 
     if (redirectOnDomainChange) {
-      const path = domain.DomainPage || `/indicators/${domainName.toLowerCase().replace(/\s+/g, '-')}`;
+      const path = `/indicators/${domainName.toLowerCase().replace(/\s+/g, '-')}`;
       navigate(path, {
         state: { domainName: domainName },
       });
