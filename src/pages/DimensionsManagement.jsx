@@ -25,7 +25,6 @@ export default function DimensionsManagement() {
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDimension, setEditingDimension] = useState(null);
 
   const navigate = useNavigate();
@@ -353,20 +352,6 @@ export default function DimensionsManagement() {
           setEditingDimension(null);
         }}
         onSuccess={() => { loadDimensions(); }}
-        editDomainId={editingDimension?.domainId}
-        editDimensionName={editingDimension?.name}
-      />
-
-      {/* Edit Dimension Modal */}
-      <AddDimensionModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingDimension(null);
-        }}
-        onSuccess={() => {
-          loadDimensions();
-        }}
         editDomainId={editingDimension?.domainId}
         editDimensionName={editingDimension?.name}
       />

@@ -38,10 +38,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         setSelectedDomain(editDomainId);
         setDimensionName(editDimensionName);
       }
-      if (isEditing) {
-        setSelectedDomain(editDomainId);
-        setDimensionName(editDimensionName);
-      }
     }
   }, [isOpen, editDomainId, editDimensionName]);
 
