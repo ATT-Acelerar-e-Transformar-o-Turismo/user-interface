@@ -6,7 +6,7 @@ import { validateRequired, hasErrors } from '../../utils/formValidation';
 import domainService from '../../services/domainService';
 import indicatorService from '../../services/indicatorService';
 
-// Fetch all indicators for a domain by paginating through results
+// Fetch all indicators for a domain by paginating (backend max limit is 50)
 async function fetchAllDomainIndicators(domainId) {
   const all = [];
   let skip = 0;
@@ -21,7 +21,7 @@ async function fetchAllDomainIndicators(domainId) {
 }
 
 /**
- * AddDimensionModal - Simple modal for adding a dimension (subdomain) to a domain
+ * AddDimensionModal - Modal for adding or editing a dimension (subdomain) on a domain
  */
 export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null }) {
   const isEditing = Boolean(editDomainId && editDimensionName);
@@ -34,6 +34,10 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
   useEffect(() => {
     if (isOpen) {
       loadDomains();
+      if (isEditing) {
+        setSelectedDomain(editDomainId);
+        setDimensionName(editDimensionName);
+      }
       if (isEditing) {
         setSelectedDomain(editDomainId);
         setDimensionName(editDimensionName);
@@ -78,14 +82,14 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       if (isEditing && selectedDomain !== editDomainId) {
         // Moving to a different domain: remove from old, add to new
         const oldDomain = await domainService.getById(editDomainId);
-        const oldSubs = (oldDomain.subdomains || oldDomain.subdominios || []).filter(s => s !== editDimensionName);
+        const oldSubs = (oldDomain.subdomains || []).filter(s => s !== editDimensionName);
         await domainService.patch(editDomainId, { subdomains: oldSubs });
 
         const newDomain = await domainService.getById(selectedDomain);
-        const newSubs = [...(newDomain.subdomains || newDomain.subdominios || []), dimensionName.trim()];
+        const newSubs = [...(newDomain.subdomains || []), dimensionName.trim()];
         await domainService.patch(selectedDomain, { subdomains: newSubs });
 
-        // Update all indicators: change domain and subdomain name
+        // Update all affected indicators: change domain and subdomain name
         const allIndicators = await fetchAllDomainIndicators(editDomainId);
         const affected = allIndicators.filter(ind => ind.subdomain === editDimensionName);
         await Promise.all(affected.map(ind =>
@@ -94,7 +98,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       } else if (isEditing) {
         // Same domain: rename
         const domain = await domainService.getById(selectedDomain);
-        const currentSubdomains = domain.subdomains || domain.subdominios || [];
+        const currentSubdomains = domain.subdomains || [];
         const updatedSubdomains = currentSubdomains.map(s => s === editDimensionName ? dimensionName.trim() : s);
         await domainService.patch(selectedDomain, { subdomains: updatedSubdomains });
 
@@ -109,7 +113,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       } else {
         // Add new subdomain
         const domain = await domainService.getById(selectedDomain);
-        const currentSubdomains = domain.subdomains || domain.subdominios || [];
+        const currentSubdomains = domain.subdomains || [];
         await domainService.patch(selectedDomain, { subdomains: [...currentSubdomains, dimensionName.trim()] });
       }
 
@@ -122,7 +126,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error adding dimension:', error);
-      setErrors({ submit: error.message || 'Falha ao adicionar dimensão' });
+      setErrors({ submit: error.message || 'Falha ao processar dimensão' });
     } finally {
       setLoading(false);
     }
@@ -228,19 +232,8 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
                     fill="none"
                     viewBox="0 0 24 24"
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   A processar...
                 </>
