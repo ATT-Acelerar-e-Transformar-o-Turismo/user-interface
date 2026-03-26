@@ -24,6 +24,8 @@ export default function DimensionsManagement() {
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDimension, setEditingDimension] = useState(null);
 
   const navigate = useNavigate();
 
@@ -114,10 +116,8 @@ export default function DimensionsManagement() {
   };
 
   const handleEdit = (dimension) => {
-    // Navigate to domain edit with subdomain context
-    navigate(`/edit_domain/${dimension.domainId}`, {
-      state: { highlightSubdomain: dimension.name }
-    });
+    setEditingDimension(dimension);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = async (dimension) => {
@@ -341,10 +341,19 @@ export default function DimensionsManagement() {
       <AddDimensionModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          // Reload dimensions after adding
-          loadDimensions();
+        onSuccess={() => { loadDimensions(); }}
+      />
+
+      {/* Edit Dimension Modal */}
+      <AddDimensionModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingDimension(null);
         }}
+        onSuccess={() => { loadDimensions(); }}
+        editDomainId={editingDimension?.domainId}
+        editDimensionName={editingDimension?.name}
       />
     </AdminPageTemplate>
   );

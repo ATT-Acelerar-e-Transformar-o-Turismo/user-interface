@@ -445,7 +445,7 @@ export default function ResourceWizard({
     setWrapperStatus(null);
     setWrappersData([]);
     setGeneratingWrappers(false);
-    navigate(`/resources-management/${indicatorId}`);
+    navigate(`/admin/resources-management/${indicatorId}`);
   };
 
   const handleAddNewResource = () => {

@@ -9,6 +9,7 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import ActionCard from '../components/ActionCard';
 import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorWizard from '../components/wizard/IndicatorWizard';
+import DomainWizard from '../components/wizard/DomainWizard';
 
 export default function IndicatorsManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +23,8 @@ export default function IndicatorsManagement() {
   // Wizard state
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingIndicatorId, setEditingIndicatorId] = useState(null);
+  const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
+  const [editingDomainId, setEditingDomainId] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -107,7 +110,8 @@ export default function IndicatorsManagement() {
       setEditingIndicatorId(id);
       setIsWizardOpen(true);
     } else {
-      navigate(`/edit_domain/${id}`);
+      setEditingDomainId(id);
+      setIsDomainWizardOpen(true);
     }
   };
 
@@ -193,7 +197,7 @@ export default function IndicatorsManagement() {
     if (selectedOption === 'indicators' && column === 'name') {
       return (
         <button
-          onClick={() => navigate(`/resources-management/${row.id}`)}
+          onClick={() => navigate(`/admin/resources-management/${row.id}`)}
           className="text-primary hover:underline cursor-pointer text-left w-full"
         >
           {value}
@@ -310,7 +314,7 @@ export default function IndicatorsManagement() {
                           </svg>
                         </div>
                         <button
-                          onClick={() => navigate(`/resources-management/${indicator.id}`)}
+                          onClick={() => navigate(`/admin/resources-management/${indicator.id}`)}
                           className="font-['Onest',sans-serif] font-normal text-sm text-black hover:underline text-left"
                         >
                           {indicator.name}
@@ -438,6 +442,19 @@ export default function IndicatorsManagement() {
         indicatorId={editingIndicatorId}
         onSuccess={() => {
           // Reload indicators after successful create/update
+          loadData();
+        }}
+      />
+
+      {/* Domain Wizard Modal */}
+      <DomainWizard
+        isOpen={isDomainWizardOpen}
+        onClose={() => {
+          setIsDomainWizardOpen(false);
+          setEditingDomainId(null);
+        }}
+        domainId={editingDomainId}
+        onSuccess={() => {
           loadData();
         }}
       />
