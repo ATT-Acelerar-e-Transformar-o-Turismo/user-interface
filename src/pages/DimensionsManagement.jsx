@@ -120,8 +120,6 @@ export default function DimensionsManagement() {
   const handleEdit = (dimension) => {
     setEditingDimension(dimension);
     setIsEditModalOpen(true);
-    setEditingDimension(dimension);
-    setIsEditModalOpen(true);
   };
 
   const handleDelete = async (dimension) => {
