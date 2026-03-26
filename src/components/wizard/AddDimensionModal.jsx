@@ -165,7 +165,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-['Onest',sans-serif] font-semibold text-2xl text-black">
             {isEditing ? 'Editar Dimensão' : 'Adicionar Dimensão'}
-            {isEditing ? 'Editar Dimensão' : 'Adicionar Dimensão'}
           </h2>
           <button
             type="button"
