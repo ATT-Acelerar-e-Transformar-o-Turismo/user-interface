@@ -25,8 +25,6 @@ async function fetchAllDomainIndicators(domainId) {
  */
 export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null }) {
   const isEditing = Boolean(editDomainId && editDimensionName);
-export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null }) {
-  const isEditing = Boolean(editDomainId && editDimensionName);
   const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState('');
   const [dimensionName, setDimensionName] = useState('');
@@ -45,7 +43,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         setDimensionName(editDimensionName);
       }
     }
-  }, [isOpen, editDomainId, editDimensionName]);
   }, [isOpen, editDomainId, editDimensionName]);
 
   const loadDomains = async () => {
@@ -242,7 +239,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
                   A processar...
                 </>
               ) : (
-                isEditing ? 'Guardar' : 'Adicionar'
                 isEditing ? 'Guardar' : 'Adicionar'
               )}
             </button>

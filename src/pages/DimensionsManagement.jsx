@@ -25,7 +25,6 @@ export default function DimensionsManagement() {
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDimension, setEditingDimension] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDimension, setEditingDimension] = useState(null);
 
@@ -118,8 +117,6 @@ export default function DimensionsManagement() {
   };
 
   const handleEdit = (dimension) => {
-    setEditingDimension(dimension);
-    setIsEditModalOpen(true);
     setEditingDimension(dimension);
     setIsEditModalOpen(true);
   };
