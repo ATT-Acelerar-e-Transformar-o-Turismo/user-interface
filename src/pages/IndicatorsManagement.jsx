@@ -441,7 +441,19 @@ export default function IndicatorsManagement() {
         }}
         indicatorId={editingIndicatorId}
         onSuccess={() => {
-          // Reload indicators after successful create/update
+          loadData();
+        }}
+      />
+
+      {/* Domain Wizard Modal */}
+      <DomainWizard
+        isOpen={isDomainWizardOpen}
+        onClose={() => {
+          setIsDomainWizardOpen(false);
+          setEditingDomainId(null);
+        }}
+        domainId={editingDomainId}
+        onSuccess={() => {
           loadData();
         }}
       />
