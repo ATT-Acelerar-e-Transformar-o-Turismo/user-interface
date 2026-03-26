@@ -88,8 +88,9 @@ export default function DomainTemplate() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [governanceFilter, setGovernanceFilter] = useState(null);
   const [domainFilter, setDomainFilter] = useState(null);
-  const initialSubdomain = searchParams.get('subdomain') || location.state?.subdomain || null;
-  const [subdomainFilter, setSubdomainFilter] = useState(initialSubdomain);
+  const initialSubdomainName = searchParams.get('subdomain') || location.state?.subdomain || null;
+  const initialSubdomain = initialSubdomainName ? { name: initialSubdomainName } : null;
+  const [subdomainFilter, setSubdomainFilter] = useState(initialSubdomainName);
 
   // Domain state
   const [selectedSubdomain, setSelectedSubdomain] = useState(initialSubdomain);
@@ -158,10 +159,10 @@ export default function DomainTemplate() {
         } else {
           // Specific Domain mode (legacy /environment etc or /indicators/environment)
           if (domains.length === 0) {
-            setLoading(false);
+            // Domains still loading — keep spinner, effect will re-run when domains arrive
             return;
           }
-          
+
           if (!selectedDomainObj?.id || !selectedDomainObj.id.match(/^[a-fA-F0-9]{24}$/)) {
             setLoading(false);
             return;
