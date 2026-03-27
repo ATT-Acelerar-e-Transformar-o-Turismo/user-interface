@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import Wizard from './Wizard';
 import WizardStep from './WizardStep';
@@ -17,14 +18,17 @@ import { useDomain } from '../../contexts/DomainContext';
  */
 export default function DomainWizard({ isOpen, onClose, domainId = null, onSuccess = null }) {
   const { refreshDomains } = useDomain();
+  const { t } = useTranslation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [subdomainInput, setSubdomainInput] = useState('');
+  const [subdomainInputPt, setSubdomainInputPt] = useState('');
+  const [subdomainInputEn, setSubdomainInputEn] = useState('');
 
-  const steps = ['Informações do Domínio'];
+  const steps = [t('wizard.domain.step')];
 
   const initialData = {
     name: '',
+    name_en: '',
     color: '#00855d',
     subdomains: [],
     image: '',
@@ -47,6 +51,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       if (domain) {
         wizard.updateMultipleFields({
           name: domain.name || '',
+          name_en: domain.name_en || '',
           color: domain.color || '#00855d',
           subdomains: Array.isArray(domain.subdomains) ? domain.subdomains : [],
           image: domain.image || '',
@@ -61,10 +66,12 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
   };
 
   const handleAddSubdomain = () => {
-    if (subdomainInput.trim()) {
-      const updatedSubdomains = [...wizard.formData.subdomains, subdomainInput.trim()];
+    if (subdomainInputPt.trim()) {
+      const newSubdomain = { name: subdomainInputPt.trim(), name_en: subdomainInputEn.trim() };
+      const updatedSubdomains = [...wizard.formData.subdomains, newSubdomain];
       wizard.updateFormData('subdomains', updatedSubdomains);
-      setSubdomainInput('');
+      setSubdomainInputPt('');
+      setSubdomainInputEn('');
     }
   };
 
@@ -73,9 +80,10 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     wizard.updateFormData('subdomains', updatedSubdomains);
   };
 
-  const handleSubdomainKeyPress = (e) => {
+  const handleSubdomainKeyPress = (e, field) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      if (field === 'en') return; // EN field Enter just adds
       handleAddSubdomain();
     }
   };
@@ -84,7 +92,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     const errors = {};
 
     if (stepIndex === 0) {
-      const nameError = validateRequired(wizard.formData.name, 'Nome do domínio');
+      const nameError = validateRequired(wizard.formData.name, t('wizard.domain.name_pt'));
       if (nameError) errors.name = nameError;
     }
 
@@ -105,6 +113,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     try {
       const domainData = {
         name: data.name.trim(),
+        name_en: data.name_en.trim() || '',
         color: data.color || '#00855d',
         subdomains: data.subdomains || [],
         image: data.image || '',
@@ -140,7 +149,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
   const handleWizardClose = () => {
     if (!wizard.isSubmitting) {
       wizard.reset();
-      setSubdomainInput('');
+      setSubdomainInputPt('');
+      setSubdomainInputEn('');
       onClose();
     }
   };
@@ -150,7 +160,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       <Wizard
         isOpen={isOpen && !showSuccessModal}
         onClose={handleWizardClose}
-        title={domainId ? 'Editar Domínio' : 'Novo Domínio'}
+        title={domainId ? t('wizard.domain.title_edit') : t('wizard.domain.title_new')}
         steps={steps}
         currentStep={wizard.currentStep}
         onPrevious={wizard.previousStep}
@@ -163,22 +173,30 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
         {/* Single Step: Domain Information */}
         {wizard.currentStep === 0 && (
           <WizardStep
-            title="Informações do Domínio"
-            description="Configure o nome, cor e subdomínios"
+            title={t('wizard.domain.step')}
+            description={t('wizard.domain.step_desc')}
           >
             <FormInput
-              label="Nome do Domínio"
+              label={t('wizard.domain.name_pt')}
               name="name"
               value={wizard.formData.name}
               onChange={(value) => wizard.updateFormData('name', value)}
-              placeholder="Ex: Ambiente, Sociedade, Economia"
+              placeholder={t('wizard.domain.name_pt_placeholder')}
               required
               error={wizard.errors.name}
             />
 
+            <FormInput
+              label={t('wizard.domain.name_en')}
+              name="name_en"
+              value={wizard.formData.name_en}
+              onChange={(value) => wizard.updateFormData('name_en', value)}
+              placeholder={t('wizard.domain.name_en_placeholder')}
+            />
+
             <div className="flex flex-col gap-2">
               <label className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                Cor do Domínio
+                {t('wizard.domain.color')}
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -194,7 +212,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
             </div>
 
             <FileUpload
-              label="Imagem do Domínio"
+              label={t('wizard.domain.image')}
               name="image"
               value={wizard.formData.image}
               onChange={(value) => wizard.updateFormData('image', value)}
@@ -204,7 +222,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
             />
 
             <FileUpload
-              label="Ícone do Domínio"
+              label={t('wizard.domain.icon')}
               name="icon"
               value={wizard.formData.icon}
               onChange={(value) => wizard.updateFormData('icon', value)}
@@ -216,51 +234,72 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
             {/* Subdomains Management */}
             <div className="flex flex-col gap-2">
               <label className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                Subdomínios (Dimensões)
+                {t('wizard.domain.subdomains')}
               </label>
 
               {/* Subdomain Input */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={subdomainInput}
-                  onChange={(e) => setSubdomainInput(e.target.value)}
-                  onKeyPress={handleSubdomainKeyPress}
-                  placeholder="Digite um subdomínio e pressione Enter"
-                  className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddSubdomain}
-                  className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-4 py-3 rounded-lg transition-colors"
-                >
-                  Adicionar
-                </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={subdomainInputPt}
+                    onChange={(e) => setSubdomainInputPt(e.target.value)}
+                    onKeyPress={(e) => handleSubdomainKeyPress(e, 'pt')}
+                    placeholder={t('wizard.domain.subdomain_pt_placeholder')}
+                    className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
+                  />
+                  <input
+                    type="text"
+                    value={subdomainInputEn}
+                    onChange={(e) => setSubdomainInputEn(e.target.value)}
+                    onKeyPress={(e) => handleSubdomainKeyPress(e, 'en')}
+                    placeholder={t('wizard.domain.subdomain_en_placeholder')}
+                    className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSubdomain}
+                    className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-4 py-3 rounded-lg transition-colors"
+                  >
+                    {t('wizard.domain.add_subdomain')}
+                  </button>
+                </div>
               </div>
 
               {/* Subdomain List */}
               {wizard.formData.subdomains.length > 0 && (
                 <div className="bg-[#f1f0f0] rounded-lg p-4 space-y-2">
-                  {wizard.formData.subdomains.map((subdomain, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between bg-white rounded-lg px-3 py-2"
-                    >
-                      <span className="font-['Onest',sans-serif] text-sm text-black">
-                        {subdomain}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSubdomain(index)}
-                        className="text-red-600 hover:text-red-700 transition-colors"
-                        title="Remover"
+                  {wizard.formData.subdomains.map((subdomain, index) => {
+                    const namePt = typeof subdomain === 'string' ? subdomain : subdomain.name;
+                    const nameEn = typeof subdomain === 'string' ? '' : (subdomain.name_en || '');
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-white rounded-lg px-3 py-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex flex-col">
+                          <span className="font-['Onest',sans-serif] text-sm text-black">
+                            🇵🇹 {namePt}
+                          </span>
+                          {nameEn && (
+                            <span className="font-['Onest',sans-serif] text-xs text-gray-500">
+                              🇬🇧 {nameEn}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSubdomain(index)}
+                          className="text-red-600 hover:text-red-700 transition-colors"
+                          title={t('wizard.domain.remove_subdomain')}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -272,10 +311,10 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleFinish}
-        title={domainId ? 'Domínio Atualizado!' : 'Domínio Adicionado!'}
-        message="O domínio foi guardado com sucesso"
+        title={domainId ? t('wizard.domain.success_updated') : t('wizard.domain.success_added')}
+        message={t('wizard.domain.success_message')}
         primaryAction={{
-          label: 'Continuar',
+          label: t('wizard.domain.continue'),
           onClick: handleFinish
         }}
       />

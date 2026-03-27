@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * FileUpload - Component for uploading files with preview
@@ -18,6 +19,7 @@ export default function FileUpload({
   className = '',
   showPreview = true
 }) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
@@ -33,7 +35,7 @@ export default function FileUpload({
       const uploadedUrl = await onUpload(file);
       onChange(uploadedUrl);
     } catch (err) {
-      const errorMsg = err.userMessage || err.message || 'Erro ao fazer upload do ficheiro';
+      const errorMsg = err.userMessage || err.message || t('components.file_upload.error');
       setUploadError(errorMsg);
       console.error('Upload error:', err);
     } finally {
@@ -69,7 +71,7 @@ export default function FileUpload({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="URL do ficheiro ou faça upload"
+          placeholder={t('components.file_upload.placeholder')}
           disabled={disabled || uploading}
           aria-invalid={displayError ? 'true' : 'false'}
           aria-describedby={displayError ? `${name}-error` : undefined}
@@ -93,7 +95,7 @@ export default function FileUpload({
           onChange={handleFileSelect}
           disabled={disabled || uploading}
           className="hidden"
-          aria-label={`Selecionar ficheiro para ${label}`}
+          aria-label={t('components.file_upload.select_file', { label })}
         />
 
         <button
@@ -110,7 +112,7 @@ export default function FileUpload({
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >
-          {uploading ? 'A fazer upload...' : 'Upload'}
+          {uploading ? t('components.file_upload.uploading') : t('components.file_upload.upload_btn')}
         </button>
       </div>
 

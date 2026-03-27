@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import Wizard from './Wizard';
 import WizardStep from './WizardStep';
@@ -16,6 +17,7 @@ import domainService from '../../services/domainService';
 
 export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, onSuccess = null }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showResourceWizard, setShowResourceWizard] = useState(false);
   const [createdIndicatorId, setCreatedIndicatorId] = useState(null);
@@ -23,11 +25,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   const [subdomains, setSubdomains] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const steps = ['Nome & Descrição', 'Unidades & Medidas'];
+  const steps = [t('wizard.indicator.step_info'), t('wizard.indicator.step_units')];
 
   const initialData = {
     name: '',
+    name_en: '',
     description: '',
+    description_en: '',
     domain: '',
     subdomain: '',
     unit: '',
@@ -72,7 +76,9 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         if (indicator) {
           wizard.updateMultipleFields({
             name: indicator.name || '',
+            name_en: indicator.name_en || '',
             description: indicator.description || '',
+            description_en: indicator.description_en || '',
             domain: indicator.domain?.id || indicator.domain || '',
             subdomain: indicator.subdomain || '',
             unit: indicator.unit || '',
@@ -96,13 +102,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     const errors = {};
 
     if (stepIndex === 0) {
-      const nameError = validateRequired(wizard.formData.name, 'Nome');
+      const nameError = validateRequired(wizard.formData.name, t('wizard.indicator.name_pt'));
       if (nameError) errors.name = nameError;
 
-      const domainError = validateRequired(wizard.formData.domain, 'Domínio');
+      const domainError = validateRequired(wizard.formData.domain, t('wizard.indicator.domain'));
       if (domainError) errors.domain = domainError;
 
-      const subdomainError = validateRequired(wizard.formData.subdomain, 'Subdomínio');
+      const subdomainError = validateRequired(wizard.formData.subdomain, t('wizard.indicator.subdomain'));
       if (subdomainError) errors.subdomain = subdomainError;
     }
 
@@ -123,7 +129,9 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     try {
       const indicatorData = {
         name: data.name.trim(),
+        name_en: data.name_en.trim() || '',
         description: data.description.trim() || '',
+        description_en: data.description_en.trim() || '',
         font: data.font.trim() || '',
         scale: data.scale.trim() || '',
         unit: data.unit.trim() || '',
@@ -216,7 +224,7 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
       <Wizard
         isOpen={isOpen && !showSuccessModal && !showResourceWizard}
         onClose={handleWizardClose}
-        title={indicatorId ? 'Editar Indicador' : 'Novo Indicador'}
+        title={indicatorId ? t('wizard.indicator.title_edit') : t('wizard.indicator.title_new')}
         steps={steps}
         currentStep={wizard.currentStep}
         onPrevious={wizard.previousStep}
@@ -227,21 +235,29 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
       >
         {wizard.currentStep === 0 && (
           <WizardStep
-            title="Nome & Descrição"
-            description="Informações básicas sobre o indicador"
+            title={t('wizard.indicator.step_info')}
+            description={t('wizard.indicator.step_info_desc')}
           >
             <FormInput
-              label="Nome do Indicador"
+              label={t('wizard.indicator.name_pt')}
               name="name"
               value={wizard.formData.name}
               onChange={(value) => wizard.updateFormData('name', value)}
-              placeholder="Digite o nome do indicador"
+              placeholder={t('wizard.indicator.name_pt_placeholder')}
               required
               error={wizard.errors.name}
             />
 
+            <FormInput
+              label={t('wizard.indicator.name_en')}
+              name="name_en"
+              value={wizard.formData.name_en}
+              onChange={(value) => wizard.updateFormData('name_en', value)}
+              placeholder={t('wizard.indicator.name_en_placeholder')}
+            />
+
             <FormSelect
-              label="Domínio"
+              label={t('wizard.indicator.domain')}
               name="domain"
               value={wizard.formData.domain}
               onChange={(value) => {
@@ -249,30 +265,39 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
                 wizard.updateFormData('subdomain', ''); // Clear subdomain when domain changes
               }}
               options={domainOptions}
-              placeholder="Selecione um domínio"
+              placeholder={t('wizard.indicator.domain_placeholder')}
               required
               error={wizard.errors.domain}
               disabled={loading}
             />
 
             <FormSelect
-              label="Subdomínio"
+              label={t('wizard.indicator.subdomain')}
               name="subdomain"
               value={wizard.formData.subdomain}
               onChange={(value) => wizard.updateFormData('subdomain', value)}
               options={subdomainOptions}
-              placeholder="Selecione um subdomínio"
+              placeholder={t('wizard.indicator.subdomain_placeholder')}
               required
               error={wizard.errors.subdomain}
               disabled={!wizard.formData.domain || loading}
             />
 
             <FormTextarea
-              label="Descrição"
+              label={t('wizard.indicator.description_pt')}
               name="description"
               value={wizard.formData.description}
               onChange={(value) => wizard.updateFormData('description', value)}
-              placeholder="Descreva o indicador (opcional)"
+              placeholder={t('wizard.indicator.description_pt_placeholder')}
+              rows={4}
+            />
+
+            <FormTextarea
+              label={t('wizard.indicator.description_en')}
+              name="description_en"
+              value={wizard.formData.description_en}
+              onChange={(value) => wizard.updateFormData('description_en', value)}
+              placeholder={t('wizard.indicator.description_en_placeholder')}
               rows={4}
             />
           </WizardStep>
@@ -280,63 +305,63 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
 
         {wizard.currentStep === 1 && (
           <WizardStep
-            title="Unidades & Medidas"
-            description="Especifique as unidades e medidas do indicador"
+            title={t('wizard.indicator.step_units')}
+            description={t('wizard.indicator.step_units_desc')}
           >
             <FormInput
-              label="Unidade"
+              label={t('wizard.indicator.unit')}
               name="unit"
               value={wizard.formData.unit}
               onChange={(value) => wizard.updateFormData('unit', value)}
-              placeholder="Ex: %, km, toneladas"
+              placeholder={t('wizard.indicator.unit_placeholder')}
             />
 
             <FormInput
-              label="Escala"
+              label={t('wizard.indicator.scale')}
               name="scale"
               value={wizard.formData.scale}
               onChange={(value) => wizard.updateFormData('scale', value)}
-              placeholder="Ex: 1:1000, local, regional"
+              placeholder={t('wizard.indicator.scale_placeholder')}
             />
 
             <FormInput
-              label="Fonte"
+              label={t('wizard.indicator.source')}
               name="font"
               value={wizard.formData.font}
               onChange={(value) => wizard.updateFormData('font', value)}
-              placeholder="Fonte dos dados"
+              placeholder={t('wizard.indicator.source_placeholder')}
             />
 
             <FormInput
-              label="Periodicidade"
+              label={t('wizard.indicator.periodicity')}
               name="periodicity"
               value={wizard.formData.periodicity}
               onChange={(value) => wizard.updateFormData('periodicity', value)}
-              placeholder="Ex: anual, mensal, trimestral"
+              placeholder={t('wizard.indicator.periodicity_placeholder')}
             />
 
             <FormCheckbox
-              label="Indicador de Governança"
+              label={t('wizard.indicator.governance')}
               name="governance"
               checked={wizard.formData.governance}
               onChange={(checked) => wizard.updateFormData('governance', checked)}
             />
 
             <FormCheckbox
-              label="Capacidade de Carga"
+              label={t('wizard.indicator.carrying_capacity')}
               name="carrying_capacity_enabled"
               checked={wizard.formData.carrying_capacity_enabled}
               onChange={(checked) => wizard.updateFormData('carrying_capacity_enabled', checked)}
-              description="Ativar limite de capacidade de carga"
+              description={t('wizard.indicator.carrying_capacity_desc')}
             />
 
             {wizard.formData.carrying_capacity_enabled && (
               <FormInput
-                label="Valor Limite de Capacidade de Carga"
+                label={t('wizard.indicator.carrying_capacity_value')}
                 name="carrying_capacity"
                 value={wizard.formData.carrying_capacity}
                 onChange={(value) => wizard.updateFormData('carrying_capacity', value)}
-                placeholder="Digite o valor limite"
+                placeholder={t('wizard.indicator.carrying_capacity_placeholder')}
                 type="number"
               />
             )}
@@ -347,15 +372,15 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleFinish}
-        title={indicatorId ? 'Indicador Atualizado!' : 'Indicador Adicionado!'}
-        message="Deseja adicionar fontes de dados agora?"
+        title={indicatorId ? t('wizard.indicator.success_updated') : t('wizard.indicator.success_added')}
+        message={t('wizard.indicator.success_message')}
         primaryAction={{
-          label: 'Adicionar Fontes',
+          label: t('wizard.indicator.add_sources'),
           onClick: handleAddResources,
           closeAfter: false
         }}
         secondaryAction={{
-          label: 'Adicionar fontes mais tarde',
+          label: t('wizard.indicator.add_sources_later'),
           onClick: handleFinish
         }}
       />

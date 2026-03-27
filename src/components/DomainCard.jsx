@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import arrowRight from '../assets/images/arrow-right.svg';
 
 export default function DomainCard({
@@ -12,6 +13,7 @@ export default function DomainCard({
   className = "",
   ...props
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const effectiveShadowColor = shadowColor || color;
 
@@ -78,7 +80,7 @@ export default function DomainCard({
             <div className="w-2 h-2 rounded-full bg-black opacity-30" />
           </div>
           <button className="bg-base-100 text-[#009368] px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
-            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>Ver todos</span>
+            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>{t('components.domain_card.view_all')}</span>
             <img src={arrowRight} alt="" className="w-5 h-5" />
           </button>
         </div>

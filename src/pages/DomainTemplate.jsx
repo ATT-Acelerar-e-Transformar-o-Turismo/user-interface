@@ -10,12 +10,14 @@ import ErrorDisplay from "../components/ErrorDisplay";
 import Pagination from "../components/Pagination";
 import indicatorService from "../services/indicatorService";
 import { highlightSearchTerms } from "../utils/searchUtils";
+import useLocalizedName from "../hooks/useLocalizedName";
 
 export default function DomainTemplate() {
   const location = useLocation();
   const { domainPath } = useParams();
   const { domainName } = location.state || {};
   const { domains, getDomainByName } = useDomain();
+  const getName = useLocalizedName();
   const [searchParams] = useSearchParams();
   
   // Check if this is a search results page
@@ -255,7 +257,7 @@ export default function DomainTemplate() {
   const domainIcon = selectedDomainObj?.DomainIcon;
   const displayName = isSearchMode
     ? `Resultados para "${searchQuery}"`
-    : selectedDomainObj?.name || (isAllIndicatorsMode ? 'Todos os Indicadores' : inferredDomainName || 'Indicadores');
+    : getName(selectedDomainObj) || (isAllIndicatorsMode ? 'Todos os Indicadores' : inferredDomainName || 'Indicadores');
   const displayDescription = isSearchMode
     ? `Encontrámos ${indicators.length} indicador${indicators.length !== 1 ? 'es' : ''} que corresponde${indicators.length === 1 ? '' : 'm'} à sua pesquisa.`
     : isAllIndicatorsMode
@@ -339,7 +341,7 @@ export default function DomainTemplate() {
               <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
                 <Link to="/indicators" className="hover:underline">Dimensões</Link>
                 <span className="text-gray-400">/</span>
-                <span className="underline underline-offset-4">{selectedDomainObj?.name || inferredDomainName}</span>
+                <span className="underline underline-offset-4">{getName(selectedDomainObj) || inferredDomainName}</span>
               </nav>
             </div>
           )}
@@ -426,7 +428,7 @@ export default function DomainTemplate() {
                     onChange={(e) => { setDomainFilter(e.target.value || null); setSubdomainFilter(null); setCurrentPage(0); }}
                   >
                     <option value="">Todos os Domínios</option>
-                    {domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    {domains.map(d => <option key={d.id} value={d.id}>{getName(d)}</option>)}
                   </select>
                 )}
 
@@ -489,11 +491,11 @@ export default function DomainTemplate() {
                       .map((indicator) => (
                         <IndicatorCard
                           key={indicator.id}
-                          IndicatorTitle={isSearchMode ? highlightSearchTerms(indicator.name, searchQuery) : indicator.name}
+                          IndicatorTitle={isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
                           IndicatorId={indicator.id}
-                          domain={indicator.domain?.name || selectedDomainObj?.name}
-                          subdomain={isSearchMode ? (indicator.subdomain || indicator.domain?.name) : (selectedSubdomain?.name || undefined)}
-                          description={indicator.description}
+                          domain={getName(indicator.domain) || getName(selectedDomainObj)}
+                          subdomain={isSearchMode ? (indicator.subdomain || getName(indicator.domain)) : (getName(selectedSubdomain) || undefined)}
+                          description={getName.field(indicator, 'description', 'description_en')}
                           unit={indicator.unit}
                         />
                       ))}
@@ -506,9 +508,9 @@ export default function DomainTemplate() {
                     <p className="font-['Onest'] text-gray-600">
                       {isSearchMode
                         ? `Não encontrámos indicadores correspondentes a "${searchQuery}".`
-                        : selectedSubdomain?.name
-                          ? `Não existem indicadores para ${selectedSubdomain.name}.`
-                          : `Não existem indicadores para ${selectedDomainObj?.name || inferredDomainName}.`}
+                        : getName(selectedSubdomain)
+                          ? `Não existem indicadores para ${getName(selectedSubdomain)}.`
+                          : `Não existem indicadores para ${getName(selectedDomainObj) || inferredDomainName}.`}
                     </p>
                   </div>
                 )}

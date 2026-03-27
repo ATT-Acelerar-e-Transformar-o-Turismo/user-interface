@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDomain } from '../contexts/DomainContext';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
+import useLocalizedName from '../hooks/useLocalizedName';
 
 function Dropdowns({
   selectedDomain,
@@ -13,6 +15,8 @@ function Dropdowns({
 }) {
   const { domains } = useDomain();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const getName = useLocalizedName();
   const [isDomainDropdownOpen, setIsDomainDropdownOpen] = useState(false);
   const [isSubdomainDropdownOpen, setIsSubdomainDropdownOpen] = useState(false);
   const domainRef = useRef(null);
@@ -67,7 +71,7 @@ function Dropdowns({
           onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
           className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent hover:bg-gray-200 focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 transition-colors flex items-center justify-between gap-2 min-w-[200px]"
         >
-          <span>{selectedDomain?.name || "Escolha o Domínio"}</span>
+          <span>{getName(selectedDomain) || t('components.select_domain.choose_domain')}</span>
           <svg
             className={`w-4 h-4 text-gray-600 transition-transform ${isDomainDropdownOpen ? 'rotate-180' : ''}`}
             fill="none"
@@ -87,7 +91,7 @@ function Dropdowns({
                 onClick={() => handleSelectDomain(domain)}
                 className="font-['Onest',sans-serif] text-sm text-black w-full text-left px-4 py-2 hover:bg-[#f1f0f0] transition-colors first:rounded-t-lg last:rounded-b-lg"
               >
-                {domain?.name || "Unnamed Domain"}
+                {getName(domain) || "Unnamed Domain"}
               </button>
             ))}
           </div>
@@ -102,7 +106,7 @@ function Dropdowns({
             className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent hover:bg-gray-200 focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 transition-colors flex items-center justify-between gap-2 min-w-[200px]"
           >
             <span>
-              {selectedSubdomain?.name || "Escolha o Subdomínio"}
+              {getName(selectedSubdomain) || t('components.select_domain.choose_dimension')}
             </span>
             <div className="flex items-center gap-1">
               {selectedSubdomain?.name && allowSubdomainClear && (
@@ -136,7 +140,7 @@ function Dropdowns({
                   onClick={() => handleSelectSubdomain(typeof subdom === 'string' ? { name: subdom } : subdom)}
                   className="font-['Onest',sans-serif] text-sm text-black w-full text-left px-4 py-2 hover:bg-[#f1f0f0] transition-colors first:rounded-t-lg last:rounded-b-lg"
                 >
-                  {typeof subdom === 'string' ? subdom : subdom?.name}
+                  {getName(subdom)}
                 </button>
               ))}
             </div>

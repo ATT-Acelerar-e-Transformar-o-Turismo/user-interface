@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AdminPageTemplate from './AdminPageTemplate';
 import ActionCard from '../components/ActionCard';
 import Pagination from '../components/Pagination';
@@ -8,8 +8,11 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import AddDimensionModal from '../components/wizard/AddDimensionModal';
 import domainService from '../services/domainService';
 import indicatorService from '../services/indicatorService';
+import useLocalizedName from '../hooks/useLocalizedName';
 
 export default function DimensionsManagement() {
+  const { t } = useTranslation();
+  const getName = useLocalizedName();
   const [dimensions, setDimensions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -49,6 +52,7 @@ export default function DimensionsManagement() {
 
         subdomains.forEach(subdomain => {
           const subdomainName = typeof subdomain === 'string' ? subdomain : subdomain.name;
+          const subdomainNameEn = typeof subdomain === 'string' ? '' : (subdomain.name_en || '');
 
           // Create a promise to get the indicator count for this subdomain
           const dimensionPromise = (async () => {
@@ -62,9 +66,11 @@ export default function DimensionsManagement() {
             return {
               id: `${domain.id}-${subdomainName}`, // Composite ID
               name: subdomainName,
+              name_en: subdomainNameEn,
               description: `Subdomínio de ${domain.name}`,
               domainId: domain.id,
               domainName: domain.name,
+              domainName_en: domain.name_en || '',
               domainColor: domain.color,
               indicatorCount: indicatorCount
             };
@@ -82,7 +88,9 @@ export default function DimensionsManagement() {
         const query = searchQuery.toLowerCase();
         filteredDimensions = dimensionsList.filter(dim =>
           dim.name.toLowerCase().includes(query) ||
-          dim.domainName.toLowerCase().includes(query)
+          (dim.name_en || '').toLowerCase().includes(query) ||
+          dim.domainName.toLowerCase().includes(query) ||
+          (dim.domainName_en || '').toLowerCase().includes(query)
         );
       }
 
@@ -121,7 +129,7 @@ export default function DimensionsManagement() {
   };
 
   const handleDelete = async (dimension) => {
-    if (!window.confirm(`Tem certeza que deseja eliminar a dimensão "${dimension.name}"?`)) {
+    if (!window.confirm(t('admin.dimensions.confirm_delete', { name: dimension.name }))) {
       return;
     }
 
@@ -141,7 +149,7 @@ export default function DimensionsManagement() {
       // Reload dimensions
       loadDimensions();
     } catch (err) {
-      setError(err.message || 'Falha ao eliminar dimensão');
+      setError(err.message || t('admin.dimensions.delete_error'));
       console.error('Error deleting dimension:', err);
     }
   };
@@ -191,7 +199,7 @@ export default function DimensionsManagement() {
             {/* Left Column - Dimensions Table */}
             <div className="bg-[#f1f0f0] rounded-[23px] p-8">
               <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                Dimensões
+                {t('admin.dimensions.title')}
               </h1>
 
               {/* Table Header */}
@@ -200,7 +208,7 @@ export default function DimensionsManagement() {
                   onClick={() => handleSort('name')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-[#00855d] flex items-center gap-1"
                 >
-                  Nome
+                  {t('admin.dimensions.col_name')}
                   {sortBy === 'name' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -211,12 +219,12 @@ export default function DimensionsManagement() {
                     </svg>
                   )}
                 </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">Domínio</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.dimensions.col_domain')}</p>
                 <button
                   onClick={() => handleSort('indicatorCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
                 >
-                  Indicadores
+                  {t('admin.dimensions.col_indicators')}
                   {sortBy === 'indicatorCount' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -227,14 +235,14 @@ export default function DimensionsManagement() {
                     </svg>
                   )}
                 </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">Opções</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.dimensions.col_options')}</p>
               </div>
 
               {/* Table Rows */}
               <div className="space-y-3">
                 {dimensions.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    Ainda não existem dimensões
+                    {t('admin.dimensions.empty')}
                   </div>
                 ) : (
                   dimensions.map((dimension) => (
@@ -250,7 +258,7 @@ export default function DimensionsManagement() {
                           </svg>
                         </div>
                         <span className="font-['Onest',sans-serif] font-normal text-sm text-black">
-                          {dimension.name}
+                          {getName(dimension)}
                         </span>
                       </div>
 
@@ -260,7 +268,7 @@ export default function DimensionsManagement() {
                           className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
                           style={{ borderColor: dimension.domainColor || '#CCCCCC' }}
                         >
-                          {dimension.domainName}
+                          {getName({ name: dimension.domainName, name_en: dimension.domainName_en })}
                         </span>
                       </div>
 
@@ -276,7 +284,7 @@ export default function DimensionsManagement() {
                         <button
                           onClick={() => handleEdit(dimension)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title="Editar"
+                          title={t('common.edit')}
                         >
                           <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -285,7 +293,7 @@ export default function DimensionsManagement() {
                         <button
                           onClick={() => handleDelete(dimension)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title="Eliminar"
+                          title={t('common.delete')}
                         >
                           <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -308,7 +316,7 @@ export default function DimensionsManagement() {
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName="dimensões"
+                    itemName={t('admin.dimensions.title').toLowerCase()}
                   />
                 </div>
               )}
@@ -322,14 +330,14 @@ export default function DimensionsManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 }
-                title={`Adicionar\nDimensão`}
+                title={t('admin.dimensions.add')}
                 onClick={() => setIsAddModalOpen(true)}
                 className="w-[210px]"
               />
 
               <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  Total: {totalItems} dimensões
+                  {t('admin.dimensions.total', { count: totalItems })}
                 </p>
               </div>
             </div>
@@ -354,6 +362,7 @@ export default function DimensionsManagement() {
         onSuccess={() => { loadDimensions(); }}
         editDomainId={editingDimension?.domainId}
         editDimensionName={editingDimension?.name}
+        editDimensionNameEn={editingDimension?.name_en}
       />
     </AdminPageTemplate>
   );

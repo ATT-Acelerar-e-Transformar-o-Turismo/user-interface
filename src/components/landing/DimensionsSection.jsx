@@ -1,9 +1,11 @@
 import React from 'react';
 import DomainCard from '../DomainCard';
 import { useDomain } from '../../contexts/DomainContext';
+import useLocalizedName from '../../hooks/useLocalizedName';
 
 export default function DimensionsSection() {
   const { domains, loading, error } = useDomain();
+  const getName = useLocalizedName();
 
   return (
     <div className="relative w-full py-32">
@@ -34,9 +36,9 @@ export default function DimensionsSection() {
             {domains.map((domain, index) => (
               <DomainCard
                 key={domain.id}
-                title={domain.name}
+                title={getName(domain)}
                 color={domain.DomainColor}
-                indicators={domain.subdomains?.map(sub => sub.name) || []}
+                indicators={domain.subdomains?.map(sub => getName(sub)) || []}
                 icon={domain.DomainIcon}
                 shadowColor={domain.DomainColor}
                 page={`/indicators/${domain.name.toLowerCase()}`}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import WizardProgress from './WizardProgress';
 import WizardButtons from './WizardButtons';
@@ -24,6 +25,7 @@ export default function Wizard({
   allowStepClick = false,
   className = ''
 }) {
+  const { t } = useTranslation();
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;
 
@@ -96,7 +98,7 @@ export default function Wizard({
             onClick={onClose}
             disabled={isSubmitting}
             className="text-gray-500 hover:text-black transition-colors p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Fechar"
+            aria-label={t('common.close')}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useDomain } from "../contexts/DomainContext";
 import { useIndicator } from "../contexts/IndicatorContext";
+import { useTranslation } from "react-i18next";
+import useLocalizedName from "../hooks/useLocalizedName";
 
 export default function IndicatorDropdowns({
   currentDomain,
@@ -16,6 +18,8 @@ export default function IndicatorDropdowns({
 
   const { domains } = useDomain();
   const { indicators } = useIndicator();
+  const { t } = useTranslation();
+  const getName = useLocalizedName();
 
   const domainRef = useRef(null);
   const subdomainRef = useRef(null);
@@ -166,7 +170,7 @@ export default function IndicatorDropdowns({
       <details ref={domainRef} className="dropdown">
         <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
           <p className={`overflow-hidden text-nowrap truncate ${stagedDomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-            {stagedDomain?.name || "Escolha o Domínio"}
+            {getName(stagedDomain) || t('components.select_domain.choose_domain')}
           </p>
           <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -179,7 +183,7 @@ export default function IndicatorDropdowns({
                 onClick={() => handleDomainSelect(dom)}
                 className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
               >
-                {dom?.name || "Unnamed Domain"}
+                {getName(dom) || "Unnamed Domain"}
               </a>
             </li>
           ))}
@@ -192,11 +196,7 @@ export default function IndicatorDropdowns({
           <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
             <div className="flex items-center gap-2 overflow-hidden w-full">
               <p className={`overflow-hidden text-nowrap truncate ${stagedSubdomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                {stagedSubdomain ? (
-                  typeof stagedSubdomain === 'string' ? stagedSubdomain : stagedSubdomain?.name
-                ) : (
-                  "Escolha o Dominío"
-                )}
+                {getName(stagedSubdomain) || t('components.select_domain.choose_dimension')}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
@@ -222,7 +222,7 @@ export default function IndicatorDropdowns({
                   onClick={() => handleSubdomainSelect(sub)}
                   className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
                 >
-                  {sub?.name || "Unnamed Subdomain"}
+                  {getName(sub) || "Unnamed Subdomain"}
                 </a>
               </li>
             ))}
@@ -235,7 +235,7 @@ export default function IndicatorDropdowns({
         <details ref={indicatorRef} className="dropdown">
           <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
             <p className={`overflow-hidden text-nowrap truncate ${stagedIndicator ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-              {stagedIndicator?.name || "Escolha o Indicador"}
+              {getName(stagedIndicator) || t('components.select_domain.choose_indicator')}
             </p>
             <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -249,12 +249,12 @@ export default function IndicatorDropdowns({
                     onClick={() => handleIndicatorSelect(ind)}
                     className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
                   >
-                    {ind?.name || "Unnamed Indicator"}
+                    {getName(ind) || "Unnamed Indicator"}
                   </a>
                 </li>
               ))
             ) : (
-              <li><span className="text-gray-500">Nenhum indicador encontrado</span></li>
+              <li><span className="text-gray-500">{t('components.select_domain.no_indicators')}</span></li>
             )}
           </ul>
         </details>

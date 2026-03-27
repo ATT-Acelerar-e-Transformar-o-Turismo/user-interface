@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { useDomain } from '../contexts/DomainContext';
+import useLocalizedName from '../hooks/useLocalizedName';
 
-function SelectDomain({ 
-  setSelectedDomain, 
-  setSelectedSubdomain, 
+function SelectDomain({
+  setSelectedDomain,
+  setSelectedSubdomain,
   domains: propDomains,
   selectedDomain: propSelectedDomain,
   selectedSubdomain: propSelectedSubdomain
 }) {
+    const { t } = useTranslation();
+    const getName = useLocalizedName();
     const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
     const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
     const domainRef = useRef(null);
@@ -74,7 +78,7 @@ function SelectDomain({
             <details ref={domainRef} className="dropdown">
                 <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
                     <span className={`${selectedLocalDomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                        {selectedLocalDomain?.name || "Escolha o Domínio"}
+                        {getName(selectedLocalDomain) || t('components.select_domain.choose_domain')}
                     </span>
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -104,7 +108,7 @@ function SelectDomain({
                                 <span className="text-gray-900 font-medium">{selectedLocalSubdomain}</span>
                             </div>) 
                         : (
-                            <span className="text-gray-500">Escolha a Dimensão</span>)
+                            <span className="text-gray-500">{t('components.select_domain.choose_dimension')}</span>)
                         }
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
