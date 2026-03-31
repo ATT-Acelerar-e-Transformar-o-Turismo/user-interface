@@ -80,10 +80,10 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     wizard.updateFormData('subdomains', updatedSubdomains);
   };
 
-  const handleSubdomainKeyPress = (e, field) => {
+  // Pressing Enter in either field (PT or EN) adds the subdomain
+  const handleSubdomainKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (field === 'en') return; // EN field Enter just adds
       handleAddSubdomain();
     }
   };
@@ -92,7 +92,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     const errors = {};
 
     if (stepIndex === 0) {
-      const nameError = validateRequired(wizard.formData.name, t('wizard.domain.name_pt'));
+      const nameError = validateRequired(wizard.formData.name, t('validation.required', { field: t('wizard.domain.name_pt') }));
       if (nameError) errors.name = nameError;
     }
 
@@ -244,7 +244,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
                     type="text"
                     value={subdomainInputPt}
                     onChange={(e) => setSubdomainInputPt(e.target.value)}
-                    onKeyPress={(e) => handleSubdomainKeyPress(e, 'pt')}
+                    onKeyPress={(e) => handleSubdomainKeyPress(e)}
                     placeholder={t('wizard.domain.subdomain_pt_placeholder')}
                     className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
                   />
@@ -252,7 +252,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
                     type="text"
                     value={subdomainInputEn}
                     onChange={(e) => setSubdomainInputEn(e.target.value)}
-                    onKeyPress={(e) => handleSubdomainKeyPress(e, 'en')}
+                    onKeyPress={(e) => handleSubdomainKeyPress(e)}
                     placeholder={t('wizard.domain.subdomain_en_placeholder')}
                     className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
                   />

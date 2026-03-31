@@ -312,7 +312,7 @@ export default function ResourceWizard({
 
     if (stepIndex === 0) {
       // Step 1: Source type
-      const sourceTypeError = validateRequired(wizard.formData.sourceType, t('wizard.resource.source_type'));
+      const sourceTypeError = validateRequired(wizard.formData.sourceType, t('validation.required', { field: t('wizard.resource.source_type') }));
       if (sourceTypeError) errors.sourceType = sourceTypeError;
     }
 

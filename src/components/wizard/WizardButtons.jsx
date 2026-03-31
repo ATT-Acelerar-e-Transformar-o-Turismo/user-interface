@@ -11,9 +11,9 @@ export default function WizardButtons({
   isFirstStep,
   isLastStep,
   isSubmitting = false,
-  nextLabel = null,
-  previousLabel = null,
-  submitLabel = null,
+  nextLabel,
+  previousLabel,
+  submitLabel,
   disableNext = false,
   className = ''
 }) {

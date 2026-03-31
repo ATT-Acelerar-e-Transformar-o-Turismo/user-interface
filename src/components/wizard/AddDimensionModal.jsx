@@ -57,10 +57,10 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
   const validate = () => {
     const validationErrors = {};
 
-    const domainError = validateRequired(selectedDomain, t('wizard.dimension.domain'));
+    const domainError = validateRequired(selectedDomain, t('validation.required', { field: t('wizard.dimension.domain') }));
     if (domainError) validationErrors.domain = domainError;
 
-    const nameError = validateRequired(dimensionName, t('wizard.dimension.name_pt'));
+    const nameError = validateRequired(dimensionName, t('validation.required', { field: t('wizard.dimension.name_pt') }));
     if (nameError) validationErrors.name = nameError;
 
     return validationErrors;

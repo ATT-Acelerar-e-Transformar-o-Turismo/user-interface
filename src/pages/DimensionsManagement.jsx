@@ -30,8 +30,6 @@ export default function DimensionsManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDimension, setEditingDimension] = useState(null);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     loadDimensions();
   }, [currentPage, sortBy, sortOrder, searchQuery]);

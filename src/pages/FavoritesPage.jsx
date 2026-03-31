@@ -205,7 +205,7 @@ export default function FavoritesPage() {
                     key={indicator.id}
                     IndicatorTitle={getName(indicator)}
                     IndicatorId={indicator.id}
-                    domain={getName({ name: indicator.domainName, name_en: indicator.domainName_en })}
+                    domain={indicator.domainName}
                     subdomain={indicator.subdomainName}
                     description={indicator.description}
                     description_en={indicator.description_en}

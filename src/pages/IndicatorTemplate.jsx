@@ -411,7 +411,7 @@ export default function IndicatorTemplate() {
               {getName(indicatorData)}
             </h1>
             <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto leading-relaxed">
-              {getName.field(indicatorData, 'description', 'description_en') || `Explore os dados e a evolução do indicador ${getName(indicatorData)}.`}
+              {getName.field(indicatorData, 'description', 'description_en') || t('indicator.defaultDescription', { name: getName(indicatorData) })}
             </p>
           </div>
         </section>

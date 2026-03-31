@@ -6,18 +6,18 @@
 /**
  * Validate if a value is not empty
  * @param {any} value - Value to validate
- * @param {string} fieldName - Name of the field for error message
+ * @param {string} errorMessage - Full localized error message to return when invalid
  * @returns {string|null} Error message or null if valid
  */
-export function validateRequired(value, fieldName = 'Este campo') {
+export function validateRequired(value, errorMessage = 'This field is required') {
   if (value === null || value === undefined || value === '') {
-    return `${fieldName} é obrigatório`;
+    return errorMessage;
   }
   if (typeof value === 'string' && value.trim() === '') {
-    return `${fieldName} é obrigatório`;
+    return errorMessage;
   }
   if (Array.isArray(value) && value.length === 0) {
-    return `${fieldName} é obrigatório`;
+    return errorMessage;
   }
   return null;
 }

@@ -102,13 +102,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     const errors = {};
 
     if (stepIndex === 0) {
-      const nameError = validateRequired(wizard.formData.name, t('wizard.indicator.name_pt'));
+      const nameError = validateRequired(wizard.formData.name, t('validation.required', { field: t('wizard.indicator.name_pt') }));
       if (nameError) errors.name = nameError;
 
-      const domainError = validateRequired(wizard.formData.domain, t('wizard.indicator.domain'));
+      const domainError = validateRequired(wizard.formData.domain, t('validation.required', { field: t('wizard.indicator.domain') }));
       if (domainError) errors.domain = domainError;
 
-      const subdomainError = validateRequired(wizard.formData.subdomain, t('wizard.indicator.subdomain'));
+      const subdomainError = validateRequired(wizard.formData.subdomain, t('validation.required', { field: t('wizard.indicator.subdomain') }));
       if (subdomainError) errors.subdomain = subdomainError;
     }
 

@@ -493,7 +493,7 @@ export default function DomainTemplate() {
                           key={indicator.id}
                           IndicatorTitle={isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
                           IndicatorId={indicator.id}
-                          domain={getName(indicator.domain) || getName(selectedDomainObj)}
+                          domain={indicator.domain?.name || selectedDomainObj?.name}
                           subdomain={isSearchMode ? (indicator.subdomain || getName(indicator.domain)) : (getName(selectedSubdomain) || undefined)}
                           description={getName.field(indicator, 'description', 'description_en')}
                           unit={indicator.unit}

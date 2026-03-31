@@ -29,8 +29,6 @@ export default function DomainsManagement() {
   const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
   const [editingDomainId, setEditingDomainId] = useState(null);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     loadDomains();
   }, [currentPage, sortBy, sortOrder, searchQuery]);
