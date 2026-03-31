@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 
 // Asset URLs from Figma
 const imgEllipse3 = "/assets/figma/feature-ellipse.svg";
-const imgButtonArrow = "/assets/figma/button-arrow.svg";
 
 // Correct Icon Assets (Composite parts or full icons from Figma)
 const imgEye = "/assets/icons/eye.svg"; 
@@ -80,13 +79,6 @@ export default function FeaturesSection() {
             />
         </div>
 
-        {/* CTA Button */}
-        <div className="mt-12 lg:mt-0 lg:absolute lg:left-[83.33%] lg:top-[900px]" data-aos="fade-left" data-aos-delay="400" data-aos-offset="-125">
-             <button className="bg-base-100 text-[#009368] border-2 border-[#009368] flex items-center gap-3 px-6 py-3 md:px-8 md:py-4 rounded-full hover:bg-[#e5e7eb] transition-colors">
-              <span className="font-['Onest'] font-medium text-[18px] lg:text-[24px]">{t('features.explore_cta')}</span>
-              <img src={imgButtonArrow} alt="" className="w-5 h-5 lg:w-6 lg:h-6" />
-            </button>
-        </div>
 
       </div>
     </div>

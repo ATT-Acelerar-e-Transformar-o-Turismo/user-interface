@@ -7,11 +7,19 @@ import blogService from '../services/blogService'
 import hljs from 'highlight.js'
 import parse from 'html-react-parser'
 import BlogIndicatorWidget from '../components/BlogIndicatorWidget'
+import { useTranslation } from 'react-i18next'
 
-
+const TAG_KEY_MAP = {
+    'Publicações Cientificas': 'blog.filter_scientific_publications',
+    'Relatórios': 'blog.filter_reports',
+    'Documentos': 'blog.filter_documents',
+    'Noticias': 'blog.filter_news',
+    'Eventos': 'blog.filter_events',
+}
 
 export default function BlogPostPage() {
     const { postId } = useParams()
+    const { t } = useTranslation()
     const [post, setPost] = useState(null)
     const [relatedPosts, setRelatedPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -72,9 +80,9 @@ export default function BlogPostPage() {
             <PageTemplate>
                 <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
-                        <h1 className="font-['Onest'] text-2xl font-bold text-[#0a0a0a] mb-4">Post não encontrado</h1>
+                        <h1 className="font-['Onest'] text-2xl font-bold text-[#0a0a0a] mb-4">{t('blog.post_not_found')}</h1>
                         <Link to="/news-events" className="bg-[#009368] text-white px-6 py-2 rounded-full hover:bg-[#007a56]">
-                            Voltar
+                            {t('common.back')}
                         </Link>
                     </div>
                 </div>
@@ -98,12 +106,12 @@ export default function BlogPostPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
-                        Voltar
+                        {t('common.back')}
                     </Link>
 
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a] mb-6">
-                        <Link to="/news-events" className="hover:underline">Noticias e Eventos</Link>
+                        <Link to="/news-events" className="hover:underline">{t('blog.header_title')}</Link>
                         <span className="text-gray-400">/</span>
                         <span className="underline underline-offset-4">{post.title}</span>
                     </nav>
@@ -146,7 +154,7 @@ export default function BlogPostPage() {
                                     </div>
                                     {post.tags?.[0] && (
                                         <span className="font-['Onest'] font-medium text-base text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
-                                            {post.tags[0]}
+                                            {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
                                         </span>
                                     )}
                                 </div>
@@ -182,7 +190,7 @@ export default function BlogPostPage() {
                             {/* Attachments */}
                             {post.attachments?.length > 0 && (
                                 <section className="border-t border-gray-200 pt-8">
-                                    <h2 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] mb-6">Arquivos Anexos</h2>
+                                    <h2 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] mb-6">{t('blog.attachments_title')}</h2>
                                     <div className="flex flex-col gap-4">
                                         {post.attachments.map((att, i) => (
                                             <a
@@ -211,16 +219,16 @@ export default function BlogPostPage() {
                                 </div>
                                 <div className="text-center flex flex-col gap-2">
                                     <h3 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">{post.author}</h3>
-                                    <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a]">Investigador ROOTS</p>
+                                    <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a]">{t('blog.researcher_role')}</p>
                                 </div>
                             </div>
 
                             {/* Keywords */}
                             {post.tags?.length > 0 && (
                                 <div className="bg-[#fffefc] rounded-2xl px-8 py-6 flex flex-col gap-4">
-                                    <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">Keywords</h3>
+                                    <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.keywords_title')}</h3>
                                     <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a]">
-                                        {post.tags.join(', ')}
+                                        {post.tags.map(tag => TAG_KEY_MAP[tag] ? t(TAG_KEY_MAP[tag]) : tag).join(', ')}
                                     </p>
                                 </div>
                             )}
@@ -228,7 +236,7 @@ export default function BlogPostPage() {
                             {/* Related publications */}
                             {relatedPosts.length > 0 && (
                                 <div className="bg-[#fffefc] rounded-2xl px-8 py-6 flex flex-col gap-8 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
-                                    <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">Publicações Relacionadas</h3>
+                                    <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.related_publications')}</h3>
                                     <div className="flex flex-col gap-4">
                                         {relatedPosts.map((rp, i) => (
                                             <Link
@@ -255,7 +263,7 @@ export default function BlogPostPage() {
 
                             {/* Share */}
                             <div className="bg-[#fffefc] rounded-2xl px-8 py-6 flex flex-col gap-4">
-                                <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">Partilhar Publicação</h3>
+                                <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.share_post')}</h3>
                                 <div className="flex flex-col gap-4">
                                     <a
                                         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}

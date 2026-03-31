@@ -2,19 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import blogService from '../../services/blogService';
+import { useTranslation } from 'react-i18next';
 
 const defaultAvatar = "/assets/figma/blog-avatar-1.png";
 const defaultThumbnail = "/assets/figma/blog-thumb-1.png";
 
 function BlogPostCard({ post, delay = 0 }) {
     const navigate = useNavigate();
+    const { i18n } = useTranslation();
     const image = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : defaultThumbnail;
     const avatar = defaultAvatar;
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        const months = ['Jan.', 'Fev.', 'Mar.', 'Abr.', 'Mai.', 'Jun.', 'Jul.', 'Ago.', 'Set.', 'Out.', 'Nov.', 'Dez.'];
-        return `${months[date.getMonth()]} ${date.getFullYear()}`;
+        return date.toLocaleDateString(i18n.language === 'pt' ? 'pt-PT' : 'en-GB', { month: 'short', year: 'numeric' });
     };
 
     const handleClick = () => {
@@ -66,6 +67,7 @@ BlogPostCard.propTypes = {
 
 export default function BlogSection() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,10 +98,10 @@ export default function BlogSection() {
       <div className="max-w-[1512px] mx-auto px-6 md:px-12">
         <div className="text-center mb-12 md:mb-16" data-aos="fade-down" data-aos-offset="-50">
             <h2 className="font-['Onest'] font-semibold text-[32px] md:text-[40px] lg:text-[48px] text-[#0a0a0a] mb-4">
-            Blogue
+            {t('blog.section_title')}
             </h2>
             <p className="font-['Onest'] font-normal text-[16px] md:text-[20px] lg:text-[24px] text-[#0a0a0a] max-w-4xl mx-auto">
-            Acompanhe as notícias e eventos do turismo na Barra e Costa Nova. Fique a par das últimas atualizações, iniciativas locais e desenvolvimentos que impactam o território.
+            {t('blog.section_subtitle')}
             </p>
         </div>
 
@@ -111,7 +113,7 @@ export default function BlogSection() {
 
         {error && (
           <div className="text-center py-12 text-red-600">
-            <p>Erro ao carregar artigos: {error}</p>
+            <p>{t('blog.error_loading', { error })}</p>
           </div>
         )}
 
@@ -129,7 +131,7 @@ export default function BlogSection() {
 
         {!loading && !error && posts.length === 0 && (
           <div className="text-center py-12 text-gray-500">
-            <p>Nenhum artigo publicado</p>
+            <p>{t('blog.no_posts_published')}</p>
           </div>
         )}
 
@@ -138,7 +140,7 @@ export default function BlogSection() {
                onClick={handleViewAll}
                className="bg-transparent border-2 border-[#d4d4d4] text-[#0a0a0a] px-6 py-3 md:px-8 md:py-3 rounded-full hover:bg-white hover:border-transparent hover:shadow-md transition-all"
              >
-              <span className="font-['Onest'] font-medium text-[18px] lg:text-[24px]">Ver todos os artigos</span>
+              <span className="font-['Onest'] font-medium text-[18px] lg:text-[24px]">{t('blog.view_all_articles')}</span>
             </button>
         </div>
       </div>
