@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 import useIndicatorData from "../hooks/useIndicatorData";
 import useLocalizedName from "../hooks/useLocalizedName";
+import { useTranslation } from "react-i18next";
 
 export default function IndicatorTemplate() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function IndicatorTemplate() {
   const { getIndicatorById, loading } = useIndicator();
   const { resources } = useResource();
   const getName = useLocalizedName();
+  const { t } = useTranslation();
 
   const [uiStartDate, setUiStartDate] = useState('');
   const [uiEndDate, setUiEndDate] = useState('');
@@ -221,7 +223,7 @@ export default function IndicatorTemplate() {
         reader.readAsText(error.response.data);
       }
 
-      alert('Falha ao exportar imagem. Por favor tente novamente.');
+      alert(t('indicator.export_image_error'));
     }
   };
 
@@ -272,7 +274,7 @@ export default function IndicatorTemplate() {
   const handleCopyReference = () => {
     const reference = `${window.location.origin}/indicator/${indicatorId}`;
     navigator.clipboard.writeText(reference);
-    alert('Referência copiada para a área de transferência!');
+    alert(t('indicator.reference_copied'));
   };
 
   const handleEditInformation = () => {
@@ -307,7 +309,7 @@ export default function IndicatorTemplate() {
   };
 
   const handleSourceDelete = (sourceName) => {
-    if (window.confirm('Tem a certeza que pretende eliminar esta fonte? Esta ação não pode ser desfeita.')) {
+    if (window.confirm(t('indicator.confirm_delete_source'))) {
       console.log('Deleting source:', sourceName);
       window.location.reload();
     }
@@ -343,15 +345,15 @@ export default function IndicatorTemplate() {
   }
 
   if (!domains || domains.length === 0) {
-    return <div>Loading domains...</div>;
+    return <div>{t('indicator.loading_domains')}</div>;
   }
 
   if (indicatorLoading) {
-    return <div>Loading indicator...</div>;
+    return <div>{t('indicator.loading_indicator')}</div>;
   }
 
   if (error || !indicatorData) {
-    return <div>Error: {error || 'Indicator not found'}</div>;
+    return <div>{error || t('indicator.not_found')}</div>;
   }
 
   let resolvedDomainObj = indicatorData.domain ?
@@ -368,7 +370,7 @@ export default function IndicatorTemplate() {
   }
 
   if (!resolvedDomainObj) {
-    return <div>Domain not found for indicator.</div>;
+    return <div>{t('indicator.domain_not_found')}</div>;
   }
 
   const resolvedSubdomainName = indicatorData.subdomain || 'Unknown Subdomain';
@@ -411,7 +413,7 @@ export default function IndicatorTemplate() {
               {getName(indicatorData)}
             </h1>
             <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto leading-relaxed">
-              {getName.field(indicatorData, 'description', 'description_en') || t('indicator.defaultDescription', { name: getName(indicatorData) })}
+              {getName.field(indicatorData, 'description', 'description_en') || t('indicator.default_description', { name: getName(indicatorData) })}
             </p>
           </div>
         </section>
@@ -434,7 +436,7 @@ export default function IndicatorTemplate() {
               <div className="bg-base-200 p-8 rounded-2xl">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm text-base-content/70">
-                    Última atualização: {new Date().toLocaleDateString('pt-PT')}
+                    {t('indicator.last_updated')} {new Date().toLocaleDateString('pt-PT')}
                   </div>
                   <div className="flex items-center gap-4">
                     <Views
@@ -480,15 +482,15 @@ export default function IndicatorTemplate() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                           </div>
-                          <div className="text-xl font-medium text-gray-900 mb-2">Dados não disponíveis</div>
-                          <div className="text-gray-500">Este indicador ainda não possui dados para visualização.</div>
+                          <div className="text-xl font-medium text-gray-900 mb-2">{t('indicator.no_data_title')}</div>
+                          <div className="text-gray-500">{t('indicator.no_data_description')}</div>
                         </div>
                       </div>
                     ) : (
                       <div className="absolute inset-0 flex justify-center items-center bg-gray-50/50 rounded-xl">
                         <div className="flex flex-col items-center gap-3">
                           <div className="loading loading-spinner loading-lg text-primary"></div>
-                          <div className="text-sm text-gray-500">Carregando dados...</div>
+                          <div className="text-sm text-gray-500">{t('indicator.loading_data')}</div>
                         </div>
                       </div>
                     )
@@ -499,18 +501,18 @@ export default function IndicatorTemplate() {
 
             <div className="w-full xl:w-72 space-y-3">
               <div className="bg-base-200 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4 text-base-content">Ferramentas</h3>
+                <h3 className="text-lg font-semibold mb-4 text-base-content">{t('indicator.tools')}</h3>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-medium text-base-content/80 mb-2 block">Granularidade</label>
+                    <label className="text-xs font-medium text-base-content/80 mb-2 block">{t('indicator.granularity')}</label>
                     <div className="flex flex-wrap gap-1">
                       {[
-                        { label: 'Raw', value: '0' },
-                        { label: 'Dia', value: '1d' },
-                        { label: 'Sem', value: '1w' },
-                        { label: 'Mês', value: '1M' },
-                        { label: 'Ano', value: '1y' },
+                        { label: t('indicator.granularity_raw'), value: '0' },
+                        { label: t('indicator.granularity_day'), value: '1d' },
+                        { label: t('indicator.granularity_week'), value: '1w' },
+                        { label: t('indicator.granularity_month'), value: '1M' },
+                        { label: t('indicator.granularity_year'), value: '1y' },
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -528,7 +530,7 @@ export default function IndicatorTemplate() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-base-content/80">Início</span>
+                    <span className="text-sm font-medium text-base-content/80">{t('indicator.start_date')}</span>
                     <input
                       type="date"
                       value={uiStartDate}
@@ -538,7 +540,7 @@ export default function IndicatorTemplate() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-base-content/80">Fim</span>
+                    <span className="text-sm font-medium text-base-content/80">{t('indicator.end_date')}</span>
                     <input
                       type="date"
                       value={uiEndDate}
@@ -552,14 +554,14 @@ export default function IndicatorTemplate() {
                       onClick={handleResetFilters}
                       className="w-full px-3 py-2 bg-white border border-base-300 text-base-content text-sm rounded hover:bg-gray-50 transition-colors cursor-pointer"
                     >
-                      Reset
+                      {t('indicator.reset_filters')}
                     </button>
                   </div>
                 </div>
               </div>
 
               <div className="bg-base-200 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4 text-base-content">Opções</h3>
+                <h3 className="text-lg font-semibold mb-4 text-base-content">{t('common.options')}</h3>
 
                 <div className="space-y-3">
                   <button
@@ -569,7 +571,7 @@ export default function IndicatorTemplate() {
                     <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span className="text-sm font-medium text-base-content/80">Exportar CSV</span>
+                    <span className="text-sm font-medium text-base-content/80">{t('indicator.export_csv')}</span>
                   </button>
 
                   <button
@@ -579,7 +581,7 @@ export default function IndicatorTemplate() {
                     <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-sm font-medium text-base-content/80">Exportar como imagem</span>
+                    <span className="text-sm font-medium text-base-content/80">{t('indicator.export_image')}</span>
                   </button>
 
                   <button
@@ -589,7 +591,7 @@ export default function IndicatorTemplate() {
                     <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-sm font-medium text-base-content/80">Copiar Referência</span>
+                    <span className="text-sm font-medium text-base-content/80">{t('indicator.copy_reference')}</span>
                   </button>
                 </div>
               </div>
@@ -600,13 +602,13 @@ export default function IndicatorTemplate() {
         <div className="px-6 pb-6 space-y-6">
           <div className="bg-base-200 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-base-content">Informações sobre o Indicador</h3>
+              <h3 className="text-lg font-semibold text-base-content">{t('indicator.info_title')}</h3>
               {isAdmin && (
                 <button
                   onClick={handleEditInformation}
                   className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
                 >
-                  Editar Informações
+                  {t('indicator.edit_info')}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -620,31 +622,31 @@ export default function IndicatorTemplate() {
 
             <div className="text-sm space-y-1">
               <div>
-                <span className="font-medium text-base-content/80">Fonte(s): </span>
+                <span className="font-medium text-base-content/80">{t('indicator.sources_label')} </span>
                 <span className="text-base-content">{indicatorData.characteristics?.source || indicatorData.font || indicatorData.source || "INE"}</span>
               </div>
               <div>
-                <span className="font-medium text-base-content/80">Escala: </span>
+                <span className="font-medium text-base-content/80">{t('indicator.scale_label')} </span>
                 <span className="text-base-content">N/A</span>
               </div>
               <div>
-                <span className="font-medium text-base-content/80">Unidades: </span>
+                <span className="font-medium text-base-content/80">{t('indicator.units_label')} </span>
                 <span className="text-base-content">{indicatorData.characteristics?.unit_of_measure || indicatorData.unit_of_measure || "N/A"}</span>
               </div>
               <div>
-                <span className="font-medium text-base-content/80">Periodicidade: </span>
+                <span className="font-medium text-base-content/80">{t('indicator.periodicity_label')} </span>
                 <span className="text-base-content">{indicatorData.characteristics?.periodicity || indicatorData.periodicity || "Anual"}</span>
               </div>
               <div>
-                <span className="font-medium text-base-content/80">Governança: </span>
-                <span className="text-base-content">{indicatorData?.governance ? "Sim" : "Não"}</span>
+                <span className="font-medium text-base-content/80">{t('indicator.governance_label')} </span>
+                <span className="text-base-content">{indicatorData?.governance ? t('common.yes') : t('common.no')}</span>
               </div>
               <div>
-                <span className="font-medium text-base-content/80">Dimensão: </span>
+                <span className="font-medium text-base-content/80">{t('indicator.dimension_label')} </span>
                 <span className="text-base-content">{getName(resolvedDomainObj)}</span>
               </div>
               <div>
-                <span className="font-medium text-base-content/80">Domínio: </span>
+                <span className="font-medium text-base-content/80">{t('indicator.domain_label')} </span>
                 <span className="text-base-content">{resolvedSubdomainName || ""}</span>
               </div>
             </div>
@@ -662,14 +664,14 @@ export default function IndicatorTemplate() {
                 <>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-base-content">
-                      Fontes do Indicador ({indicatorResources.length})
+                      {t('indicator.sources_title')} ({indicatorResources.length})
                     </h3>
                     {isAdmin && (
                       <button
                         onClick={handleAddSources}
                         className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
                       >
-                        Adicionar Fontes
+                        {t('indicator.add_sources')}
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
@@ -682,17 +684,17 @@ export default function IndicatorTemplate() {
                       <svg className="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <p>Nenhuma fonte associada a este indicador</p>
+                      <p>{t('indicator.no_sources')}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-base-300">
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">Nome</th>
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">Período Início</th>
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">Período Fim</th>
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">Opções</th>
+                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('indicator.col_name')}</th>
+                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('indicator.col_start_period')}</th>
+                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('indicator.col_end_period')}</th>
+                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('common.options')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -715,7 +717,7 @@ export default function IndicatorTemplate() {
                                   <button
                                     onClick={() => handleSourceExportCSV(resource.name)}
                                     className="text-base-content/40 hover:text-primary transition-colors"
-                                    title="Exportar CSV"
+                                    title={t('indicator.export_csv')}
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

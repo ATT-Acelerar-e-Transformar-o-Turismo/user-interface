@@ -6,16 +6,12 @@ import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 
-const CATEGORIES = [
-    { id: 'all', label: 'Todos' },
-    { id: 'Publicações Cientificas', label: 'Publicações Cientificas' },
-    { id: 'Relatórios', label: 'Relatórios' },
-    { id: 'Documentos', label: 'Documentos' },
-    { id: 'Noticias', label: 'Noticias' },
-    { id: 'Eventos', label: 'Eventos' },
-]
+const CATEGORY_IDS = ['all', 'Publicações Cientificas', 'Relatórios', 'Documentos', 'Noticias', 'Eventos']
+const CATEGORY_KEYS = ['blog.filter_all', 'blog.filter_scientific_publications', 'blog.filter_reports', 'blog.filter_documents', 'blog.filter_news', 'blog.filter_events']
+const TAG_KEY_MAP = Object.fromEntries(CATEGORY_IDS.slice(1).map((id, i) => [id, CATEGORY_KEYS[i + 1]]))
 
 function PostCard({ post, compact = false }) {
+    const { t } = useTranslation()
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -64,7 +60,7 @@ function PostCard({ post, compact = false }) {
                         )}
                     </div>
                     <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] truncate">
-                        {post.author || 'Autor'}
+                        {post.author || t('blog.default_author')}
                     </span>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -79,7 +75,7 @@ function PostCard({ post, compact = false }) {
                 </div>
                 {post.tags && post.tags[0] && (
                     <span className="font-['Onest'] font-medium text-xs text-[#009368] bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
-                        {post.tags[0]}
+                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
                     </span>
                 )}
             </div>
@@ -88,6 +84,7 @@ function PostCard({ post, compact = false }) {
 }
 
 function FeaturedPost({ post }) {
+    const { t } = useTranslation()
     if (!post) return null
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
@@ -137,7 +134,7 @@ function FeaturedPost({ post }) {
                         )}
                     </div>
                     <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
-                        {post.author || 'Autor'}
+                        {post.author || t('blog.default_author')}
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -152,7 +149,7 @@ function FeaturedPost({ post }) {
                 </div>
                 {post.tags && post.tags[0] && (
                     <span className="ml-auto font-['Onest'] font-medium text-base text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
-                        {post.tags[0]}
+                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
                     </span>
                 )}
             </div>
@@ -240,10 +237,10 @@ export default function BlogPage() {
                     {/* Header */}
                     <div className="flex flex-col gap-4 mb-14">
                         <h1 className="font-['Onest'] font-semibold text-5xl leading-none text-[#0a0a0a] tracking-tight">
-                            Noticias e Eventos
+                            {t('blog.header_title')}
                         </h1>
                         <p className="font-['Onest'] text-2xl leading-relaxed text-[#0a0a0a]">
-                            Fique a par das novidades: histórias, dados e projetos ROOTS
+                            {t('blog.header_subtitle')}
                         </p>
                     </div>
 
@@ -267,17 +264,17 @@ export default function BlogPage() {
                     <div ref={filterRef} className="flex items-center justify-between gap-8 mb-6 flex-wrap" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
                         {/* Category pills */}
                         <div className="bg-[#fffefc] flex items-center gap-0 rounded-full p-4">
-                            {CATEGORIES.map(cat => (
+                            {CATEGORY_IDS.map((id, index) => (
                                 <button
-                                    key={cat.id}
-                                    onClick={() => setActiveCategory(cat.id)}
+                                    key={id}
+                                    onClick={() => setActiveCategory(id)}
                                     className={`font-['Onest'] font-medium text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
-                                        activeCategory === cat.id
+                                        activeCategory === id
                                             ? 'bg-[#00855d] text-white'
                                             : 'text-[#0a0a0a] hover:bg-gray-100'
                                     }`}
                                 >
-                                    {cat.label}
+                                    {t(CATEGORY_KEYS[index])}
                                 </button>
                             ))}
                         </div>
@@ -288,7 +285,7 @@ export default function BlogPage() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Pesquisar..."
+                                placeholder={t('blog.search_placeholder')}
                                 className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-12 pl-4 pr-12 w-80 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                             />
                             <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,9 +304,9 @@ export default function BlogPage() {
                     ) : filteredPosts.length === 0 && (
                         <div className="text-center py-16">
                             <h3 className="font-['Onest'] text-xl font-medium text-gray-900 mb-2">
-                                Nenhum resultado encontrado
+                                {t('blog.no_results_title')}
                             </h3>
-                            <p className="text-gray-600">Tente ajustar os filtros ou a pesquisa.</p>
+                            <p className="text-gray-600">{t('blog.no_results_hint')}</p>
                         </div>
                     )}
                 </div>

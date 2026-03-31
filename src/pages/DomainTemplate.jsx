@@ -11,6 +11,7 @@ import Pagination from "../components/Pagination";
 import indicatorService from "../services/indicatorService";
 import { highlightSearchTerms } from "../utils/searchUtils";
 import useLocalizedName from "../hooks/useLocalizedName";
+import { useTranslation } from "react-i18next";
 
 export default function DomainTemplate() {
   const location = useLocation();
@@ -18,6 +19,7 @@ export default function DomainTemplate() {
   const { domainName } = location.state || {};
   const { domains, getDomainByName } = useDomain();
   const getName = useLocalizedName();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   
   // Check if this is a search results page
@@ -256,13 +258,13 @@ export default function DomainTemplate() {
   const domainColor = selectedDomainObj?.DomainColor || selectedDomainObj?.color || '#C3F25E';
   const domainIcon = selectedDomainObj?.DomainIcon;
   const displayName = isSearchMode
-    ? `Resultados para "${searchQuery}"`
-    : getName(selectedDomainObj) || (isAllIndicatorsMode ? 'Todos os Indicadores' : inferredDomainName || 'Indicadores');
+    ? t('domains.search_results_for', { query: searchQuery })
+    : getName(selectedDomainObj) || (isAllIndicatorsMode ? t('domains.all_indicators') : inferredDomainName || t('domains.indicators'));
   const displayDescription = isSearchMode
-    ? `Encontrámos ${indicators.length} indicador${indicators.length !== 1 ? 'es' : ''} que corresponde${indicators.length === 1 ? '' : 'm'} à sua pesquisa.`
+    ? t('domains.search_results_description', { count: indicators.length })
     : isAllIndicatorsMode
-      ? 'Explore a lista completa de indicadores de sustentabilidade disponíveis na plataforma.'
-      : `Aqui pode consultar a representação da evolução da ${(selectedDomainObj?.name || inferredDomainName || '').toLowerCase()}, construída com base em indicadores‑chave. Em seguida, encontram-se listados todos os indicadores disponíveis para análise detalhada.`;
+      ? t('domains.all_indicators_description')
+      : t('domains.domain_description', { name: (selectedDomainObj?.name || inferredDomainName || '').toLowerCase() });
 
   return (
     <PageTemplate>
@@ -336,10 +338,10 @@ export default function DomainTemplate() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Voltar
+                {t('common.back')}
               </Link>
               <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
-                <Link to="/indicators" className="hover:underline">Dimensões</Link>
+                <Link to="/indicators" className="hover:underline">{t('domains.breadcrumb_dimensions')}</Link>
                 <span className="text-gray-400">/</span>
                 <span className="underline underline-offset-4">{getName(selectedDomainObj) || inferredDomainName}</span>
               </nav>
@@ -361,7 +363,7 @@ export default function DomainTemplate() {
             <div className="flex flex-col lg:flex-row gap-8 mb-16">
               {/* Left: Desempenho Geral */}
               <div className="bg-[#fffefc] rounded-2xl flex-1 flex flex-col items-center justify-center p-8 gap-8">
-                <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">Desempenho Geral</h2>
+                <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">{t('domains.overall_performance')}</h2>
                 <div className="flex flex-col items-center gap-8">
                   {/* Gauge placeholder */}
                   <div className="w-64 h-32 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-t-full opacity-30" />
@@ -371,16 +373,16 @@ export default function DomainTemplate() {
                     <span className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a]">100</span>
                   </div>
                   <span className="bg-[#cef1aa] text-[#0a0a0a] font-['Onest'] font-medium text-sm rounded-full px-4 py-1">
-                    Sem dados suficientes
+                    {t('domains.insufficient_data')}
                   </span>
                 </div>
               </div>
               {/* Right: 3 stat cards */}
               <div className="flex flex-col gap-4 lg:w-96 shrink-0">
                 {[
-                  { label: 'Indicadores Disponíveis', value: `${totalIndicators}`, status: 'Ativo' },
-                  { label: 'Subdomínios', value: `${selectedDomainObj?.subdomains?.length || 0}`, status: 'Ativo' },
-                  { label: 'Com Governança', value: `${indicators.filter(i => i.governance).length}`, status: 'Ativo' },
+                  { label: t('domains.stat_available_indicators'), value: `${totalIndicators}`, status: t('domains.stat_active') },
+                  { label: t('domains.stat_subdomains'), value: `${selectedDomainObj?.subdomains?.length || 0}`, status: t('domains.stat_active') },
+                  { label: t('domains.stat_governance'), value: `${indicators.filter(i => i.governance).length}`, status: t('domains.stat_active') },
                 ].map((stat, i) => (
                   <div key={i} className="bg-[#fffefc] rounded-2xl px-6 py-5 flex items-center gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
                     <div className="w-10 h-10 rounded-lg bg-[#f3f4f6] flex items-center justify-center shrink-0">
@@ -402,7 +404,7 @@ export default function DomainTemplate() {
           {/* Todos os Indicadores section */}
           <div className="flex flex-col gap-6">
             <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">
-              Todos os Indicadores
+              {t('domains.all_indicators')}
             </h2>
 
             {/* Filter bar */}
@@ -427,7 +429,7 @@ export default function DomainTemplate() {
                     value={domainFilter || ''}
                     onChange={(e) => { setDomainFilter(e.target.value || null); setSubdomainFilter(null); setCurrentPage(0); }}
                   >
-                    <option value="">Todos os Domínios</option>
+                    <option value="">{t('domains.filter_all_domains')}</option>
                     {domains.map(d => <option key={d.id} value={d.id}>{getName(d)}</option>)}
                   </select>
                 )}
@@ -437,15 +439,15 @@ export default function DomainTemplate() {
                   <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
                   </svg>
-                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">Ordenar</span>
+                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">{t('domains.sort')}</span>
                   <select
                     className="font-['Onest'] bg-transparent text-sm outline-none cursor-pointer"
                     value={sortBy}
                     onChange={(e) => handleSort(e.target.value)}
                   >
-                    <option value="name">Nome</option>
-                    <option value="periodicity">Periodicidade</option>
-                    <option value="favourites">Favoritos</option>
+                    <option value="name">{t('domains.sort_name')}</option>
+                    <option value="periodicity">{t('domains.sort_periodicity')}</option>
+                    <option value="favourites">{t('domains.sort_favorites')}</option>
                   </select>
                 </div>
 
@@ -457,7 +459,7 @@ export default function DomainTemplate() {
                     checked={governanceFilter === true}
                     onChange={(e) => { handleGovernanceFilter(e.target.checked ? true : null); }}
                   />
-                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">Governança</span>
+                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">{t('domains.filter_governance')}</span>
                 </label>
               </div>
 
@@ -467,7 +469,7 @@ export default function DomainTemplate() {
                   <input
                     type="text"
                     defaultValue={searchQuery}
-                    placeholder="Pesquisar..."
+                    placeholder={t('domains.search_placeholder')}
                     className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 pl-4 pr-10 w-64 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                   />
                   <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -503,14 +505,14 @@ export default function DomainTemplate() {
                 ) : (
                   <div className="text-center py-16">
                     <h3 className="font-['Onest'] text-2xl font-semibold text-[#0a0a0a] mb-2">
-                      Nenhum indicador encontrado
+                      {t('domains.no_indicators_found')}
                     </h3>
                     <p className="font-['Onest'] text-gray-600">
                       {isSearchMode
-                        ? `Não encontrámos indicadores correspondentes a "${searchQuery}".`
+                        ? t('domains.no_indicators_search', { query: searchQuery })
                         : getName(selectedSubdomain)
-                          ? `Não existem indicadores para ${getName(selectedSubdomain)}.`
-                          : `Não existem indicadores para ${getName(selectedDomainObj) || inferredDomainName}.`}
+                          ? t('domains.no_indicators_subdomain', { name: getName(selectedSubdomain) })
+                          : t('domains.no_indicators_domain', { name: getName(selectedDomainObj) || inferredDomainName })}
                     </p>
                   </div>
                 )}
@@ -525,7 +527,7 @@ export default function DomainTemplate() {
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName="indicadores"
+                    itemName={t('domains.item_name_indicators')}
                   />
                 </div>
               </>

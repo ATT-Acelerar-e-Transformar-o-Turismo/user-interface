@@ -2,20 +2,22 @@ import React from 'react';
 import DomainCard from '../DomainCard';
 import { useDomain } from '../../contexts/DomainContext';
 import useLocalizedName from '../../hooks/useLocalizedName';
+import { useTranslation } from 'react-i18next';
 
 export default function DimensionsSection() {
   const { domains, loading, error } = useDomain();
   const getName = useLocalizedName();
+  const { t } = useTranslation();
 
   return (
     <div className="relative w-full py-32">
       <div className="max-w-[1512px] mx-auto px-12">
         <div className="text-center mb-24" data-aos="fade-down">
             <h2 className="font-['Onest'] font-semibold text-[48px] text-[#0a0a0a] mb-4">
-            Conheça os Números do nosso Turismo
+            {t('home.title')}
             </h2>
             <p className="font-['Onest'] font-medium text-[24px] text-[#0a0a0a] opacity-80">
-            Escolha uma dimensão para entender como o território se está a transformar.
+            {t('home.subtitle')}
             </p>
         </div>
 
@@ -27,7 +29,7 @@ export default function DimensionsSection() {
 
         {error && (
           <div className="text-center py-12 text-red-600">
-            <p>Erro ao carregar domínios: {error}</p>
+            <p>{t('home.error_loading_domains', { error })}</p>
           </div>
         )}
 

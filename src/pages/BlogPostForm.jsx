@@ -5,10 +5,12 @@ import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import RichTextEditor from '../components/RichTextEditor'
 import blogService from '../services/blogService'
+import { useTranslation } from 'react-i18next'
 
 export default function BlogPostForm() {
     const { postId } = useParams()
     const navigate = useNavigate()
+    const { t } = useTranslation()
     const isEditing = Boolean(postId)
 
     const [post, setPost] = useState(null)
@@ -64,7 +66,7 @@ export default function BlogPostForm() {
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (hasUnsavedChanges) {
-                const message = 'Você tem alterações não salvas. Tem certeza que deseja sair?'
+                const message = t('admin.blog.unsaved_changes_warning')
                 e.preventDefault()
                 e.returnValue = message
                 return message
@@ -73,7 +75,7 @@ export default function BlogPostForm() {
 
         const handlePopState = (e) => {
             if (hasUnsavedChanges) {
-                const confirmLeave = window.confirm('Você tem alterações não salvas. Tem certeza que deseja sair?')
+                const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_warning'))
                 if (!confirmLeave) {
                     e.preventDefault()
                     window.history.pushState(null, '', window.location.href)
@@ -174,12 +176,12 @@ export default function BlogPostForm() {
     }
 
     const removeExistingAttachment = async (filename) => {
-        if (isEditing && window.confirm('Tem certeza que deseja remover este anexo?')) {
+        if (isEditing && window.confirm(t('admin.blog.confirm_remove_attachment'))) {
             try {
                 await blogService.removeAttachment(postId, filename)
                 setExistingAttachments(prev => prev.filter(att => att.filename !== filename))
             } catch (err) {
-                alert('Erro ao remover anexo: ' + err.message)
+                alert(t('admin.blog.error_remove_attachment') + err.message)
             }
         }
     }
@@ -189,9 +191,7 @@ export default function BlogPostForm() {
 
         // Confirmation dialog for publishing
         if (formData.status === 'published') {
-            const confirmPublish = window.confirm(
-                'Tem certeza que deseja publicar este post? Uma vez publicado, ele estará visível publicamente.'
-            )
+            const confirmPublish = window.confirm(t('admin.blog.confirm_publish'))
             if (!confirmPublish) {
                 return // Prevent form submission
             }
@@ -203,7 +203,7 @@ export default function BlogPostForm() {
 
             // Validate required fields
             if (!formData.title.trim() || !formData.content.trim() || !formData.author.trim()) {
-                throw new Error('Título, conteúdo e autor são obrigatórios')
+                throw new Error(t('admin.blog.validation_required_fields'))
             }
 
             let savedPost
@@ -268,10 +268,10 @@ export default function BlogPostForm() {
                     {/* Header */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900">
-                            {isEditing ? 'Editar Post' : 'Criar Novo Post'}
+                            {isEditing ? t('admin.blog.title_edit') : t('admin.blog.title_create')}
                         </h1>
                         <p className="text-gray-600 mt-2">
-                            {isEditing ? 'Faça as alterações necessárias no post' : 'Preencha as informações do novo post do blog'}
+                            {isEditing ? t('admin.blog.subtitle_edit') : t('admin.blog.subtitle_create')}
                         </p>
                     </div>
 
@@ -280,7 +280,7 @@ export default function BlogPostForm() {
                         {/* Title */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Título *
+                                {t('admin.blog.field_title')}
                             </label>
                             <input
                                 type="text"
@@ -289,7 +289,7 @@ export default function BlogPostForm() {
                                 onChange={handleInputChange}
                                 required
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary"
-                                placeholder="Digite o título do post"
+                                placeholder={t('admin.blog.placeholder_title')}
                             />
                         </div>
 
@@ -297,7 +297,7 @@ export default function BlogPostForm() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Autor *
+                                    {t('admin.blog.field_author')}
                                 </label>
                                 <input
                                     type="text"
@@ -306,12 +306,12 @@ export default function BlogPostForm() {
                                     onChange={handleInputChange}
                                     required
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                                    placeholder="Nome do autor"
+                                    placeholder={t('admin.blog.placeholder_author')}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Status
+                                    {t('admin.blog.col_status')}
                                 </label>
                                 <select
                                     name="status"
@@ -319,8 +319,8 @@ export default function BlogPostForm() {
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
                                 >
-                                    <option value="draft">Rascunho</option>
-                                    <option value="published">Publicado</option>
+                                    <option value="draft">{t('admin.blog.status_draft')}</option>
+                                    <option value="published">{t('admin.blog.status_published')}</option>
                                 </select>
                             </div>
                         </div>
@@ -328,7 +328,7 @@ export default function BlogPostForm() {
                         {/* Excerpt */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Resumo
+                                {t('admin.blog.field_excerpt')}
                             </label>
                             <textarea
                                 name="excerpt"
@@ -336,34 +336,34 @@ export default function BlogPostForm() {
                                 onChange={handleInputChange}
                                 rows={3}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                                placeholder="Breve descrição do post (opcional)"
+                                placeholder={t('admin.blog.placeholder_excerpt')}
                             />
                         </div>
 
                         {/* Content */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Conteúdo *
+                                {t('admin.blog.field_content')}
                             </label>
                             <RichTextEditor
                                 value={formData.content}
                                 onChange={handleContentChange}
-                                placeholder="Escreva o conteúdo do post aqui... (suporta Markdown: **negrito**, *itálico*, ## títulos, - listas, > citações, [texto](url))"
+                                placeholder={t('admin.blog.placeholder_content')}
                             />
                             <div className="text-sm text-gray-500 mt-2">
-                                <p className="mb-1">Use a barra de ferramentas acima ou digite comandos Markdown:</p>
+                                <p className="mb-1">{t('admin.blog.markdown_help_intro')}</p>
                                 <div className="grid grid-cols-2 gap-4 text-xs">
                                     <div>
-                                        <strong>Formatação:</strong> **negrito**, *itálico*, ~~riscado~~
+                                        <strong>{t('admin.blog.markdown_formatting')}:</strong> **negrito**, *itálico*, ~~riscado~~
                                     </div>
                                     <div>
-                                        <strong>Títulos:</strong> # H1, ## H2, ### H3
+                                        <strong>{t('admin.blog.markdown_headings')}:</strong> # H1, ## H2, ### H3
                                     </div>
                                     <div>
-                                        <strong>Listas:</strong> - item, 1. numerada
+                                        <strong>{t('admin.blog.markdown_lists')}:</strong> - item, 1. numerada
                                     </div>
                                     <div>
-                                        <strong>Citação:</strong> &gt; texto da citação
+                                        <strong>{t('admin.blog.markdown_quote')}:</strong> &gt; texto da citação
                                     </div>
                                 </div>
                             </div>
@@ -372,7 +372,7 @@ export default function BlogPostForm() {
                         {/* Tags */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Tags
+                                {t('admin.blog.field_tags')}
                             </label>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {formData.tags.map((tag, index) => (
@@ -397,14 +397,14 @@ export default function BlogPostForm() {
                                 onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={handleAddTag}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                                placeholder="Digite uma tag e pressione Enter"
+                                placeholder={t('admin.blog.placeholder_tags')}
                             />
                         </div>
 
                         {/* Thumbnail */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Imagem de Capa
+                                {t('admin.blog.field_thumbnail')}
                             </label>
                             {thumbnailPreview && (
                                 <div className="mb-4">
@@ -426,13 +426,13 @@ export default function BlogPostForm() {
                         {/* Attachments */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Anexos
+                                {t('admin.blog.field_attachments')}
                             </label>
 
                             {/* Existing attachments */}
                             {existingAttachments.length > 0 && (
                                 <div className="mb-4">
-                                    <p className="text-sm text-gray-600 mb-2">Anexos existentes:</p>
+                                    <p className="text-sm text-gray-600 mb-2">{t('admin.blog.existing_attachments')}</p>
                                     <div className="space-y-2">
                                         {existingAttachments.map((attachment, index) => (
                                             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -442,7 +442,7 @@ export default function BlogPostForm() {
                                                     onClick={() => removeExistingAttachment(attachment.filename)}
                                                     className="text-red-600 hover:text-red-800 text-sm"
                                                 >
-                                                    Remover
+                                                    {t('common.remove')}
                                                 </button>
                                             </div>
                                         ))}
@@ -453,7 +453,7 @@ export default function BlogPostForm() {
                             {/* New attachments */}
                             {attachmentFiles.length > 0 && (
                                 <div className="mb-4">
-                                    <p className="text-sm text-gray-600 mb-2">Novos anexos:</p>
+                                    <p className="text-sm text-gray-600 mb-2">{t('admin.blog.new_attachments')}</p>
                                     <div className="space-y-2">
                                         {attachmentFiles.map((file, index) => (
                                             <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
@@ -463,7 +463,7 @@ export default function BlogPostForm() {
                                                     onClick={() => removeAttachment(index)}
                                                     className="text-red-600 hover:text-red-800 text-sm"
                                                 >
-                                                    Remover
+                                                    {t('common.remove')}
                                                 </button>
                                             </div>
                                         ))}
@@ -479,7 +479,7 @@ export default function BlogPostForm() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
                             />
                             <p className="text-sm text-gray-500 mt-1">
-                                Formatos aceitos: PDF, Word, Excel, TXT, CSV
+                                {t('admin.blog.accepted_formats')}
                             </p>
                         </div>
 
@@ -496,7 +496,7 @@ export default function BlogPostForm() {
                                 type="button"
                                 onClick={() => {
                                     if (hasUnsavedChanges) {
-                                        const confirmLeave = window.confirm('Você tem alterações não salvas. Tem certeza que deseja cancelar?')
+                                        const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_cancel'))
                                         if (!confirmLeave) return
                                     }
                                     navigate('/admin/news-events')
@@ -504,14 +504,14 @@ export default function BlogPostForm() {
                                 className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                                 disabled={saving}
                             >
-                                Cancelar
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving}
                                 className="px-6 py-2 bg-gray-900 text-white font-medium rounded-md transition-colors disabled:opacity-50 hover:bg-gray-800"
                             >
-                                {saving ? 'Salvando...' : (isEditing ? 'Atualizar' : 'Criar Post')}
+                                {saving ? t('admin.blog.saving') : (isEditing ? t('admin.blog.update') : t('admin.blog.create'))}
                             </button>
                         </div>
                     </form>
