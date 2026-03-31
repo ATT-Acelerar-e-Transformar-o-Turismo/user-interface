@@ -6,9 +6,11 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorDisplay from "../components/ErrorDisplay";
 import { useDomain } from "../contexts/DomainContext";
 import indicatorService from "../services/indicatorService";
+import useLocalizedName from "../hooks/useLocalizedName";
 
 export default function FavoritesPage() {
   const { domains } = useDomain();
+  const getName = useLocalizedName();
   const [favoriteIndicators, setFavoriteIndicators] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedSubdomain, setSelectedSubdomain] = useState(null);
@@ -190,7 +192,7 @@ export default function FavoritesPage() {
             <div className="text-center p-8">
               <h2 className="text-xl">
                 {selectedDomain 
-                  ? `Nenhum indicador favorito encontrado para ${selectedDomain?.name || "this domain"}` 
+                  ? `Nenhum indicador favorito encontrado para ${getName(selectedDomain)}`
                   : "You don't have any favorite indicators yet."}
               </h2>
               <p className="mt-2">Add indicators to favorites by clicking the heart icon on domain pages.</p>
@@ -201,10 +203,12 @@ export default function FavoritesPage() {
                 {paginatedIndicators.map((indicator) => (
                   <IndicatorCard
                     key={indicator.id}
-                    IndicatorTitle={indicator.name}
+                    IndicatorTitle={getName(indicator)}
                     IndicatorId={indicator.id}
                     domain={indicator.domainName}
                     subdomain={indicator.subdomainName}
+                    description={indicator.description}
+                    description_en={indicator.description_en}
                   />
                 ))}
               </div>

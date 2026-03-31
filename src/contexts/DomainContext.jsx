@@ -82,7 +82,11 @@ export function DomainProvider({ children }) {
         DomainImage: domain.image,
         DomainIcon: domain.icon,
         DomainCarouselImages: [domain.image],
-        subdomains: domain.subdomains ? domain.subdomains.filter(subdomain => subdomain != null).map(subdomain => ({ name: subdomain })) : []
+        subdomains: domain.subdomains ? domain.subdomains.filter(subdomain => subdomain != null).map(subdomain => (
+          typeof subdomain === 'object' && subdomain.name !== undefined
+            ? subdomain
+            : { name: subdomain }
+        )) : []
       }));
 
       dispatch({ type: 'LOAD_SUCCESS', payload: transformedDomains });

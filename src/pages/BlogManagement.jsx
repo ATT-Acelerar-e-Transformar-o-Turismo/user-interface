@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 
 export default function BlogManagement() {
+    const { t } = useTranslation()
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -30,7 +32,7 @@ export default function BlogManagement() {
     }
 
     const handleDeletePost = async (postId) => {
-        if (!window.confirm('Tem certeza que deseja excluir este post?')) {
+        if (!window.confirm(t('admin.blog.confirm_delete'))) {
             return
         }
 
@@ -38,7 +40,7 @@ export default function BlogManagement() {
             await blogService.deletePost(postId)
             setPosts(posts.filter(post => post.id !== postId))
         } catch (err) {
-            alert('Erro ao excluir post: ' + err.message)
+            alert(t('admin.blog.delete_error', { error: err.message }))
         }
     }
 
@@ -56,9 +58,9 @@ export default function BlogManagement() {
     const getStatusText = (status) => {
         switch (status) {
             case 'published':
-                return 'Publicado'
+                return t('admin.blog.status_published')
             case 'draft':
-                return 'Rascunho'
+                return t('admin.blog.status_draft')
             default:
                 return status
         }
@@ -92,17 +94,17 @@ export default function BlogManagement() {
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">
-                                Gerar Blog
+                                {t('admin.blog.title')}
                             </h1>
                             <p className="text-gray-600 mt-2">
-                                Crie, edite e gere posts do blog
+                                {t('admin.blog.subtitle')}
                             </p>
                         </div>
                         <Link
                             to="/admin/news-events/create"
                             className="px-6 py-3 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                         >
-                            Novo Post
+                            {t('admin.blog.new_post')}
                         </Link>
                     </div>
 
@@ -115,13 +117,13 @@ export default function BlogManagement() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-medium text-gray-900 mb-2">Nenhum post encontrado</h3>
-                                <p className="text-gray-600 mb-6">Comece criando seu primeiro post do blog!</p>
+                                <h3 className="text-xl font-medium text-gray-900 mb-2">{t('admin.blog.empty_title')}</h3>
+                                <p className="text-gray-600 mb-6">{t('admin.blog.empty_subtitle')}</p>
                                 <Link
                                     to="/admin/news-events/create"
                                     className="inline-block px-6 py-2 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                                 >
-                                    Criar Primeiro Post
+                                    {t('admin.blog.create_first')}
                                 </Link>
                             </div>
                         ) : (
@@ -130,22 +132,22 @@ export default function BlogManagement() {
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Título
+                                                {t('admin.blog.col_title')}
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Autor
+                                                {t('admin.blog.col_author')}
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Status
+                                                {t('admin.blog.col_status')}
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Visualizações
+                                                {t('admin.blog.col_views')}
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Data
+                                                {t('admin.blog.col_date')}
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ações
+                                                {t('admin.blog.col_actions')}
                                             </th>
                                         </tr>
                                     </thead>
@@ -197,20 +199,20 @@ export default function BlogManagement() {
                                                                 to={`/news-events/${post.id}`}
                                                                 className="text-blue-600 hover:text-blue-900"
                                                             >
-                                                                Ver
+                                                                {t('admin.blog.action_view')}
                                                             </Link>
                                                         )}
                                                         <Link
                                                             to={`/admin/news-events/edit/${post.id}`}
                                                             className="text-primary hover:text-primary/80 hover:underline"
                                                         >
-                                                            Editar
+                                                            {t('common.edit')}
                                                         </Link>
                                                         <button
                                                             onClick={() => handleDeletePost(post.id)}
                                                             className="text-red-600 hover:text-red-900"
                                                         >
-                                                            Excluir
+                                                            {t('common.delete')}
                                                         </button>
                                                     </div>
                                                 </td>

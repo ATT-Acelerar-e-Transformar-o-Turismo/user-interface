@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AdminPageTemplate from './AdminPageTemplate';
 import ActionCard from '../components/ActionCard';
 import Pagination from '../components/Pagination';
@@ -8,8 +8,11 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import DomainWizard from '../components/wizard/DomainWizard';
 import domainService from '../services/domainService';
 import indicatorService from '../services/indicatorService';
+import useLocalizedName from '../hooks/useLocalizedName';
 
 export default function DomainsManagement() {
+  const { t } = useTranslation();
+  const getName = useLocalizedName();
   const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,8 +28,6 @@ export default function DomainsManagement() {
   // Modal state
   const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
   const [editingDomainId, setEditingDomainId] = useState(null);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadDomains();
@@ -66,7 +67,8 @@ export default function DomainsManagement() {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         filteredDomains = enhancedDomains.filter(domain =>
-          domain.name.toLowerCase().includes(query)
+          domain.name.toLowerCase().includes(query) ||
+          (domain.name_en || '').toLowerCase().includes(query)
         );
       }
 
@@ -94,7 +96,7 @@ export default function DomainsManagement() {
       setDomains(paginatedDomains);
 
     } catch (err) {
-      setError(err.message || 'Falha ao carregar domínios');
+      setError(err.message || t('admin.domains.load_error'));
       console.error('Error loading domains:', err);
     } finally {
       setLoading(false);
@@ -107,7 +109,7 @@ export default function DomainsManagement() {
   };
 
   const handleDelete = async (domain) => {
-    if (!window.confirm(`Tem certeza que deseja eliminar o domínio "${domain.name}"?`)) {
+    if (!window.confirm(t('admin.domains.confirm_delete', { name: domain.name }))) {
       return;
     }
 
@@ -115,7 +117,7 @@ export default function DomainsManagement() {
       await domainService.delete(domain.id);
       loadDomains();
     } catch (err) {
-      setError(err.message || 'Falha ao eliminar domínio');
+      setError(err.message || t('admin.domains.delete_error'));
       console.error('Error deleting domain:', err);
     }
   };
@@ -165,7 +167,7 @@ export default function DomainsManagement() {
             {/* Left Column - Domains Table */}
             <div className="bg-[#f1f0f0] rounded-[23px] p-8">
               <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                Domínios
+                {t('admin.domains.title')}
               </h1>
 
               {/* Table Header */}
@@ -174,7 +176,7 @@ export default function DomainsManagement() {
                   onClick={() => handleSort('name')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-[#00855d] flex items-center gap-1"
                 >
-                  Nome
+                  {t('admin.domains.col_name')}
                   {sortBy === 'name' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -189,7 +191,7 @@ export default function DomainsManagement() {
                   onClick={() => handleSort('subdomainCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
                 >
-                  Dimensões
+                  {t('admin.domains.col_dimensions')}
                   {sortBy === 'subdomainCount' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -204,7 +206,7 @@ export default function DomainsManagement() {
                   onClick={() => handleSort('indicatorCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
                 >
-                  Indicadores
+                  {t('admin.domains.col_indicators')}
                   {sortBy === 'indicatorCount' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -215,14 +217,14 @@ export default function DomainsManagement() {
                     </svg>
                   )}
                 </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">Opções</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.domains.col_options')}</p>
               </div>
 
               {/* Table Rows */}
               <div className="space-y-3">
                 {domains.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    Ainda não existem domínios
+                    {t('admin.domains.empty')}
                   </div>
                 ) : (
                   domains.map((domain) => (
@@ -245,7 +247,7 @@ export default function DomainsManagement() {
                           )}
                         </div>
                         <span className="font-['Onest',sans-serif] font-normal text-sm text-black">
-                          {domain.name}
+                          {getName(domain)}
                         </span>
                       </div>
 
@@ -268,7 +270,7 @@ export default function DomainsManagement() {
                         <button
                           onClick={() => handleEdit(domain)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title="Editar"
+                          title={t('common.edit')}
                         >
                           <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -277,7 +279,7 @@ export default function DomainsManagement() {
                         <button
                           onClick={() => handleDelete(domain)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title="Eliminar"
+                          title={t('common.delete')}
                         >
                           <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -300,7 +302,7 @@ export default function DomainsManagement() {
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName="domínios"
+                    itemName={t('admin.domains.title').toLowerCase()}
                   />
                 </div>
               )}
@@ -314,7 +316,7 @@ export default function DomainsManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 }
-                title={`Adicionar\nDomínio`}
+                title={t('admin.domains.add')}
                 onClick={() => {
                   setEditingDomainId(null);
                   setIsDomainWizardOpen(true);
@@ -324,7 +326,7 @@ export default function DomainsManagement() {
 
               <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  Total: {totalItems} domínios
+                  {t('admin.domains.total', { count: totalItems })}
                 </p>
               </div>
             </div>

@@ -12,6 +12,7 @@ import indicatorService from "../services/indicatorService";
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import useIndicatorData from "../hooks/useIndicatorData";
+import useLocalizedName from "../hooks/useLocalizedName";
 
 export default function IndicatorTemplate() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function IndicatorTemplate() {
 
   const { getIndicatorById, loading } = useIndicator();
   const { resources } = useResource();
+  const getName = useLocalizedName();
 
   const [uiStartDate, setUiStartDate] = useState('');
   const [uiEndDate, setUiEndDate] = useState('');
@@ -406,10 +408,10 @@ export default function IndicatorTemplate() {
         <section className="text-center pb-12 px-4">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight font-['Onest',sans-serif]">
-              {indicatorData.name}
+              {getName(indicatorData)}
             </h1>
             <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto leading-relaxed">
-              {indicatorData.description || `Explore os dados e a evolução do indicador ${indicatorData.name}.`}
+              {getName.field(indicatorData, 'description', 'description_en') || t('indicator.defaultDescription', { name: getName(indicatorData) })}
             </p>
           </div>
         </section>
@@ -459,7 +461,7 @@ export default function IndicatorTemplate() {
                         xaxisType="datetime"
                         series={((allLoadedData || chartData)?.series || []).map(s => ({
                           ...s,
-                          name: indicatorData?.name || s.name
+                          name: getName(indicatorData) || s.name
                         }))}
                         height="100%"
                         showToolbar={true}
@@ -639,7 +641,7 @@ export default function IndicatorTemplate() {
               </div>
               <div>
                 <span className="font-medium text-base-content/80">Dimensão: </span>
-                <span className="text-base-content">{resolvedDomainObj?.name || ""}</span>
+                <span className="text-base-content">{getName(resolvedDomainObj)}</span>
               </div>
               <div>
                 <span className="font-medium text-base-content/80">Domínio: </span>

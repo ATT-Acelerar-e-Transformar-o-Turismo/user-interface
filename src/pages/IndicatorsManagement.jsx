@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import useLocalizedName from '../hooks/useLocalizedName';
 
 import Pagination from '../components/Pagination';
 import indicatorService from '../services/indicatorService';
@@ -12,6 +14,8 @@ import IndicatorWizard from '../components/wizard/IndicatorWizard';
 import DomainWizard from '../components/wizard/DomainWizard';
 
 export default function IndicatorsManagement() {
+  const { t } = useTranslation();
+  const getName = useLocalizedName();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedOption, setSelectedOption] = useState('indicators');
@@ -156,11 +160,15 @@ export default function IndicatorsManagement() {
 
         return {
           ...indicator,
-          domain: domainInfo?.name || indicator.subdomain || 'Unknown Domain',
+          name: getName(indicator),
+          domain: getName(domainInfo) || indicator.subdomain || 'Unknown Domain',
           color: domainInfo?.color || '#CCCCCC'
         };
       })
-      : domains;
+      : domains.map(domain => ({
+          ...domain,
+          name: getName(domain)
+        }));
 
   const sortableColumns = ['name', 'periodicity', 'favourites'];
   
@@ -283,22 +291,22 @@ export default function IndicatorsManagement() {
             <div className="bg-[#f1f0f0] rounded-[23px] p-8">
               {/* Title */}
               <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                Indicadores
+                {t('admin.indicators.title')}
               </h1>
 
               {/* Table Header Row */}
               <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black">Nome</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">Dimensão</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">Governança</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">Opções</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black">{t('admin.indicators.col_name')}</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_dimension')}</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_governance')}</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.indicators.col_options')}</p>
               </div>
 
               {/* Table Rows */}
               <div className="space-y-3">
                 {tableContent.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    Ainda não existem indicadores
+                    {t('admin.indicators.empty')}
                   </div>
                 ) : (
                   tableContent.map((indicator) => (
@@ -349,7 +357,7 @@ export default function IndicatorsManagement() {
                         <button
                           onClick={() => handleEdit(indicator.id)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title="Editar"
+                          title={t('common.edit')}
                         >
                           <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -357,12 +365,12 @@ export default function IndicatorsManagement() {
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(`Tem certeza que deseja eliminar o indicador "${indicator.name}"?`)) {
+                            if (window.confirm(t('admin.indicators.confirm_delete', { name: indicator.name }))) {
                               handleDelete(indicator.id);
                             }
                           }}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title="Eliminar"
+                          title={t('common.delete')}
                         >
                           <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -385,7 +393,7 @@ export default function IndicatorsManagement() {
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName="indicadores"
+                    itemName={t('admin.indicators.title').toLowerCase()}
                   />
                 </div>
               )}
@@ -400,7 +408,7 @@ export default function IndicatorsManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 }
-                title={`Adicionar\nIndicador`}
+                title={t('admin.indicators.add')}
                 onClick={() => {
                   setEditingIndicatorId(null);
                   setIsWizardOpen(true);
@@ -415,15 +423,15 @@ export default function IndicatorsManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 }
-                title={`Ver\nRascunhos`}
-                onClick={() => alert('Ver Rascunhos - Funcionalidade em desenvolvimento')}
+                title={t('admin.indicators.view_drafts')}
+                onClick={() => alert(t('admin.indicators.drafts_wip'))}
                 className="w-[210px]"
               />
 
               {/* Additional Info Card */}
               <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  Total: {totalItems} indicadores
+                  {t('admin.indicators.total', { count: totalItems })}
                 </p>
               </div>
             </div>

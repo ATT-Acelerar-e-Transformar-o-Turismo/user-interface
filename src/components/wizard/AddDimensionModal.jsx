@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
@@ -23,11 +24,13 @@ async function fetchAllDomainIndicators(domainId) {
 /**
  * AddDimensionModal - Modal for adding or editing a dimension (subdomain) on a domain
  */
-export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null }) {
+export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null, editDimensionNameEn = null }) {
+  const { t } = useTranslation();
   const isEditing = Boolean(editDomainId && editDimensionName);
   const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState('');
   const [dimensionName, setDimensionName] = useState('');
+  const [dimensionNameEn, setDimensionNameEn] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -37,9 +40,10 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       if (isEditing) {
         setSelectedDomain(editDomainId);
         setDimensionName(editDimensionName);
+        setDimensionNameEn(editDimensionNameEn || '');
       }
     }
-  }, [isOpen, editDomainId, editDimensionName]);
+  }, [isOpen, editDomainId, editDimensionName, editDimensionNameEn, isEditing]);
 
   const loadDomains = async () => {
     try {
@@ -53,10 +57,10 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
   const validate = () => {
     const validationErrors = {};
 
-    const domainError = validateRequired(selectedDomain, 'Domínio');
+    const domainError = validateRequired(selectedDomain, t('validation.required', { field: t('wizard.dimension.domain') }));
     if (domainError) validationErrors.domain = domainError;
 
-    const nameError = validateRequired(dimensionName, 'Nome da dimensão');
+    const nameError = validateRequired(dimensionName, t('validation.required', { field: t('wizard.dimension.name_pt') }));
     if (nameError) validationErrors.name = nameError;
 
     return validationErrors;
@@ -75,14 +79,17 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       setLoading(true);
       setErrors({});
 
+      const getSubName = (s) => typeof s === 'string' ? s : s.name;
+      const newSubObj = { name: dimensionName.trim(), name_en: dimensionNameEn.trim() };
+
       if (isEditing && selectedDomain !== editDomainId) {
         // Moving to a different domain: remove from old, add to new
         const oldDomain = await domainService.getById(editDomainId);
-        const oldSubs = (oldDomain.subdomains || []).filter(s => s !== editDimensionName);
+        const oldSubs = (oldDomain.subdomains || []).filter(s => getSubName(s) !== editDimensionName);
         await domainService.patch(editDomainId, { subdomains: oldSubs });
 
         const newDomain = await domainService.getById(selectedDomain);
-        const newSubs = [...(newDomain.subdomains || []), dimensionName.trim()];
+        const newSubs = [...(newDomain.subdomains || []), newSubObj];
         await domainService.patch(selectedDomain, { subdomains: newSubs });
 
         // Update all affected indicators: change domain and subdomain name
@@ -95,7 +102,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         // Same domain: rename
         const domain = await domainService.getById(selectedDomain);
         const currentSubdomains = domain.subdomains || [];
-        const updatedSubdomains = currentSubdomains.map(s => s === editDimensionName ? dimensionName.trim() : s);
+        const updatedSubdomains = currentSubdomains.map(s => getSubName(s) === editDimensionName ? newSubObj : s);
         await domainService.patch(selectedDomain, { subdomains: updatedSubdomains });
 
         // Update all indicators with the old subdomain name
@@ -110,19 +117,20 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         // Add new subdomain
         const domain = await domainService.getById(selectedDomain);
         const currentSubdomains = domain.subdomains || [];
-        await domainService.patch(selectedDomain, { subdomains: [...currentSubdomains, dimensionName.trim()] });
+        await domainService.patch(selectedDomain, { subdomains: [...currentSubdomains, newSubObj] });
       }
 
       // Reset form
       setSelectedDomain('');
       setDimensionName('');
+      setDimensionNameEn('');
 
       // Close and notify success
       onClose();
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error adding dimension:', error);
-      setErrors({ submit: error.message || 'Falha ao processar dimensão' });
+      setErrors({ submit: error.message || t('wizard.dimension.error') });
     } finally {
       setLoading(false);
     }
@@ -132,6 +140,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
     if (!loading) {
       setSelectedDomain('');
       setDimensionName('');
+      setDimensionNameEn('');
       setErrors({});
       onClose();
     }
@@ -157,14 +166,14 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-['Onest',sans-serif] font-semibold text-2xl text-black">
-            {isEditing ? 'Editar Dimensão' : 'Adicionar Dimensão'}
+            {isEditing ? t('wizard.dimension.title_edit') : t('wizard.dimension.title_add')}
           </h2>
           <button
             type="button"
             onClick={handleClose}
             disabled={loading}
             className="text-gray-500 hover:text-black transition-colors p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Fechar"
+            aria-label={t('wizard.dimension.close')}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -175,25 +184,34 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormSelect
-            label="Domínio"
+            label={t('wizard.dimension.domain')}
             name="domain"
             value={selectedDomain}
             onChange={setSelectedDomain}
             options={domainOptions}
-            placeholder="Selecione um domínio"
+            placeholder={t('wizard.dimension.domain_placeholder')}
             required
             error={errors.domain}
             disabled={loading}
           />
 
           <FormInput
-            label="Nome da Dimensão"
+            label={t('wizard.dimension.name_pt')}
             name="name"
             value={dimensionName}
             onChange={setDimensionName}
-            placeholder="Ex: Biodiversidade, Recursos Hídricos"
+            placeholder={t('wizard.dimension.name_pt_placeholder')}
             required
             error={errors.name}
+            disabled={loading}
+          />
+
+          <FormInput
+            label={t('wizard.dimension.name_en')}
+            name="name_en"
+            value={dimensionNameEn}
+            onChange={setDimensionNameEn}
+            placeholder={t('wizard.dimension.name_en_placeholder')}
             disabled={loading}
           />
 
@@ -213,7 +231,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
               disabled={loading}
               className="font-['Onest',sans-serif] text-sm font-medium text-gray-700 hover:text-black px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancelar
+              {t('wizard.dimension.cancel')}
             </button>
             <button
               type="submit"
@@ -231,10 +249,10 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  A processar...
+                  {t('wizard.dimension.processing')}
                 </>
               ) : (
-                isEditing ? 'Guardar' : 'Adicionar'
+                isEditing ? t('wizard.dimension.save') : t('wizard.dimension.add')
               )}
             </button>
           </div>
@@ -250,4 +268,5 @@ AddDimensionModal.propTypes = {
   onSuccess: PropTypes.func,
   editDomainId: PropTypes.string,
   editDimensionName: PropTypes.string,
+  editDimensionNameEn: PropTypes.string,
 };

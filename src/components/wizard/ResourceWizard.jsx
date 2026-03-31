@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -31,6 +32,7 @@ export default function ResourceWizard({
   onSuccess = null
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { uploadFile, generateWrapper, startPolling } = useWrapper();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [indicator, setIndicator] = useState(null);
@@ -42,7 +44,7 @@ export default function ResourceWizard({
   const [wrappersData, setWrappersData] = useState([]);  // Store wrapper info for each file
 
   const isEditMode = !!resourceId;
-  const steps = ['Tipo de Fonte', 'Configuração', 'Pré-visualização'];
+  const steps = [t('wizard.resource.step_type'), t('wizard.resource.step_config'), t('wizard.resource.step_preview')];
 
   const initialData = {
     sourceType: '',
@@ -310,7 +312,7 @@ export default function ResourceWizard({
 
     if (stepIndex === 0) {
       // Step 1: Source type
-      const sourceTypeError = validateRequired(wizard.formData.sourceType, 'Tipo de fonte');
+      const sourceTypeError = validateRequired(wizard.formData.sourceType, t('validation.required', { field: t('wizard.resource.source_type') }));
       if (sourceTypeError) errors.sourceType = sourceTypeError;
     }
 
@@ -319,14 +321,14 @@ export default function ResourceWizard({
       if (wizard.formData.sourceType === 'API') {
         const urlError = validateURL(wizard.formData.apiConfig.location);
         if (!wizard.formData.apiConfig.location) {
-          errors.apiLocation = 'URL da API é obrigatório';
+          errors.apiLocation = t('wizard.resource.api_url_required');
         } else if (urlError) {
           errors.apiLocation = urlError;
         }
       } else {
         // File validation - support multiple files
         if (!wizard.formData.files || wizard.formData.files.length === 0) {
-          errors.files = 'Por favor, selecione pelo menos um ficheiro';
+          errors.files = t('wizard.resource.file_required');
         } else {
           // Validate each file
           for (let i = 0; i < wizard.formData.files.length; i++) {
@@ -473,9 +475,9 @@ export default function ResourceWizard({
   };
 
   const sourceTypeOptions = [
-    { value: 'CSV', label: 'Ficheiro CSV' },
-    { value: 'XLSX', label: 'Ficheiro XLSX' },
-    { value: 'API', label: 'API' }
+    { value: 'CSV', label: t('wizard.resource.source_csv') },
+    { value: 'XLSX', label: t('wizard.resource.source_xlsx') },
+    { value: 'API', label: t('wizard.resource.source_api') }
   ];
 
   const getSubmitLabel = () => {
@@ -501,7 +503,7 @@ export default function ResourceWizard({
       <Wizard
         isOpen={isOpen && !showSuccessModal}
         onClose={handleWizardClose}
-        title={isEditMode ? 'Editar Recurso' : 'Adicionar Recurso de Dados'}
+        title={isEditMode ? t('wizard.resource.title_edit') : t('wizard.resource.title_new')}
         steps={steps}
         currentStep={wizard.currentStep}
         onPrevious={wizard.previousStep}
@@ -513,13 +515,13 @@ export default function ResourceWizard({
         {/* Step 1: Source Type Selection */}
         {wizard.currentStep === 0 && (
           <WizardStep
-            title="Tipo de Fonte"
-            description="Selecione o tipo de fonte de dados"
+            title={t('wizard.resource.step_type')}
+            description={t('wizard.resource.step_type_desc')}
           >
             {indicator && (
               <div className="bg-[#f1f0f0] rounded-lg p-4 mb-4">
                 <h3 className="font-['Onest',sans-serif] font-semibold text-sm text-black mb-2">
-                  Indicador
+                  {t('wizard.resource.indicator_label')}
                 </h3>
                 <p className="font-['Onest',sans-serif] text-sm text-gray-700">
                   {indicator.name}
@@ -528,12 +530,12 @@ export default function ResourceWizard({
             )}
 
             <FormSelect
-              label="Tipo de Fonte"
+              label={t('wizard.resource.source_type')}
               name="sourceType"
               value={wizard.formData.sourceType}
               onChange={(value) => wizard.updateFormData('sourceType', value)}
               options={sourceTypeOptions}
-              placeholder="Selecione o tipo de fonte"
+              placeholder={t('wizard.resource.source_type_placeholder')}
               required
               error={wizard.errors.sourceType}
               disabled={loading}
@@ -544,11 +546,11 @@ export default function ResourceWizard({
         {/* Step 2: File Upload or API Configuration */}
         {wizard.currentStep === 1 && (
           <WizardStep
-            title={wizard.formData.sourceType === 'API' ? 'Configuração de API' : 'Carregar Ficheiro'}
+            title={wizard.formData.sourceType === 'API' ? t('wizard.resource.step_api_title') : t('wizard.resource.step_file_title')}
             description={
               wizard.formData.sourceType === 'API'
-                ? 'Configure os detalhes da API'
-                : 'Carregue o ficheiro de dados'
+                ? t('wizard.resource.step_api_desc')
+                : t('wizard.resource.step_file_desc')
             }
           >
             {wizard.formData.sourceType === 'API' ? (
@@ -558,7 +560,7 @@ export default function ResourceWizard({
               />
             ) : (
               <FormFileUpload
-                label="Ficheiros de Dados"
+                label={t('wizard.resource.files_label')}
                 name="files"
                 files={wizard.formData.files}
                 onChange={(files) => wizard.updateFormData('files', files)}
@@ -575,16 +577,16 @@ export default function ResourceWizard({
         {/* Step 3: Preview */}
         {wizard.currentStep === 2 && (
           <WizardStep
-            title="Pré-visualização"
-            description="Visualize os dados antes de guardar"
+            title={t('wizard.resource.step_preview')}
+            description={t('wizard.resource.step_preview_desc')}
           >
             {wizard.formData.sourceType === 'API' ? (
               <div className="bg-[#f1f0f0] rounded-lg p-6 text-center">
                 <p className="font-['Onest',sans-serif] text-sm text-gray-600">
-                  URL da API configurado: {wizard.formData.apiConfig.location}
+                  {t('wizard.resource.api_url_label')} {wizard.formData.apiConfig.location}
                 </p>
                 <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
-                  Os dados serão carregados após guardar
+                  {t('wizard.resource.api_url_pending')}
                 </p>
               </div>
             ) : (
@@ -598,7 +600,7 @@ export default function ResourceWizard({
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       <p className="font-['Onest',sans-serif] text-sm text-gray-600">
-                        A gerar wrappers...
+                        {t('wizard.resource.generating_wrappers')}
                       </p>
                     </div>
                   </div>
@@ -625,9 +627,9 @@ export default function ResourceWizard({
                               {wrapperInfo.fileName}
                             </p>
                             <p className="font-['Onest',sans-serif] text-xs text-gray-600">
-                              {isComplete && 'Concluído'}
-                              {isError && 'Erro'}
-                              {isProcessing && 'A processar...'}
+                              {isComplete && t('wizard.resource.status_done')}
+                              {isError && t('wizard.resource.status_error')}
+                              {isProcessing && t('wizard.resource.status_processing')}
                             </p>
                           </div>
                         </div>
@@ -639,21 +641,21 @@ export default function ResourceWizard({
                           {/* Show data preview */}
                           <div className="bg-[#f1f0f0] rounded-lg p-3 mb-3">
                             <p className="font-['Onest',sans-serif] text-xs text-gray-700">
-                              <strong>Recurso criado:</strong> {wrapperInfo.resourceData.name || 'Sem nome'}
+                              <strong>{t('wizard.resource.resource_created')}</strong> {wrapperInfo.resourceData.name || t('wizard.resource.no_name')}
                             </p>
                             {wrapperInfo.resourceData.first_entry_date && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
-                                <strong>Primeira entrada:</strong> {new Date(wrapperInfo.resourceData.first_entry_date).toLocaleDateString()}
+                                <strong>{t('wizard.resource.first_entry')}</strong> {new Date(wrapperInfo.resourceData.first_entry_date).toLocaleDateString()}
                               </p>
                             )}
                             {wrapperInfo.resourceData.last_entry_date && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
-                                <strong>Última entrada:</strong> {new Date(wrapperInfo.resourceData.last_entry_date).toLocaleDateString()}
+                                <strong>{t('wizard.resource.last_entry')}</strong> {new Date(wrapperInfo.resourceData.last_entry_date).toLocaleDateString()}
                               </p>
                             )}
                             {wrapperInfo.resourceData.total_entries !== undefined && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
-                                <strong>Total de entradas:</strong> {wrapperInfo.resourceData.total_entries}
+                                <strong>{t('wizard.resource.total_entries')}</strong> {wrapperInfo.resourceData.total_entries}
                               </p>
                             )}
                           </div>
@@ -682,7 +684,7 @@ export default function ResourceWizard({
                       {isComplete && !wrapperInfo.resourceData && (
                         <div className="mt-4 bg-[#f1f0f0] rounded-lg p-3">
                           <p className="font-['Onest',sans-serif] text-xs text-center text-gray-600">
-                            A carregar dados do recurso...
+                            {t('wizard.resource.loading_resource')}
                           </p>
                         </div>
                       )}
@@ -691,9 +693,9 @@ export default function ResourceWizard({
                       {isProcessing && (
                         <div className="mt-4 bg-[#f1f0f0] rounded-lg p-3">
                           <p className="font-['Onest',sans-serif] text-xs text-center text-gray-600">
-                            {wrapperInfo.status === 'pending' && 'Aguardando geração...'}
-                            {wrapperInfo.status === 'generating' && 'A gerar wrapper...'}
-                            {wrapperInfo.status === 'creating_resource' && 'A criar recurso...'}
+                            {wrapperInfo.status === 'pending' && t('wizard.resource.status_pending')}
+                            {wrapperInfo.status === 'generating' && t('wizard.resource.status_generating')}
+                            {wrapperInfo.status === 'creating_resource' && t('wizard.resource.status_creating')}
                           </p>
                         </div>
                       )}
@@ -714,7 +716,7 @@ export default function ResourceWizard({
                 {wrappersData.length === 0 && !generatingWrappers && previewData.length > 0 && (
                   <div className="bg-[#f1f0f0] rounded-lg p-6 text-center">
                     <p className="font-['Onest',sans-serif] text-sm text-gray-600">
-                      {previewData.length} ficheiro(s) carregado(s). A gerar wrappers...
+                      {t('wizard.resource.files_loaded', { count: previewData.length })}
                     </p>
                   </div>
                 )}
@@ -728,18 +730,18 @@ export default function ResourceWizard({
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleFinish}
-        title={wrappersData.length > 1 ? 'Fontes Adicionadas!' : 'Fonte Adicionada!'}
+        title={wrappersData.length > 1 ? t('wizard.resource.success_multiple') : t('wizard.resource.success_single')}
         message={
           wrappersData.length > 1
-            ? `Parabéns, ${wrappersData.length} fontes foram adicionadas com sucesso`
-            : 'Parabéns, a fonte foi adicionada com sucesso'
+            ? t('wizard.resource.success_msg_multiple', { count: wrappersData.length })
+            : t('wizard.resource.success_msg_single')
         }
         primaryAction={{
-          label: 'Sair',
+          label: t('wizard.resource.exit'),
           onClick: handleFinish
         }}
         secondaryAction={{
-          label: 'Adicionar Nova Fonte',
+          label: t('wizard.resource.add_new'),
           onClick: handleAddNewResource
         }}
       />

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
 /**
@@ -15,6 +16,8 @@ export default function SuccessModal({
   secondaryAction = null,
   autoCloseDelay = null
 }) {
+  const { t } = useTranslation();
+
   // Auto-close after delay if specified
   useEffect(() => {
     if (isOpen && autoCloseDelay) {
@@ -135,7 +138,7 @@ export default function SuccessModal({
                 onClick={onClose}
                 className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-6 py-3 rounded-lg transition-colors w-full"
               >
-                Fechar
+                {t('common.close')}
               </button>
             )}
           </div>

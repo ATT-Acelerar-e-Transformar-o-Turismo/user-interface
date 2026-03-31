@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
 /**
@@ -10,12 +11,17 @@ export default function WizardButtons({
   isFirstStep,
   isLastStep,
   isSubmitting = false,
-  nextLabel = 'Continuar',
-  previousLabel = 'Voltar',
-  submitLabel = 'Concluir',
+  nextLabel,
+  previousLabel,
+  submitLabel,
   disableNext = false,
   className = ''
 }) {
+  const { t } = useTranslation();
+  const resolvedNext = nextLabel ?? t('common.continue');
+  const resolvedPrev = previousLabel ?? t('common.back');
+  const resolvedSubmit = submitLabel ?? t('common.finish');
+
   return (
     <div className={`flex justify-between items-center gap-4 ${className}`}>
       {/* Previous Button */}
@@ -26,7 +32,7 @@ export default function WizardButtons({
           disabled={isSubmitting}
           className="font-['Onest',sans-serif] text-sm font-medium text-gray-700 hover:text-black px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {previousLabel}
+          {resolvedPrev}
         </button>
       )}
 
@@ -62,10 +68,10 @@ export default function WizardButtons({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            A processar...
+            {t('common.processing')}
           </>
         ) : (
-          isLastStep ? submitLabel : nextLabel
+          isLastStep ? resolvedSubmit : resolvedNext
         )}
       </button>
     </div>

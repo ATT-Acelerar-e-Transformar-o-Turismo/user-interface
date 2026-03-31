@@ -1,4 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
@@ -6,9 +7,13 @@ import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
 import Chart from "./Chart";
 import useIndicatorData from "../hooks/useIndicatorData";
+import useLocalizedName from "../hooks/useLocalizedName";
 import PropTypes from "prop-types";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, subdomain, description, unit }) {
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, subdomain, description, description_en, unit }) {
+    const { t } = useTranslation();
+    const getName = useLocalizedName();
+    const localizedDescription = getName.field({ description, description_en }, 'description', 'description_en');
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -170,7 +175,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
                             <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
-                            <div className="text-xs">Sem dados</div>
+                            <div className="text-xs">{t('components.indicator_card.no_data')}</div>
                         </div>
                     </div>
                 )}
@@ -179,9 +184,9 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
                 <h3 className="text-lg font-semibold text-base-content mb-3 font-['Onest',sans-serif] line-clamp-2">
                     {indicatorData?.name || IndicatorTitle} {unit && <span className="text-sm text-base-content/70">({unit})</span>}
                 </h3>
-                {description && (
+                {localizedDescription && (
                   <p className="text-sm text-base-content/70 mb-3 line-clamp-2">
-                    {description}
+                    {localizedDescription}
                   </p>
                 )}
                 <div className="flex flex-wrap gap-2 text-sm text-base-content/70">
@@ -208,5 +213,6 @@ IndicatorCard.propTypes = {
         })
     ]),
     description: PropTypes.string,
+    description_en: PropTypes.string,
     unit: PropTypes.string
 };

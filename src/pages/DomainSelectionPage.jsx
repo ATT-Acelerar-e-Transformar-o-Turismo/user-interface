@@ -5,9 +5,11 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import PageTemplate from './PageTemplate';
 import { useDomain } from '../contexts/DomainContext';
 import { useTranslation } from 'react-i18next';
+import useLocalizedName from '../hooks/useLocalizedName';
 
 export default function DomainSelectionPage() {
   const { t } = useTranslation();
+  const getName = useLocalizedName();
   const { domains, loading, error } = useDomain();
 
   return (
@@ -46,11 +48,11 @@ export default function DomainSelectionPage() {
               {domains.map((domain, index) => (
                 <DomainCard
                   key={domain?.id || index}
-                  title={domain?.name || "Unnamed Domain"}
+                  title={getName(domain) || "Unnamed Domain"}
                   page={`/indicators/${domain?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
                   color={domain?.DomainColor || domain?.color}
                   icon={domain?.DomainIcon}
-                  indicators={domain?.subdomains?.map(s => s.name || s) || []}
+                  indicators={domain?.subdomains?.map(s => getName(s)) || []}
                   shadowColor={domain?.DomainColor || domain?.color}
                 />
               ))}
