@@ -76,7 +76,7 @@ export default function HeroSection() {
                   });
                 }
               }}
-              className="bg-transparent sm:bg-[#009368] text-[#fafafa] flex justify-center items-center p-0 sm:w-auto sm:h-auto sm:px-8 sm:py-4 sm:rounded-full hover:opacity-70 sm:hover:opacity-100 sm:hover:bg-[#007a56] transition-all sm:shadow-md border-0"
+              className="bg-transparent sm:bg-primary text-[#fafafa] flex justify-center items-center p-0 sm:w-auto sm:h-auto sm:px-8 sm:py-4 sm:rounded-full hover:opacity-70 sm:hover:opacity-100 sm:hover:bg-[color:var(--color-primary-hover)] transition-all sm:shadow-md border-0"
             >
               <img src={imgArrowDown} alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
               <span className="font-['Onest'] font-medium text-[18px] sm:text-[24px] hidden sm:inline ml-3">{t('hero.cta')}</span>

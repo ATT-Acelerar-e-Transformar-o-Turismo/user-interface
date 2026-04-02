@@ -3,39 +3,56 @@ import { API_ENDPOINTS } from '../constants/api';
 import { APP_CONFIG } from '../constants/app';
 
 export const indicatorService = {
-  async getAll(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null) {
+  async getAll(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
     let url = `${API_ENDPOINTS.INDICATORS.BASE}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
+    if (includeHidden) {
+      url += `&include_hidden=true`;
+    }
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getCount() {
-    const response = await apiClient.get(API_ENDPOINTS.INDICATORS.COUNT);
+  async getCount(includeHidden = false) {
+    let url = API_ENDPOINTS.INDICATORS.COUNT;
+    if (includeHidden) {
+      url += `?include_hidden=true`;
+    }
+    const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getCountByDomain(domainId, governanceFilter = null) {
+  async getCountByDomain(domainId, governanceFilter = null, includeHidden = false) {
     let url = API_ENDPOINTS.INDICATORS.COUNT_BY_DOMAIN(domainId);
+    const params = [];
     if (governanceFilter !== null) {
-      url += `?governance_filter=${governanceFilter}`;
+      params.push(`governance_filter=${governanceFilter}`);
     }
+    if (includeHidden) {
+      params.push(`include_hidden=true`);
+    }
+    if (params.length) url += `?${params.join('&')}`;
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getCountBySubdomain(domainId, subdomainName, governanceFilter = null) {
+  async getCountBySubdomain(domainId, subdomainName, governanceFilter = null, includeHidden = false) {
     let url = API_ENDPOINTS.INDICATORS.COUNT_BY_SUBDOMAIN(domainId, subdomainName);
+    const params = [];
     if (governanceFilter !== null) {
-      url += `?governance_filter=${governanceFilter}`;
+      params.push(`governance_filter=${governanceFilter}`);
     }
+    if (includeHidden) {
+      params.push(`include_hidden=true`);
+    }
+    if (params.length) url += `?${params.join('&')}`;
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, domainFilter = null, subdomainFilter = null) {
+  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, domainFilter = null, subdomainFilter = null, includeHidden = false) {
     if (!query || query.trim().length < APP_CONFIG.MIN_SEARCH_QUERY_LENGTH) {
       return [];
     }
@@ -49,23 +66,32 @@ export const indicatorService = {
     if (subdomainFilter !== null) {
       url += `&subdomain_filter=${encodeURIComponent(subdomainFilter)}`;
     }
-    const response = await apiClient.get(url);
-    return response.data;
-  },
-
-  async getByDomain(domainId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null) {
-    let url = `${API_ENDPOINTS.INDICATORS.BY_DOMAIN(domainId)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
-    if (governanceFilter !== null) {
-      url += `&governance_filter=${governanceFilter}`;
+    if (includeHidden) {
+      url += `&include_hidden=true`;
     }
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getBySubdomain(domainId, subdomainName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null) {
+  async getByDomain(domainId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
+    let url = `${API_ENDPOINTS.INDICATORS.BY_DOMAIN(domainId)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    if (governanceFilter !== null) {
+      url += `&governance_filter=${governanceFilter}`;
+    }
+    if (includeHidden) {
+      url += `&include_hidden=true`;
+    }
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  async getBySubdomain(domainId, subdomainName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
     let url = `${API_ENDPOINTS.INDICATORS.BY_SUBDOMAIN(domainId, subdomainName)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
+    }
+    if (includeHidden) {
+      url += `&include_hidden=true`;
     }
     const response = await apiClient.get(url);
     return response.data;

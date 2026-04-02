@@ -198,7 +198,7 @@ export default function IndicatorTemplate() {
         end_date: exportEndDate,
         title: indicatorData?.name || 'Indicator',
         xaxis_type: 'datetime',
-        colors: ['#009367', '#084d92', '#00d1b2', '#3abff8'],
+        colors: ['#084d92', '#009368', '#00d1b2', '#3abff8'],
         annotations: { xaxis: [], yaxis: [] }
       };
 

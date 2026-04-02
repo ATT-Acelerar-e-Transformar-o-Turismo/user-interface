@@ -14,4 +14,10 @@ export const ROUTES = {
     BLOG_EDIT: (postId) => `/admin/news-events/edit/${postId}`,
   },
   FAVORITES: '/favorites',
+  ROOTS: {
+    ABOUT: '/roots/about',
+    GOVERNANCE: '/roots/governance',
+    TERRITORY: '/roots/territory',
+    NETWORKS: '/roots/networks-certifications',
+  },
 };

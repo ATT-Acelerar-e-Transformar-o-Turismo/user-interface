@@ -33,7 +33,7 @@ export default function FormCheckbox({
             rounded border-2
             ${error ? 'border-red-500' : 'border-gray-400'}
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            text-[#00855d] focus:ring-2 focus:ring-[#00855d]/20
+            text-primary focus:ring-2 focus:ring-primary/20
             transition-colors
           `}
         />

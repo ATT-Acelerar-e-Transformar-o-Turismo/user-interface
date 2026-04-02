@@ -47,11 +47,11 @@ export default function FormSelect({
             appearance-none w-full
             ${error
               ? 'border-red-500 focus:border-red-600'
-              : 'border-transparent focus:border-[#00855d]'
+              : 'border-transparent focus:border-primary'
             }
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 cursor-pointer'}
             ${!value ? 'text-gray-500' : 'text-black'}
-            focus:outline-none focus:ring-2 focus:ring-[#00855d]/20
+            focus:outline-none focus:ring-2 focus:ring-primary/20
           `}
         >
           {/* Placeholder option */}

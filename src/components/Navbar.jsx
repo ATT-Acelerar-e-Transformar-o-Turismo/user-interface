@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import logoRoots from '../assets/logo-roots.png'
+import logoRoots from '../assets/logo-roots.svg'
 import indicatorService from '../services/indicatorService'
 import { highlightSearchTerms } from '../utils/searchUtils'
 import LoginModal from './LoginModal'
@@ -22,6 +22,16 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const [lastScrollY, setLastScrollY] = useState(0);
+    const [isRootsOpen, setIsRootsOpen] = useState(false);
+    const rootsDropdownRef = useRef(null);
+    const rootsTimeoutRef = useRef(null);
+
+    const rootsSubItems = [
+        { label: t('roots.nav.quem_somos'), path: '/roots/about' },
+        { label: t('roots.nav.governanca'), path: '/roots/governance' },
+        { label: t('roots.nav.territorio'), path: '/roots/territory' },
+        { label: t('roots.nav.redes'), path: '/roots/networks-certifications' },
+    ];
 
     const searchInputRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -63,7 +73,19 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         setSearchQuery('');
         setShowDropdown(false);
         setSelectedIndex(-1);
+        setIsRootsOpen(false);
     }, [location.pathname]);
+
+    // Close ROOTS dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (rootsDropdownRef.current && !rootsDropdownRef.current.contains(e.target)) {
+                setIsRootsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleLogin = async (formData) => {
         await login(formData);
@@ -204,15 +226,17 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     };
 
     // Active/hover green pill — Figma node 388:2452
-    const navItemClass = (path, exact = false) => {
-        const isActive = exact
+    const navItemClass = (path, exact = false, forceActive = false) => {
+        const isActive = forceActive || (exact
             ? location.pathname === path
-            : location.pathname === path || location.pathname.startsWith(path + '/');
+            : location.pathname === path || location.pathname.startsWith(path + '/'));
         const base = 'flex items-center justify-center px-[24px] py-[16px] font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap rounded-full transition-all duration-200';
         return isActive
-            ? `${base} bg-[#009368] text-[#fffefc]`
-            : `${base} text-[#0a0a0a] hover:bg-[#009368] hover:text-[#fffefc]`;
+            ? `${base} bg-primary text-primary-content`
+            : `${base} text-[#0a0a0a] hover:bg-primary hover:text-primary-content`;
     };
+
+    const isRootsActive = location.pathname.startsWith('/roots/');
 
     // Default public nav items (includes admin link when appropriate)
     const defaultItems = [
@@ -230,7 +254,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
             {isAuthenticated ? (
                 <button
                     onClick={logout}
-                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
                 >
                     <img src={imgUserIcon} alt="" className="w-4 h-4" />
                     <span>{t('nav.logout')}</span>
@@ -238,7 +262,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
             ) : (
                 <button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
                 >
                     <img src={imgUserIcon} alt="" className="w-4 h-4" />
                     <span>{t('nav.login')}</span>
@@ -247,7 +271,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
             <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
             <button
                 onClick={() => i18n.changeLanguage(i18n.language?.startsWith('pt') ? 'en' : 'pt')}
-                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
             >
                 {i18n.language?.startsWith('pt') ? 'PT' : 'EN'}
             </button>
@@ -257,6 +281,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     // Default mobile items
     const defaultMobileItems = [
         { label: t('nav.home'), path: '/' },
+        { label: 'ROOTS', path: '/roots', isRoots: true },
         { label: t('nav.domains'), path: '/indicators' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
@@ -279,11 +304,57 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
 
                     {/* Nav Items — desktop, auto-sized and centered */}
                     <div className="hidden lg:flex mx-auto items-center h-full gap-4">
-                        {items.map(item => (
-                            <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
-                                {item.label}
-                            </Link>
-                        ))}
+                        {items.map(item => {
+                            if (item.label === 'ROOTS') {
+                                return (
+                                    <div
+                                        key={item.path}
+                                        ref={rootsDropdownRef}
+                                        className="relative"
+                                        onMouseEnter={() => {
+                                            clearTimeout(rootsTimeoutRef.current);
+                                            setIsRootsOpen(true);
+                                        }}
+                                        onMouseLeave={() => {
+                                            rootsTimeoutRef.current = setTimeout(() => setIsRootsOpen(false), 200);
+                                        }}
+                                    >
+                                        <Link
+                                            to={item.path}
+                                            className={navItemClass(item.path, item.exact, isRootsActive || isRootsOpen)}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setIsRootsOpen(prev => !prev);
+                                            }}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                        {isRootsOpen && (
+                                            <div className="absolute top-full left-0 mt-2 bg-[#fffefc] rounded-[18px] p-4 flex flex-col gap-2 shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] min-w-[260px] z-50">
+                                                {rootsSubItems.map(sub => (
+                                                    <Link
+                                                        key={sub.path}
+                                                        to={sub.path}
+                                                        className={`flex items-center p-2 rounded-lg font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap transition-colors ${
+                                                            location.pathname === sub.path
+                                                                ? 'text-primary'
+                                                                : 'text-[#0a0a0a] hover:text-primary'
+                                                        }`}
+                                                    >
+                                                        {sub.label}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+                            return (
+                                <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
                     </div>
 
                     {/* Right section */}
@@ -296,9 +367,21 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                             </label>
                             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                                {mobileItems.map(item => (
-                                    <li key={item.path}><Link to={item.path}>{item.label}</Link></li>
-                                ))}
+                                {mobileItems.map(item => {
+                                    if (item.isRoots) {
+                                        return (
+                                            <li key={item.path}>
+                                                <span className="font-semibold">{item.label}</span>
+                                                <ul className="pl-2">
+                                                    {rootsSubItems.map(sub => (
+                                                        <li key={sub.path}><Link to={sub.path}>{sub.label}</Link></li>
+                                                    ))}
+                                                </ul>
+                                            </li>
+                                        );
+                                    }
+                                    return <li key={item.path}><Link to={item.path}>{item.label}</Link></li>;
+                                })}
                                 {!rightContent && (
                                     <li>
                                         {isAuthenticated

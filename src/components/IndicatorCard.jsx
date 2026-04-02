@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
-import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faSolidHeart, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect } from "react";
 import { useDomain } from "../contexts/DomainContext";
@@ -10,7 +10,7 @@ import useIndicatorData from "../hooks/useIndicatorData";
 import useLocalizedName from "../hooks/useLocalizedName";
 import PropTypes from "prop-types";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, subdomain, description, description_en, unit }) {
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, subdomain, description, description_en, unit, hidden = false, onToggleHidden, isAdmin = false }) {
     const { t } = useTranslation();
     const getName = useLocalizedName();
     const localizedDescription = getName.field({ description, description_en }, 'description', 'description_en');
@@ -100,8 +100,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
 
 
     return (
-        <div 
-            className="bg-base-100 rounded-2xl shadow-sm border border-base-300 transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full max-w-sm cursor-pointer relative"
+        <div
+            className={`bg-base-100 rounded-2xl shadow-sm border border-base-300 transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full max-w-sm cursor-pointer relative ${hidden ? 'opacity-50' : ''}`}
             onClick={handleClick}
         >
             <style>{`
@@ -126,7 +126,19 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
                             style={{ backgroundColor: domainColor }}
                         ></div>
                     </div>
-                    <div className="relative">
+                    <div className="relative flex items-center gap-1">
+                        {isAdmin && onToggleHidden && (
+                            <button
+                                className="p-2 hover:bg-base-200 rounded-lg transition-colors relative z-10"
+                                onClick={(e) => { e.stopPropagation(); onToggleHidden(e); }}
+                                title={hidden ? t('admin.indicators.show') : t('admin.indicators.hide')}
+                            >
+                                <FontAwesomeIcon
+                                    icon={hidden ? faEyeSlash : faEye}
+                                    className={`text-lg ${hidden ? 'text-base-content/40' : 'text-base-content/60 hover:text-base-content'}`}
+                                />
+                            </button>
+                        )}
                         <button
                             className="p-2 hover:bg-base-200 rounded-lg transition-colors relative z-10"
                             onClick={toggleFavorite}
@@ -214,5 +226,8 @@ IndicatorCard.propTypes = {
     ]),
     description: PropTypes.string,
     description_en: PropTypes.string,
-    unit: PropTypes.string
+    unit: PropTypes.string,
+    hidden: PropTypes.bool,
+    onToggleHidden: PropTypes.func,
+    isAdmin: PropTypes.bool
 };

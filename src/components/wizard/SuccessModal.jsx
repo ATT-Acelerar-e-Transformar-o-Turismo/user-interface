@@ -57,7 +57,7 @@ export default function SuccessModal({
 
   // Default success icon if none provided
   const defaultIcon = (
-    <svg className="w-20 h-20 text-[#00855d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-20 h-20 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
@@ -109,7 +109,7 @@ export default function SuccessModal({
                     console.log('SuccessModal: NOT auto-closing (closeAfter=false)');
                   }
                 }}
-                className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-6 py-3 rounded-lg transition-colors w-full"
+                className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-6 py-3 rounded-lg transition-colors w-full"
               >
                 {primaryAction.label}
               </button>
@@ -136,7 +136,7 @@ export default function SuccessModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-6 py-3 rounded-lg transition-colors w-full"
+                className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-6 py-3 rounded-lg transition-colors w-full"
               >
                 {t('common.close')}
               </button>

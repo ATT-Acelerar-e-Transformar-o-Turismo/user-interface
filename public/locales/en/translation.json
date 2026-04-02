@@ -152,7 +152,9 @@
       "view_drafts": "View\nDrafts",
       "drafts_wip": "View Drafts - Feature under development",
       "total": "Total: {{count}} indicators",
-      "confirm_delete": "Are you sure you want to delete the indicator \"{{name}}\"?"
+      "confirm_delete": "Are you sure you want to delete the indicator \"{{name}}\"?",
+      "hide": "Hide",
+      "show": "Show"
     },
     "domains": {
       "title": "Domains",
@@ -454,5 +456,67 @@
     "col_name": "Name",
     "col_start_period": "Start Period",
     "col_end_period": "End Period"
+  },
+  "footer_simple": {
+    "contacts": "Contacts:",
+    "address_line1": "Campus Universitário de Santiago,",
+    "address_line2": "3810-193 Aveiro Portugal",
+    "support": "With the support of:"
+  },
+  "roots": {
+    "quem_somos": {
+      "title": "Who are we?",
+      "intro_p1": "Born in 2026, the ROOTS platform (Research Observatory for Optimising Tourism Sustainability) is an observatory for monitoring tourism activity in the municipality of Ílhavo.",
+      "intro_p2": "Developed by the University of Aveiro under the ATT3 project, part of the ATT Mobilising Agenda (Accelerate and Transform Tourism), ROOTS aims to support strategic planning and local tourism management through the collection, processing, and dissemination of relevant information for various sector agents. It contributes to more informed, sustainable, and competitive destination management, supporting public entities, businesses, and the local community through indicator monitoring and tourism dynamics analysis.",
+      "missao_title": "Mission",
+      "missao_desc": "To promote knowledge of tourism activity in Ílhavo through the collection, analysis, and dissemination of information that contributes to the sustainable development of the destination.",
+      "visao_title": "Vision",
+      "visao_desc": "To establish ROOTS as a reference in the production and sharing of knowledge about local tourism, contributing to a more sustainable, innovative, and competitive tourist destination.",
+      "objetivos_title": "Objectives",
+      "obj_monitorizar": "Monitor",
+      "obj_monitorizar_desc": "The evolution of tourism activity in the territory.",
+      "obj_produzir": "Produce",
+      "obj_produzir_desc": "Indicators and studies to support strategic tourism planning.",
+      "obj_disponibilizar": "Provide",
+      "obj_disponibilizar_desc": "Relevant information for public decision-makers, businesses, and the community.",
+      "obj_promover": "Promote",
+      "obj_promover_desc": "Sustainable tourism development practices.",
+      "obj_reforcar": "Strengthen",
+      "obj_reforcar_desc": "Knowledge about visitors, residents, and sector agents."
+    },
+    "governanca": {
+      "title": "Governance",
+      "intro": "ROOTS governance is based on a collaborative structure involving public entities, academic institutions, and tourism sector agents. This model seeks to ensure scientific rigor, institutional coordination, and connection to the territory, allowing tourism monitoring to be carried out in an integrated and participatory manner.",
+      "modelo_title": "Observatory Governance Model",
+      "modelo_placeholder": "Governance model diagram"
+    },
+    "territorio": {
+      "area_title": "Monitoring Area",
+      "area_p1": "ROOTS monitors tourism activity in the territory of the municipality of Ílhavo, located in the Aveiro Region, within the Central Region.",
+      "area_p2": "The municipality holds a strategic position on Portugal's central coastal strip, integrating the Ria de Aveiro lagoon system and establishing a strong relationship between the coastal environment, natural heritage, and economic activities associated with the sea. The municipality includes urban areas, coastal zones, and natural spaces associated with the Ria, combining different landscapes and resources that contribute to the diversity of the tourist experience.",
+      "caract_title": "Territory Characterisation",
+      "caract_desc": "The municipality holds a strategic position on Portugal's central coastal strip, integrating the Ria de Aveiro lagoon system and establishing a strong relationship between the coastal environment, natural heritage, and economic activities associated with the sea. The municipality includes urban areas, coastal zones, and natural spaces associated with the Ria, combining different landscapes and resources that contribute to the diversity of the tourist experience.",
+      "recursos_title": "Tourism Resources",
+      "recursos_desc": "Ílhavo has a strong maritime and cultural identity, historically linked to cod fishing and port activity, elements that continue to shape the territory's identity and tourism offering."
+    },
+    "redes": {
+      "title": "Networks & Certifications",
+      "intro": "ROOTS promotes collaboration with various institutions linked to tourism, research, and territorial development. Key institutional partners include:",
+      "conhecimento_title": "Knowledge Networks",
+      "conhecimento_p1": "ROOTS seeks to integrate knowledge-sharing networks related to sustainable tourism monitoring.",
+      "conhecimento_p2": "Among these, the International Network of Sustainable Tourism Observatories, promoted by UN Tourism, stands out.",
+      "iniciativas_title": "Initiatives & Certifications",
+      "iniciativas_intro": "The Observatory follows and promotes initiatives related to sustainability and innovation in tourism, including:",
+      "iniciativas_item1": "Monitoring sustainability indicators",
+      "iniciativas_item2": "Applied research projects",
+      "iniciativas_item3": "Certification and best practice programmes",
+      "iniciativas_item4": "Local certifications or initiatives"
+    },
+    "nav": {
+      "quem_somos": "Who are we?",
+      "governanca": "Governance",
+      "territorio": "Territory",
+      "redes": "Networks & certifications"
+    }
   }
 }

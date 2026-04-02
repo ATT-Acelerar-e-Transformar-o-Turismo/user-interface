@@ -81,10 +81,10 @@ export default function FileUpload({
             border-2 transition-colors flex-1
             ${displayError
               ? 'border-red-500 focus:border-red-600'
-              : 'border-transparent focus:border-[#00855d]'
+              : 'border-transparent focus:border-primary'
             }
             ${disabled || uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}
-            focus:outline-none focus:ring-2 focus:ring-[#00855d]/20
+            focus:outline-none focus:ring-2 focus:ring-primary/20
           `}
         />
 
@@ -107,7 +107,7 @@ export default function FileUpload({
             px-4 py-3 rounded-lg transition-colors whitespace-nowrap
             ${uploading
               ? 'bg-gray-400 cursor-wait'
-              : 'bg-[#00855d] hover:bg-[#007550] text-white'
+              : 'bg-primary hover:bg-[color:var(--color-primary-hover)] text-white'
             }
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}

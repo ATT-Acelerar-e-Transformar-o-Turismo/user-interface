@@ -25,7 +25,7 @@ function AdminRightContent() {
             {/* Logout */}
             <button
                 onClick={logout}
-                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
             >
                 {t('nav.logout')}
             </button>
