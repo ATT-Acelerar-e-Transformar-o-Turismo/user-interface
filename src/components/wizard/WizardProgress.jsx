@@ -17,9 +17,9 @@ export default function WizardProgress({ steps, currentStep, onStepClick = null 
             className={`
               w-3 h-3 rounded-full transition-all
               ${index === currentStep
-                ? 'bg-[#00855d] scale-125'
+                ? 'bg-primary scale-125'
                 : index < currentStep
-                ? 'bg-[#00855d]'
+                ? 'bg-primary'
                 : 'border-2 border-gray-400 bg-transparent'
               }
               ${onStepClick ? 'cursor-pointer hover:scale-110' : 'cursor-default'}
@@ -47,7 +47,7 @@ export default function WizardProgress({ steps, currentStep, onStepClick = null 
             <div
               className={`
                 absolute top-[12px] w-4 h-0.5 ml-[28px]
-                ${index < currentStep ? 'bg-[#00855d]' : 'bg-gray-300'}
+                ${index < currentStep ? 'bg-primary' : 'bg-gray-300'}
               `}
               aria-hidden="true"
             />

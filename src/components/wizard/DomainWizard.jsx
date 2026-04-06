@@ -246,7 +246,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
                     onChange={(e) => setSubdomainInputPt(e.target.value)}
                     onKeyPress={(e) => handleSubdomainKeyPress(e)}
                     placeholder={t('wizard.domain.subdomain_pt_placeholder')}
-                    className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
+                    className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 flex-1"
                   />
                   <input
                     type="text"
@@ -254,12 +254,12 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
                     onChange={(e) => setSubdomainInputEn(e.target.value)}
                     onKeyPress={(e) => handleSubdomainKeyPress(e)}
                     placeholder={t('wizard.domain.subdomain_en_placeholder')}
-                    className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 flex-1"
+                    className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 flex-1"
                   />
                   <button
                     type="button"
                     onClick={handleAddSubdomain}
-                    className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-4 py-3 rounded-lg transition-colors"
+                    className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-4 py-3 rounded-lg transition-colors"
                   >
                     {t('wizard.domain.add_subdomain')}
                   </button>

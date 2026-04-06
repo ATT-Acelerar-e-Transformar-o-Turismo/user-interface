@@ -81,7 +81,7 @@ export default function BlogPostPage() {
                 <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
                         <h1 className="font-['Onest'] text-2xl font-bold text-[#0a0a0a] mb-4">{t('blog.post_not_found')}</h1>
-                        <Link to="/news-events" className="bg-[#009368] text-white px-6 py-2 rounded-full hover:bg-[#007a56]">
+                        <Link to="/news-events" className="bg-primary text-white px-6 py-2 rounded-full hover:bg-[color:var(--color-primary-hover)]">
                             {t('common.back')}
                         </Link>
                     </div>
@@ -136,7 +136,7 @@ export default function BlogPostPage() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-5">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#009368] to-[#00855d] flex items-center justify-center text-white font-bold">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white font-bold">
                                                 {(post.author || 'A')[0].toUpperCase()}
                                             </div>
                                             <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">{post.author}</span>
@@ -153,7 +153,7 @@ export default function BlogPostPage() {
                                         </div>
                                     </div>
                                     {post.tags?.[0] && (
-                                        <span className="font-['Onest'] font-medium text-base text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
+                                        <span className="font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
                                             {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
                                         </span>
                                     )}
@@ -179,8 +179,8 @@ export default function BlogPostPage() {
                                     .blog-content ol { list-style-type: decimal; padding-left: 3rem; margin-bottom: 1rem; }
                                     .blog-content ol > li { font-size: 2rem; font-weight: 600; line-height: 1; letter-spacing: -0.32px; margin-bottom: 1.5rem; }
                                     .blog-content li { margin-bottom: 0.5rem; }
-                                    .blog-content blockquote { border-left: 4px solid #009368; padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: #f3f4f6; padding: 1rem; border-radius: 0.375rem; }
-                                    .blog-content a { color: #009368; text-decoration: underline; font-weight: 500; }
+                                    .blog-content blockquote { border-left: 4px solid var(--color-primary); padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background-color: #f3f4f6; padding: 1rem; border-radius: 0.375rem; }
+                                    .blog-content a { color: var(--color-primary); text-decoration: underline; font-weight: 500; }
                                     .blog-content img { max-width: 100%; height: auto; border-radius: 1rem; margin: 1.5rem 0; }
                                     .blog-content pre { background: #0d0d0d; color: #fff; font-family: monospace; padding: 0.75rem 1rem; border-radius: 0.5rem; margin: 1.5rem 0; overflow-x: auto; }
                                     .blog-content pre code { color: inherit; padding: 0; background: none; font-size: 0.875rem; }
@@ -214,7 +214,7 @@ export default function BlogPostPage() {
                         <div className="lg:w-[456px] shrink-0 flex flex-col gap-6">
                             {/* Author card */}
                             <div className="bg-[#fffefc] rounded-2xl p-8 flex flex-col items-center gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
-                                <div className="w-40 h-40 rounded-full bg-gradient-to-br from-[#009368] to-[#00855d] flex items-center justify-center text-white text-5xl font-bold">
+                                <div className="w-40 h-40 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-5xl font-bold">
                                     {(post.author || 'A')[0].toUpperCase()}
                                 </div>
                                 <div className="text-center flex flex-col gap-2">
@@ -269,7 +269,7 @@ export default function BlogPostPage() {
                                         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-4 no-underline text-[#0a0a0a] hover:text-[#009368] transition-colors"
+                                        className="flex items-center gap-4 no-underline text-[#0a0a0a] hover:text-primary transition-colors"
                                     >
                                         <div className="w-9 h-9 rounded-lg border border-[#e5e5e5] flex items-center justify-center shadow-sm">
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
@@ -280,7 +280,7 @@ export default function BlogPostPage() {
                                         href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-4 no-underline text-[#0a0a0a] hover:text-[#009368] transition-colors"
+                                        className="flex items-center gap-4 no-underline text-[#0a0a0a] hover:text-primary transition-colors"
                                     >
                                         <div className="w-9 h-9 rounded-lg border border-[#e5e5e5] flex items-center justify-center shadow-sm">
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 6a2 2 0 110-4 2 2 0 010 4z"/></svg>
@@ -291,7 +291,7 @@ export default function BlogPostPage() {
                                         href={`https://wa.me/?text=${encodeURIComponent(post.title + ' ' + shareUrl)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-4 no-underline text-[#0a0a0a] hover:text-[#009368] transition-colors"
+                                        className="flex items-center gap-4 no-underline text-[#0a0a0a] hover:text-primary transition-colors"
                                     >
                                         <div className="w-9 h-9 rounded-lg border border-[#e5e5e5] flex items-center justify-center shadow-sm">
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>

@@ -29,7 +29,7 @@ const desktopEllipse1Variants = {
     width: '801.03px',
     height: '801.03px',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     transition: transitionConfig
   },
   about: {
@@ -40,7 +40,7 @@ const desktopEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     transition: { duration: 1.2, ease: [0.45, 0, 0.55, 1] }
   },
   features: {
@@ -51,7 +51,7 @@ const desktopEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     opacity: 1,
     transition: transitionConfig
   },
@@ -63,7 +63,7 @@ const desktopEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     opacity: 1,
     transition: transitionConfig
   },
@@ -75,7 +75,7 @@ const desktopEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     opacity: 1,
     transition: transitionConfig
   }
@@ -147,7 +147,7 @@ const mobileEllipse1Variants = {
     width: '801.03px',
     height: '801.03px',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     transition: transitionConfig
   },
   about: {
@@ -158,7 +158,7 @@ const mobileEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     transition: { duration: 1.2, ease: [0.45, 0, 0.55, 1] }
   },
   features: {
@@ -169,7 +169,7 @@ const mobileEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     opacity: 1,
     transition: transitionConfig
   },
@@ -181,7 +181,7 @@ const mobileEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     opacity: 1,
     transition: transitionConfig
   },
@@ -193,7 +193,7 @@ const mobileEllipse1Variants = {
     x: '-50%',
     y: '-50%',
     borderRadius: '50%',
-    backgroundColor: '#009368',
+    backgroundColor: 'var(--color-primary)',
     opacity: 1,
     transition: transitionConfig
   }

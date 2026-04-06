@@ -54,7 +54,7 @@ function PostCard({ post, compact = false }) {
                         {post.author_avatar ? (
                             <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#009368] to-[#00855d] flex items-center justify-center text-white text-xs font-bold">
+                            <div className="w-full h-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-xs font-bold">
                                 {(post.author || 'A')[0].toUpperCase()}
                             </div>
                         )}
@@ -74,7 +74,7 @@ function PostCard({ post, compact = false }) {
                     </span>
                 </div>
                 {post.tags && post.tags[0] && (
-                    <span className="font-['Onest'] font-medium text-xs text-[#009368] bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
+                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
                         {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
                     </span>
                 )}
@@ -128,7 +128,7 @@ function FeaturedPost({ post }) {
                         {post.author_avatar ? (
                             <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#009368] to-[#00855d] flex items-center justify-center text-white text-sm font-bold">
+                            <div className="w-full h-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-sm font-bold">
                                 {(post.author || 'A')[0].toUpperCase()}
                             </div>
                         )}
@@ -148,7 +148,7 @@ function FeaturedPost({ post }) {
                     </span>
                 </div>
                 {post.tags && post.tags[0] && (
-                    <span className="ml-auto font-['Onest'] font-medium text-base text-[#009368] bg-[#f3f4f6] rounded-full px-3 py-1">
+                    <span className="ml-auto font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
                         {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
                     </span>
                 )}
@@ -270,7 +270,7 @@ export default function BlogPage() {
                                     onClick={() => setActiveCategory(id)}
                                     className={`font-['Onest'] font-medium text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
                                         activeCategory === id
-                                            ? 'bg-[#00855d] text-white'
+                                            ? 'bg-primary text-primary-content'
                                             : 'text-[#0a0a0a] hover:bg-gray-100'
                                     }`}
                                 >
@@ -286,7 +286,7 @@ export default function BlogPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('blog.search_placeholder')}
-                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-12 pl-4 pr-12 w-80 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
+                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-12 pl-4 pr-12 w-80 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                             />
                             <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

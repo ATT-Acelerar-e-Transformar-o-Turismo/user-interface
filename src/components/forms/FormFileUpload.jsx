@@ -111,12 +111,12 @@ export default function FormFileUpload({
           bg-[#f1f0f0] rounded-lg p-8
           border-2 border-dashed transition-all
           ${isDragging
-            ? 'border-[#00855d] bg-[#00855d]/5'
+            ? 'border-primary bg-primary/5'
             : error
             ? 'border-red-500'
             : 'border-gray-400'
           }
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#00855d] hover:bg-gray-200'}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-gray-200'}
         `}
       >
         {/* Hidden file input */}
@@ -142,7 +142,7 @@ export default function FormFileUpload({
                 {/* File Icon and Info */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#f1f0f0] rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-[#00855d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
@@ -177,7 +177,7 @@ export default function FormFileUpload({
               <button
                 type="button"
                 onClick={handleButtonClick}
-                className="font-['Onest',sans-serif] text-sm font-medium text-[#00855d] hover:text-[#007550] transition-colors"
+                className="font-['Onest',sans-serif] text-sm font-medium text-primary hover:text-[color:var(--color-primary-hover)] transition-colors"
               >
                 + Adicionar mais ficheiros
               </button>
@@ -208,7 +208,7 @@ export default function FormFileUpload({
               type="button"
               onClick={handleButtonClick}
               disabled={disabled}
-              className="font-['Onest',sans-serif] text-sm font-medium text-white bg-[#00855d] hover:bg-[#007550] px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {multiple ? 'Carregar Ficheiros' : 'Carregar Ficheiro'}
             </button>

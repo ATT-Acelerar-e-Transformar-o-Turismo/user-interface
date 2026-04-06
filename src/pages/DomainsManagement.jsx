@@ -174,7 +174,7 @@ export default function DomainsManagement() {
               <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
                 <button
                   onClick={() => handleSort('name')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-[#00855d] flex items-center gap-1"
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-primary flex items-center gap-1"
                 >
                   {t('admin.domains.col_name')}
                   {sortBy === 'name' && (
@@ -189,7 +189,7 @@ export default function DomainsManagement() {
                 </button>
                 <button
                   onClick={() => handleSort('subdomainCount')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
                 >
                   {t('admin.domains.col_dimensions')}
                   {sortBy === 'subdomainCount' && (
@@ -204,7 +204,7 @@ export default function DomainsManagement() {
                 </button>
                 <button
                   onClick={() => handleSort('indicatorCount')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#00855d] flex items-center justify-center gap-1"
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
                 >
                   {t('admin.domains.col_indicators')}
                   {sortBy === 'indicatorCount' && (

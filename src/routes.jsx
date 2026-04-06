@@ -14,6 +14,10 @@ import BlogPostPage from "./pages/BlogPostPage";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostForm from "./pages/BlogPostForm";
 import UserManagement from "./pages/UserManagement";
+import QuemSomos from "./pages/roots/QuemSomos";
+import Governanca from "./pages/roots/Governanca";
+import Territorio from "./pages/roots/Territorio";
+import RedesCertificacoes from "./pages/roots/RedesCertificacoes";
 
 export const routesList = [
     {
@@ -255,6 +259,50 @@ export const routesList = [
                     <title>User Management</title>
                 </Helmet>
                 <UserManagement />
+            </>
+        )
+    },
+    {
+        path: '/roots/about',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Quem somos?</title>
+                </Helmet>
+                <QuemSomos />
+            </>
+        )
+    },
+    {
+        path: '/roots/governance',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Governança</title>
+                </Helmet>
+                <Governanca />
+            </>
+        )
+    },
+    {
+        path: '/roots/territory',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Território</title>
+                </Helmet>
+                <Territorio />
+            </>
+        )
+    },
+    {
+        path: '/roots/networks-certifications',
+        element: (
+            <>
+                <Helmet>
+                    <title>ROOTS - Redes e Certificações</title>
+                </Helmet>
+                <RedesCertificacoes />
             </>
         )
     }

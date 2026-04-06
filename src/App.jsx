@@ -36,7 +36,7 @@ function App() {
 
   return (
     <>
-      <PageTemplate showSearchBox={false} fullBleed>
+      <PageTemplate showSearchBox={false} fullBleed landingFooter>
         <div className="relative flex flex-col w-full">
           <AnimatedBackground section={currentSection} />
           <SectionWrapper id="hero" onInView={setCurrentSection}>

@@ -47,10 +47,10 @@ export default function FormInput({
           border-2 transition-colors
           ${error
             ? 'border-red-500 focus:border-red-600'
-            : 'border-transparent focus:border-[#00855d]'
+            : 'border-transparent focus:border-primary'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}
-          focus:outline-none focus:ring-2 focus:ring-[#00855d]/20
+          focus:outline-none focus:ring-2 focus:ring-primary/20
         `}
       />
 

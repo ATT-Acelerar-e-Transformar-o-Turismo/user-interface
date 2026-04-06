@@ -12,6 +12,7 @@ import indicatorService from "../services/indicatorService";
 import { highlightSearchTerms } from "../utils/searchUtils";
 import useLocalizedName from "../hooks/useLocalizedName";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function DomainTemplate() {
   const location = useLocation();
@@ -20,6 +21,8 @@ export default function DomainTemplate() {
   const { domains, getDomainByName } = useDomain();
   const getName = useLocalizedName();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [searchParams] = useSearchParams();
   
   // Check if this is a search results page
@@ -115,118 +118,116 @@ export default function DomainTemplate() {
   ];
 
   // Load indicators from API
-  useEffect(() => {
-    const loadIndicators = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const skip = currentPage * pageSize;
-        let data;
-        let totalCount = 0;
-        
-        if (isSearchMode && searchQuery) {
-          // Search mode: use search API with sorting and filtering
-          data = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter);
-          const hasMoreData = data.length === pageSize;
-          totalCount = hasMoreData ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + data.length;
-        } else if (isAllIndicatorsMode) {
-          // All Indicators mode
-          // Check if we are filtering by domain via dropdown in All Indicators mode
-          if (domainFilter) {
-             if (subdomainFilter) {
-                // Filter by specific subdomain within a domain
-                const [indicatorsData, count] = await Promise.all([
-                  indicatorService.getBySubdomain(domainFilter, subdomainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter),
-                  indicatorService.getCountBySubdomain(domainFilter, subdomainFilter, governanceFilter)
-                ]);
-                data = indicatorsData;
-                totalCount = count;
-             } else {
-                // Filter by specific domain
-                const [indicatorsData, count] = await Promise.all([
-                  indicatorService.getByDomain(domainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter),
-                  indicatorService.getCountByDomain(domainFilter, governanceFilter)
-                ]);
-                data = indicatorsData;
-                totalCount = count;
-             }
-          } else {
-             // No domain filter, get everything
-             const [indicatorsData, count] = await Promise.all([
-               indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter),
-               indicatorService.getCount()
-             ]);
-             data = indicatorsData;
-             totalCount = count;
-          }
-        } else {
-          // Specific Domain mode (legacy /environment etc or /indicators/environment)
-          if (domains.length === 0) {
-            // Domains still loading — keep spinner, effect will re-run when domains arrive
-            return;
-          }
+  const loadIndicators = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-          if (!selectedDomainObj?.id || !selectedDomainObj.id.match(/^[a-fA-F0-9]{24}$/)) {
-            setLoading(false);
-            return;
-          }
-          
-          // Use parallel API calls to get both indicators and count
-          if (selectedSubdomain && selectedSubdomain.name) {
-            const subdomainName = typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name;
-            const [indicatorsData, count] = await Promise.all([
-              indicatorService.getBySubdomain(selectedDomainObj.id, subdomainName, skip, pageSize, sortBy, sortOrder, governanceFilter),
-              indicatorService.getCountBySubdomain(selectedDomainObj.id, subdomainName, governanceFilter)
-            ]);
-            data = indicatorsData;
-            totalCount = count;
-          } else {
-            const [indicatorsData, count] = await Promise.all([
-              indicatorService.getByDomain(selectedDomainObj.id, skip, pageSize, sortBy, sortOrder, governanceFilter),
-              indicatorService.getCountByDomain(selectedDomainObj.id, governanceFilter)
-            ]);
-            data = indicatorsData;
-            totalCount = count;
-          }
+      const skip = currentPage * pageSize;
+      let data;
+      let totalCount = 0;
+
+      if (isSearchMode && searchQuery) {
+        // Search mode: use search API with sorting and filtering
+        data = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isAdmin);
+        const hasMoreData = data.length === pageSize;
+        totalCount = hasMoreData ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + data.length;
+      } else if (isAllIndicatorsMode) {
+        // All Indicators mode
+        // Check if we are filtering by domain via dropdown in All Indicators mode
+        if (domainFilter) {
+           if (subdomainFilter) {
+              // Filter by specific subdomain within a domain
+              const [indicatorsData, count] = await Promise.all([
+                indicatorService.getBySubdomain(domainFilter, subdomainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+                indicatorService.getCountBySubdomain(domainFilter, subdomainFilter, governanceFilter, isAdmin)
+              ]);
+              data = indicatorsData;
+              totalCount = count;
+           } else {
+              // Filter by specific domain
+              const [indicatorsData, count] = await Promise.all([
+                indicatorService.getByDomain(domainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+                indicatorService.getCountByDomain(domainFilter, governanceFilter, isAdmin)
+              ]);
+              data = indicatorsData;
+              totalCount = count;
+           }
+        } else {
+           // No domain filter, get everything
+           const [indicatorsData, count] = await Promise.all([
+             indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+             indicatorService.getCount(isAdmin)
+           ]);
+           data = indicatorsData;
+           totalCount = count;
         }
-        
-        // Ensure data is an array
-        if (!Array.isArray(data)) {
-          console.error("API returned non-array data:", data);
-          setIndicators([]);
-          setTotalIndicators(0);
+      } else {
+        // Specific Domain mode (legacy /environment etc or /indicators/environment)
+        if (domains.length === 0) {
+          // Domains still loading — keep spinner, effect will re-run when domains arrive
+          return;
+        }
+
+        if (!selectedDomainObj?.id || !selectedDomainObj.id.match(/^[a-fA-F0-9]{24}$/)) {
           setLoading(false);
           return;
         }
-        
-        // Filter out indicators with null names to prevent rendering errors
-        const cleanData = data.filter(indicator => 
-          indicator && indicator.name != null
-        );
-        
-        console.log("API returned indicators:", cleanData.map(ind => ({ id: ind?.id, name: ind?.name })));
-        
-        setIndicators(cleanData || []);
-        setTotalIndicators(totalCount || 0);
-        
-        // Determine if there are more pages based on total count
-        const hasMore = skip + pageSize < totalCount;
-        setHasNextPage(hasMore);
-        
-      } catch (err) {
-        console.error("Failed to load indicators:", err);
-        setError(err.message);
+
+        // Use parallel API calls to get both indicators and count
+        if (selectedSubdomain && selectedSubdomain.name) {
+          const subdomainName = typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name;
+          const [indicatorsData, count] = await Promise.all([
+            indicatorService.getBySubdomain(selectedDomainObj.id, subdomainName, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+            indicatorService.getCountBySubdomain(selectedDomainObj.id, subdomainName, governanceFilter, isAdmin)
+          ]);
+          data = indicatorsData;
+          totalCount = count;
+        } else {
+          const [indicatorsData, count] = await Promise.all([
+            indicatorService.getByDomain(selectedDomainObj.id, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+            indicatorService.getCountByDomain(selectedDomainObj.id, governanceFilter, isAdmin)
+          ]);
+          data = indicatorsData;
+          totalCount = count;
+        }
+      }
+
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.error("API returned non-array data:", data);
         setIndicators([]);
         setTotalIndicators(0);
-        setHasNextPage(false);
-      } finally {
         setLoading(false);
+        return;
       }
-    };
 
+      // Filter out indicators with null names to prevent rendering errors
+      const cleanData = data.filter(indicator =>
+        indicator && indicator.name != null
+      );
+
+      setIndicators(cleanData || []);
+      setTotalIndicators(totalCount || 0);
+
+      // Determine if there are more pages based on total count
+      const hasMore = skip + pageSize < totalCount;
+      setHasNextPage(hasMore);
+
+    } catch (err) {
+      console.error("Failed to load indicators:", err);
+      setError(err.message);
+      setIndicators([]);
+      setTotalIndicators(0);
+      setHasNextPage(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadIndicators();
-  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize, domains, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isSearchMode, searchQuery, isAllIndicatorsMode]);
+  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize, domains, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isSearchMode, searchQuery, isAllIndicatorsMode, isAdmin]);
 
   // Reset pagination when subdomain changes
   const handleSubdomainChange = (subdomain) => {
@@ -394,7 +395,7 @@ export default function DomainTemplate() {
                       <span className="font-['Onest'] text-sm text-gray-500">{stat.label}</span>
                       <span className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a]">{stat.value}</span>
                     </div>
-                    <span className="ml-auto font-['Onest'] text-xs text-[#009368]">● {stat.status}</span>
+                    <span className="ml-auto font-['Onest'] text-xs text-primary">● {stat.status}</span>
                   </div>
                 ))}
               </div>
@@ -470,7 +471,7 @@ export default function DomainTemplate() {
                     type="text"
                     defaultValue={searchQuery}
                     placeholder={t('domains.search_placeholder')}
-                    className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 pl-4 pr-10 w-64 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
+                    className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 pl-4 pr-10 w-64 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                   <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -499,6 +500,13 @@ export default function DomainTemplate() {
                           subdomain={isSearchMode ? (indicator.subdomain || getName(indicator.domain)) : (getName(selectedSubdomain) || undefined)}
                           description={getName.field(indicator, 'description', 'description_en')}
                           unit={indicator.unit}
+                          hidden={!!indicator.hidden}
+                          isAdmin={isAdmin}
+                          onToggleHidden={async (e) => {
+                            e.stopPropagation();
+                            await indicatorService.patch(indicator.id, { hidden: !indicator.hidden });
+                            loadIndicators();
+                          }}
                         />
                       ))}
                   </div>

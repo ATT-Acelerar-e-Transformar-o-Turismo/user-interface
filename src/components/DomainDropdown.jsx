@@ -69,7 +69,7 @@ function Dropdowns({
       <div ref={domainRef} className="relative">
         <button
           onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
-          className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent hover:bg-gray-200 focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 transition-colors flex items-center justify-between gap-2 min-w-[200px]"
+          className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent hover:bg-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors flex items-center justify-between gap-2 min-w-[200px]"
         >
           <span>{getName(selectedDomain) || t('components.select_domain.choose_domain')}</span>
           <svg
@@ -103,7 +103,7 @@ function Dropdowns({
         <div ref={subdomainRef} className="relative">
           <button
             onClick={() => setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen)}
-            className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent hover:bg-gray-200 focus:border-[#00855d] focus:outline-none focus:ring-2 focus:ring-[#00855d]/20 transition-colors flex items-center justify-between gap-2 min-w-[200px]"
+            className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent hover:bg-gray-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors flex items-center justify-between gap-2 min-w-[200px]"
           >
             <span>
               {getName(selectedSubdomain) || t('components.select_domain.choose_dimension')}

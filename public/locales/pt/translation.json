@@ -152,7 +152,9 @@
       "view_drafts": "Ver\nRascunhos",
       "drafts_wip": "Ver Rascunhos - Funcionalidade em desenvolvimento",
       "total": "Total: {{count}} indicadores",
-      "confirm_delete": "Tem certeza que deseja eliminar o indicador \"{{name}}\"?"
+      "confirm_delete": "Tem certeza que deseja eliminar o indicador \"{{name}}\"?",
+      "hide": "Ocultar",
+      "show": "Mostrar"
     },
     "domains": {
       "title": "Domínios",
@@ -454,5 +456,67 @@
     "col_name": "Nome",
     "col_start_period": "Período Início",
     "col_end_period": "Período Fim"
+  },
+  "footer_simple": {
+    "contacts": "Contactos:",
+    "address_line1": "Campus Universitário de Santiago,",
+    "address_line2": "3810-193 Aveiro Portugal",
+    "support": "Com o apoio de:"
+  },
+  "roots": {
+    "quem_somos": {
+      "title": "Quem somos?",
+      "intro_p1": "Nascida em 2026, a plataforma ROOTS (Research Observatory for Optimising Tourism Sustainability) é um observatório de monitorização da atividade turística do município de Ílhavo.",
+      "intro_p2": "Desenvolvida pela Universidade de Aveiro no âmbito do projeto ATT3, da Agenda Mobilizadora ATT (Acelerar e Transformar o Turismo), a ROOTS tem como objetivo apoiar o planeamento estratégico e a gestão do turismo local através da recolha, tratamento e disseminação de informação relevante para os diferentes agentes do setor. Assim, contribui para uma gestão mais informada, sustentável e competitiva do destino, apoiando entidades públicas, empresas e comunidade local através da monitorização de indicadores e da análise das dinâmicas do turismo.",
+      "missao_title": "Missão",
+      "missao_desc": "Promover o conhecimento da atividade turística em Ílhavo, através da recolha, análise e divulgação de informação que contribua para o desenvolvimento sustentável do destino.",
+      "visao_title": "Visão",
+      "visao_desc": "Afirmar a ROOTS como uma referência na produção e partilha de conhecimento sobre o turismo local, contribuindo para um destino turístico mais sustentável, inovador e competitivo.",
+      "objetivos_title": "Objetivos",
+      "obj_monitorizar": "Monitorizar",
+      "obj_monitorizar_desc": "A evolução da atividade turística no território.",
+      "obj_produzir": "Produzir",
+      "obj_produzir_desc": "Indicadores e estudos de apoio ao planeamento estratégico do turismo.",
+      "obj_disponibilizar": "Disponibilizar",
+      "obj_disponibilizar_desc": "Informação relevante para decisores públicos, empresas e comunidade.",
+      "obj_promover": "Promover",
+      "obj_promover_desc": "Práticas de desenvolvimento turístico sustentável.",
+      "obj_reforcar": "Reforçar",
+      "obj_reforcar_desc": "O conhecimento sobre visitantes, residentes e agentes do setor."
+    },
+    "governanca": {
+      "title": "Governança",
+      "intro": "A governança da ROOTS assenta numa estrutura colaborativa que envolve entidades públicas, instituições académicas e agentes do setor turístico. Este modelo procura assegurar rigor científico, articulação institucional e ligação ao território, permitindo que a monitorização do turismo seja realizada de forma integrada e participativa.",
+      "modelo_title": "Modelo de Governança do Observatório",
+      "modelo_placeholder": "Diagrama do modelo de governança"
+    },
+    "territorio": {
+      "area_title": "A Área de Monitorização",
+      "area_p1": "A ROOTS monitoriza a atividade turística no território do município de Ílhavo, localizado na Região de Aveiro, integrada na Região Centro.",
+      "area_p2": "O município ocupa uma posição estratégica na faixa litoral centro de Portugal, integrando o sistema lagunar da Ria de Aveiro e estabelecendo uma forte relação entre o ambiente costeiro, o património natural e as atividades económicas associadas ao mar. O município integra áreas urbanas, zonas costeiras e espaços naturais associados à Ria, combinando diferentes paisagens e recursos que contribuem para a diversidade da experiência turística.",
+      "caract_title": "Caracterização do Território",
+      "caract_desc": "O município ocupa uma posição estratégica na faixa litoral centro de Portugal, integrando o sistema lagunar da Ria de Aveiro e estabelecendo uma forte relação entre o ambiente costeiro, o património natural e as atividades económicas associadas ao mar. O município integra áreas urbanas, zonas costeiras e espaços naturais associados à Ria, combinando diferentes paisagens e recursos que contribuem para a diversidade da experiência turística.",
+      "recursos_title": "Recursos Turísticos",
+      "recursos_desc": "Ílhavo apresenta uma forte identidade marítima e cultural, historicamente ligada à pesca do bacalhau e à atividade portuária, elementos que continuam a marcar a identidade e a oferta turística do território."
+    },
+    "redes": {
+      "title": "Redes e Certificações",
+      "intro": "A ROOTS promove a colaboração com diferentes instituições ligadas ao turismo, à investigação e ao desenvolvimento territorial. Entre os parceiros institucionais destacam-se:",
+      "conhecimento_title": "Redes de Conhecimento",
+      "conhecimento_p1": "A ROOTS procura integrar redes de partilha de conhecimento relacionadas com a monitorização do turismo sustentável.",
+      "conhecimento_p2": "Entre estas destaca-se a International Network of Sustainable Tourism Observatories, promovida pela UN Tourism.",
+      "iniciativas_title": "Iniciativas e Certificações",
+      "iniciativas_intro": "O Observatório acompanha e promove iniciativas relacionadas com a sustentabilidade e inovação no turismo, incluindo:",
+      "iniciativas_item1": "Monitorização de indicadores de sustentabilidade",
+      "iniciativas_item2": "Projetos de investigação aplicada",
+      "iniciativas_item3": "Programas de certificação e boas práticas",
+      "iniciativas_item4": "Certificações ou iniciativas locais"
+    },
+    "nav": {
+      "quem_somos": "Quem somos?",
+      "governanca": "Governança",
+      "territorio": "Território",
+      "redes": "Redes e certificações"
+    }
   }
 }

@@ -55,7 +55,7 @@ export default function DomainCard({
             return (
               <li
                 key={i}
-                className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-[#009368] transition-colors"
+                className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-primary transition-colors"
                 style={{ fontSize: 'clamp(0.75rem, 6cqi, 1.5rem)' }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -79,7 +79,7 @@ export default function DomainCard({
             <div className="w-2 h-2 rounded-full bg-black opacity-30" />
             <div className="w-2 h-2 rounded-full bg-black opacity-30" />
           </div>
-          <button className="bg-base-100 text-[#009368] px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
+          <button className="bg-base-100 text-primary px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
             <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>{t('components.domain_card.view_all')}</span>
             <img src={arrowRight} alt="" className="w-5 h-5" />
           </button>
