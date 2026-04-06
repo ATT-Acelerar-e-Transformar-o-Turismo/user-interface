@@ -16,7 +16,12 @@
     "admin_users": "Gestão de Utilizadores",
     "favorites": "Favoritos",
     "login": "Entrar",
-    "logout": "Sair"
+    "logout": "Sair",
+    "news": "Notícias",
+    "publications": "Publicações",
+    "publications_reports": "Relatórios",
+    "publications_documents": "Documentos",
+    "publications_studies": "Estudos"
   },
   "home": {
     "title": "Conheça os Números do nosso Turismo",
@@ -110,6 +115,7 @@
     "form_name": "Nome",
     "form_email": "E-mail",
     "form_message": "Mensagem",
+    "form_submit": "Enviar mensagem",
     "support_title": "Com o Apoio de:",
     "copyright": "© {{year}} ROOTS. Todos os direitos reservados."
   },
