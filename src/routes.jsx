@@ -18,6 +18,7 @@ import QuemSomos from "./pages/roots/QuemSomos";
 import Governanca from "./pages/roots/Governanca";
 import Territorio from "./pages/roots/Territorio";
 import RedesCertificacoes from "./pages/roots/RedesCertificacoes";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export const routesList = [
     {
@@ -100,89 +101,89 @@ export const routesList = [
     {
         path: '/admin/indicators-management',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Indicators Management</title>
                 </Helmet>
                 <IndicatorsManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Admin Overview</title>
                 </Helmet>
                 <IndicatorsManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/dimensions',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Dimensions Management</title>
                 </Helmet>
                 <DimensionsManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/domains',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Indicadores por Domínio</title>
                 </Helmet>
                 <DomainSelectionPage />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/domains-management',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Domains Management</title>
                 </Helmet>
                 <DomainsManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/resources-management/:indicator',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Resources</title>
                 </Helmet>
                 <ResourcesManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/new_domain',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>New Domain</title>
                 </Helmet>
                 <NewDomain />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/edit_domain/:id',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>Edit Domain</title>
                 </Helmet>
                 <NewDomain />
-            </>
+            </ProtectedRoute>
         )
     },
     {
@@ -221,45 +222,45 @@ export const routesList = [
     {
         path: '/admin/news-events',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>News & Events - Management</title>
                 </Helmet>
                 <BlogManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/news-events/create',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>News & Events - Create Post</title>
                 </Helmet>
                 <BlogPostForm />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/news-events/edit/:postId',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>News & Events - Edit Post</title>
                 </Helmet>
                 <BlogPostForm />
-            </>
+            </ProtectedRoute>
         )
     },
     {
         path: '/admin/users',
         element: (
-            <>
+            <ProtectedRoute>
                 <Helmet>
                     <title>User Management</title>
                 </Helmet>
                 <UserManagement />
-            </>
+            </ProtectedRoute>
         )
     },
     {

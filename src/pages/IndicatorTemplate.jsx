@@ -409,7 +409,7 @@ export default function IndicatorTemplate() {
       <div className="min-h-screen bg-base-100">
         <section className="text-center pb-12 px-4">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight font-['Onest',sans-serif]">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight font-['Onest',sans-serif]">
               {getName(indicatorData)}
             </h1>
             <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -433,7 +433,7 @@ export default function IndicatorTemplate() {
 
           <div className="flex flex-col xl:flex-row gap-4">
             <div className="flex-1 min-h-0">
-              <div className="bg-base-200 p-8 rounded-2xl">
+              <div className="bg-base-200 p-4 sm:p-8 rounded-2xl">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm text-base-content/70">
                     {t('indicator.last_updated')} {new Date().toLocaleDateString('pt-PT')}
@@ -447,7 +447,7 @@ export default function IndicatorTemplate() {
                   </div>
                 </div>
 
-                <div className="h-[600px] relative">
+                <div className="h-[350px] sm:h-[600px] relative">
                   {dataLoading && (
                     <div className="absolute top-4 right-4 z-10">
                       <div className="loading loading-spinner loading-sm text-primary"></div>

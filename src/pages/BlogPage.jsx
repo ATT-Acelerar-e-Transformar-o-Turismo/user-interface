@@ -233,42 +233,53 @@ export default function BlogPage() {
     return (
         <PageTemplate>
             <div className="min-h-screen bg-[#f3f4f6]">
-                <div className="max-w-[1512px] mx-auto px-12 pb-20">
+                <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-20">
                     {/* Header */}
-                    <div className="flex flex-col gap-4 mb-14">
-                        <h1 className="font-['Onest'] font-semibold text-5xl leading-none text-[#0a0a0a] tracking-tight">
+                    <div className="flex flex-col gap-2 sm:gap-4 mb-8 sm:mb-14">
+                        <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
                             {t('blog.header_title')}
                         </h1>
-                        <p className="font-['Onest'] text-2xl leading-relaxed text-[#0a0a0a]">
+                        <p className="font-['Onest'] text-base sm:text-2xl leading-relaxed text-[#0a0a0a]">
                             {t('blog.header_subtitle')}
                         </p>
                     </div>
 
-                    {/* Featured section: only when not searching */}
+                    {/* Featured section: horizontal scroll on mobile, side-by-side on desktop */}
                     {!isSearching && featuredPost && (
-                        <div className="flex flex-col lg:flex-row gap-6 mb-14">
-                            <div className="flex-1">
-                                <FeaturedPost post={featuredPost} />
+                        <>
+                            {/* Mobile: horizontal scroll of cards */}
+                            <div className="sm:hidden flex overflow-x-auto gap-4 mb-8 snap-x -mx-4 px-4">
+                                {[featuredPost, ...sidebarPosts].map(post => (
+                                    <div key={post.id} className="min-w-[85%] snap-start">
+                                        <PostCard post={post} />
+                                    </div>
+                                ))}
                             </div>
-                            {sidebarPosts.length > 0 && (
-                                <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
-                                    {sidebarPosts.map((post, i) => (
-                                        <PostCard key={post.id} post={post} compact />
-                                    ))}
+                            {/* Desktop: featured + sidebar */}
+                            <div className="hidden sm:flex flex-col lg:flex-row gap-6 mb-14">
+                                <div className="flex-1">
+                                    <FeaturedPost post={featuredPost} />
                                 </div>
-                            )}
-                        </div>
+                                {sidebarPosts.length > 0 && (
+                                    <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
+                                        {sidebarPosts.map((post, i) => (
+                                            <PostCard key={post.id} post={post} compact />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     )}
 
                     {/* Filter bar */}
-                    <div ref={filterRef} className="flex items-center justify-between gap-8 mb-6 flex-wrap" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
-                        {/* Category pills */}
-                        <div className="bg-[#fffefc] flex items-center gap-0 rounded-full p-4">
+                    <div ref={filterRef} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-8 mb-6" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
+                        {/* Category pills — horizontal scroll on mobile */}
+                        <div className="bg-[#fffefc] flex items-center gap-0 rounded-full p-2 sm:p-4 overflow-x-auto">
                             {CATEGORY_IDS.map((id, index) => (
                                 <button
                                     key={id}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`font-['Onest'] font-medium text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
+                                    className={`font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
                                         activeCategory === id
                                             ? 'bg-primary text-primary-content'
                                             : 'text-[#0a0a0a] hover:bg-gray-100'
@@ -286,7 +297,7 @@ export default function BlogPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('blog.search_placeholder')}
-                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-12 pl-4 pr-12 w-80 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 sm:h-12 pl-4 pr-12 w-full sm:w-80 text-sm sm:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                             />
                             <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -296,7 +307,7 @@ export default function BlogPage() {
 
                     {/* Cards grid — 4 columns */}
                     {gridPosts.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                             {gridPosts.map((post, i) => (
                                 <PostCard key={post.id} post={post} />
                             ))}
