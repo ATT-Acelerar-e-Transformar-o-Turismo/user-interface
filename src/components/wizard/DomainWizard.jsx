@@ -20,6 +20,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
   const { refreshDomains } = useDomain();
   const { t } = useTranslation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [subdomainInputPt, setSubdomainInputPt] = useState('');
   const [subdomainInputEn, setSubdomainInputEn] = useState('');
@@ -132,7 +134,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving domain:', error);
-      throw error;
+      setErrorMessage(error.userMessage || error.message || t('wizard.domain.error_generic', 'Ocorreu um erro ao guardar o domínio'));
+      setShowErrorModal(true);
     }
   }
 
@@ -314,6 +317,15 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
           label: t('wizard.domain.continue'),
           onClick: handleFinish
         }}
+      />
+
+      {/* Error Modal */}
+      <SuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title={t('wizard.domain.error_title', 'Erro')}
+        message={errorMessage}
+        variant="error"
       />
     </>
   );

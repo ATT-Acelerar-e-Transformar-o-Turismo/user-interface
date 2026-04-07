@@ -12,6 +12,7 @@ export default function SuccessModal({
   title = 'Sucesso!',
   message,
   icon = null,
+  variant = 'success',
   primaryAction = null,
   secondaryAction = null,
   autoCloseDelay = null
@@ -55,8 +56,14 @@ export default function SuccessModal({
   // Don't render if not open
   if (!isOpen) return null;
 
-  // Default success icon if none provided
-  const defaultIcon = (
+  const isError = variant === 'error';
+
+  // Default icons
+  const defaultIcon = isError ? (
+    <svg className="w-20 h-20 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ) : (
     <svg className="w-20 h-20 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
@@ -77,7 +84,7 @@ export default function SuccessModal({
         {/* Content */}
         <div className="flex flex-col items-center gap-6">
           {/* Icon */}
-          <div className="bg-[#f1f0f0] rounded-full p-6">
+          <div className={`rounded-full p-6 ${isError ? 'bg-red-50' : 'bg-[#f1f0f0]'}`}>
             {icon || defaultIcon}
           </div>
 
@@ -154,6 +161,7 @@ SuccessModal.propTypes = {
   title: PropTypes.string,
   message: PropTypes.string,
   icon: PropTypes.node,
+  variant: PropTypes.oneOf(['success', 'error']),
   primaryAction: PropTypes.shape({
     label: PropTypes.string.isRequired,
     onClick: PropTypes.func.isRequired,
