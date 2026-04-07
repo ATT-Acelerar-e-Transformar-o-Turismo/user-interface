@@ -5,12 +5,15 @@ import PropTypes from 'prop-types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { cn } from '../utils/cn'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
 
 const logoDark = '/roots.svg'
 const logoWhite = '/roots-white.svg'
 
 export default function MobileNavbar({ onLoginClick }) {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const { isAuthenticated, user, logout } = useAuth()
     const location = useLocation()
     const [isOpen, setIsOpen] = useState(false)
     const [openDropdown, setOpenDropdown] = useState(null)
@@ -23,19 +26,11 @@ export default function MobileNavbar({ onLoginClick }) {
         { label: t('roots.nav.redes'), path: '/roots/networks-certifications' },
     ]
 
-    const publicacoesSubItems = [
-        { label: t('nav.publications_reports'), path: '/publications/reports' },
-        { label: t('nav.publications_documents'), path: '/publications/documents' },
-        { label: t('nav.publications_studies'), path: '/publications/studies' },
-    ]
-
-    // Close menu on route change
     useEffect(() => {
         setIsOpen(false)
         setOpenDropdown(null)
     }, [location.pathname])
 
-    // Close on outside click
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (navRef.current && !navRef.current.contains(e.target)) {
@@ -51,121 +46,139 @@ export default function MobileNavbar({ onLoginClick }) {
         setOpenDropdown(prev => prev === name ? null : name)
     }
 
-    // Collapsed state
-    if (!isOpen) {
-        return (
-            <div ref={navRef} className="flex items-center gap-2 bg-[#fffefc] rounded-full shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 py-1">
-                <Link to="/" className="shrink-0">
-                    <img src={logoDark} alt="ROOTS" className="h-9 w-auto" />
-                </Link>
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="bg-[#084d92] text-[#fffefc] font-medium text-lg leading-6 px-3 py-1 rounded-full whitespace-nowrap"
-                >
-                    Menu
-                </button>
-            </div>
-        )
-    }
-
-    // Expanded state
     return (
-        <div ref={navRef} className="bg-[#084d92] rounded-2xl shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 pt-1 pb-3.5 flex flex-col gap-6 min-w-[200px]">
-            {/* Header: logo + close */}
-            <div className="flex items-center gap-2">
-                <Link to="/" className="shrink-0">
-                    <img src={logoWhite} alt="ROOTS" className="h-9 w-auto" />
-                </Link>
-                <button
-                    onClick={() => { setIsOpen(false); setOpenDropdown(null) }}
-                    className="bg-[#fffefc] text-[#084d92] font-medium text-lg leading-6 px-3 py-1 rounded-full whitespace-nowrap"
-                >
-                    {t('close')}
-                </button>
+        <div ref={navRef} className="relative">
+            {/* Invisible spacer — keeps navbar wrapper height consistent */}
+            <div className="flex items-center gap-2 px-2 py-1 invisible">
+                <img src={logoDark} alt="" className="h-9 w-auto" />
+                <span className="font-medium text-lg px-3 py-1">Menu</span>
             </div>
 
-            {/* Navigation items */}
-            <nav className="flex flex-col gap-3.5 pl-1.5">
-                {/* ROOTS dropdown */}
-                <div className="flex flex-col">
-                    <button
-                        onClick={() => toggleDropdown('roots')}
-                        className="flex items-center justify-between w-full"
+            {/* Actual navbar — always absolutely positioned so it never affects layout */}
+            <motion.div
+                animate={{ backgroundColor: isOpen ? '#084d92' : '#fffefc' }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                className={cn(
+                    'absolute top-0 left-0 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 pt-1 overflow-hidden',
+                    isOpen ? 'rounded-2xl pb-3.5 min-w-[240px]' : 'rounded-full pb-1'
+                )}
+            >
+                {/* Header: logo + menu/close button */}
+                <div className="flex items-center gap-2">
+                    <Link to="/" className="shrink-0">
+                        <img src={isOpen ? logoWhite : logoDark} alt="ROOTS" className="h-9 w-auto" />
+                    </Link>
+                    <motion.button
+                        onClick={() => { setIsOpen(!isOpen); if (isOpen) setOpenDropdown(null) }}
+                        animate={{
+                            backgroundColor: isOpen ? '#fffefc' : '#084d92',
+                            color: isOpen ? '#084d92' : '#fffefc',
+                        }}
+                        transition={{ duration: 0.25 }}
+                        className="font-medium text-lg leading-6 px-3 py-1 rounded-full whitespace-nowrap"
                     >
-                        <span className="font-bold text-2xl leading-6 text-[#fffefc]">
-                            ROOTS
-                        </span>
-                        <FontAwesomeIcon
-                            icon={openDropdown === 'roots' ? faChevronUp : faChevronDown}
-                            className="text-[#fffefc] text-sm"
-                        />
-                    </button>
-                    {openDropdown === 'roots' && (
-                        <div className="flex flex-col gap-1 mt-2">
-                            {rootsSubItems.map(sub => (
-                                <Link
-                                    key={sub.path}
-                                    to={sub.path}
-                                    className={cn(
-                                        'font-medium text-lg leading-6 text-[#fffefc]',
-                                        location.pathname === sub.path && 'opacity-70'
-                                    )}
-                                >
-                                    {sub.label}
-                                </Link>
-                            ))}
-                        </div>
-                    )}
+                        {isOpen ? t('close') : 'Menu'}
+                    </motion.button>
                 </div>
 
-                {/* Indicadores */}
-                <Link
-                    to="/indicators"
-                    className="font-bold text-2xl leading-6 text-[#fffefc]"
-                >
-                    {t('nav.indicators')}
-                </Link>
-
-                {/* Publicações dropdown */}
-                <div className="flex flex-col">
-                    <button
-                        onClick={() => toggleDropdown('publicacoes')}
-                        className="flex items-center justify-between w-full"
-                    >
-                        <span className="font-bold text-2xl leading-6 text-[#fffefc]">
-                            {t('nav.publications')}
-                        </span>
-                        <FontAwesomeIcon
-                            icon={openDropdown === 'publicacoes' ? faChevronUp : faChevronDown}
-                            className="text-[#fffefc] text-sm"
-                        />
-                    </button>
-                    {openDropdown === 'publicacoes' && (
-                        <div className="flex flex-col gap-1 mt-2">
-                            {publicacoesSubItems.map(sub => (
-                                <Link
-                                    key={sub.path}
-                                    to={sub.path}
-                                    className={cn(
-                                        'font-medium text-lg leading-6 text-[#fffefc]',
-                                        location.pathname === sub.path && 'opacity-70'
-                                    )}
+                {/* Expandable nav content */}
+                <AnimatePresence>
+                    {isOpen && (
+                        <motion.nav
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            className="overflow-hidden flex flex-col gap-3.5 pl-1.5 mt-6"
+                        >
+                            {/* ROOTS dropdown */}
+                            <div className="flex flex-col">
+                                <button
+                                    onClick={() => toggleDropdown('roots')}
+                                    className="flex items-center justify-between w-full"
                                 >
-                                    {sub.label}
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                    <span className="font-bold text-2xl leading-6 text-[#fffefc]">ROOTS</span>
+                                    <FontAwesomeIcon
+                                        icon={openDropdown === 'roots' ? faChevronUp : faChevronDown}
+                                        className="text-[#fffefc] text-sm mr-2"
+                                    />
+                                </button>
+                                <AnimatePresence>
+                                    {openDropdown === 'roots' && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="flex flex-col gap-1 mt-2">
+                                                {rootsSubItems.map(sub => (
+                                                    <Link
+                                                        key={sub.path}
+                                                        to={sub.path}
+                                                        className={cn(
+                                                            'font-medium text-lg leading-6 text-[#fffefc]',
+                                                            location.pathname === sub.path && 'opacity-70'
+                                                        )}
+                                                    >
+                                                        {sub.label}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
-                {/* Notícias */}
-                <Link
-                    to="/news-events"
-                    className="font-bold text-2xl leading-6 text-[#fffefc]"
-                >
-                    {t('nav.news')}
-                </Link>
-            </nav>
+                            {/* Indicadores */}
+                            <Link to="/indicators" className="font-bold text-2xl leading-6 text-[#fffefc]">
+                                {t('nav.indicators')}
+                            </Link>
+
+                            {/* Notícias */}
+                            <Link to="/news-events" className="font-bold text-2xl leading-6 text-[#fffefc]">
+                                {t('nav.news')}
+                            </Link>
+
+                            {/* Admin — only for admin users */}
+                            {isAuthenticated && user?.role === 'admin' && (
+                                <Link to="/admin" className="font-bold text-2xl leading-6 text-[#fffefc]">
+                                    {t('nav.admin')}
+                                </Link>
+                            )}
+
+                            {/* Divider */}
+                            <div className="w-full h-px bg-white/20 my-1" />
+
+                            {/* Login/Logout + Language */}
+                            <div className="flex items-center justify-between">
+                                {isAuthenticated ? (
+                                    <button
+                                        onClick={() => { logout(); setIsOpen(false) }}
+                                        className="font-medium text-lg leading-6 text-[#fffefc]"
+                                    >
+                                        {t('nav.logout')}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => { onLoginClick?.(); setIsOpen(false) }}
+                                        className="font-medium text-lg leading-6 text-[#fffefc]"
+                                    >
+                                        {t('nav.login')}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => i18n.changeLanguage(i18n.language?.startsWith('pt') ? 'en' : 'pt')}
+                                    className="font-medium text-lg leading-6 text-[#fffefc] bg-white/10 px-3 py-1 rounded-full"
+                                >
+                                    {i18n.language?.startsWith('pt') ? 'PT' : 'EN'}
+                                </button>
+                            </div>
+                        </motion.nav>
+                    )}
+                </AnimatePresence>
+            </motion.div>
         </div>
     )
 }

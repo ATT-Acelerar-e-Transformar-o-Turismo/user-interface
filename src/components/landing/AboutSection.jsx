@@ -53,12 +53,6 @@ export default function AboutSection() {
             </p>
           </div>
 
-          <div className="mt-8 lg:mt-12 flex justify-end" data-aos="fade-left" data-aos-delay="400" data-aos-offset="-125">
-             <button className="bg-base-100 text-primary flex items-center gap-3 px-6 py-3 lg:px-8 lg:py-4 rounded-full hover:bg-white transition-colors">
-              <span className="font-['Onest'] font-medium text-[18px] lg:text-[24px]">{t('about.cta')}</span>
-              <img src={img1} alt="" className="w-5 h-5 lg:w-6 lg:h-6" />
-            </button>
-          </div>
         </div>
 
       </div>

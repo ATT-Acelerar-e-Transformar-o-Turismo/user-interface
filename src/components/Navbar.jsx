@@ -363,8 +363,8 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                     {rightContent ?? defaultRight}
                 </nav>
 
-                {/* Mobile navbar — visible only below lg */}
-                <div className="lg:hidden pointer-events-auto">
+                {/* Mobile navbar — visible only below lg, above all content */}
+                <div className="lg:hidden pointer-events-auto relative z-[60]">
                     <MobileNavbar onLoginClick={() => setIsLoginModalOpen(true)} />
                 </div>
             </div>

@@ -36,7 +36,7 @@ export default function HeroSection() {
       <div className="relative max-w-[1512px] mx-auto px-4 sm:px-12 sm:min-h-[900px] flex flex-col sm:justify-center pb-8 sm:pb-0">
 
         {/* Title Section — constrained to left half on xl to avoid overlapping images */}
-        <div className="relative z-20 flex flex-col items-start text-left xl:max-w-[55%]" style={{ paddingTop: 'calc(var(--navbar-height, 80px) + 1.5rem)' }}>
+        <div className="relative z-20 flex flex-col items-start text-left xl:max-w-[55%]" style={{ paddingTop: 'calc(var(--navbar-height, 80px) + 5rem)' }}>
           {/* "A Raíz Da" */}
           <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-8 justify-start mb-1 sm:mb-4" data-aos="fade-right" data-aos-delay="0">
             <span className="font-['Onest'] font-bold text-[42px] sm:text-[72px] md:text-[100px] leading-none text-black">{titlePrefixParts[0]}</span>
@@ -63,18 +63,7 @@ export default function HeroSection() {
           {/* CTA Button — scrolls to about on desktop, navigates on mobile */}
           <div data-aos="fade-up" data-aos-delay="300" data-aos-offset="-300">
             <button
-              onClick={() => {
-                if (window.innerWidth >= 640) {
-                  const element = document.getElementById('about');
-                  if (element) {
-                    const elementPosition = element.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset + 80;
-                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-                  }
-                } else {
-                  navigate('/indicators');
-                }
-              }}
+              onClick={() => navigate('/indicators')}
               className="bg-primary text-[#fafafa] flex items-center gap-3 px-6 py-3 sm:px-8 sm:py-4 rounded-full hover:bg-[color:var(--color-primary-hover)] transition-all shadow-md"
             >
               <img src={imgArrowDown} alt="" className="w-5 h-5 sm:w-6 sm:h-6 hidden sm:block" />

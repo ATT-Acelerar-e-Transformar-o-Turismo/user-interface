@@ -11,7 +11,7 @@ export default function Territorio() {
 
   return (
     <PageTemplate>
-      <div className="max-w-[1512px] mx-auto px-6 md:px-12 pb-16 md:pb-24 flex flex-col gap-16 md:gap-24">
+      <div className="max-w-[1512px] mx-auto px-6 md:px-12 pb-16 md:pb-24 flex flex-col gap-16 md:gap-24 overflow-x-hidden">
         {/* A Area de Monitorizacao */}
         <section className="flex flex-col lg:flex-row gap-8 lg:gap-14 items-start">
           <div className="flex-1 flex flex-col gap-4 md:gap-6">
@@ -26,8 +26,8 @@ export default function Territorio() {
             </p>
           </div>
           <div className="w-full sm:w-3/4 md:w-1/2 lg:w-2/5 shrink-0 mx-auto lg:mx-0">
-            <div className="relative w-full aspect-square max-w-sm mx-auto">
-              <img src={mapa} alt="S. Salvador" className="absolute left-[26%] top-[29%]" />
+            <div className="flex items-center justify-center w-full max-w-sm mx-auto">
+              <img src={mapa} alt="S. Salvador" className="w-full h-auto" />
             </div>
           </div>
         </section>

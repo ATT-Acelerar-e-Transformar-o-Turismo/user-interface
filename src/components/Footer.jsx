@@ -110,7 +110,7 @@ export default function Footer() {
             {t('footer.support_title')}
           </h3>
           <div className="flex justify-center gap-8">
-            <img src="/assets/roots/footer-logos-bar.png" alt="Support logos" className="h-8 lg:h-10 object-contain" />
+            <img src="/white-logos.png" alt="Support logos" className="h-8 lg:h-10 object-contain" />
           </div>
         </div>
 
