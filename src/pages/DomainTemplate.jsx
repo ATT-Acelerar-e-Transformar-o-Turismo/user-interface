@@ -373,14 +373,12 @@ export default function DomainTemplate() {
             </p>
           </div>
 
-          {/* Stats dashboard — placeholder structure */}
+          {/* Stats dashboard — commented out for now
           {!isSearchMode && !isAllIndicatorsMode && (
             <div className="flex flex-col lg:flex-row gap-8 mb-16">
-              {/* Left: Desempenho Geral */}
               <div className="bg-[#fffefc] rounded-2xl flex-1 flex flex-col items-center justify-center p-8 gap-8">
                 <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">{t('domains.overall_performance')}</h2>
                 <div className="flex flex-col items-center gap-8">
-                  {/* Gauge placeholder */}
                   <div className="w-64 h-32 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-t-full opacity-30" />
                   <div className="flex items-center gap-4">
                     <span className="font-['Onest'] font-semibold text-5xl text-[#0a0a0a]">—</span>
@@ -392,7 +390,6 @@ export default function DomainTemplate() {
                   </span>
                 </div>
               </div>
-              {/* Right: 3 stat cards */}
               <div className="flex flex-col gap-4 lg:w-96 shrink-0">
                 {[
                   { label: t('domains.stat_available_indicators'), value: `${totalIndicators}`, status: t('domains.stat_active') },
@@ -415,6 +412,7 @@ export default function DomainTemplate() {
               </div>
             </div>
           )}
+          */}
 
           {/* Todos os Indicadores section */}
           <div className="flex flex-col gap-6">
