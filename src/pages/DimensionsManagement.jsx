@@ -6,6 +6,7 @@ import Pagination from '../components/Pagination';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import AddDimensionModal from '../components/wizard/AddDimensionModal';
+import SuccessModal from '../components/wizard/SuccessModal';
 import domainService from '../services/domainService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
@@ -29,6 +30,7 @@ export default function DimensionsManagement() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDimension, setEditingDimension] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     loadDimensions();
@@ -146,6 +148,7 @@ export default function DimensionsManagement() {
 
       // Reload dimensions
       loadDimensions();
+      setSuccessMessage(t('admin.dimensions.deleted_success', { name: dimension.name }));
     } catch (err) {
       setError(err.message || t('admin.dimensions.delete_error'));
       console.error('Error deleting dimension:', err);
@@ -361,6 +364,14 @@ export default function DimensionsManagement() {
         editDomainId={editingDimension?.domainId}
         editDimensionName={editingDimension?.name}
         editDimensionNameEn={editingDimension?.name_en}
+      />
+
+      <SuccessModal
+        isOpen={!!successMessage}
+        onClose={() => setSuccessMessage(null)}
+        title={t('common.success')}
+        message={successMessage}
+        primaryAction={{ label: t('common.continue'), onClick: () => setSuccessMessage(null) }}
       />
     </AdminPageTemplate>
   );

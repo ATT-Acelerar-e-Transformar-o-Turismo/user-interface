@@ -12,6 +12,7 @@ import ActionCard from '../components/ActionCard';
 import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorWizard from '../components/wizard/IndicatorWizard';
 import DomainWizard from '../components/wizard/DomainWizard';
+import SuccessModal from '../components/wizard/SuccessModal';
 
 export default function IndicatorsManagement() {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ export default function IndicatorsManagement() {
   const [editingIndicatorId, setEditingIndicatorId] = useState(null);
   const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
   const [editingDomainId, setEditingDomainId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -139,9 +141,11 @@ export default function IndicatorsManagement() {
           setCurrentPage(currentPage - 1);
         }
         loadData();
+        setSuccessMessage(t('admin.indicators.deleted_success'));
       } else {
         await domainService.delete(id);
         setDomains(domains.filter(domain => domain.id !== id));
+        setSuccessMessage(t('admin.domains.deleted_success'));
       }
     } catch (err) {
       setError(err.message || 'Failed to delete item');
@@ -489,6 +493,14 @@ export default function IndicatorsManagement() {
         onSuccess={() => {
           loadData();
         }}
+      />
+
+      <SuccessModal
+        isOpen={!!successMessage}
+        onClose={() => setSuccessMessage(null)}
+        title={t('common.success')}
+        message={successMessage}
+        primaryAction={{ label: t('common.continue'), onClick: () => setSuccessMessage(null) }}
       />
     </AdminPageTemplate>
   );

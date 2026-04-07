@@ -136,7 +136,10 @@
     "name": "Name",
     "options": "Options",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "confirm": "Confirm",
+    "confirm_title": "Confirmation",
+    "success": "Success!"
   },
   "admin": {
     "nav": {
@@ -160,7 +163,8 @@
       "total": "Total: {{count}} indicators",
       "confirm_delete": "Are you sure you want to delete the indicator \"{{name}}\"?",
       "hide": "Hide",
-      "show": "Show"
+      "show": "Show",
+      "deleted_success": "Indicator deleted successfully."
     },
     "domains": {
       "title": "Domains",
@@ -173,7 +177,8 @@
       "total": "Total: {{count}} domains",
       "confirm_delete": "Are you sure you want to delete the domain \"{{name}}\"?",
       "load_error": "Failed to load domains",
-      "delete_error": "Failed to delete domain"
+      "delete_error": "Failed to delete domain",
+      "deleted_success": "Domain \"{{name}}\" deleted successfully."
     },
     "dimensions": {
       "title": "Dimensions",
@@ -185,7 +190,8 @@
       "add": "Add\nDimension",
       "total": "Total: {{count}} dimensions",
       "confirm_delete": "Are you sure you want to delete the dimension \"{{name}}\"?",
-      "delete_error": "Failed to delete dimension"
+      "delete_error": "Failed to delete dimension",
+      "deleted_success": "Dimension \"{{name}}\" deleted successfully."
     },
     "blog": {
       "title": "Manage Blog",
@@ -197,6 +203,7 @@
       "status_draft": "Draft",
       "confirm_delete": "Are you sure you want to delete this post?",
       "delete_error": "Error deleting post: {{error}}",
+      "deleted_success": "Post deleted successfully.",
       "col_title": "Title",
       "col_author": "Author",
       "col_status": "Status",
@@ -208,6 +215,7 @@
       "unsaved_changes_warning": "You have unsaved changes. Are you sure you want to leave?",
       "confirm_remove_attachment": "Are you sure you want to remove this attachment?",
       "error_remove_attachment": "Error removing attachment: ",
+      "confirm_publish_title": "Publish Post",
       "confirm_publish": "Are you sure you want to publish this post? Once published, it will be publicly visible.",
       "validation_required_fields": "Title, content, and author are required",
       "title_edit": "Edit Post",
@@ -299,6 +307,8 @@
       "success_added": "Domain Added!",
       "success_updated": "Domain Updated!",
       "success_message": "The domain was saved successfully",
+      "confirm_update": "Are you sure you want to save the changes to this domain?",
+      "confirm_update_title": "Confirm Changes",
       "continue": "Continue"
     },
     "dimension": {
@@ -315,7 +325,10 @@
       "add": "Add",
       "processing": "Processing...",
       "close": "Close",
-      "error": "Failed to process dimension"
+      "error": "Failed to process dimension",
+      "success_added": "Dimension Added!",
+      "success_updated": "Dimension Updated!",
+      "success_message": "The dimension was saved successfully."
     },
     "resource": {
       "title_new": "Add Data Resource",
@@ -419,7 +432,13 @@
     "no_indicators_search": "We couldn't find indicators matching \"{{query}}\".",
     "no_indicators_subdomain": "There are no indicators for {{name}}.",
     "no_indicators_domain": "There are no indicators for {{name}}.",
-    "item_name_indicators": "indicators"
+    "item_name_indicators": "indicators",
+    "view_grid": "Grid view",
+    "view_table": "Table view",
+    "table_name": "Name",
+    "table_dimension": "Dimension",
+    "table_subdomain": "Subdomain",
+    "table_unit": "Unit"
   },
   "indicator": {
     "export_image_error": "Failed to export image. Please try again.",

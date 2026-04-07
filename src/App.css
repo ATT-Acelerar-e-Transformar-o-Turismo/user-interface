@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+body {
+  overflow-x: hidden;
+}
+
 @font-face {
   font-family: 'Onest';
   font-style: normal;

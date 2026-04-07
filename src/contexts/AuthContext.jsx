@@ -1,121 +1,58 @@
-import { createContext, useContext, useReducer, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
-import authService from '../services/authService'
+import keycloak, { initKeycloak } from '../keycloak'
 
 const AuthContext = createContext(null)
 
-const authReducer = (state, action) => {
-  switch (action.type) {
-    case 'LOGIN_START':
-      return {
-        ...state,
-        loading: true,
-        error: null
-      }
-    case 'LOGIN_SUCCESS':
-      return {
-        ...state,
-        loading: false,
-        user: action.payload.user,
-        token: action.payload.token,
-        isAuthenticated: true,
-        error: null
-      }
-    case 'LOGIN_FAILURE':
-      return {
-        ...state,
-        loading: false,
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        error: action.payload
-      }
-    case 'LOGOUT':
-      return {
-        ...state,
-        loading: false,
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        error: null
-      }
-    case 'SET_USER':
-      return {
-        ...state,
-        user: action.payload,
-        isAuthenticated: !!action.payload,
-        token: authService.getToken()
-      }
-    case 'CLEAR_ERROR':
-      return {
-        ...state,
-        error: null
-      }
-    default:
-      return state
-  }
-}
-
-const initialState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  loading: false,
-  error: null
-}
-
 export function AuthProvider({ children }) {
-  const [state, dispatch] = useReducer(authReducer, initialState)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [authenticated, setAuthenticated] = useState(false)
 
   useEffect(() => {
-    const token = authService.getToken()
-    const user = authService.getUser()
+    initKeycloak()
+      .then((auth) => {
+        setAuthenticated(auth)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('Keycloak init failed:', err)
+        setError('Authentication service unavailable')
+        setLoading(false)
+      })
 
-    if (token && user) {
-      dispatch({ type: 'SET_USER', payload: user })
+    keycloak.onTokenExpired = () => {
+      keycloak.updateToken(30).catch(() => {
+        keycloak.logout()
+      })
     }
   }, [])
 
-  const login = async (credentials) => {
-    dispatch({ type: 'LOGIN_START' })
+  const user = authenticated ? {
+    id: keycloak.subject,
+    email: keycloak.tokenParsed?.email,
+    full_name: keycloak.tokenParsed?.name || '',
+    role: keycloak.tokenParsed?.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
+  } : null
 
-    try {
-      const response = await authService.login(credentials)
+  const login = useCallback(() => {
+    keycloak.login()
+  }, [])
 
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: {
-          user: response.user,
-          token: response.access_token
-        }
-      })
+  const logout = useCallback(() => {
+    keycloak.logout({ redirectUri: window.location.origin })
+  }, [])
 
-      return response
-    } catch (error) {
-      dispatch({
-        type: 'LOGIN_FAILURE',
-        payload: error.message
-      })
-      throw error
-    }
-  }
-
-  const logout = async () => {
-    try {
-      await authService.logout()
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-
-    dispatch({ type: 'LOGOUT' })
-  }
-
-  const clearError = () => {
-    dispatch({ type: 'CLEAR_ERROR' })
-  }
+  const clearError = useCallback(() => {
+    setError(null)
+  }, [])
 
   const value = {
-    ...state,
+    user,
+    token: keycloak.token || null,
+    isAuthenticated: authenticated,
+    loading,
+    error,
     login,
     logout,
     clearError

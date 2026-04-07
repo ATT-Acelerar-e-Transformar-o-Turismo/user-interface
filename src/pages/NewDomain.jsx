@@ -53,7 +53,7 @@ export default function NewDomain() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!name.trim()) {
             setError('Domain name is required');
             return;

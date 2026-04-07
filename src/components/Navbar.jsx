@@ -5,7 +5,6 @@ import PropTypes from 'prop-types'
 import logoRoots from '../assets/logo-roots.svg'
 import indicatorService from '../services/indicatorService'
 import { highlightSearchTerms } from '../utils/searchUtils'
-import LoginModal from './LoginModal'
 import MobileNavbar from './MobileNavbar'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -20,7 +19,6 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [isRootsOpen, setIsRootsOpen] = useState(false);
@@ -87,11 +85,6 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    const handleLogin = async (formData) => {
-        await login(formData);
-        setIsLoginModalOpen(false);
-    };
 
     useEffect(() => {
         const saved = localStorage.getItem('recentItems');
@@ -262,7 +255,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                 </button>
             ) : (
                 <button
-                    onClick={() => setIsLoginModalOpen(true)}
+                    onClick={login}
                     className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
                 >
                     <img src={imgUserIcon} alt="" className="w-4 h-4" />
@@ -365,17 +358,10 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
 
                 {/* Mobile navbar — visible only below lg, above all content */}
                 <div className="lg:hidden pointer-events-auto relative z-[60]">
-                    <MobileNavbar onLoginClick={() => setIsLoginModalOpen(true)} />
+                    <MobileNavbar />
                 </div>
             </div>
 
-            {!rightContent && (
-                <LoginModal
-                    isOpen={isLoginModalOpen}
-                    onClose={() => setIsLoginModalOpen(false)}
-                    onLogin={handleLogin}
-                />
-            )}
         </>
     );
 }

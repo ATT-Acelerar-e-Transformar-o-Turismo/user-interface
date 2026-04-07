@@ -130,10 +130,6 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       await refreshDomains();
 
       setShowSuccessModal(true);
-
-      if (onSuccess) {
-        onSuccess();
-      }
     } catch (error) {
       console.error('Error saving domain:', error);
       throw error;
@@ -144,6 +140,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     setShowSuccessModal(false);
     onClose();
     wizard.reset();
+    if (onSuccess) onSuccess();
   };
 
   const handleWizardClose = () => {
