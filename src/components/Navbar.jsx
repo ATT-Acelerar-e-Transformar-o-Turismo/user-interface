@@ -6,6 +6,7 @@ import logoRoots from '../assets/logo-roots.svg'
 import indicatorService from '../services/indicatorService'
 import { highlightSearchTerms } from '../utils/searchUtils'
 import LoginModal from './LoginModal'
+import MobileNavbar from './MobileNavbar'
 import { useAuth } from '../contexts/AuthContext'
 
 const imgUserIcon = "/assets/figma/user-icon.svg";
@@ -294,8 +295,9 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     return (
         <>
             {/* Floating pill navbar — Figma node 724:1948 */}
-            <div ref={navbarWrapperRef} className={`fixed top-0 left-0 right-0 z-50 px-12 pt-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-                <nav className="bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] flex items-center h-[72px] px-9 pointer-events-auto">
+            <div ref={navbarWrapperRef} className={`fixed top-0 left-0 right-0 z-50 px-4 lg:px-12 pt-3 lg:pt-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+                {/* Desktop nav pill — hidden on mobile */}
+                <nav className="hidden lg:flex bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] items-center h-[72px] px-9 pointer-events-auto">
 
                     {/* Logo */}
                     <Link to="/" className="shrink-0 flex items-center">
@@ -303,7 +305,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                     </Link>
 
                     {/* Nav Items — desktop, auto-sized and centered */}
-                    <div className="hidden lg:flex mx-auto items-center h-full gap-4">
+                    <div className="flex mx-auto items-center h-full gap-4">
                         {items.map(item => {
                             if (item.label === 'ROOTS') {
                                 return (
@@ -359,41 +361,12 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
 
                     {/* Right section */}
                     {rightContent ?? defaultRight}
-
-                    {/* Mobile Menu */}
-                    <div className="lg:hidden ml-auto">
-                        <div className="dropdown dropdown-end">
-                            <label tabIndex={0} className="btn btn-ghost btn-circle">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
-                            </label>
-                            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                                {mobileItems.map(item => {
-                                    if (item.isRoots) {
-                                        return (
-                                            <li key={item.path}>
-                                                <span className="font-semibold">{item.label}</span>
-                                                <ul className="pl-2">
-                                                    {rootsSubItems.map(sub => (
-                                                        <li key={sub.path}><Link to={sub.path}>{sub.label}</Link></li>
-                                                    ))}
-                                                </ul>
-                                            </li>
-                                        );
-                                    }
-                                    return <li key={item.path}><Link to={item.path}>{item.label}</Link></li>;
-                                })}
-                                {!rightContent && (
-                                    <li>
-                                        {isAuthenticated
-                                            ? <button onClick={logout}>{t('nav.logout')}</button>
-                                            : <button onClick={() => setIsLoginModalOpen(true)}>{t('nav.login')}</button>
-                                        }
-                                    </li>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
                 </nav>
+
+                {/* Mobile navbar — visible only below lg, above all content */}
+                <div className="lg:hidden pointer-events-auto relative z-[60]">
+                    <MobileNavbar onLoginClick={() => setIsLoginModalOpen(true)} />
+                </div>
             </div>
 
             {!rightContent && (

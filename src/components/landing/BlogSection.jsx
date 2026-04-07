@@ -95,12 +95,12 @@ export default function BlogSection() {
 
   return (
     <div className="relative w-full pt-16 pb-20 md:pb-32">
-      <div className="max-w-[1512px] mx-auto px-6 md:px-12">
-        <div className="text-center mb-12 md:mb-16" data-aos="fade-down" data-aos-offset="-50">
-            <h2 className="font-['Onest'] font-semibold text-[32px] md:text-[40px] lg:text-[48px] text-[#0a0a0a] mb-4">
+      <div className="max-w-[1512px] mx-auto px-4 md:px-12">
+        <div className="text-left lg:text-center mb-8 md:mb-16" data-aos="fade-down" data-aos-offset="-50">
+            <h2 className="font-['Onest'] font-semibold text-[32px] md:text-[40px] lg:text-[48px] text-[#0a0a0a] mb-2 lg:mb-4">
             {t('blog.section_title')}
             </h2>
-            <p className="font-['Onest'] font-normal text-[16px] md:text-[20px] lg:text-[24px] text-[#0a0a0a] max-w-4xl mx-auto">
+            <p className="font-['Onest'] font-normal text-[16px] md:text-[20px] lg:text-[24px] text-[#0a0a0a] max-w-4xl lg:mx-auto">
             {t('blog.section_subtitle')}
             </p>
         </div>
@@ -118,15 +118,25 @@ export default function BlogSection() {
         )}
 
         {!loading && !error && posts.length > 0 && (
-          <div className="flex overflow-x-auto pb-12 gap-6 md:gap-8 snap-x">
-            {posts.map((post, index) => (
+          <>
+            {/* Mobile: single card */}
+            <div className="sm:hidden flex justify-center pb-12">
               <BlogPostCard
-                key={post.id}
-                post={post}
-                delay={100 + (index * 150)}
+                post={posts[0]}
+                delay={100}
               />
-            ))}
-          </div>
+            </div>
+            {/* Desktop: horizontal scroll */}
+            <div className="hidden sm:flex overflow-x-auto pb-12 gap-6 md:gap-8 snap-x">
+              {posts.map((post, index) => (
+                <BlogPostCard
+                  key={post.id}
+                  post={post}
+                  delay={100 + (index * 150)}
+                />
+              ))}
+            </div>
+          </>
         )}
 
         {!loading && !error && posts.length === 0 && (

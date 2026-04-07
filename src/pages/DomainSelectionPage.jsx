@@ -19,18 +19,18 @@ export default function DomainSelectionPage() {
         <img
           src="/assets/vectors/indicator-vector.svg"
           alt=""
-          className="absolute right-0 w-80 pointer-events-none z-0"
+          className="absolute right-0 w-80 pointer-events-none z-0 hidden sm:block"
           style={{ top: 'calc(-1 * (var(--navbar-height) + 6rem))' }}
         />
 
         {/* Content */}
-        <div className="relative z-10 max-w-[1512px] mx-auto px-12 pb-20">
-          {/* Header — left-aligned, matching Figma */}
-          <div className="flex flex-col gap-6 mb-16">
-            <h1 className="font-['Onest'] font-semibold text-5xl leading-none text-[#0a0a0a] tracking-tight">
+        <div className="relative z-10 max-w-[1512px] mx-auto px-4 sm:px-12 pb-20">
+          {/* Header */}
+          <div className="flex flex-col gap-3 sm:gap-6 mb-8 sm:mb-16">
+            <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
               {t('home.title')}
             </h1>
-            <p className="font-['Onest'] font-medium text-2xl leading-snug text-[#0a0a0a]">
+            <p className="font-['Onest'] font-medium text-base sm:text-2xl leading-snug text-[#0a0a0a]">
               {t('home.subtitle')}
             </p>
           </div>
@@ -59,8 +59,8 @@ export default function DomainSelectionPage() {
             </div>
           )}
 
-          {/* "Ver todos os indicadores" button — centered below cards */}
-          <div className="flex justify-center mt-16">
+          {/* "Ver todos os indicadores" button */}
+          <div className="flex justify-center mt-8 sm:mt-16">
             <Link
               to="/all-indicators"
               className="font-['Onest'] font-medium text-lg text-[#0a0a0a] border border-[#d4d4d4] rounded-full px-6 py-2 hover:bg-white/60 transition-colors shadow-sm"

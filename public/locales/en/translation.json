@@ -16,7 +16,12 @@
     "admin_users": "User Management",
     "favorites": "Favorites",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "news": "News",
+    "publications": "Publications",
+    "publications_reports": "Reports",
+    "publications_documents": "Documents",
+    "publications_studies": "Studies"
   },
   "home": {
     "title": "Get to know our tourism numbers",
@@ -85,7 +90,7 @@
     "title_decisions": "Right",
     "title_right": "Decisions",
     "subtitle": "Your strategic guide to understanding tourism today and better planning the territory's tomorrow.",
-    "cta": "Get Started"
+    "cta": "View indicators"
   },
   "about": {
     "title": "About ROOTS",
@@ -110,6 +115,7 @@
     "form_name": "Name",
     "form_email": "E-mail",
     "form_message": "Message",
+    "form_submit": "Send message",
     "support_title": "With the Support of:",
     "copyright": "© {{year}} ROOTS. All rights reserved."
   },

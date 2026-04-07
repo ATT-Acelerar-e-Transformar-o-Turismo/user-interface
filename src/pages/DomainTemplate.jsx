@@ -274,7 +274,7 @@ export default function DomainTemplate() {
         {!isSearchMode && !isAllIndicatorsMode && (
           <div className="relative w-full" style={{ marginTop: 'calc(-1 * (var(--navbar-height) + 6rem))' }}>
             {/* Dark photo background — ends at wave midpoint */}
-            <div className="w-full h-[400px] bg-gray-800">
+            <div className="w-full h-[200px] sm:h-[400px] bg-gray-800">
               {images[0] && (
                 <img src={images[0]} alt="" className="w-full h-full object-cover opacity-60" />
               )}
@@ -314,21 +314,19 @@ export default function DomainTemplate() {
             {/* Domain icon — overlapping the wave/content boundary */}
             {domainIcon && (
               <div
-                className="absolute left-12 bg-white rounded-full p-5 flex items-center justify-center z-10"
+                className="absolute left-4 sm:left-12 bg-white rounded-full p-3 sm:p-5 flex items-center justify-center z-10 w-[68px] h-[68px] sm:w-[112px] sm:h-[112px]"
                 style={{
                   bottom: '40px',
-                  width: '112px',
-                  height: '112px',
                   boxShadow: `0 0 8px rgba(0,0,0,0.05)`,
                 }}
               >
-                <img src={domainIcon} alt="" className="w-[76px] h-[76px] object-contain" />
+                <img src={domainIcon} alt="" className="w-[40px] h-[40px] sm:w-[76px] sm:h-[76px] object-contain" />
               </div>
             )}
           </div>
         )}
 
-        <div className="max-w-[1512px] mx-auto px-12 pb-20">
+        <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-20">
           {/* Back button + breadcrumbs */}
           {!isSearchMode && !isAllIndicatorsMode && (
             <div className="flex flex-col gap-4 mb-6 pt-8">
@@ -350,11 +348,11 @@ export default function DomainTemplate() {
           )}
 
           {/* Title + description */}
-          <div className="flex flex-col gap-4 mb-16">
-            <h1 className="font-['Onest'] font-semibold text-5xl leading-none text-[#0a0a0a] tracking-tight">
+          <div className="flex flex-col gap-2 sm:gap-4 mb-8 sm:mb-16">
+            <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
               {displayName}
             </h1>
-            <p className="font-['Onest'] font-medium text-lg leading-normal text-[#0a0a0a] max-w-4xl">
+            <p className="font-['Onest'] font-medium text-sm sm:text-lg leading-normal text-[#0a0a0a] max-w-4xl">
               {displayDescription}
             </p>
           </div>
@@ -404,7 +402,7 @@ export default function DomainTemplate() {
 
           {/* Todos os Indicadores section */}
           <div className="flex flex-col gap-6">
-            <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">
+            <h2 className="font-['Onest'] font-semibold text-2xl sm:text-3xl text-[#0a0a0a] tracking-tight">
               {t('domains.all_indicators')}
             </h2>
 
@@ -488,7 +486,7 @@ export default function DomainTemplate() {
               <>
                 {/* Indicator cards — 4-column grid */}
                 {indicators.filter(ind => ind?.name && ind?.id).length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {indicators
                       .filter(ind => ind?.name && ind?.id)
                       .map((indicator) => (

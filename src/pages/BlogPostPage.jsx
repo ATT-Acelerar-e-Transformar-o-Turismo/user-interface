@@ -97,7 +97,7 @@ export default function BlogPostPage() {
     return (
         <PageTemplate>
             <div className="min-h-screen bg-[#f3f4f6]">
-                <div className="max-w-[1512px] mx-auto px-12 pb-20">
+                <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-20">
                     {/* Back button */}
                     <Link
                         to="/news-events"
@@ -119,7 +119,7 @@ export default function BlogPostPage() {
                     {/* Two-column layout */}
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Main content */}
-                        <div className="flex-1 bg-[#fffefc] rounded-2xl p-8 flex flex-col gap-14">
+                        <div className="flex-1 bg-[#fffefc] rounded-2xl p-4 sm:p-8 flex flex-col gap-8 sm:gap-14">
                             {/* Header: title, excerpt, meta */}
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-4">
@@ -211,10 +211,10 @@ export default function BlogPostPage() {
                         </div>
 
                         {/* Sidebar */}
-                        <div className="lg:w-[456px] shrink-0 flex flex-col gap-6">
+                        <div className="w-full lg:w-[456px] shrink-0 flex flex-col gap-6">
                             {/* Author card */}
                             <div className="bg-[#fffefc] rounded-2xl p-8 flex flex-col items-center gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
-                                <div className="w-40 h-40 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-5xl font-bold">
+                                <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-3xl sm:text-5xl font-bold">
                                     {(post.author || 'A')[0].toUpperCase()}
                                 </div>
                                 <div className="text-center flex flex-col gap-2">

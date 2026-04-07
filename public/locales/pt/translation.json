@@ -16,7 +16,12 @@
     "admin_users": "Gestão de Utilizadores",
     "favorites": "Favoritos",
     "login": "Entrar",
-    "logout": "Sair"
+    "logout": "Sair",
+    "news": "Notícias",
+    "publications": "Publicações",
+    "publications_reports": "Relatórios",
+    "publications_documents": "Documentos",
+    "publications_studies": "Estudos"
   },
   "home": {
     "title": "Conheça os Números do nosso Turismo",
@@ -85,7 +90,7 @@
     "title_decisions": "Decisões",
     "title_right": "Certas",
     "subtitle": "O seu guia estratégico para compreender o turismo hoje e planear melhor o amanhã do território.",
-    "cta": "Começar"
+    "cta": "Ver indicadores"
   },
   "about": {
     "title": "Sobre a ROOTS",
@@ -110,6 +115,7 @@
     "form_name": "Nome",
     "form_email": "E-mail",
     "form_message": "Mensagem",
+    "form_submit": "Enviar mensagem",
     "support_title": "Com o Apoio de:",
     "copyright": "© {{year}} ROOTS. Todos os direitos reservados."
   },
