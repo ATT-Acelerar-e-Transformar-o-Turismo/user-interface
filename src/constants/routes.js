@@ -5,6 +5,7 @@ export const ROUTES = {
   BLOG: '/news-events',
   BLOG_POST: (postId) => `/news-events/${postId}`,
   ADMIN: {
+    LOGIN: '/admin/login',
     DOMAINS: '/admin/domains',
     INDICATORS: '/admin/indicators',
     RESOURCES: '/admin/resources',

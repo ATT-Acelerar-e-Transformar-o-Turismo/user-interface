@@ -1,8 +1,14 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
-import keycloak, { initKeycloak } from '../keycloak'
+import keycloak, { initKeycloak, storeTokens, clearStoredTokens } from '../keycloak'
 
 const AuthContext = createContext(null)
+
+function parseJwt(token) {
+  const base64Url = token.split('.')[1]
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+  return JSON.parse(atob(base64))
+}
 
 export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
@@ -12,19 +18,32 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     initKeycloak()
       .then((auth) => {
+        if (auth) {
+          storeTokens(keycloak.token, keycloak.refreshToken, keycloak.idToken)
+        }
         setAuthenticated(auth)
         setLoading(false)
       })
       .catch((err) => {
         console.error('Keycloak init failed:', err)
+        clearStoredTokens()
         setError('Authentication service unavailable')
         setLoading(false)
       })
 
     keycloak.onTokenExpired = () => {
-      keycloak.updateToken(30).catch(() => {
-        keycloak.logout()
-      })
+      keycloak.updateToken(30)
+        .then(() => {
+          storeTokens(keycloak.token, keycloak.refreshToken, keycloak.idToken)
+        })
+        .catch(() => {
+          clearStoredTokens()
+          keycloak.logout({ redirectUri: window.location.origin })
+        })
+    }
+
+    keycloak.onAuthRefreshSuccess = () => {
+      storeTokens(keycloak.token, keycloak.refreshToken, keycloak.idToken)
     }
   }, [])
 
@@ -36,10 +55,44 @@ export function AuthProvider({ children }) {
   } : null
 
   const login = useCallback(() => {
-    keycloak.login()
+    window.location.href = '/admin/login'
+  }, [])
+
+  const loginWithCredentials = useCallback(async (email, password) => {
+    const params = new URLSearchParams({
+      grant_type: 'password',
+      client_id: 'att-frontend',
+      username: email,
+      password: password,
+    })
+
+    const response = await fetch('/auth/realms/att/protocol/openid-connect/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    })
+
+    if (!response.ok) {
+      throw new Error('Invalid credentials')
+    }
+
+    const data = await response.json()
+
+    // Hydrate keycloak-js instance with the obtained tokens
+    keycloak.token = data.access_token
+    keycloak.refreshToken = data.refresh_token
+    keycloak.idToken = data.id_token
+    keycloak.tokenParsed = parseJwt(data.access_token)
+    keycloak.idTokenParsed = data.id_token ? parseJwt(data.id_token) : null
+    keycloak.authenticated = true
+    keycloak.subject = keycloak.tokenParsed.sub
+
+    storeTokens(data.access_token, data.refresh_token, data.id_token)
+    setAuthenticated(true)
   }, [])
 
   const logout = useCallback(() => {
+    clearStoredTokens()
     keycloak.logout({ redirectUri: window.location.origin })
   }, [])
 
@@ -54,6 +107,7 @@ export function AuthProvider({ children }) {
     loading,
     error,
     login,
+    loginWithCredentials,
     logout,
     clearError
   }

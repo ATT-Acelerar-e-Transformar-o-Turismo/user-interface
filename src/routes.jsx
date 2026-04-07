@@ -14,6 +14,7 @@ import BlogPostPage from "./pages/BlogPostPage";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostForm from "./pages/BlogPostForm";
 import UserManagement from "./pages/UserManagement";
+import AdminLogin from "./pages/AdminLogin";
 import QuemSomos from "./pages/roots/QuemSomos";
 import Governanca from "./pages/roots/Governanca";
 import Territorio from "./pages/roots/Territorio";
@@ -95,6 +96,17 @@ export const routesList = [
                     <title>Indicator</title>
                 </Helmet>
                 <IndicatorTemplate />
+            </>
+        )
+    },
+    {
+        path: '/admin/login',
+        element: (
+            <>
+                <Helmet>
+                    <title>Admin Login</title>
+                </Helmet>
+                <AdminLogin />
             </>
         )
     },
