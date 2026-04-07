@@ -4,6 +4,7 @@ import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import RichTextEditor from '../components/RichTextEditor'
+import ConfirmModal from '../components/ConfirmModal'
 import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 
@@ -17,6 +18,7 @@ export default function BlogPostForm() {
     const [loading, setLoading] = useState(isEditing)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState(null)
+    const [showPublishConfirm, setShowPublishConfirm] = useState(false)
 
     // Form state
     const [formData, setFormData] = useState({
@@ -181,7 +183,7 @@ export default function BlogPostForm() {
                 await blogService.removeAttachment(postId, filename)
                 setExistingAttachments(prev => prev.filter(att => att.filename !== filename))
             } catch (err) {
-                alert(t('admin.blog.error_remove_attachment') + err.message)
+                setError(t('admin.blog.error_remove_attachment') + err.message)
             }
         }
     }
@@ -189,14 +191,15 @@ export default function BlogPostForm() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        // Confirmation dialog for publishing
         if (formData.status === 'published') {
-            const confirmPublish = window.confirm(t('admin.blog.confirm_publish'))
-            if (!confirmPublish) {
-                return // Prevent form submission
-            }
+            setShowPublishConfirm(true)
+            return
         }
 
+        await executeSubmit()
+    }
+
+    const executeSubmit = async () => {
         try {
             setSaving(true)
             setError(null)
@@ -517,6 +520,13 @@ export default function BlogPostForm() {
                     </form>
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={showPublishConfirm}
+                onConfirm={() => { setShowPublishConfirm(false); executeSubmit(); }}
+                onCancel={() => setShowPublishConfirm(false)}
+                title={t('admin.blog.confirm_publish_title')}
+                message={t('admin.blog.confirm_publish')}
+            />
         </AdminPageTemplate>
     )
 }

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDomain } from "../contexts/DomainContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
@@ -86,7 +86,7 @@ export default function DomainTemplate() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(9); // 9 indicators per page
+  const [pageSize] = useState(12); // 12 indicators per page (3 full rows of 4)
   const [totalIndicators, setTotalIndicators] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   
@@ -99,9 +99,14 @@ export default function DomainTemplate() {
   const initialSubdomain = initialSubdomainName ? { name: initialSubdomainName } : null;
   const [subdomainFilter, setSubdomainFilter] = useState(initialSubdomainName);
 
+  // View mode and search state
+  const [viewMode, setViewMode] = useState('grid');
+  const [searchInput, setSearchInput] = useState(searchQuery || '');
+
   // Domain state
   const [selectedSubdomain, setSelectedSubdomain] = useState(initialSubdomain);
   const [,setSelectedDomain] = useState(selectedDomainObj);
+  const navigateTo = useNavigate();
 
   const images = selectedDomainObj?.DomainCarouselImages || [
     "https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp",
@@ -256,6 +261,17 @@ export default function DomainTemplate() {
     setCurrentPage(newPage);
   };
 
+  // Search handler
+  const handleSearchSubmit = useCallback((e) => {
+    e.preventDefault();
+    const trimmed = searchInput.trim();
+    if (trimmed) {
+      navigateTo(`/all-indicators?q=${encodeURIComponent(trimmed)}`);
+    } else if (isSearchMode) {
+      navigateTo('/all-indicators');
+    }
+  }, [searchInput, isSearchMode, navigateTo]);
+
   const domainColor = selectedDomainObj?.DomainColor || selectedDomainObj?.color || '#C3F25E';
   const domainIcon = selectedDomainObj?.DomainIcon;
   const displayName = isSearchMode
@@ -408,7 +424,8 @@ export default function DomainTemplate() {
 
             {/* Filter bar */}
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-4">
+              {/* Left: filters */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                 {/* Domain/Subdomain dropdowns for specific domain mode */}
                 {!isSearchMode && !isAllIndicatorsMode && (
                   <Dropdowns
@@ -421,26 +438,13 @@ export default function DomainTemplate() {
                   />
                 )}
 
-                {/* Domain filter for all indicators mode */}
-                {isAllIndicatorsMode && (
-                  <select
-                    className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 px-4 text-sm shadow-sm"
-                    value={domainFilter || ''}
-                    onChange={(e) => { setDomainFilter(e.target.value || null); setSubdomainFilter(null); setCurrentPage(0); }}
-                  >
-                    <option value="">{t('domains.filter_all_domains')}</option>
-                    {domains.map(d => <option key={d.id} value={d.id}>{getName(d)}</option>)}
-                  </select>
-                )}
-
                 {/* Sort */}
-                <div className="flex items-center gap-2 bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 px-4 shadow-sm">
+                <div className="flex items-center gap-2 bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm">
                   <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
                   </svg>
-                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">{t('domains.sort')}</span>
                   <select
-                    className="font-['Onest'] bg-transparent text-sm outline-none cursor-pointer"
+                    className="font-['Onest'] bg-transparent text-sm outline-none cursor-pointer text-[#0a0a0a]"
                     value={sortBy}
                     onChange={(e) => handleSort(e.target.value)}
                   >
@@ -450,11 +454,26 @@ export default function DomainTemplate() {
                   </select>
                 </div>
 
+                {/* Dimension (domain) filter */}
+                <div className="flex items-center gap-2 bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm">
+                  <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <select
+                    className="font-['Onest'] bg-transparent text-sm outline-none cursor-pointer text-[#0a0a0a]"
+                    value={domainFilter || ''}
+                    onChange={(e) => { setDomainFilter(e.target.value || null); setSubdomainFilter(null); setCurrentPage(0); }}
+                  >
+                    <option value="">{t('domains.filter_all_domains')}</option>
+                    {domains.map(d => <option key={d.id} value={d.id}>{getName(d)}</option>)}
+                  </select>
+                </div>
+
                 {/* Governance */}
-                <label className="flex items-center gap-2 bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 px-4 shadow-sm cursor-pointer">
+                <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="checkbox checkbox-sm checkbox-primary"
+                    className="checkbox checkbox-sm checkbox-primary border-[#d4d4d4] shadow-xs"
                     checked={governanceFilter === true}
                     onChange={(e) => { handleGovernanceFilter(e.target.checked ? true : null); }}
                   />
@@ -462,20 +481,54 @@ export default function DomainTemplate() {
                 </label>
               </div>
 
-              {/* Search */}
-              {isSearchMode && (
-                <div className="relative">
+              {/* Right: view toggle + search */}
+              <div className="flex items-center gap-6 sm:gap-8">
+                {/* Grid / Table toggle */}
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`flex items-center justify-center w-8 h-8 rounded-lg border shadow-sm transition-colors cursor-pointer ${
+                      viewMode === 'grid'
+                        ? 'bg-black/[0.03] border-[#d4d4d4]'
+                        : 'bg-[#fffefc] border-[#e5e5e5] hover:bg-black/[0.02]'
+                    }`}
+                    title={t('domains.view_grid')}
+                  >
+                    <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('table')}
+                    className={`flex items-center justify-center w-8 h-8 rounded-lg border shadow-sm transition-colors cursor-pointer ${
+                      viewMode === 'table'
+                        ? 'bg-black/[0.03] border-[#d4d4d4]'
+                        : 'bg-[#fffefc] border-[#e5e5e5] hover:bg-black/[0.02]'
+                    }`}
+                    title={t('domains.view_table')}
+                  >
+                    <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M3 6h18M3 18h18" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Search */}
+                <form onSubmit={handleSearchSubmit} className="relative">
                   <input
                     type="text"
-                    defaultValue={searchQuery}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     placeholder={t('domains.search_placeholder')}
-                    className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 pl-4 pr-10 w-64 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 pl-4 pr-10 w-48 sm:w-72 text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
-                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              )}
+                  <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
             </div>
 
             {/* Loading / Error */}
@@ -484,30 +537,91 @@ export default function DomainTemplate() {
 
             {!loading && !error && (
               <>
-                {/* Indicator cards — 4-column grid */}
                 {indicators.filter(ind => ind?.name && ind?.id).length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    {indicators
-                      .filter(ind => ind?.name && ind?.id)
-                      .map((indicator) => (
-                        <IndicatorCard
-                          key={indicator.id}
-                          IndicatorTitle={isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
-                          IndicatorId={indicator.id}
-                          domain={indicator.domain?.name || selectedDomainObj?.name}
-                          subdomain={isSearchMode ? (indicator.subdomain || getName(indicator.domain)) : (getName(selectedSubdomain) || undefined)}
-                          description={getName.field(indicator, 'description', 'description_en')}
-                          unit={indicator.unit}
-                          hidden={!!indicator.hidden}
-                          isAdmin={isAdmin}
-                          onToggleHidden={async (e) => {
-                            e.stopPropagation();
-                            await indicatorService.patch(indicator.id, { hidden: !indicator.hidden });
-                            loadIndicators();
-                          }}
-                        />
-                      ))}
-                  </div>
+                  viewMode === 'grid' ? (
+                    /* Grid view */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                      {indicators
+                        .filter(ind => ind?.name && ind?.id)
+                        .map((indicator) => (
+                          <IndicatorCard
+                            key={indicator.id}
+                            IndicatorTitle={isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
+                            IndicatorId={indicator.id}
+                            domain={
+                              (typeof indicator.domain === 'object' ? indicator.domain?.name : domains.find(d => d.id === indicator.domain)?.name)
+                              || selectedDomainObj?.name
+                            }
+                            subdomain={
+                              isSearchMode || isAllIndicatorsMode
+                                ? (indicator.subdomain || undefined)
+                                : (getName(selectedSubdomain) || indicator.subdomain || undefined)
+                            }
+                            description={getName.field(indicator, 'description', 'description_en')}
+                            unit={indicator.unit}
+                            hidden={!!indicator.hidden}
+                            isAdmin={isAdmin}
+                            onToggleHidden={async (e) => {
+                              e.stopPropagation();
+                              await indicatorService.patch(indicator.id, { hidden: !indicator.hidden });
+                              loadIndicators();
+                            }}
+                          />
+                        ))}
+                    </div>
+                  ) : (
+                    /* Table view */
+                    <div className="bg-[#fffefc] rounded-2xl overflow-hidden border border-[#e5e5e5]">
+                      <table className="w-full font-['Onest']">
+                        <thead>
+                          <tr className="border-b border-[#e5e5e5] text-left text-sm text-gray-500">
+                            <th className="px-6 py-4 font-medium">{t('domains.table_name')}</th>
+                            <th className="px-6 py-4 font-medium">{t('domains.table_dimension')}</th>
+                            <th className="px-6 py-4 font-medium">{t('domains.table_subdomain')}</th>
+                            <th className="px-6 py-4 font-medium">{t('domains.table_unit')}</th>
+                            <th className="px-6 py-4 font-medium">{t('domains.filter_governance')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {indicators
+                            .filter(ind => ind?.name && ind?.id)
+                            .map((indicator) => {
+                              const indDomainName = (typeof indicator.domain === 'object' ? indicator.domain?.name : domains.find(d => d.id === indicator.domain)?.name) || selectedDomainObj?.name;
+                              const indDomainObj = domains.find(d => d.name === indDomainName);
+                              const indSubdomain = isSearchMode || isAllIndicatorsMode
+                                ? (indicator.subdomain || '')
+                                : (getName(selectedSubdomain) || indicator.subdomain || '');
+                              return (
+                                <tr
+                                  key={indicator.id}
+                                  className={`border-b border-[#f3f4f6] hover:bg-[#f9fafb] cursor-pointer transition-colors ${indicator.hidden ? 'opacity-50' : ''}`}
+                                  onClick={() => navigateTo(`/indicator/${indicator.id}`, {
+                                    state: { indicatorId: indicator.id, domainName: indDomainName, subdomainName: indSubdomain }
+                                  })}
+                                >
+                                  <td className="px-6 py-4 text-sm font-semibold text-[#0a0a0a]">
+                                    {isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    {indDomainName && (
+                                      <span
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                                        style={{ backgroundColor: indDomainObj?.color || '#9ca3af' }}
+                                      >
+                                        {indDomainName}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-600">{indSubdomain}</td>
+                                  <td className="px-6 py-4 text-sm text-gray-600">{indicator.unit || '—'}</td>
+                                  <td className="px-6 py-4 text-sm text-gray-600">{indicator.governance ? t('common.yes') : t('common.no')}</td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
                 ) : (
                   <div className="text-center py-16">
                     <h3 className="font-['Onest'] text-2xl font-semibold text-[#0a0a0a] mb-2">

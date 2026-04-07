@@ -136,7 +136,10 @@
     "name": "Nome",
     "options": "Opções",
     "yes": "Sim",
-    "no": "Não"
+    "no": "Não",
+    "confirm": "Confirmar",
+    "confirm_title": "Confirmação",
+    "success": "Sucesso!"
   },
   "admin": {
     "nav": {
@@ -160,7 +163,8 @@
       "total": "Total: {{count}} indicadores",
       "confirm_delete": "Tem certeza que deseja eliminar o indicador \"{{name}}\"?",
       "hide": "Ocultar",
-      "show": "Mostrar"
+      "show": "Mostrar",
+      "deleted_success": "Indicador eliminado com sucesso."
     },
     "domains": {
       "title": "Domínios",
@@ -173,7 +177,8 @@
       "total": "Total: {{count}} domínios",
       "confirm_delete": "Tem certeza que deseja eliminar o domínio \"{{name}}\"?",
       "load_error": "Falha ao carregar domínios",
-      "delete_error": "Falha ao eliminar domínio"
+      "delete_error": "Falha ao eliminar domínio",
+      "deleted_success": "Domínio \"{{name}}\" eliminado com sucesso."
     },
     "dimensions": {
       "title": "Dimensões",
@@ -185,7 +190,8 @@
       "add": "Adicionar\nDimensão",
       "total": "Total: {{count}} dimensões",
       "confirm_delete": "Tem certeza que deseja eliminar a dimensão \"{{name}}\"?",
-      "delete_error": "Falha ao eliminar dimensão"
+      "delete_error": "Falha ao eliminar dimensão",
+      "deleted_success": "Dimensão \"{{name}}\" eliminada com sucesso."
     },
     "blog": {
       "title": "Gerar Blog",
@@ -197,6 +203,7 @@
       "status_draft": "Rascunho",
       "confirm_delete": "Tem certeza que deseja excluir este post?",
       "delete_error": "Erro ao excluir post: {{error}}",
+      "deleted_success": "Post eliminado com sucesso.",
       "col_title": "Título",
       "col_author": "Autor",
       "col_status": "Status",
@@ -208,6 +215,7 @@
       "unsaved_changes_warning": "Você tem alterações não salvas. Tem certeza que deseja sair?",
       "confirm_remove_attachment": "Tem certeza que deseja remover este anexo?",
       "error_remove_attachment": "Erro ao remover anexo: ",
+      "confirm_publish_title": "Publicar Post",
       "confirm_publish": "Tem certeza que deseja publicar este post? Uma vez publicado, ele estará visível publicamente.",
       "validation_required_fields": "Título, conteúdo e autor são obrigatórios",
       "title_edit": "Editar Post",
@@ -299,6 +307,8 @@
       "success_added": "Domínio Adicionado!",
       "success_updated": "Domínio Atualizado!",
       "success_message": "O domínio foi guardado com sucesso",
+      "confirm_update": "Tem a certeza que pretende guardar as alterações a este domínio?",
+      "confirm_update_title": "Confirmar Alterações",
       "continue": "Continuar"
     },
     "dimension": {
@@ -315,7 +325,10 @@
       "add": "Adicionar",
       "processing": "A processar...",
       "close": "Fechar",
-      "error": "Falha ao processar dimensão"
+      "error": "Falha ao processar dimensão",
+      "success_added": "Dimensão Adicionada!",
+      "success_updated": "Dimensão Atualizada!",
+      "success_message": "A dimensão foi guardada com sucesso."
     },
     "resource": {
       "title_new": "Adicionar Recurso de Dados",
@@ -419,7 +432,13 @@
     "no_indicators_search": "Não encontrámos indicadores correspondentes a \"{{query}}\".",
     "no_indicators_subdomain": "Não existem indicadores para {{name}}.",
     "no_indicators_domain": "Não existem indicadores para {{name}}.",
-    "item_name_indicators": "indicadores"
+    "item_name_indicators": "indicadores",
+    "view_grid": "Vista em grelha",
+    "view_table": "Vista em tabela",
+    "table_name": "Nome",
+    "table_dimension": "Dimensão",
+    "table_subdomain": "Subdomínio",
+    "table_unit": "Unidade"
   },
   "indicator": {
     "export_image_error": "Falha ao exportar imagem. Por favor tente novamente.",

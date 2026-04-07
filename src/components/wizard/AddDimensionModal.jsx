@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
+import SuccessModal from './SuccessModal';
 import { validateRequired, hasErrors } from '../../utils/formValidation';
 import domainService from '../../services/domainService';
 import indicatorService from '../../services/indicatorService';
@@ -33,6 +34,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
   const [dimensionNameEn, setDimensionNameEn] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -74,7 +76,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       setErrors(validationErrors);
       return;
     }
-
     try {
       setLoading(true);
       setErrors({});
@@ -125,9 +126,8 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       setDimensionName('');
       setDimensionNameEn('');
 
-      // Close and notify success
-      onClose();
-      if (onSuccess) onSuccess();
+      // Show success modal
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error adding dimension:', error);
       setErrors({ submit: error.message || t('wizard.dimension.error') });
@@ -145,6 +145,27 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       onClose();
     }
   };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    onClose();
+    if (onSuccess) onSuccess();
+  };
+
+  if (showSuccessModal) {
+    return (
+      <SuccessModal
+        isOpen={true}
+        onClose={handleSuccessClose}
+        title={isEditing ? t('wizard.dimension.success_updated') : t('wizard.dimension.success_added')}
+        message={t('wizard.dimension.success_message')}
+        primaryAction={{
+          label: t('common.continue'),
+          onClick: handleSuccessClose
+        }}
+      />
+    );
+  }
 
   if (!isOpen) return null;
 
@@ -258,6 +279,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
           </div>
         </form>
       </div>
+
     </div>
   );
 }

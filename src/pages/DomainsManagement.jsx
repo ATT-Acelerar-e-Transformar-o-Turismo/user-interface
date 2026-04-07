@@ -6,6 +6,7 @@ import Pagination from '../components/Pagination';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import DomainWizard from '../components/wizard/DomainWizard';
+import SuccessModal from '../components/wizard/SuccessModal';
 import domainService from '../services/domainService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
@@ -28,6 +29,7 @@ export default function DomainsManagement() {
   // Modal state
   const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
   const [editingDomainId, setEditingDomainId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     loadDomains();
@@ -116,6 +118,7 @@ export default function DomainsManagement() {
     try {
       await domainService.delete(domain.id);
       loadDomains();
+      setSuccessMessage(t('admin.domains.deleted_success', { name: domain.name }));
     } catch (err) {
       setError(err.message || t('admin.domains.delete_error'));
       console.error('Error deleting domain:', err);
@@ -345,6 +348,14 @@ export default function DomainsManagement() {
         onSuccess={() => {
           loadDomains();
         }}
+      />
+
+      <SuccessModal
+        isOpen={!!successMessage}
+        onClose={() => setSuccessMessage(null)}
+        title={t('common.success')}
+        message={successMessage}
+        primaryAction={{ label: t('common.continue'), onClick: () => setSuccessMessage(null) }}
       />
     </AdminPageTemplate>
   );

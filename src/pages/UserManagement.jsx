@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import AdminPageLayout from '../components/AdminPageLayout'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
+import SuccessModal from '../components/wizard/SuccessModal'
 import userService from '../services/userService'
 
 export default function UserManagement() {
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [successMessage, setSuccessMessage] = useState(null)
 
     useEffect(() => {
         loadUsers()
@@ -37,9 +39,10 @@ export default function UserManagement() {
                     ? { ...user, role: newRole }
                     : user
             ))
+            setSuccessMessage('Role do utilizador atualizado com sucesso.')
         } catch (err) {
             const errorMessage = err.userMessage || err.response?.data?.detail || err.message || 'Erro desconhecido'
-            alert('Erro ao alterar role do utilizador: ' + errorMessage)
+            setError('Erro ao alterar role do utilizador: ' + errorMessage)
         }
     }
 
@@ -51,9 +54,10 @@ export default function UserManagement() {
         try {
             await userService.deleteUser(userId)
             setUsers(users.filter(user => user.id !== userId))
+            setSuccessMessage('Utilizador eliminado com sucesso.')
         } catch (err) {
             const errorMessage = err.userMessage || err.response?.data?.detail || err.message || 'Erro desconhecido'
-            alert('Erro ao excluir utilizador: ' + errorMessage)
+            setError('Erro ao excluir utilizador: ' + errorMessage)
         }
     }
 
@@ -204,6 +208,13 @@ export default function UserManagement() {
                     </div>
                 </div>
             </div>
+            <SuccessModal
+                isOpen={!!successMessage}
+                onClose={() => setSuccessMessage(null)}
+                title="Sucesso!"
+                message={successMessage}
+                primaryAction={{ label: 'Continuar', onClick: () => setSuccessMessage(null) }}
+            />
         </AdminPageLayout>
     )
 }

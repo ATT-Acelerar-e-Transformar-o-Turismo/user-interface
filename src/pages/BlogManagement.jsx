@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
+import SuccessModal from '../components/wizard/SuccessModal'
 import blogService from '../services/blogService'
 
 export default function BlogManagement() {
@@ -13,6 +14,7 @@ export default function BlogManagement() {
     const [error, setError] = useState(null)
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [editingPost, setEditingPost] = useState(null)
+    const [successMessage, setSuccessMessage] = useState(null)
 
     useEffect(() => {
         loadPosts()
@@ -39,8 +41,9 @@ export default function BlogManagement() {
         try {
             await blogService.deletePost(postId)
             setPosts(posts.filter(post => post.id !== postId))
+            setSuccessMessage(t('admin.blog.deleted_success'))
         } catch (err) {
-            alert(t('admin.blog.delete_error', { error: err.message }))
+            setError(t('admin.blog.delete_error', { error: err.message }))
         }
     }
 
@@ -225,6 +228,13 @@ export default function BlogManagement() {
                     </div>
                 </div>
             </div>
+            <SuccessModal
+                isOpen={!!successMessage}
+                onClose={() => setSuccessMessage(null)}
+                title={t('common.success')}
+                message={successMessage}
+                primaryAction={{ label: t('common.continue'), onClick: () => setSuccessMessage(null) }}
+            />
         </AdminPageTemplate>
     )
 }

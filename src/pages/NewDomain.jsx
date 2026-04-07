@@ -59,10 +59,6 @@ export default function NewDomain() {
             return;
         }
 
-        if (id && !window.confirm('Are you sure you want to save the changes to this domain?')) {
-            return;
-        }
-
         setLoading(true);
         setError(null);
 

@@ -25,8 +25,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
     const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle);
 
     // Find the domain for this indicator
-    const selectedDomain = domains.find(d => d.name === domain) || domains[0];
-    const domainColor = selectedDomain?.color || "purple";
+    const selectedDomain = domains.find(d => d.name === domain);
+    const domainColor = selectedDomain?.color || "#9ca3af";
 
     // Check localStorage on component mount
     useEffect(() => {
