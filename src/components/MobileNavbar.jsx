@@ -11,9 +11,9 @@ import { useAuth } from '../contexts/AuthContext'
 const logoDark = '/roots.svg'
 const logoWhite = '/roots-white.svg'
 
-export default function MobileNavbar({ onLoginClick }) {
+export default function MobileNavbar() {
     const { t, i18n } = useTranslation()
-    const { isAuthenticated, user, logout } = useAuth()
+    const { isAuthenticated, user, login, logout } = useAuth()
     const location = useLocation()
     const [isOpen, setIsOpen] = useState(false)
     const [openDropdown, setOpenDropdown] = useState(null)
@@ -77,7 +77,7 @@ export default function MobileNavbar({ onLoginClick }) {
                         transition={{ duration: 0.25 }}
                         className="font-medium text-lg leading-6 px-3 py-1 rounded-full whitespace-nowrap"
                     >
-                        {isOpen ? t('close') : 'Menu'}
+                        {isOpen ? t('common.close') : 'Menu'}
                     </motion.button>
                 </div>
 
@@ -162,7 +162,7 @@ export default function MobileNavbar({ onLoginClick }) {
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => { onLoginClick?.(); setIsOpen(false) }}
+                                        onClick={() => { login(); setIsOpen(false) }}
                                         className="font-medium text-lg leading-6 text-[#fffefc]"
                                     >
                                         {t('nav.login')}
@@ -183,6 +183,4 @@ export default function MobileNavbar({ onLoginClick }) {
     )
 }
 
-MobileNavbar.propTypes = {
-    onLoginClick: PropTypes.func,
-}
+MobileNavbar.propTypes = {}

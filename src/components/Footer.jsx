@@ -67,42 +67,51 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="md:col-span-3 grid grid-cols-2 gap-x-4 lg:gap-x-6 gap-y-2">
+          <form
+            className="md:col-span-3 grid grid-cols-2 gap-x-4 lg:gap-x-6 gap-y-2"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <div className="col-span-1">
-              <label className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
+              <label htmlFor="footer-name" className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
                 {t('footer.form_name')}
               </label>
               <input
+                id="footer-name"
+                name="name"
                 type="text"
                 className="w-full h-[42px] px-[14px] py-[8.75px] rounded-[9.333px] border-[1.167px] border-[#e5e5e5] bg-white shadow-[0px_1.057px_2.114px_0px_rgba(0,0,0,0.05)]"
               />
             </div>
 
             <div className="col-span-1">
-              <label className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
+              <label htmlFor="footer-email" className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
                 {t('footer.form_email')}
               </label>
               <input
+                id="footer-email"
+                name="email"
                 type="email"
                 className="w-full h-[42px] px-[14px] py-[8.75px] rounded-[9.333px] border-[1.167px] border-[#e5e5e5] bg-white shadow-[0px_1.057px_2.114px_0px_rgba(0,0,0,0.05)]"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
+              <label htmlFor="footer-message" className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
                 {t('footer.form_message')}
               </label>
               <textarea
+                id="footer-message"
+                name="message"
                 className="w-full h-[180px] lg:h-[220px] px-[14px] py-[8.75px] rounded-[9.333px] border-[1.167px] border-[#e5e5e5] bg-white shadow-[0px_1.057px_2.114px_0px_rgba(0,0,0,0.05)] resize-none"
               ></textarea>
             </div>
 
             <div className="col-span-2 mt-2">
-              <button className="w-full border-2 border-[#e5e5e5] text-primary-content px-6 py-3 rounded-full hover:bg-white/10 transition-colors">
+              <button type="submit" className="w-full border-2 border-[#e5e5e5] text-primary-content px-6 py-3 rounded-full hover:bg-white/10 transition-colors">
                 <span className="font-['Onest'] font-medium text-base lg:text-lg">{t('footer.form_submit')}</span>
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
         <div className="mt-10 lg:mt-16 text-center">

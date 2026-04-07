@@ -1,4 +1,5 @@
 import axios from 'axios';
+import keycloak from '../keycloak';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // Use relative URLs since nginx handles routing
@@ -9,10 +10,15 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    if (keycloak.authenticated) {
+      try {
+        await keycloak.updateToken(30);
+      } catch {
+        keycloak.login();
+        return Promise.reject(new Error('Token refresh failed'));
+      }
+      config.headers.Authorization = `Bearer ${keycloak.token}`;
     }
     return config;
   },
