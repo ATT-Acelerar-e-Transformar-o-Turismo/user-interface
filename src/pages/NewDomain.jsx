@@ -53,9 +53,13 @@ export default function NewDomain() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!name.trim()) {
             setError('Domain name is required');
+            return;
+        }
+
+        if (id && !window.confirm('Are you sure you want to save the changes to this domain?')) {
             return;
         }
 
