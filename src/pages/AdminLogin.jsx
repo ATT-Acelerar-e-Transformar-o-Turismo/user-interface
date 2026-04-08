@@ -5,7 +5,7 @@ import logoRoots from '../assets/green-logo.svg'
 import loginBg from '../assets/admin-login-bg.jpg'
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -24,11 +24,10 @@ export default function AdminLogin() {
     setSubmitting(true)
 
     try {
-      await loginWithCredentials(email, password)
-      navigate('/admin', { replace: true })
+      await loginWithCredentials(username, password)
+      // loginWithCredentials triggers a full page reload to /admin
     } catch {
       setError('Credenciais inválidas. Tente novamente.')
-    } finally {
       setSubmitting(false)
     }
   }
@@ -76,8 +75,8 @@ export default function AdminLogin() {
                     id="admin-username"
                     type="text"
                     autoComplete="username"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     placeholder="Insira o seu e-mail ou nome de utilizador"
                     required
                     className="w-full h-11 px-5 rounded-full border border-base-300 bg-white text-[15px] placeholder:text-gray-400 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:outline-none focus:border-[#009368] transition-colors"

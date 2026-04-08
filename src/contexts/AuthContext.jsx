@@ -4,20 +4,6 @@ import keycloak, { initKeycloak, storeTokens, clearStoredTokens } from '../keycl
 
 const AuthContext = createContext(null)
 
-function parseJwt(token) {
-  try {
-    const base64Url = token.split('.')[1]
-    if (!base64Url) throw new Error('Missing JWT payload')
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
-    const binary = atob(padded)
-    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
-    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
-  } catch {
-    throw new Error('Invalid authentication token')
-  }
-}
-
 export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -87,17 +73,9 @@ export function AuthProvider({ children }) {
 
     const data = await response.json()
 
-    // Hydrate keycloak-js instance with the obtained tokens
-    keycloak.token = data.access_token
-    keycloak.refreshToken = data.refresh_token
-    keycloak.idToken = data.id_token
-    keycloak.tokenParsed = parseJwt(data.access_token)
-    keycloak.idTokenParsed = data.id_token ? parseJwt(data.id_token) : null
-    keycloak.authenticated = true
-    keycloak.subject = keycloak.tokenParsed.sub
-
+    // Persist tokens and let initKeycloak() rehydrate properly on reload
     storeTokens(data.access_token, data.refresh_token, data.id_token)
-    setAuthenticated(true)
+    window.location.href = '/admin'
   }, [])
 
   const logout = useCallback(() => {
