@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import Wizard from './Wizard';
 import WizardStep from './WizardStep';
 import SuccessModal from './SuccessModal';
@@ -153,7 +153,7 @@ export default function ResourceWizard({
         let data;
         if (fileExtension === 'csv') {
           data = await parseCSVPromise(file);
-        } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        } else if (fileExtension === 'xlsx') {
           data = await parseXLSXPromise(file);
         }
 
@@ -190,12 +190,28 @@ export default function ResourceWizard({
   const parseXLSXPromise = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const arrayBuffer = event.target.result;
-          const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(arrayBuffer);
+          const worksheet = workbook.worksheets[0];
+          const sheetData = [];
+          worksheet.eachRow({ includeEmpty: true }, (row) => {
+            const rowValues = [];
+            // ExcelJS row.values can be sparse, eachCell handles it better
+            // row.values returns [empty, col1, col2, ...]
+            // We want a clean array of values
+            row.eachCell({ includeEmpty: true }, (cell) => {
+              // Convert cell value to simple format if it's an object (like a formula or date)
+              let value = cell.value;
+              if (value && typeof value === 'object' && value.result !== undefined) {
+                value = value.result;
+              }
+              rowValues.push(value);
+            });
+            sheetData.push(rowValues);
+          });
           resolve(sheetData);
         } catch (error) {
           reject(error);
@@ -334,7 +350,7 @@ export default function ResourceWizard({
           for (let i = 0; i < wizard.formData.files.length; i++) {
             const file = wizard.formData.files[i];
             const sizeError = validateFileSize(file, 50);
-            const typeError = validateFileType(file, ['.csv', '.xlsx', '.xls']);
+            const typeError = validateFileType(file, ['.csv', '.xlsx']);
 
             if (sizeError) {
               errors.files = `${file.name}: ${sizeError}`;
@@ -564,7 +580,7 @@ export default function ResourceWizard({
                 name="files"
                 files={wizard.formData.files}
                 onChange={(files) => wizard.updateFormData('files', files)}
-                accept=".csv,.xlsx,.xls"
+                accept=".csv,.xlsx"
                 maxSizeMB={50}
                 multiple={true}
                 required

@@ -477,7 +477,7 @@ export default function BlogPostForm() {
                             <input
                                 type="file"
                                 multiple
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+                                accept=".pdf,.doc,.docx,.xlsx,.txt,.csv"
                                 onChange={handleAttachmentChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
                             />
