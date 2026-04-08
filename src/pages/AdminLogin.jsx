@@ -69,11 +69,13 @@ export default function AdminLogin() {
               <div className="flex flex-col gap-6">
                 {/* Email field */}
                 <div className="flex flex-col gap-4">
-                  <label className="text-[17px] font-medium leading-[21px] tracking-[0.085px] text-base-content">
+                  <label htmlFor="admin-username" className="text-[17px] font-medium leading-[21px] tracking-[0.085px] text-base-content">
                     E-mail:
                   </label>
                   <input
+                    id="admin-username"
                     type="text"
+                    autoComplete="username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Insira o seu e-mail ou nome de utilizador"
@@ -84,11 +86,13 @@ export default function AdminLogin() {
 
                 {/* Password field */}
                 <div className="flex flex-col gap-4">
-                  <label className="text-[17px] font-medium leading-[21px] tracking-[0.085px] text-base-content">
+                  <label htmlFor="admin-password" className="text-[17px] font-medium leading-[21px] tracking-[0.085px] text-base-content">
                     Palavra-passe:
                   </label>
                   <input
+                    id="admin-password"
                     type="password"
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Insira a sua palavra-passe"
@@ -100,7 +104,7 @@ export default function AdminLogin() {
 
               {/* Error message */}
               {error && (
-                <p className="text-error text-sm text-center -mt-6">{error}</p>
+                <p role="alert" className="text-error text-sm text-center -mt-6">{error}</p>
               )}
 
               {/* Submit button */}

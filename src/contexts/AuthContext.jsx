@@ -5,9 +5,17 @@ import keycloak, { initKeycloak, storeTokens, clearStoredTokens } from '../keycl
 const AuthContext = createContext(null)
 
 function parseJwt(token) {
-  const base64Url = token.split('.')[1]
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-  return JSON.parse(atob(base64))
+  try {
+    const base64Url = token.split('.')[1]
+    if (!base64Url) throw new Error('Missing JWT payload')
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+    const binary = atob(padded)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
+  } catch {
+    throw new Error('Invalid authentication token')
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -58,15 +66,16 @@ export function AuthProvider({ children }) {
     window.location.href = '/admin/login'
   }, [])
 
-  const loginWithCredentials = useCallback(async (email, password) => {
+  const loginWithCredentials = useCallback(async (username, password) => {
+    const tokenUrl = `${keycloak.authServerUrl}/realms/${keycloak.realm}/protocol/openid-connect/token`
     const params = new URLSearchParams({
       grant_type: 'password',
-      client_id: 'att-frontend',
-      username: email,
-      password: password,
+      client_id: keycloak.clientId,
+      username,
+      password,
     })
 
-    const response = await fetch('/auth/realms/att/protocol/openid-connect/token', {
+    const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),

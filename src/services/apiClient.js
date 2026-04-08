@@ -1,6 +1,5 @@
 import axios from 'axios';
-import keycloak from '../keycloak';
-import { storeTokens, clearStoredTokens } from '../keycloak';
+import keycloak, { storeTokens, clearStoredTokens } from '../keycloak';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // Use relative URLs since nginx handles routing

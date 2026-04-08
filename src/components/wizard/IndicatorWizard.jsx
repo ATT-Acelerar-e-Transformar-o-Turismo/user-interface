@@ -19,6 +19,8 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [showResourceWizard, setShowResourceWizard] = useState(false);
   const [createdIndicatorId, setCreatedIndicatorId] = useState(null);
   const [domains, setDomains] = useState([]);
@@ -160,7 +162,8 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving indicator:', error);
-      throw error;
+      setErrorMessage(error.userMessage || error.message || t('wizard.indicator.error_generic'));
+      setShowErrorModal(true);
     }
   }
 
@@ -383,6 +386,14 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
           label: t('wizard.indicator.add_sources_later'),
           onClick: handleFinish
         }}
+      />
+
+      <SuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title={t('wizard.indicator.error_title', 'Erro')}
+        message={errorMessage}
+        variant="error"
       />
 
       {createdIndicatorId && (

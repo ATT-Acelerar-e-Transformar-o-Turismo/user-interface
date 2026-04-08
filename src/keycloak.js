@@ -17,7 +17,11 @@ const TOKEN_KEYS = {
 export function storeTokens(accessToken, refreshToken, idToken) {
   sessionStorage.setItem(TOKEN_KEYS.token, accessToken)
   sessionStorage.setItem(TOKEN_KEYS.refreshToken, refreshToken)
-  if (idToken) sessionStorage.setItem(TOKEN_KEYS.idToken, idToken)
+  if (idToken) {
+    sessionStorage.setItem(TOKEN_KEYS.idToken, idToken)
+  } else {
+    sessionStorage.removeItem(TOKEN_KEYS.idToken)
+  }
 }
 
 export function clearStoredTokens() {
