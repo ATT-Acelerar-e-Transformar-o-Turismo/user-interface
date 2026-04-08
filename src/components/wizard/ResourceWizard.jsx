@@ -153,7 +153,7 @@ export default function ResourceWizard({
         let data;
         if (fileExtension === 'csv') {
           data = await parseCSVPromise(file);
-        } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        } else if (fileExtension === 'xlsx') {
           data = await parseXLSXPromise(file);
         }
 
@@ -350,7 +350,7 @@ export default function ResourceWizard({
           for (let i = 0; i < wizard.formData.files.length; i++) {
             const file = wizard.formData.files[i];
             const sizeError = validateFileSize(file, 50);
-            const typeError = validateFileType(file, ['.csv', '.xlsx', '.xls']);
+            const typeError = validateFileType(file, ['.csv', '.xlsx']);
 
             if (sizeError) {
               errors.files = `${file.name}: ${sizeError}`;
@@ -580,7 +580,7 @@ export default function ResourceWizard({
                 name="files"
                 files={wizard.formData.files}
                 onChange={(files) => wizard.updateFormData('files', files)}
-                accept=".csv,.xlsx,.xls"
+                accept=".csv,.xlsx"
                 maxSizeMB={50}
                 multiple={true}
                 required
