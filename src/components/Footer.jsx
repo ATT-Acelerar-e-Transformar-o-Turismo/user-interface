@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -5,6 +6,9 @@ import { ROUTES } from '../constants/routes';
 
 export default function Footer() {
   const { t } = useTranslation();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -40,36 +44,16 @@ export default function Footer() {
               </p>
             </div>
 
-            <div>
-              <h3 className="text-[20px] lg:text-[30px] font-semibold text-primary-content mb-2 lg:mb-4 tracking-[-0.3px]">
-                {t('footer.phone_title')}
-              </h3>
-              <p className="text-base lg:text-2xl text-primary-content leading-[1.5]">
-                {t('footer.phone_value')}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-[20px] lg:text-[30px] font-semibold text-primary-content mb-2 lg:mb-4 tracking-[-0.3px]">
-                {t('footer.social_title')}
-              </h3>
-              <div className="flex gap-4 justify-center md:justify-start">
-                <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-[#e5e5e5] hover:bg-white/20">
-                  <i className="fab fa-instagram text-primary-content"></i>
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-[#e5e5e5] hover:bg-white/20">
-                  <i className="fab fa-linkedin text-primary-content"></i>
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-[#e5e5e5] hover:bg-white/20">
-                  <i className="fab fa-twitter text-primary-content"></i>
-                </button>
-              </div>
-            </div>
           </div>
 
           <form
             className="md:col-span-3 grid grid-cols-2 gap-x-4 lg:gap-x-6 gap-y-2"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const subject = encodeURIComponent(`Contacto de ${name}`);
+              const body = encodeURIComponent(`Nome: ${name}\nEmail: ${email}\n\n${message}`);
+              window.location.href = `mailto:Degeit-roots@ua.pt?subject=${subject}&body=${body}`;
+            }}
           >
             <div className="col-span-1">
               <label htmlFor="footer-name" className="text-base lg:text-2xl font-semibold text-primary-content mb-2 block tracking-[-0.48px]">
@@ -79,6 +63,9 @@ export default function Footer() {
                 id="footer-name"
                 name="name"
                 type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full h-[42px] px-[14px] py-[8.75px] rounded-[9.333px] border-[1.167px] border-[#e5e5e5] bg-white shadow-[0px_1.057px_2.114px_0px_rgba(0,0,0,0.05)]"
               />
             </div>
@@ -91,6 +78,9 @@ export default function Footer() {
                 id="footer-email"
                 name="email"
                 type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-[42px] px-[14px] py-[8.75px] rounded-[9.333px] border-[1.167px] border-[#e5e5e5] bg-white shadow-[0px_1.057px_2.114px_0px_rgba(0,0,0,0.05)]"
               />
             </div>
@@ -102,6 +92,9 @@ export default function Footer() {
               <textarea
                 id="footer-message"
                 name="message"
+                required
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 className="w-full h-[180px] lg:h-[220px] px-[14px] py-[8.75px] rounded-[9.333px] border-[1.167px] border-[#e5e5e5] bg-white shadow-[0px_1.057px_2.114px_0px_rgba(0,0,0,0.05)] resize-none"
               ></textarea>
             </div>
