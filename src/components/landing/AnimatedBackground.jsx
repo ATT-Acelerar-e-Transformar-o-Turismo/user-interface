@@ -60,11 +60,6 @@ export default function AnimatedBackground() {
   const circleX = useTransform(scrollY, [0, heroStart, heroEnd], [heroStartX, heroStartX, '50%']);
   const circleTranslateX = '-50%';
 
-  // Secondary ellipse (green glow) — desktop only
-  const ellipse2Opacity = useTransform(scrollY, [0, heroStart, heroEnd, heroEnd + 400], [0.34, 0.34, 0.34, 0]);
-  const ellipse2Y = useTransform(scrollY, [0, heroStart, heroEnd], [375, 375, -198]);
-  const ellipse2Size = useTransform(scrollY, [0, heroStart, heroEnd], [569, 569, 1325]);
-
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden -z-10 pointer-events-none bg-base-100">
       {/* Primary circle */}
@@ -79,22 +74,6 @@ export default function AnimatedBackground() {
           backgroundColor: 'var(--color-primary)',
         }}
       />
-
-      {/* Secondary ellipse (green glow) — desktop only */}
-      {!isMobile && (
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            top: ellipse2Y,
-            left: '93px',
-            width: ellipse2Size,
-            height: ellipse2Size,
-            backgroundColor: '#12BD8A',
-            opacity: ellipse2Opacity,
-            filter: 'blur(84.85px)',
-          }}
-        />
-      )}
     </div>
   );
 }
