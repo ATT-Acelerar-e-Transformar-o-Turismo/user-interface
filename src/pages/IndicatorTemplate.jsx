@@ -10,6 +10,7 @@ import GChart from "../components/Chart";
 import Views from "../components/Views";
 import indicatorService from "../services/indicatorService";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Link } from "react-router-dom";
 
 import useIndicatorData from "../hooks/useIndicatorData";
 import useLocalizedName from "../hooks/useLocalizedName";
@@ -49,6 +50,8 @@ export default function IndicatorTemplate() {
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [viewport, setViewport] = useState({ min: null, max: null });
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -387,7 +390,9 @@ export default function IndicatorTemplate() {
     });
   };
 
-  const images = resolvedDomainObj.DomainCarouselImages || [];
+  const images = resolvedDomainObj.DomainCarouselImages?.length > 0
+    ? resolvedDomainObj.DomainCarouselImages
+    : [];
 
   const realCharts = [
     {
@@ -404,23 +409,103 @@ export default function IndicatorTemplate() {
     }
   ];
 
-  return (
-    <PageTemplate>
-      <div className="min-h-screen bg-base-100">
-        <section className="text-center pb-12 px-4">
-          <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight font-['Onest',sans-serif]">
-              {getName(indicatorData)}
-            </h1>
-            <p className="text-sm md:text-base text-black mb-8 max-w-2xl mx-auto leading-relaxed">
-              {getName.field(indicatorData, 'description', 'description_en') || t('indicator.default_description', { name: getName(indicatorData) })}
-            </p>
-          </div>
-        </section>
+  const domainColor = resolvedDomainObj?.DomainColor || resolvedDomainObj?.color || '#C3F25E';
+  const domainIcon = resolvedDomainObj?.DomainIcon;
+  const domainPath = resolvedDomainObj?.name
+    ? `/indicators/${resolvedDomainObj.name.toLowerCase().replace(/\s+/g, '-')}`
+    : '/indicators';
 
-        <div className="container mx-auto max-w-7xl px-4 pb-12">
-          <div className="p-4 border-b border-base-300 mb-8">
-            {resolvedDomainObj && (
+  const indicatorResources = indicatorData?.resources
+    ? resources.filter(r => indicatorData.resources.includes(r.id) && (r.startPeriod || r.endPeriod))
+    : [];
+
+  const cardClass = "bg-[#fffefc] rounded-lg p-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]";
+
+  return (
+    <PageTemplate fullBleed>
+      <div className="min-h-screen bg-[#f3f4f6] overflow-x-hidden">
+        {/* Hero banner */}
+        <div className="relative w-full">
+          <div className="w-full h-[200px] sm:h-[400px] bg-gray-800">
+            {images[0] && <img src={images[0]} alt="" className="w-full h-full object-cover opacity-60" />}
+          </div>
+          <div className="w-full h-12 sm:h-24 bg-[#f3f4f6]" />
+          {/* Mobile: wave */}
+          <svg
+            className="absolute bottom-0 left-0 w-full h-20 sm:hidden"
+            viewBox="0 0 433 71"
+            fill="none"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <filter id="indicator-mobile-wave" x="0" y="0" width="432.123" height="70.5088" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                <feMorphology radius="0.652927" operator="dilate" in="SourceAlpha" result="effect1"/>
+                <feOffset/><feGaussianBlur stdDeviation="0.489695"/>
+                <feComposite in2="hardAlpha" operator="out"/>
+                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"/>
+                <feBlend mode="normal" in2="BackgroundImageFix" result="effect1"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="effect1" result="shape"/>
+              </filter>
+            </defs>
+            <g filter="url(#indicator-mobile-wave)">
+              <path d="M9.59497 26.3733C82.3981 54.3991 127.74 43.7612 190.611 31.5028C280.743 13.9292 338.564 29.4627 426.1 47.1511" stroke={domainColor} strokeWidth="44.329"/>
+            </g>
+          </svg>
+          <svg
+            className="absolute bottom-0 left-0 w-full h-56 hidden sm:block"
+            viewBox="0 0 1512 230"
+            fill="none"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <filter id="indicator-wave-shadow" x="-110" y="0" width="1729" height="230" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                <feMorphology radius="1.46" operator="dilate" in="SourceAlpha" result="effect1"/>
+                <feOffset/><feGaussianBlur stdDeviation="1.1"/>
+                <feComposite in2="hardAlpha" operator="out"/>
+                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"/>
+                <feBlend mode="normal" in2="BackgroundImageFix" result="effect1"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="effect1" result="shape"/>
+              </filter>
+            </defs>
+            <g filter="url(#indicator-wave-shadow)">
+              <path
+                d="M-56.7861 98.2787C105.288 132.099 121.652 141.321 293.331 107.848C468.398 73.7143 641.792 88.1376 762.805 119.016C1016 183.621 1352.56 229.014 1565.73 53.2341"
+                stroke={domainColor}
+                strokeWidth="99.1626"
+                strokeLinecap="round"
+              />
+            </g>
+          </svg>
+          {domainIcon && (
+            <div className="absolute left-4 sm:left-12 bottom-4 sm:bottom-10 bg-white rounded-full p-3 sm:p-5 flex items-center justify-center z-10 w-17 h-17 sm:w-28 sm:h-28 shadow-sm">
+              <img src={domainIcon} alt="" className="w-10 h-10 sm:w-19 sm:h-19 object-contain" />
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-18">
+          {/* Back button */}
+          <div className="pt-6 mb-6">
+            <Link
+              to={domainPath}
+              state={{ domainId: resolvedDomainObj?.id }}
+              className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              {t('common.back')}
+            </Link>
+          </div>
+
+          {/* Indicator navigation dropdowns */}
+          {resolvedDomainObj && (
+            <div className="mb-6">
               <IndicatorDropdowns
                 currentDomain={resolvedDomainObj}
                 currentSubdomain={subdomainObj || { name: resolvedSubdomainName }}
@@ -428,321 +513,278 @@ export default function IndicatorTemplate() {
                 onIndicatorChange={handleIndicatorChange}
                 allowSubdomainClear={false}
               />
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="flex flex-col xl:flex-row gap-4">
-            <div className="flex-1 min-h-0">
-              <div className="bg-base-200 p-4 sm:p-8 rounded-2xl">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm text-base-content/70">
-                    {t('indicator.last_updated')} {new Date().toLocaleDateString('pt-PT')}
+          <div className="space-y-6">
+            {/* Chart + Sidebar row */}
+            <div className="flex flex-col xl:flex-row gap-6">
+            {/* Chart card */}
+            <div className={`${cardClass} flex-1 min-w-0`}>
+              <div className="flex items-start justify-between gap-4 mb-5">
+                <h2 className="font-['Onest'] font-semibold text-2xl xl:text-3xl text-[#0a0a0a] tracking-tight leading-tight">
+                  {getName(indicatorData)} {indicatorData.unit ? `(${indicatorData.unit})` : ''}
+                </h2>
+                <div className="flex items-center gap-4 shrink-0">
+                  <Views
+                    size="sm"
+                    activeView={chartType}
+                    onViewChange={setChartType}
+                  />
+                </div>
+              </div>
+              <div className="h-72 sm:h-96 xl:h-[550px] relative">
+                {dataLoading && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="loading loading-spinner loading-sm text-primary"></div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Views
-                      size="sm"
-                      activeView={chartType}
-                      onViewChange={setChartType}
+                )}
+                {(allLoadedData || chartData)?.series?.[0]?.data?.length > 0 ? (
+                  <div className="h-full">
+                    <GChart
+                      ref={indicatorChartRef}
+                      chartId={`indicator-${indicatorId}`}
+                      chartType={chartType}
+                      xaxisType="datetime"
+                      series={((allLoadedData || chartData)?.series || []).map(s => ({
+                        ...s,
+                        name: getName(indicatorData) || s.name
+                      }))}
+                      height="100%"
+                      showToolbar={true}
+                      showLegend={true}
+                      themeMode="light"
+                      disableAnimations={!isInitialLoad}
+                      onViewportChange={handleViewportChange}
                     />
                   </div>
-                </div>
-
-                <div className="h-[350px] sm:h-[600px] relative">
-                  {dataLoading && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <div className="loading loading-spinner loading-sm text-primary"></div>
-                    </div>
-                  )}
-
-                  {(allLoadedData || chartData)?.series?.[0]?.data?.length > 0 ? (
-                    <div className="h-full">
-                      <GChart
-                        ref={indicatorChartRef}
-                        chartId={`indicator-${indicatorId}`}
-                        chartType={chartType}
-                        xaxisType="datetime"
-                        series={((allLoadedData || chartData)?.series || []).map(s => ({
-                          ...s,
-                          name: getName(indicatorData) || s.name
-                        }))}
-                        height="100%"
-                        showToolbar={true}
-                        showLegend={true}
-                        themeMode="light"
-                        disableAnimations={!isInitialLoad}
-                        onViewportChange={handleViewportChange}
-                      />
-                    </div>
-                  ) : (
-                    !dataLoading ? (
-                      <div className="absolute inset-0 flex justify-center items-center bg-gray-50 rounded-xl">
-                        <div className="text-center">
-                          <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                          </div>
-                          <div className="text-xl font-medium text-gray-900 mb-2">{t('indicator.no_data_title')}</div>
-                          <div className="text-gray-500">{t('indicator.no_data_description')}</div>
-                        </div>
+                ) : !dataLoading ? (
+                  <div className="absolute inset-0 flex justify-center items-center rounded-lg">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
                       </div>
-                    ) : (
-                      <div className="absolute inset-0 flex justify-center items-center bg-gray-50/50 rounded-xl">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="loading loading-spinner loading-lg text-primary"></div>
-                          <div className="text-sm text-gray-500">{t('indicator.loading_data')}</div>
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
+                      <div className="text-xl font-medium text-[#0a0a0a] mb-2">{t('indicator.no_data_title')}</div>
+                      <div className="text-[#737373]">{t('indicator.no_data_description')}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex justify-center items-center rounded-lg">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="loading loading-spinner loading-lg text-primary"></div>
+                      <div className="text-sm text-[#737373]">{t('indicator.loading_data')}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="w-full xl:w-72 space-y-3">
-              <div className="bg-base-200 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4 text-base-content">{t('indicator.tools')}</h3>
+            {/* Sidebar: Ferramentas + Opções */}
+            <div className="w-full xl:w-84 shrink-0 space-y-6">
+            {/* Ferramentas (Tools) card */}
+            <div className={cardClass}>
+              <div className="flex flex-col gap-4">
+                <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
+                  {t('indicator.tools')}
+                </h3>
 
                 <div className="space-y-4">
+                  {/* Date range */}
                   <div>
-                    <label className="text-xs font-medium text-base-content/80 mb-2 block">{t('indicator.granularity')}</label>
-                    <div className="flex flex-wrap gap-1">
+                    <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] mb-2">{t('indicator.granularity')}:</p>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-4">
+                        <span className="font-['Onest'] text-sm text-[#0a0a0a] w-6">{t('indicator.start_date_short', 'De')}</span>
+                        <input
+                          type="date"
+                          value={uiStartDate}
+                          onChange={(e) => setUiStartDate(e.target.value)}
+                          className="font-['Onest'] flex-1 px-2 py-1.5 text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-xs focus:outline-none focus:ring-1 focus:ring-primary/30"
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="font-['Onest'] text-sm text-[#0a0a0a] w-6">{t('indicator.end_date_short', 'Até')}</span>
+                        <input
+                          type="date"
+                          value={uiEndDate}
+                          onChange={(e) => setUiEndDate(e.target.value)}
+                          className="font-['Onest'] flex-1 px-2 py-1.5 text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-xs focus:outline-none focus:ring-1 focus:ring-primary/30"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Interval selector */}
+                  <div>
+                    <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] mb-2">{t('indicator.interval', 'Intervalo')}:</p>
+                    <div className="flex">
                       {[
-                        { label: t('indicator.granularity_raw'), value: '0' },
                         { label: t('indicator.granularity_day'), value: '1d' },
-                        { label: t('indicator.granularity_week'), value: '1w' },
                         { label: t('indicator.granularity_month'), value: '1M' },
                         { label: t('indicator.granularity_year'), value: '1y' },
-                      ].map((option) => (
+                      ].map((option, i, arr) => (
                         <button
                           key={option.value}
                           onClick={() => setUiGranularity(option.value)}
-                          className={`px-2 py-1 text-xs rounded border transition-colors ${
-                            uiGranularity === option.value
-                              ? 'bg-primary text-primary-content border-primary'
-                              : 'bg-white border-base-300 text-base-content hover:bg-base-100'
-                          }`}
+                          className={`font-['Onest'] font-medium text-sm px-3 py-2 border border-[#e5e5e5] -ml-px first:ml-0 transition-colors cursor-pointer
+                            ${i === 0 ? 'rounded-l-lg' : ''} ${i === arr.length - 1 ? 'rounded-r-lg' : ''}
+                            ${uiGranularity === option.value ? 'bg-black/[0.03] border-[#d4d4d4] text-[#0a0a0a]' : 'bg-transparent text-[#0a0a0a]'}`}
                         >
                           {option.label}
                         </button>
                       ))}
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-base-content/80">{t('indicator.start_date')}</span>
-                    <input
-                      type="date"
-                      value={uiStartDate}
-                      onChange={(e) => setUiStartDate(e.target.value)}
-                      className="w-32 px-2 py-1 text-sm bg-white border border-base-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-base-content/80">{t('indicator.end_date')}</span>
-                    <input
-                      type="date"
-                      value={uiEndDate}
-                      onChange={(e) => setUiEndDate(e.target.value)}
-                      className="w-32 px-2 py-1 text-sm bg-white border border-base-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      onClick={handleResetFilters}
-                      className="w-full px-3 py-2 bg-white border border-base-300 text-base-content text-sm rounded hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      {t('indicator.reset_filters')}
-                    </button>
-                  </div>
                 </div>
-              </div>
 
-              <div className="bg-base-200 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4 text-base-content">{t('common.options')}</h3>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={handleExportCSV}
-                    className="w-full flex items-center justify-start gap-3 p-3 bg-white border border-base-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="text-sm font-medium text-base-content/80">{t('indicator.export_csv')}</span>
-                  </button>
-
-                  <button
-                    onClick={handleExportImage}
-                    className="w-full flex items-center justify-start gap-3 p-3 bg-white border border-base-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-sm font-medium text-base-content/80">{t('indicator.export_image')}</span>
-                  </button>
-
-                  <button
-                    onClick={handleCopyReference}
-                    className="w-full flex items-center justify-start gap-3 p-3 bg-white border border-base-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <svg className="w-5 h-5 text-base-content/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-sm font-medium text-base-content/80">{t('indicator.copy_reference')}</span>
-                  </button>
-                </div>
+                {/* Reset button */}
+                <button
+                  onClick={handleResetFilters}
+                  className="w-full font-['Onest'] font-medium text-base text-[#0a0a0a] border border-[#d4d4d4] rounded-full py-2 shadow-sm hover:bg-black/[0.02] transition-colors cursor-pointer"
+                >
+                  {t('indicator.reset_filters')}
+                </button>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="px-6 pb-6 space-y-6">
-          <div className="bg-base-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-base-content">{t('indicator.info_title')}</h3>
-              {isAdmin && (
-                <button
-                  onClick={handleEditInformation}
-                  className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
-                >
-                  {t('indicator.edit_info')}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+            {/* Opções (Options) card */}
+            <div className={cardClass}>
+              <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight mb-4">
+                {t('common.options')}
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { action: handleExportCSV, label: t('indicator.export_csv'), icon: "M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+                  { action: handleExportImage, label: t('indicator.export_image'), icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" },
+                  { action: handleCopyReference, label: t('indicator.copy_reference'), icon: "M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" },
+                  { action: async () => { if (navigator.share) { try { await navigator.share({ url: window.location.href }); } catch { handleCopyReference(); } } else handleCopyReference(); }, label: t('indicator.share', 'Partilhar'), icon: "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" },
+                ].map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={item.action}
+                    className="flex items-center gap-4 w-full py-1 cursor-pointer hover:opacity-70 transition-opacity"
+                  >
+                    <div className="w-8 h-8 flex items-center justify-center border border-[#e5e5e5] rounded-lg shadow-sm shrink-0">
+                      <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                      </svg>
+                    </div>
+                    <span className="font-['Onest'] text-sm text-[#0a0a0a]">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            </div>{/* end sidebar */}
+            </div>{/* end chart + sidebar row */}
+
+            {/* Sobre o indicador (About) — accordion */}
+            <div className={cardClass}>
+              <button
+                onClick={() => setInfoOpen(!infoOpen)}
+                className="w-full flex items-center justify-between cursor-pointer"
+              >
+                <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
+                  {t('indicator.info_title')}
+                </h3>
+                <svg className={`w-7 h-7 text-[#0a0a0a] transition-transform ${infoOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {infoOpen && (
+                <div className="mt-4 space-y-4">
+                  {isAdmin && (
+                    <button
+                      onClick={handleEditInformation}
+                      className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
+                    >
+                      {t('indicator.edit_info')}
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  )}
+                  {indicatorData.description && (
+                    <p className="font-['Onest'] text-sm text-[#0a0a0a] leading-relaxed">
+                      {getName.field(indicatorData, 'description', 'description_en')}
+                    </p>
+                  )}
+                  <div className="font-['Onest'] text-sm text-[#0a0a0a] space-y-6">
+                    <p><span className="font-semibold">{t('indicator.sources_label')}</span> {indicatorData.characteristics?.source || indicatorData.font || indicatorData.source || "INE"}</p>
+                    <p><span className="font-semibold">{t('indicator.scale_label')}</span> N/A</p>
+                    <p><span className="font-semibold">{t('indicator.units_label')}</span> {indicatorData.characteristics?.unit_of_measure || indicatorData.unit_of_measure || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.periodicity_label')}</span> {indicatorData.characteristics?.periodicity || indicatorData.periodicity || "Anual"}</p>
+                    <p><span className="font-semibold">{t('indicator.governance_label')}</span> {indicatorData?.governance ? t('common.yes') : t('common.no')}</p>
+                    <p><span className="font-semibold">{t('indicator.dimension_label')}</span> {getName(resolvedDomainObj)}</p>
+                    <p><span className="font-semibold">{t('indicator.domain_label')}</span> {resolvedSubdomainName || ""}</p>
+                  </div>
+                </div>
               )}
             </div>
 
-            {indicatorData.description && (
-              <p className="text-base-content/90 mb-4 text-sm leading-relaxed">{indicatorData.description}</p>
-            )}
-
-            <div className="text-sm space-y-1">
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.sources_label')} </span>
-                <span className="text-base-content">{indicatorData.characteristics?.source || indicatorData.font || indicatorData.source || "INE"}</span>
-              </div>
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.scale_label')} </span>
-                <span className="text-base-content">N/A</span>
-              </div>
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.units_label')} </span>
-                <span className="text-base-content">{indicatorData.characteristics?.unit_of_measure || indicatorData.unit_of_measure || "N/A"}</span>
-              </div>
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.periodicity_label')} </span>
-                <span className="text-base-content">{indicatorData.characteristics?.periodicity || indicatorData.periodicity || "Anual"}</span>
-              </div>
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.governance_label')} </span>
-                <span className="text-base-content">{indicatorData?.governance ? t('common.yes') : t('common.no')}</span>
-              </div>
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.dimension_label')} </span>
-                <span className="text-base-content">{getName(resolvedDomainObj)}</span>
-              </div>
-              <div>
-                <span className="font-medium text-base-content/80">{t('indicator.domain_label')} </span>
-                <span className="text-base-content">{resolvedSubdomainName || ""}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-base-200 p-6">
-            {(() => {
-              const indicatorResources = indicatorData?.resources
-                ? resources.filter(r =>
-                    indicatorData.resources.includes(r.id) &&
-                    (r.startPeriod || r.endPeriod)
-                  )
-                : [];
-              return (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-base-content">
-                      {t('indicator.sources_title')} ({indicatorResources.length})
-                    </h3>
-                    {isAdmin && (
-                      <button
-                        onClick={handleAddSources}
-                        className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer"
-                      >
-                        {t('indicator.add_sources')}
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-
-                  {indicatorResources.length === 0 ? (
-                    <div className="text-center py-8 text-base-content/60">
-                      <svg className="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            {/* Fontes do Indicador (Sources) — accordion */}
+            <div className={cardClass}>
+              <button
+                onClick={() => setSourcesOpen(!sourcesOpen)}
+                className="w-full flex items-center justify-between cursor-pointer"
+              >
+                <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
+                  {t('indicator.sources_title')} ({indicatorResources.length})
+                </h3>
+                <svg className={`w-7 h-7 text-[#0a0a0a] transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {sourcesOpen && (
+                <div className="mt-4">
+                  {isAdmin && (
+                    <button
+                      onClick={handleAddSources}
+                      className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer mb-4"
+                    >
+                      {t('indicator.add_sources')}
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
+                    </button>
+                  )}
+                  {indicatorResources.length === 0 ? (
+                    <div className="text-center py-8 text-[#737373]">
                       <p>{t('indicator.no_sources')}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full">
+                      <table className="w-full font-['Onest']">
                         <thead>
-                          <tr className="border-b border-base-300">
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('indicator.col_name')}</th>
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('indicator.col_start_period')}</th>
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('indicator.col_end_period')}</th>
-                            <th className="text-left py-3 px-4 font-medium text-base-content/60">{t('common.options')}</th>
+                          <tr className="border-b border-[#e5e5e5]">
+                            <th className="text-left py-3 px-4 font-medium text-sm text-[#737373]">{t('indicator.col_name')}</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm text-[#737373]">{t('indicator.col_start_period')}</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm text-[#737373]">{t('indicator.col_end_period')}</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm text-[#737373]">{t('common.options')}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {indicatorResources.map((resource) => (
-                            <tr key={resource.id} className="border-b border-base-300/50">
-                              <td className="py-3 px-4 flex items-center gap-3">
-                                <svg className="w-5 h-5 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span className="text-sm text-base-content">{resource.name}</span>
-                              </td>
-                              <td className="py-3 px-4 text-sm text-base-content">
+                            <tr key={resource.id} className="border-b border-[#f3f4f6]">
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">{resource.name}</td>
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">
                                 {resource.startPeriod ? new Date(resource.startPeriod).toLocaleDateString() : '-'}
                               </td>
-                              <td className="py-3 px-4 text-sm text-base-content">
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">
                                 {resource.endPeriod ? new Date(resource.endPeriod).toLocaleDateString() : '-'}
                               </td>
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => handleSourceExportCSV(resource.name)}
-                                    className="text-base-content/40 hover:text-primary transition-colors"
-                                    title={t('indicator.export_csv')}
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                                  <button onClick={() => handleSourceExportCSV(resource.name)} className="text-[#737373] hover:text-primary transition-colors cursor-pointer" title={t('indicator.export_csv')}>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                   </button>
-
-                                  <button
-                                    onClick={() => handleSourceView(resource.name)}
-                                    className="text-base-content/40 hover:text-success transition-colors"
-                                    title="Mostrar apenas dados desta fonte no gráfico"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                  <button onClick={() => handleSourceView(resource.name)} className="text-[#737373] hover:text-success transition-colors cursor-pointer">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                   </button>
-
                                   {isAdmin && (
-                                    <button
-                                      onClick={() => handleSourceDelete(resource.name)}
-                                      className="text-base-content/40 hover:text-error transition-colors"
-                                      title="Eliminar fonte (apenas administradores)"
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
+                                    <button onClick={() => handleSourceDelete(resource.name)} className="text-[#737373] hover:text-error transition-colors cursor-pointer">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
                                   )}
                                 </div>
@@ -753,12 +795,11 @@ export default function IndicatorTemplate() {
                       </table>
                     </div>
                   )}
-                </>
-              );
-            })()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
       </div>
     </PageTemplate>
   );

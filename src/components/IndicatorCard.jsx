@@ -101,7 +101,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
 
     return (
         <div
-            className={`bg-base-100 rounded-2xl shadow-sm border border-base-300 transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full max-w-sm cursor-pointer relative ${hidden ? 'opacity-50' : ''}`}
+            className={`bg-base-100 rounded-2xl shadow-sm border border-base-300 transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full cursor-pointer relative ${hidden ? 'opacity-50' : ''}`}
             onClick={handleClick}
         >
             <style>{`
