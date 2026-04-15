@@ -54,14 +54,14 @@ export default function HeroSection() {
         {/* Bottom Block: Description & Button */}
         <div className="relative z-10 w-full flex flex-col items-start mt-4 sm:mt-8">
           {/* Subtitle */}
-          <div className="mb-6 sm:mb-8 max-w-[600px]" data-aos="fade-up" data-aos-delay="300">
+          <div id="hero-subtitle" className="mb-6 sm:mb-8 max-w-[600px]" data-aos="fade-up" data-aos-delay="300">
             <p className="font-['Onest'] font-medium text-[18px] sm:text-[22px] md:text-[24px] leading-tight text-[#0a0a0a]">
               {t('hero.subtitle')}
             </p>
           </div>
 
           {/* CTA Button — scrolls to about on desktop, navigates on mobile */}
-          <div data-aos="fade-up" data-aos-delay="300" data-aos-offset="-300">
+          <div id="hero-cta" data-aos="fade-up" data-aos-delay="300" data-aos-offset="-300">
             <button
               onClick={() => navigate('/indicators')}
               className="bg-primary text-[#fafafa] flex items-center gap-3 px-6 py-3 sm:px-8 sm:py-4 rounded-full hover:bg-[color:var(--color-primary-hover)] transition-all shadow-md"
