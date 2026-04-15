@@ -74,16 +74,21 @@ function Dropdowns({
     <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
       {/* Domain Dropdown */}
       <div ref={domainRef} className="relative">
-        <button
-          onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
-          className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[200px]"
-        >
-          <span className="truncate">{getName(selectedDomain) || t('components.select_domain.choose_domain')}</span>
+        <div className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] focus-within:ring-2 focus-within:ring-primary/20 transition-colors flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[200px]">
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDomainDropdownOpen(!isDomainDropdownOpen); } }}
+            className="truncate cursor-pointer flex-1"
+          >
+            {getName(selectedDomain) || t('components.select_domain.choose_domain')}
+          </span>
           <div className="flex items-center gap-1">
             {selectedDomain?.name && allowDomainClear && (
               <button
                 onClick={clearDomain}
-                className="hover:bg-black/[0.06] rounded p-0.5 transition-colors"
+                className="hover:bg-black/[0.06] rounded p-0.5 transition-colors cursor-pointer"
                 title="Limpar"
               >
                 <svg className="w-3 h-3 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,7 +97,8 @@ function Dropdowns({
               </button>
             )}
             <svg
-              className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 ${isDomainDropdownOpen ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 cursor-pointer ${isDomainDropdownOpen ? 'rotate-180' : ''}`}
+              onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -100,7 +106,7 @@ function Dropdowns({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
-        </button>
+        </div>
 
         {/* Domain Dropdown Menu */}
         {isDomainDropdownOpen && (
@@ -121,27 +127,31 @@ function Dropdowns({
       {/* Subdomain Dropdown */}
       {selectedDomain && (
         <div ref={subdomainRef} className="relative">
-          <button
-            onClick={() => setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen)}
-            className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[200px]"
-          >
-            <span className="truncate">
+          <div className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] focus-within:ring-2 focus-within:ring-primary/20 transition-colors flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[200px]">
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen); } }}
+              className="truncate cursor-pointer flex-1"
+            >
               {getName(selectedSubdomain) || t('components.select_domain.choose_dimension')}
             </span>
             <div className="flex items-center gap-1">
               {selectedSubdomain?.name && allowSubdomainClear && (
                 <button
                   onClick={clearSubdomain}
-                  className="hover:bg-gray-300 rounded p-0.5 transition-colors"
+                  className="hover:bg-black/[0.06] rounded p-0.5 transition-colors cursor-pointer"
                   title="Limpar"
                 >
-                  <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               )}
               <svg
-                className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 ${isSubdomainDropdownOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 cursor-pointer ${isSubdomainDropdownOpen ? 'rotate-180' : ''}`}
+                onClick={() => setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen)}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -149,7 +159,7 @@ function Dropdowns({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-          </button>
+          </div>
 
           {/* Subdomain Dropdown Menu */}
           {isSubdomainDropdownOpen && (
