@@ -7,7 +7,6 @@ import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns";
 import GChart from "../components/Chart";
-import Views from "../components/Views";
 import indicatorService from "../services/indicatorService";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
@@ -52,8 +51,25 @@ export default function IndicatorTemplate() {
   const [viewport, setViewport] = useState({ min: null, max: null });
   const [infoOpen, setInfoOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [chartDropdownOpen, setChartDropdownOpen] = useState(false);
+  const chartDropdownRef = useRef(null);
 
   const isAdmin = user?.role === 'admin';
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (chartDropdownRef.current && !chartDropdownRef.current.contains(e.target)) setChartDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const chartTypeOptions = [
+    { value: 'line', label: t('indicator.chart_line', 'Linha'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'column', label: t('indicator.chart_column', 'Colunas'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 10V19M16 7V19M8 14V19M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'bar', label: t('indicator.chart_bar', 'Barras'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'scatter', label: t('indicator.chart_scatter', 'Dispersão'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H7.8C6.12 21 5.28 21 4.638 20.673C4.074 20.385 3.615 19.927 3.327 19.362C3 18.72 3 17.88 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+  ];
 
   const handleViewportChange = useCallback((newViewport) => {
     if (newViewport.min !== viewport.min || newViewport.max !== viewport.max) {
@@ -416,7 +432,7 @@ export default function IndicatorTemplate() {
     : '/indicators';
 
   const indicatorResources = indicatorData?.resources
-    ? resources.filter(r => indicatorData.resources.includes(r.id) && (r.startPeriod || r.endPeriod))
+    ? resources.filter(r => indicatorData.resources.includes(r.id))
     : [];
 
   const cardClass = "bg-[#fffefc] rounded-lg p-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]";
@@ -432,7 +448,7 @@ export default function IndicatorTemplate() {
           <div className="w-full h-12 sm:h-24 bg-[#f3f4f6]" />
           {/* Mobile: wave */}
           <svg
-            className="absolute bottom-0 left-0 w-full h-20 sm:hidden"
+            className="absolute bottom-0 left-[-5%] w-[110%] h-20 sm:hidden"
             viewBox="0 0 433 71"
             fill="none"
             preserveAspectRatio="none"
@@ -525,12 +541,32 @@ export default function IndicatorTemplate() {
                 <h2 className="font-['Onest'] font-semibold text-2xl xl:text-3xl text-[#0a0a0a] tracking-tight leading-tight">
                   {getName(indicatorData)} {indicatorData.unit ? `(${indicatorData.unit})` : ''}
                 </h2>
-                <div className="flex items-center gap-4 shrink-0">
-                  <Views
-                    size="sm"
-                    activeView={chartType}
-                    onViewChange={setChartType}
-                  />
+                <div ref={chartDropdownRef} className="relative shrink-0">
+                  <button
+                    onClick={() => setChartDropdownOpen(!chartDropdownOpen)}
+                    className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
+                    title={chartTypeOptions.find(o => o.value === chartType)?.label}
+                  >
+                    {chartTypeOptions.find(o => o.value === chartType)?.icon}
+                    <svg className={`w-3.5 h-3.5 text-[#0a0a0a] shrink-0 transition-transform ${chartDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {chartDropdownOpen && (
+                    <div className="absolute z-50 mt-2 right-0 bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden">
+                      {chartTypeOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => { setChartType(option.value); setChartDropdownOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl cursor-pointer whitespace-nowrap ${chartType === option.value ? 'text-primary bg-black/[0.02]' : 'text-[#0a0a0a]'}`}
+                          title={option.label}
+                        >
+                          {option.icon}
+                          <span className="font-['Onest'] text-sm">{option.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="h-72 sm:h-96 xl:h-[550px] relative">
