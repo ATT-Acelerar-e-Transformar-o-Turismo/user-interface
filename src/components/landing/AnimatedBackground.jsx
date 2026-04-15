@@ -19,10 +19,18 @@ export default function AnimatedBackground() {
 
   // Measure the features section top to know where the circle bottom edge should land
   const [featuresTop, setFeaturesTop] = useState(99999);
+  // Measure when the subtitle bottom scrolls out of view
+  const [subtitleEnd, setSubtitleEnd] = useState(null);
   useEffect(() => {
     const update = () => {
       const el = document.getElementById('features');
       if (el) setFeaturesTop(el.offsetTop);
+      const cta = document.getElementById('hero-cta');
+      if (cta) {
+        // scrollY at which the CTA button's bottom edge leaves the top of the viewport
+        // This means the user has scrolled past ALL hero text + button
+        setSubtitleEnd(cta.offsetTop + cta.offsetHeight);
+      }
     };
     update();
     window.addEventListener('resize', update);
@@ -38,19 +46,24 @@ export default function AnimatedBackground() {
   const heroStartY = isMobile ? 442 : 259;
   const heroStartSize = isMobile ? 780 : 801;
   const expandedSize = isMobile ? 3000 : 5100;
-  const heroEnd = isMobile ? 600 : 400;
-  // +150 so curved title (at top of features section) stays inside the circle
-  const circleRestY = featuresTop - expandedSize + 200;
+  // The scroll position where the CTA button leaves the viewport
+  const heroStart = subtitleEnd || (isMobile ? 300 : 200);
+  // How much additional scroll after that to fully expand
+  const expandDuration = isMobile ? 800 : 1200;
+  const heroEnd = heroStart + expandDuration;
+  // Position so the circle's bottom edge sits at featuresTop
+  const circleRestY = featuresTop - expandedSize + (isMobile ? 80 : 200);
 
-  const circleY = useTransform(scrollY, [0, heroEnd], [heroStartY, circleRestY]);
-  const circleSize = useTransform(scrollY, [0, heroEnd], [heroStartSize, expandedSize]);
-  const circleX = useTransform(scrollY, [0, heroEnd], [heroStartX, '50%']);
+  // Circle stays at initial state until heroStart, then expands to heroEnd
+  const circleY = useTransform(scrollY, [0, heroStart, heroEnd], [heroStartY, heroStartY, circleRestY]);
+  const circleSize = useTransform(scrollY, [0, heroStart, heroEnd], [heroStartSize, heroStartSize, expandedSize]);
+  const circleX = useTransform(scrollY, [0, heroStart, heroEnd], [heroStartX, heroStartX, '50%']);
   const circleTranslateX = '-50%';
 
   // Secondary ellipse (green glow) — desktop only
-  const ellipse2Opacity = useTransform(scrollY, [0, heroEnd, heroEnd + 400], [0.34, 0.34, 0]);
-  const ellipse2Y = useTransform(scrollY, [0, heroEnd], [375, -198]);
-  const ellipse2Size = useTransform(scrollY, [0, heroEnd], [569, 1325]);
+  const ellipse2Opacity = useTransform(scrollY, [0, heroStart, heroEnd, heroEnd + 400], [0.34, 0.34, 0.34, 0]);
+  const ellipse2Y = useTransform(scrollY, [0, heroStart, heroEnd], [375, 375, -198]);
+  const ellipse2Size = useTransform(scrollY, [0, heroStart, heroEnd], [569, 569, 1325]);
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden -z-10 pointer-events-none bg-base-100">
