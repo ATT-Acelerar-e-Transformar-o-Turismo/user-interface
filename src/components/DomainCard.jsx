@@ -5,6 +5,7 @@ import arrowRight from '../assets/images/arrow-right.svg';
 
 export default function DomainCard({
   title,
+  domainId,
   page,
   color = "#C3F25E",
   icon,
@@ -20,7 +21,7 @@ export default function DomainCard({
   const handleClick = () => {
     if (page) {
       navigate(page, {
-        state: { domainName: title }
+        state: { domainId }
       });
     }
   };
@@ -68,7 +69,7 @@ export default function DomainCard({
                   e.stopPropagation();
                   if (page) {
                     navigate(`${page}?subdomain=${encodeURIComponent(name)}`, {
-                      state: { domainName: title, subdomain: name }
+                      state: { domainId, subdomain: name }
                     });
                   }
                 }}

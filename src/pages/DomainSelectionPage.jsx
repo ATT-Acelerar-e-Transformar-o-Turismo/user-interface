@@ -49,6 +49,7 @@ export default function DomainSelectionPage() {
                 <DomainCard
                   key={domain?.id || index}
                   title={getName(domain) || "Unnamed Domain"}
+                  domainId={domain?.id}
                   page={`/indicators/${domain?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
                   color={domain?.DomainColor || domain?.color}
                   icon={domain?.DomainIcon}
