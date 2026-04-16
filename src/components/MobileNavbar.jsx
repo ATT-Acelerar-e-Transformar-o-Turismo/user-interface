@@ -136,6 +136,11 @@ export default function MobileNavbar() {
                                 {t('nav.indicators')}
                             </Link>
 
+                            {/* Publicações */}
+                            <Link to="/publications" className="font-bold text-2xl leading-6 text-[#fffefc]">
+                                {t('nav.publications', 'Publicações')}
+                            </Link>
+
                             {/* Notícias */}
                             <Link to="/news-events" className="font-bold text-2xl leading-6 text-[#fffefc]">
                                 {t('nav.news')}

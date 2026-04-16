@@ -6,18 +6,16 @@ import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 
-const CATEGORY_IDS = ['all', 'Noticias', 'Eventos']
-const CATEGORY_KEYS = ['blog.filter_all', 'blog.filter_news', 'blog.filter_events']
-const ALL_TAGS = ['Noticias', 'Eventos']
+const CATEGORY_IDS = ['all', 'Publicações Cientificas', 'Relatórios', 'Documentos']
+const CATEGORY_KEYS = ['blog.filter_all', 'blog.filter_scientific_publications', 'blog.filter_reports', 'blog.filter_documents']
+const ALL_TAGS = ['Publicações Cientificas', 'Relatórios', 'Documentos']
 const TAG_KEY_MAP = {
-    'Noticias': 'blog.filter_news',
-    'Eventos': 'blog.filter_events',
     'Publicações Cientificas': 'blog.filter_scientific_publications',
     'Relatórios': 'blog.filter_reports',
     'Documentos': 'blog.filter_documents',
 }
 
-function PostCard({ post, compact = false }) {
+function PublicationCard({ post }) {
     const { t } = useTranslation()
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
@@ -25,17 +23,15 @@ function PostCard({ post, compact = false }) {
 
     return (
         <Link
-            to={`/news-events/${post.id}`}
+            to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-6 rounded-xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            {/* Thumbnail — only if uploaded */}
             {thumbnail && (
-                <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
                 </div>
             )}
 
-            {/* Title + arrow */}
             <div className="flex items-start gap-4">
                 <h3 className="font-['Onest'] font-semibold text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
                     {post.title}
@@ -47,14 +43,12 @@ function PostCard({ post, compact = false }) {
                 </div>
             </div>
 
-            {/* Excerpt */}
-            {!compact && post.excerpt && (
-                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-4">
+            {post.excerpt && (
+                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-3">
                     {post.excerpt}
                 </p>
             )}
 
-            {/* Author + date + badge */}
             <div className="flex flex-wrap items-center gap-2 mt-auto min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                     <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden shrink-0">
@@ -80,9 +74,9 @@ function PostCard({ post, compact = false }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && (
+                {post.tags && post.tags[0] && TAG_KEY_MAP[post.tags[0]] && (
                     <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
+                        {t(TAG_KEY_MAP[post.tags[0]])}
                     </span>
                 )}
             </div>
@@ -90,81 +84,7 @@ function PostCard({ post, compact = false }) {
     )
 }
 
-function FeaturedPost({ post }) {
-    const { t } = useTranslation()
-    if (!post) return null
-    const thumbnail = post.thumbnail_url
-        ? blogService.getFileUrl(post.thumbnail_url)
-        : null
-
-    return (
-        <Link
-            to={`/news-events/${post.id}`}
-            className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
-        >
-            {/* Large thumbnail — only if uploaded */}
-            {thumbnail && (
-                <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
-                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-            )}
-
-            {/* Title + arrow */}
-            <div className="flex items-start gap-4">
-                <div className="flex-1 flex flex-col gap-4">
-                    <h2 className="font-['Onest'] font-semibold text-3xl leading-none text-[#0a0a0a]">
-                        {post.title}
-                    </h2>
-                    {post.excerpt && (
-                        <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a] leading-normal line-clamp-3">
-                            {post.excerpt}
-                        </p>
-                    )}
-                </div>
-                <div className="shrink-0 w-12 h-12 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
-                    <svg className="w-5 h-5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
-                    </svg>
-                </div>
-            </div>
-
-            {/* Author + date + badge */}
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                        {post.author_photo ? (
-                            <img src={blogService.getFileUrl(post.author_photo)} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-sm font-bold">
-                                {(post.author || 'A')[0].toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
-                        {post.author || t('blog.default_author')}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
-                        <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
-                        {blogService.formatDate(post.published_at || post.created_at)}
-                    </span>
-                </div>
-                {post.tags && post.tags[0] && (
-                    <span className="ml-auto font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
-                    </span>
-                )}
-            </div>
-        </Link>
-    )
-}
-
-export default function BlogPage() {
+export default function PublicationsPage() {
     const { t } = useTranslation()
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -172,7 +92,6 @@ export default function BlogPage() {
     const [activeCategory, setActiveCategory] = useState('all')
     const [searchQuery, setSearchQuery] = useState('')
     const filterRef = useRef(null)
-    const wasSearching = useRef(false)
 
     useEffect(() => {
         loadPosts()
@@ -192,11 +111,10 @@ export default function BlogPage() {
         }
     }
 
-    // Normalize: remove diacritics (accents) and lowercase
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
-    // Filter posts: only news/events, then by search and category
     const filteredPosts = posts.filter(post => {
+        // Only publications
         if (!post.tags?.some(tag => ALL_TAGS.some(t => t.toLowerCase() === tag.toLowerCase()))) return false
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
@@ -209,25 +127,6 @@ export default function BlogPage() {
             post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
         return matchesSearch && matchesCategory
     })
-
-    const isSearching = searchQuery.trim().length > 0 || activeCategory !== 'all'
-
-    // Keep filter bar in view when featured section disappears/appears
-    // Track if we've ever searched — once searched, keep featured hidden to avoid layout jumps
-    const [hasSearched, setHasSearched] = useState(false)
-    useEffect(() => {
-        if (isSearching && !wasSearching.current) {
-            setHasSearched(true)
-            if (filterRef.current) {
-                filterRef.current.scrollIntoView({ behavior: 'auto', block: 'start' })
-            }
-        }
-        wasSearching.current = isSearching
-    }, [isSearching])
-    const showFeatured = !isSearching && !hasSearched
-    const featuredPost = showFeatured ? filteredPosts[0] : null
-    const sidebarPosts = showFeatured ? filteredPosts.slice(1, 3) : []
-    const gridPosts = showFeatured ? filteredPosts.slice(3) : filteredPosts
 
     if (loading && posts.length === 0) {
         return (
@@ -252,49 +151,22 @@ export default function BlogPage() {
                     {/* Header */}
                     <div className="flex flex-col gap-2 sm:gap-4 mb-8 sm:mb-14">
                         <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
-                            {t('blog.header_title')}
+                            {t('blog.publications_title', 'Publicações ROOTS')}
                         </h1>
                         <p className="font-['Onest'] text-base sm:text-2xl leading-relaxed text-[#0a0a0a]">
-                            {t('blog.header_subtitle')}
+                            {t('blog.publications_subtitle', 'Fique a par das novidades: histórias, dados e projetos ROOTS')}
                         </p>
                     </div>
 
-                    {/* Featured section: horizontal scroll on mobile, side-by-side on desktop */}
-                    {!isSearching && featuredPost && (
-                        <>
-                            {/* Mobile: horizontal scroll of cards */}
-                            <div className="sm:hidden flex overflow-x-auto gap-4 mb-8 snap-x -mx-4 px-4">
-                                {[featuredPost, ...sidebarPosts].map(post => (
-                                    <div key={post.id} className="min-w-[85%] snap-start">
-                                        <PostCard post={post}  />
-                                    </div>
-                                ))}
-                            </div>
-                            {/* Desktop: featured + sidebar */}
-                            <div className="hidden sm:flex flex-col lg:flex-row gap-6 mb-14">
-                                <div className="flex-1">
-                                    <FeaturedPost post={featuredPost}  />
-                                </div>
-                                {sidebarPosts.length > 0 && (
-                                    <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
-                                        {sidebarPosts.map((post, i) => (
-                                            <PostCard key={post.id} post={post} compact  />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    )}
-
                     {/* Filter bar */}
                     <div ref={filterRef} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-8 mb-6" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
-                        {/* Category pills — horizontal scroll on mobile */}
+                        {/* Category pills */}
                         <div className="bg-[#fffefc] flex items-center gap-0 rounded-full p-2 sm:p-4 overflow-x-auto">
                             {CATEGORY_IDS.map((id, index) => (
                                 <button
                                     key={id}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
+                                    className={`font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap cursor-pointer ${
                                         activeCategory === id
                                             ? 'bg-primary text-primary-content'
                                             : 'text-[#0a0a0a] hover:bg-gray-100'
@@ -305,7 +177,7 @@ export default function BlogPage() {
                             ))}
                         </div>
 
-                        {/* Search input */}
+                        {/* Search */}
                         <div className="relative">
                             <input
                                 type="text"
@@ -320,14 +192,14 @@ export default function BlogPage() {
                         </div>
                     </div>
 
-                    {/* Cards grid — 4 columns */}
-                    {gridPosts.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                            {gridPosts.map((post, i) => (
-                                <PostCard key={post.id} post={post}  />
+                    {/* Cards grid */}
+                    {filteredPosts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                            {filteredPosts.map((post) => (
+                                <PublicationCard key={post.id} post={post} />
                             ))}
                         </div>
-                    ) : filteredPosts.length === 0 && (
+                    ) : (
                         <div className="text-center py-16">
                             <h3 className="font-['Onest'] text-xl font-medium text-gray-900 mb-2">
                                 {t('blog.no_results_title')}

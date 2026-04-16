@@ -75,7 +75,7 @@ class BlogService {
 
             const response = await this.api.post(API_ENDPOINTS.BLOG.THUMBNAIL(postId), formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': undefined,
                 },
             });
             return response.data;
@@ -91,7 +91,7 @@ class BlogService {
 
             const response = await this.api.post(API_ENDPOINTS.BLOG.ATTACHMENTS(postId), formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': undefined,
                 },
             });
             return response.data;
@@ -116,7 +116,7 @@ class BlogService {
 
             const response = await this.api.post(API_ENDPOINTS.BLOG.UPLOAD_THUMBNAIL, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': undefined,
                 },
             });
             return response.data;
@@ -132,7 +132,7 @@ class BlogService {
 
             const response = await this.api.post(API_ENDPOINTS.BLOG.UPLOAD_ATTACHMENT, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': undefined,
                 },
             });
             return response.data;

@@ -11,6 +11,7 @@ import ResourcesManagement from "./pages/ResourcesManagement";
 import NewDomain from "./pages/NewDomain";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import PublicationsPage from "./pages/PublicationsPage";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostForm from "./pages/BlogPostForm";
 import UserManagement from "./pages/UserManagement";
@@ -226,6 +227,28 @@ export const routesList = [
             <>
                 <Helmet>
                     <title>News & Events - Post</title>
+                </Helmet>
+                <BlogPostPage />
+            </>
+        )
+    },
+    {
+        path: '/publications',
+        element: (
+            <>
+                <Helmet>
+                    <title>Publications</title>
+                </Helmet>
+                <PublicationsPage />
+            </>
+        )
+    },
+    {
+        path: '/publications/:postId',
+        element: (
+            <>
+                <Helmet>
+                    <title>Publication</title>
                 </Helmet>
                 <BlogPostPage />
             </>

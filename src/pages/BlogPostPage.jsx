@@ -214,22 +214,62 @@ export default function BlogPostPage() {
                         <div className="w-full lg:w-[456px] shrink-0 flex flex-col gap-6">
                             {/* Author card */}
                             <div className="bg-[#fffefc] rounded-2xl p-8 flex flex-col items-center gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
-                                <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-3xl sm:text-5xl font-bold">
-                                    {(post.author || 'A')[0].toUpperCase()}
-                                </div>
+                                {post.author_photo ? (
+                                    <img src={blogService.getFileUrl(post.author_photo)} alt={post.author} className="w-24 h-24 sm:w-40 sm:h-40 rounded-full object-cover" />
+                                ) : (
+                                    <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-3xl sm:text-5xl font-bold">
+                                        {(post.author || 'A')[0].toUpperCase()}
+                                    </div>
+                                )}
                                 <div className="text-center flex flex-col gap-2">
                                     <h3 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">{post.author}</h3>
-                                    <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a]">{t('blog.researcher_role')}</p>
+                                    <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a]">{post.author_role || t('blog.researcher_role')}</p>
                                 </div>
+                                {post.author_email && (
+                                    <a href={`mailto:${post.author_email}`} className="font-['Onest'] text-sm text-[#0a0a0a] underline">{post.author_email}</a>
+                                )}
                             </div>
+
+                            {/* Link para a Publicação */}
+                            {post.publication_link && (
+                                <div className="bg-[#fffefc] rounded-2xl px-8 py-6 flex flex-col gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
+                                    <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.publication_link', 'Link para a Publicação')}</h3>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 rounded-lg border border-[#e5e5e5] flex items-center justify-center shadow-sm shrink-0">
+                                                <svg className="w-5 h-5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                </svg>
+                                            </div>
+                                            <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a] truncate">
+                                                {post.publication_link_label || post.publication_link}
+                                            </span>
+                                        </div>
+                                        <a
+                                            href={post.publication_link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 rounded-lg border border-[#e5e5e5] flex items-center justify-center shadow-sm shrink-0 hover:bg-black/[0.03] transition-colors"
+                                        >
+                                            <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Keywords */}
                             {post.tags?.length > 0 && (
-                                <div className="bg-[#fffefc] rounded-2xl px-8 py-6 flex flex-col gap-4">
+                                <div className="bg-[#fffefc] rounded-2xl px-8 py-6 flex flex-col gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
                                     <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.keywords_title')}</h3>
-                                    <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a]">
-                                        {post.tags.map(tag => TAG_KEY_MAP[tag] ? t(TAG_KEY_MAP[tag]) : tag).join(', ')}
-                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {post.tags.map((tag, i) => (
+                                            <span key={i} className="font-['Onest'] text-sm text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
+                                                {TAG_KEY_MAP[tag] ? t(TAG_KEY_MAP[tag]) : tag}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

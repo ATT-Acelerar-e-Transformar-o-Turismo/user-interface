@@ -82,7 +82,9 @@
     "researcher_role": "ROOTS Researcher",
     "keywords_title": "Keywords",
     "related_publications": "Related Publications",
-    "share_post": "Share Post"
+    "share_post": "Share Post",
+    "publications_title": "ROOTS Publications",
+    "publications_subtitle": "Stay up to date with the latest: stories, data and ROOTS projects"
   },
   "hero": {
     "title_prefix": "The Root",

@@ -82,7 +82,9 @@
     "researcher_role": "Investigador ROOTS",
     "keywords_title": "Keywords",
     "related_publications": "Publicações Relacionadas",
-    "share_post": "Partilhar Publicação"
+    "share_post": "Partilhar Publicação",
+    "publications_title": "Publicações ROOTS",
+    "publications_subtitle": "Fique a par das novidades: histórias, dados e projetos ROOTS"
   },
   "hero": {
     "title_prefix": "A Raíz",

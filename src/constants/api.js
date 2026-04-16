@@ -34,6 +34,11 @@ export const API_ENDPOINTS = {
     UPLOAD_THUMBNAIL: '/api/blog/admin/upload/thumbnail',
     UPLOAD_ATTACHMENT: '/api/blog/admin/upload/attachment',
   },
+  AUTHORS: {
+    BASE: '/api/blog/authors',
+    BY_ID: (id) => `/api/blog/authors/${id}`,
+    PHOTO: (id) => `/api/blog/authors/${id}/photo`,
+  },
   RESOURCES: {
     BASE: '/api/resources',
     BY_ID: (id) => `/api/resources/${id}`,

@@ -224,7 +224,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         const isActive = forceActive || (exact
             ? location.pathname === path
             : location.pathname === path || location.pathname.startsWith(path + '/'));
-        const base = 'flex items-center justify-center px-[24px] py-[16px] font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap rounded-full transition-all duration-200';
+        const base = 'flex items-center justify-center px-3 xl:px-6 py-4 font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap rounded-full transition-all duration-200';
         return isActive
             ? `${base} bg-primary text-primary-content`
             : `${base} text-[#0a0a0a] hover:bg-primary hover:text-primary-content`;
@@ -236,6 +236,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     const defaultItems = [
         { label: 'ROOTS', path: '/', exact: true },
         { label: t('nav.domains'), path: '/indicators' },
+        { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
     ];
@@ -244,7 +245,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
 
     // Default right section: login/logout + language toggle
     const defaultRight = (
-        <div className="hidden lg:flex items-center gap-5 shrink-0">
+        <div className="hidden lg:flex items-center gap-3 xl:gap-5 shrink-0">
             {isAuthenticated ? (
                 <button
                     onClick={logout}
@@ -277,6 +278,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         { label: t('nav.home'), path: '/' },
         { label: 'ROOTS', path: '/roots', isRoots: true },
         { label: t('nav.domains'), path: '/indicators' },
+        { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
     ];
@@ -290,7 +292,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
             {/* Floating pill navbar — Figma node 724:1948 */}
             <div ref={navbarWrapperRef} className={`fixed top-0 left-0 right-0 z-50 px-4 lg:px-12 pt-3 lg:pt-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
                 {/* Desktop nav pill — hidden on mobile */}
-                <nav className="hidden lg:flex bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] items-center h-[72px] px-9 pointer-events-auto">
+                <nav className="hidden lg:flex bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] items-center h-[72px] px-4 xl:px-9 pointer-events-auto">
 
                     {/* Logo */}
                     <Link to="/" className="shrink-0 flex items-center">
@@ -298,7 +300,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                     </Link>
 
                     {/* Nav Items — desktop, auto-sized and centered */}
-                    <div className="flex mx-auto items-center h-full gap-4">
+                    <div className="flex mx-auto items-center h-full gap-1 xl:gap-4">
                         {items.map(item => {
                             if (item.label === 'ROOTS') {
                                 return (
