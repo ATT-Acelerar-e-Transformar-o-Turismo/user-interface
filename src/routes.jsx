@@ -14,6 +14,7 @@ import BlogPostPage from "./pages/BlogPostPage";
 import PublicationsPage from "./pages/PublicationsPage";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostForm from "./pages/BlogPostForm";
+import AuthorPage from "./pages/AuthorPage";
 import UserManagement from "./pages/UserManagement";
 import AdminLogin from "./pages/AdminLogin";
 import QuemSomos from "./pages/roots/QuemSomos";
@@ -251,6 +252,17 @@ export const routesList = [
                     <title>Publication</title>
                 </Helmet>
                 <BlogPostPage />
+            </>
+        )
+    },
+    {
+        path: '/author/:authorSlug',
+        element: (
+            <>
+                <Helmet>
+                    <title>Author</title>
+                </Helmet>
+                <AuthorPage />
             </>
         )
     },

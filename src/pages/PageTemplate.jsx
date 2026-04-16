@@ -16,7 +16,7 @@ export default function PageTemplate({ children, showSearchBox = true, fullBleed
         <div className="flex flex-col min-h-screen">
             <ScrollToTop />
             <Navbar showSearchBox={showSearchBox} />
-            <main className="flex-1 w-full" style={fullBleed ? undefined : { paddingTop: 'calc(var(--navbar-height) + 6rem)' }}>
+            <main className={`flex-1 w-full ${fullBleed ? '' : 'pt-[calc(var(--navbar-height)+1.5rem)] sm:pt-[calc(var(--navbar-height)+6rem)]'}`}>
                 {children}
             </main>
             {landingFooter ? <Footer /> : <FooterSimple />}

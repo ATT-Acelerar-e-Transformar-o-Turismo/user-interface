@@ -10,12 +10,13 @@ import blogService from '../services/blogService'
 import authorService from '../services/authorService'
 import { useTranslation } from 'react-i18next'
 
-function AuthorPhotoDropzone({ photoPreview, onDrop }) {
+function AuthorPhotoDropzone({ photoPreview, onDrop, label, aspectClass }) {
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'image/*': [] },
         maxFiles: 1,
     })
+    const isCover = Boolean(aspectClass)
 
     return (
         <div
@@ -26,16 +27,28 @@ function AuthorPhotoDropzone({ photoPreview, onDrop }) {
         >
             <input {...getInputProps()} />
             {photoPreview ? (
-                <img src={photoPreview} alt="Preview" className="w-24 h-24 rounded-full object-cover mb-3" />
+                isCover ? (
+                    <img src={photoPreview} alt="Preview" className={`w-full ${aspectClass} rounded-lg object-cover mb-3`} />
+                ) : (
+                    <img src={photoPreview} alt="Preview" className="w-24 h-24 rounded-full object-cover mb-3" />
+                )
             ) : (
-                <div className="w-24 h-24 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-3">
-                    <svg className="w-8 h-8 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
+                isCover ? (
+                    <div className={`w-full ${aspectClass} rounded-lg bg-[#f3f4f6] flex items-center justify-center mb-3`}>
+                        <svg className="w-10 h-10 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                ) : (
+                    <div className="w-24 h-24 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-3">
+                        <svg className="w-8 h-8 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                )
             )}
             <p className="font-['Onest'] text-sm text-[#737373] text-center">
-                {isDragActive ? 'Largar aqui...' : 'Arrastar foto ou clicar para escolher'}
+                {isDragActive ? 'Largar aqui...' : (label || 'Arrastar foto ou clicar para escolher')}
             </p>
         </div>
     )
@@ -83,12 +96,20 @@ function ThumbnailDropzone({ preview, onDrop, onRemove }) {
     )
 }
 
-function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, onSave, onCancel, t }) {
+function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, coverPreview, onCoverDrop, onSave, onCancel, t }) {
+    const inputCls = "w-full font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+    const labelCls = "block font-['Onest'] text-xs font-medium text-[#737373] mb-1"
     return (
         <div className="bg-[#f3f4f6] border border-[#e5e5e5] rounded-2xl p-6 space-y-5">
             <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a]">
                 {mode === 'edit' ? t('admin.blog.edit_author', 'Editar autor') : t('admin.blog.create_author', 'Criar novo autor')}
             </h3>
+
+            {/* Cover image dropzone */}
+            <div>
+                <label className={labelCls}>{t('admin.blog.author_cover', 'Imagem de capa')}</label>
+                <AuthorPhotoDropzone photoPreview={coverPreview} onDrop={onCoverDrop} label={t('admin.blog.drop_cover', 'Arraste a imagem de capa')} aspectClass="aspect-[3/1]" />
+            </div>
 
             <div className="flex flex-col md:flex-row gap-6">
                 {/* Photo dropzone */}
@@ -96,37 +117,46 @@ function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, onSave, on
                     <AuthorPhotoDropzone photoPreview={photoPreview} onDrop={onPhotoDrop} />
                 </div>
 
-                {/* Fields */}
+                {/* Basic fields */}
                 <div className="flex-1 space-y-4">
                     <div>
-                        <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-1">{t('admin.blog.author_name', 'Nome')}</label>
-                        <input
-                            type="text"
-                            value={data.name}
-                            onChange={(e) => setData(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            placeholder="Nome completo"
-                        />
+                        <label className={labelCls}>{t('admin.blog.author_name', 'Nome')}</label>
+                        <input type="text" value={data.name} onChange={(e) => setData(prev => ({ ...prev, name: e.target.value }))} className={inputCls} placeholder="Nome completo" />
                     </div>
                     <div>
-                        <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-1">{t('admin.blog.author_email', 'Email')}</label>
-                        <input
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
-                            className="w-full font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            placeholder="email@exemplo.pt"
-                        />
+                        <label className={labelCls}>{t('admin.blog.author_email', 'Email')}</label>
+                        <input type="email" value={data.email} onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))} className={inputCls} placeholder="email@exemplo.pt" />
                     </div>
                     <div>
-                        <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-1">{t('admin.blog.author_role', 'Cargo')}</label>
-                        <input
-                            type="text"
-                            value={data.role}
-                            onChange={(e) => setData(prev => ({ ...prev, role: e.target.value }))}
-                            className="w-full font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            placeholder="Ex: Doutoramento em Turismo"
-                        />
+                        <label className={labelCls}>{t('admin.blog.author_role', 'Cargo')}</label>
+                        <input type="text" value={data.role} onChange={(e) => setData(prev => ({ ...prev, role: e.target.value }))} className={inputCls} placeholder="Ex: Doutoramento em Turismo" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Social media fields */}
+            <div>
+                <h4 className="font-['Onest'] font-medium text-sm text-[#0a0a0a] mb-3">{t('admin.blog.social_media', 'Redes sociais')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label className={labelCls}>LinkedIn</label>
+                        <input type="url" value={data.linkedin} onChange={(e) => setData(prev => ({ ...prev, linkedin: e.target.value }))} className={inputCls} placeholder="https://linkedin.com/in/..." />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Instagram</label>
+                        <input type="url" value={data.instagram} onChange={(e) => setData(prev => ({ ...prev, instagram: e.target.value }))} className={inputCls} placeholder="https://instagram.com/..." />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Facebook</label>
+                        <input type="url" value={data.facebook} onChange={(e) => setData(prev => ({ ...prev, facebook: e.target.value }))} className={inputCls} placeholder="https://facebook.com/..." />
+                    </div>
+                    <div>
+                        <label className={labelCls}>GitHub</label>
+                        <input type="url" value={data.github} onChange={(e) => setData(prev => ({ ...prev, github: e.target.value }))} className={inputCls} placeholder="https://github.com/..." />
+                    </div>
+                    <div>
+                        <label className={labelCls}>ORCID</label>
+                        <input type="url" value={data.orcid} onChange={(e) => setData(prev => ({ ...prev, orcid: e.target.value }))} className={inputCls} placeholder="https://orcid.org/..." />
                     </div>
                 </div>
             </div>
@@ -172,9 +202,11 @@ export default function BlogPostForm() {
     const statusDropdownRef = useRef(null)
     // Author form (create or edit)
     const [authorFormMode, setAuthorFormMode] = useState(null) // null | 'create' | 'edit'
-    const [authorFormData, setAuthorFormData] = useState({ name: '', email: '', role: '' })
+    const [authorFormData, setAuthorFormData] = useState({ name: '', email: '', role: '', linkedin: '', instagram: '', facebook: '', github: '', orcid: '' })
     const [authorFormPhoto, setAuthorFormPhoto] = useState(null)
     const [authorFormPhotoPreview, setAuthorFormPhotoPreview] = useState(null)
+    const [authorFormCover, setAuthorFormCover] = useState(null)
+    const [authorFormCoverPreview, setAuthorFormCoverPreview] = useState(null)
     const [editingAuthorId, setEditingAuthorId] = useState(null)
     // Author delete confirmation
     const [deleteAuthorConfirm, setDeleteAuthorConfirm] = useState(null) // author object or null
@@ -187,6 +219,7 @@ export default function BlogPostForm() {
         content: '',
         excerpt: '',
         author: '',
+        author_id: '',
         author_photo: '',
         author_role: '',
         publication_link: '',
@@ -278,6 +311,7 @@ export default function BlogPostForm() {
                 content: postData.content,
                 excerpt: postData.excerpt || '',
                 author: postData.author,
+                author_id: postData.author_id || '',
                 author_photo: postData.author_photo || '',
                 author_role: postData.author_role || '',
                 publication_link: postData.publication_link || '',
@@ -346,6 +380,7 @@ export default function BlogPostForm() {
         setFormData(prev => ({
             ...prev,
             author: author.name,
+            author_id: author.id || '',
             author_photo: author.photo_url || '',
             author_role: author.role || '',
         }))
@@ -356,23 +391,32 @@ export default function BlogPostForm() {
         setAuthorFormMode(mode)
         if (mode === 'edit' && author) {
             setEditingAuthorId(author.id)
-            setAuthorFormData({ name: author.name || '', email: author.email || '', role: author.role || '' })
+            setAuthorFormData({
+                name: author.name || '', email: author.email || '', role: author.role || '',
+                linkedin: author.linkedin || '', instagram: author.instagram || '',
+                facebook: author.facebook || '', github: author.github || '', orcid: author.orcid || '',
+            })
             setAuthorFormPhotoPreview(author.photo_url ? blogService.getFileUrl(author.photo_url) : null)
+            setAuthorFormCoverPreview(author.cover_url ? blogService.getFileUrl(author.cover_url) : null)
         } else {
             setEditingAuthorId(null)
-            setAuthorFormData({ name: '', email: '', role: '' })
+            setAuthorFormData({ name: '', email: '', role: '', linkedin: '', instagram: '', facebook: '', github: '', orcid: '' })
             setAuthorFormPhotoPreview(null)
+            setAuthorFormCoverPreview(null)
         }
         setAuthorFormPhoto(null)
+        setAuthorFormCover(null)
         setAuthorDropdownOpen(false)
     }
 
     const closeAuthorForm = () => {
         setAuthorFormMode(null)
         setEditingAuthorId(null)
-        setAuthorFormData({ name: '', email: '', role: '' })
+        setAuthorFormData({ name: '', email: '', role: '', linkedin: '', instagram: '', facebook: '', github: '', orcid: '' })
         setAuthorFormPhoto(null)
         setAuthorFormPhotoPreview(null)
+        setAuthorFormCover(null)
+        setAuthorFormCoverPreview(null)
     }
 
     const onAuthorPhotoDrop = useCallback((acceptedFiles) => {
@@ -383,37 +427,55 @@ export default function BlogPostForm() {
         }
     }, [])
 
+    const onAuthorCoverDrop = useCallback((acceptedFiles) => {
+        const file = acceptedFiles[0]
+        if (file) {
+            setAuthorFormCover(file)
+            setAuthorFormCoverPreview(URL.createObjectURL(file))
+        }
+    }, [])
+
     const handleSaveAuthor = async () => {
         if (!authorFormData.name.trim()) return
+        const payload = {
+            name: authorFormData.name.trim(),
+            email: authorFormData.email.trim() || undefined,
+            role: authorFormData.role.trim() || undefined,
+            linkedin: authorFormData.linkedin.trim() || undefined,
+            instagram: authorFormData.instagram.trim() || undefined,
+            facebook: authorFormData.facebook.trim() || undefined,
+            github: authorFormData.github.trim() || undefined,
+            orcid: authorFormData.orcid.trim() || undefined,
+        }
         try {
             let author
             if (authorFormMode === 'edit' && editingAuthorId) {
-                author = await authorService.update(editingAuthorId, {
-                    name: authorFormData.name.trim(),
-                    email: authorFormData.email.trim() || undefined,
-                    role: authorFormData.role.trim() || undefined,
-                })
+                author = await authorService.update(editingAuthorId, payload)
                 if (authorFormPhoto) {
                     const photoResult = await authorService.uploadPhoto(editingAuthorId, authorFormPhoto)
                     author.photo_url = photoResult.photo_url
                 }
+                if (authorFormCover) {
+                    const coverResult = await authorService.uploadCover(editingAuthorId, authorFormCover)
+                    author.cover_url = coverResult.cover_url
+                }
                 setAuthors(prev => prev.map(a => a.id === author.id ? author : a))
             } else {
-                author = await authorService.create({
-                    name: authorFormData.name.trim(),
-                    email: authorFormData.email.trim() || undefined,
-                    role: authorFormData.role.trim() || undefined,
-                })
+                author = await authorService.create(payload)
                 if (authorFormPhoto) {
                     const photoResult = await authorService.uploadPhoto(author.id, authorFormPhoto)
                     author.photo_url = photoResult.photo_url
+                }
+                if (authorFormCover) {
+                    const coverResult = await authorService.uploadCover(author.id, authorFormCover)
+                    author.cover_url = coverResult.cover_url
                 }
                 setAuthors(prev => [...prev, author])
             }
             handleSelectAuthor(author)
             closeAuthorForm()
         } catch (err) {
-            setError(err.message)
+            setError(err.userMessage || err.message)
         }
     }
 
@@ -706,6 +768,8 @@ export default function BlogPostForm() {
                             photo={authorFormPhoto}
                             photoPreview={authorFormPhotoPreview}
                             onPhotoDrop={onAuthorPhotoDrop}
+                            coverPreview={authorFormCoverPreview}
+                            onCoverDrop={onAuthorCoverDrop}
                             onSave={handleSaveAuthor}
                             onCancel={closeAuthorForm}
                             t={t}
@@ -785,27 +849,62 @@ export default function BlogPostForm() {
                             </div>
                         </div>
 
-                        {/* Tags */}
+                        {/* Category (predefined tags) */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_tags')}
+                                {t('admin.blog.field_category', 'Categoria')}
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {['Noticias', 'Eventos', 'Publicações Cientificas', 'Relatórios', 'Documentos'].map(cat => {
+                                    const isSelected = formData.tags.includes(cat)
+                                    return (
+                                        <button
+                                            key={cat}
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData(prev => {
+                                                    const predefined = ['Noticias', 'Eventos', 'Publicações Cientificas', 'Relatórios', 'Documentos']
+                                                    // Remove any existing predefined category, keep keywords
+                                                    const keywords = prev.tags.filter(t => !predefined.includes(t))
+                                                    return { ...prev, tags: isSelected ? keywords : [cat, ...keywords] }
+                                                })
+                                            }}
+                                            className={`font-['Onest'] text-sm font-medium px-4 py-1.5 rounded-full border transition-colors cursor-pointer ${
+                                                isSelected
+                                                    ? 'bg-primary text-white border-primary'
+                                                    : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
+                                            }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Keywords (free-form tags) */}
+                        <div>
+                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                {t('admin.blog.field_keywords', 'Keywords')}
                             </label>
                             <div className="flex flex-wrap gap-2 mb-2">
-                                {formData.tags.map((tag, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
-                                    >
-                                        {tag}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTag(tag)}
-                                            className="ml-2 text-xs"
+                                {formData.tags
+                                    .filter(tag => !['Noticias', 'Eventos', 'Publicações Cientificas', 'Relatórios', 'Documentos'].includes(tag))
+                                    .map((tag, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
                                         >
-                                            ×
-                                        </button>
-                                    </span>
-                                ))}
+                                            {tag}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveTag(tag)}
+                                                className="ml-2 text-xs"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    ))}
                             </div>
                             <input
                                 type="text"
@@ -813,7 +912,7 @@ export default function BlogPostForm() {
                                 onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={handleAddTag}
                                 className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                placeholder={t('admin.blog.placeholder_tags')}
+                                placeholder={t('admin.blog.placeholder_keywords', 'Adicionar keyword e pressionar Enter')}
                             />
                         </div>
 

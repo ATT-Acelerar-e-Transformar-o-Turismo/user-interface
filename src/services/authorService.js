@@ -12,6 +12,11 @@ const authorService = {
     return data;
   },
 
+  getBySlug: async (slug) => {
+    const { data } = await apiClient.get(API_ENDPOINTS.AUTHORS.BY_SLUG(slug));
+    return data;
+  },
+
   create: async (authorData) => {
     const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.BASE, authorData);
     return data;
@@ -26,6 +31,15 @@ const authorService = {
     const formData = new FormData();
     formData.append('file', file);
     const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.PHOTO(id), formData, {
+      headers: { 'Content-Type': undefined },
+    });
+    return data;
+  },
+
+  uploadCover: async (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.COVER(id), formData, {
       headers: { 'Content-Type': undefined },
     });
     return data;

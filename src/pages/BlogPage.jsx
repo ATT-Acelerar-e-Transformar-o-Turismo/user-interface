@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
@@ -26,18 +27,16 @@ function PostCard({ post, compact = false }) {
     return (
         <Link
             to={`/news-events/${post.id}`}
-            className="bg-[#fffefc] flex flex-col gap-4 p-6 rounded-xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
+            className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            {/* Thumbnail — only if uploaded */}
             {thumbnail && (
-                <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                <div className="w-full aspect-video rounded sm:rounded-lg overflow-hidden">
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
                 </div>
             )}
 
-            {/* Title + arrow */}
             <div className="flex items-start gap-4">
-                <h3 className="font-['Onest'] font-semibold text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
+                <h3 className="font-['Onest'] font-semibold text-sm sm:text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
                     {post.title}
                 </h3>
                 <div className="shrink-0 w-6 h-6 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
@@ -47,17 +46,15 @@ function PostCard({ post, compact = false }) {
                 </div>
             </div>
 
-            {/* Excerpt */}
             {!compact && post.excerpt && (
-                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-4">
+                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-3 sm:line-clamp-4">
                     {post.excerpt}
                 </p>
             )}
 
-            {/* Author + date + badge */}
             <div className="flex flex-wrap items-center gap-2 mt-auto min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden shrink-0">
+                    <div className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-gray-200 overflow-hidden shrink-0">
                         {post.author_photo ? (
                             <img src={blogService.getFileUrl(post.author_photo)} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -102,14 +99,12 @@ function FeaturedPost({ post }) {
             to={`/news-events/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            {/* Large thumbnail — only if uploaded */}
             {thumbnail && (
-                <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
+                <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden">
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
                 </div>
             )}
 
-            {/* Title + arrow */}
             <div className="flex items-start gap-4">
                 <div className="flex-1 flex flex-col gap-4">
                     <h2 className="font-['Onest'] font-semibold text-3xl leading-none text-[#0a0a0a]">
@@ -128,7 +123,6 @@ function FeaturedPost({ post }) {
                 </div>
             </div>
 
-            {/* Author + date + badge */}
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
@@ -164,6 +158,53 @@ function FeaturedPost({ post }) {
     )
 }
 
+function MobileFeaturedCard({ post, basePath = '/news-events' }) {
+    const { t } = useTranslation()
+    const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+    return (
+        <Link
+            to={`${basePath}/${post.id}`}
+            className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-white rounded-2xl p-4 flex flex-col gap-3 no-underline"
+        >
+            {thumb && (
+                <div className="w-full aspect-video rounded-xl overflow-hidden">
+                    <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
+                </div>
+            )}
+            <div className="flex items-start justify-between gap-3">
+                <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a] line-clamp-2 flex-1">{post.title}</h3>
+                <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                    </svg>
+                </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mt-auto">
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden shrink-0">
+                        {post.author_photo ? (
+                            <img src={blogService.getFileUrl(post.author_photo)} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-[10px] font-bold">
+                                {(post.author || 'A')[0].toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] truncate">{post.author || t('blog.default_author')}</span>
+                </div>
+                <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] whitespace-nowrap">
+                    {blogService.formatDate(post.published_at || post.created_at)}
+                </span>
+                {post.tags?.[0] && (
+                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
+                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
+                    </span>
+                )}
+            </div>
+        </Link>
+    )
+}
+
 export default function BlogPage() {
     const { t } = useTranslation()
     const [posts, setPosts] = useState([])
@@ -172,7 +213,6 @@ export default function BlogPage() {
     const [activeCategory, setActiveCategory] = useState('all')
     const [searchQuery, setSearchQuery] = useState('')
     const filterRef = useRef(null)
-    const wasSearching = useRef(false)
 
     useEffect(() => {
         loadPosts()
@@ -192,12 +232,17 @@ export default function BlogPage() {
         }
     }
 
-    // Normalize: remove diacritics (accents) and lowercase
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
-    // Filter posts: only news/events, then by search and category
-    const filteredPosts = posts.filter(post => {
-        if (!post.tags?.some(tag => ALL_TAGS.some(t => t.toLowerCase() === tag.toLowerCase()))) return false
+    // All news/events posts (unfiltered) — top 3 most recent always shown in featured section
+    const allNewsEvents = posts.filter(post =>
+        post.tags?.some(tag => ALL_TAGS.some(t => t.toLowerCase() === tag.toLowerCase()))
+    )
+    const featuredPost = allNewsEvents[0] || null
+    const sidebarPosts = allNewsEvents.slice(1, 3)
+
+    // Filtered posts for the grid below
+    const gridPosts = allNewsEvents.filter(post => {
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
             normalize(post.title).includes(q) ||
@@ -209,25 +254,6 @@ export default function BlogPage() {
             post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
         return matchesSearch && matchesCategory
     })
-
-    const isSearching = searchQuery.trim().length > 0 || activeCategory !== 'all'
-
-    // Keep filter bar in view when featured section disappears/appears
-    // Track if we've ever searched — once searched, keep featured hidden to avoid layout jumps
-    const [hasSearched, setHasSearched] = useState(false)
-    useEffect(() => {
-        if (isSearching && !wasSearching.current) {
-            setHasSearched(true)
-            if (filterRef.current) {
-                filterRef.current.scrollIntoView({ behavior: 'auto', block: 'start' })
-            }
-        }
-        wasSearching.current = isSearching
-    }, [isSearching])
-    const showFeatured = !isSearching && !hasSearched
-    const featuredPost = showFeatured ? filteredPosts[0] : null
-    const sidebarPosts = showFeatured ? filteredPosts.slice(1, 3) : []
-    const gridPosts = showFeatured ? filteredPosts.slice(3) : filteredPosts
 
     if (loading && posts.length === 0) {
         return (
@@ -259,26 +285,24 @@ export default function BlogPage() {
                         </p>
                     </div>
 
-                    {/* Featured section: horizontal scroll on mobile, side-by-side on desktop */}
-                    {!isSearching && featuredPost && (
+                    {/* Featured section */}
+                    {featuredPost && (
                         <>
                             {/* Mobile: horizontal scroll of cards */}
-                            <div className="sm:hidden flex overflow-x-auto gap-4 mb-8 snap-x -mx-4 px-4">
+                            <div className="sm:hidden flex overflow-x-auto gap-3 mb-6 snap-x snap-mandatory -mx-4 pl-6 pr-4 scroll-pl-6" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                                 {[featuredPost, ...sidebarPosts].map(post => (
-                                    <div key={post.id} className="min-w-[85%] snap-start">
-                                        <PostCard post={post}  />
-                                    </div>
+                                    <MobileFeaturedCard key={post.id} post={post} basePath="/news-events" />
                                 ))}
                             </div>
                             {/* Desktop: featured + sidebar */}
                             <div className="hidden sm:flex flex-col lg:flex-row gap-6 mb-14">
                                 <div className="flex-1">
-                                    <FeaturedPost post={featuredPost}  />
+                                    <FeaturedPost post={featuredPost} />
                                 </div>
                                 {sidebarPosts.length > 0 && (
                                     <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
-                                        {sidebarPosts.map((post, i) => (
-                                            <PostCard key={post.id} post={post} compact  />
+                                        {sidebarPosts.map((post) => (
+                                            <PostCard key={post.id} post={post} compact />
                                         ))}
                                     </div>
                                 )}
@@ -286,21 +310,31 @@ export default function BlogPage() {
                         </>
                     )}
 
+                    {/* Section heading — mobile only */}
+                    <h2 className="sm:hidden font-['Onest'] font-semibold text-2xl text-[#0a0a0a] mb-4">
+                        {t('blog.all_news', 'Todas as notícias')}
+                    </h2>
+
                     {/* Filter bar */}
-                    <div ref={filterRef} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-8 mb-6" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
-                        {/* Category pills — horizontal scroll on mobile */}
-                        <div className="bg-[#fffefc] flex items-center gap-0 rounded-full p-2 sm:p-4 overflow-x-auto">
+                    <div ref={filterRef} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8 mb-6" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
+                        {/* Category pills — standalone on mobile, white container on desktop */}
+                        <div className="flex items-center gap-2 sm:gap-0 sm:bg-[#fffefc] sm:rounded-full sm:p-4 overflow-x-auto">
                             {CATEGORY_IDS.map((id, index) => (
                                 <button
                                     key={id}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
-                                        activeCategory === id
-                                            ? 'bg-primary text-primary-content'
-                                            : 'text-[#0a0a0a] hover:bg-gray-100'
-                                    }`}
+                                    className={`relative font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1.5 sm:py-1 rounded-full whitespace-nowrap cursor-pointer ${activeCategory !== id ? 'border border-[#e5e5e5] sm:border-0' : 'sm:border-0'}`}
                                 >
-                                    {t(CATEGORY_KEYS[index])}
+                                    {activeCategory === id && (
+                                        <motion.div
+                                            layoutId="blogFilterPill"
+                                            className="absolute inset-0 bg-primary rounded-full"
+                                            transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                                        />
+                                    )}
+                                    <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
+                                        {t(CATEGORY_KEYS[index])}
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -312,22 +346,22 @@ export default function BlogPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('blog.search_placeholder')}
-                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 sm:h-12 pl-4 pr-12 w-full sm:w-80 text-sm sm:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-9 sm:h-12 pl-4 pr-10 sm:pr-12 w-full sm:w-80 text-sm sm:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                             />
-                            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                     </div>
 
-                    {/* Cards grid — 4 columns */}
+                    {/* Cards grid */}
                     {gridPosts.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                            {gridPosts.map((post, i) => (
-                                <PostCard key={post.id} post={post}  />
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
+                            {gridPosts.map((post) => (
+                                <PostCard key={post.id} post={post} />
                             ))}
                         </div>
-                    ) : filteredPosts.length === 0 && (
+                    ) : gridPosts.length === 0 && (
                         <div className="text-center py-16">
                             <h3 className="font-['Onest'] text-xl font-medium text-gray-900 mb-2">
                                 {t('blog.no_results_title')}

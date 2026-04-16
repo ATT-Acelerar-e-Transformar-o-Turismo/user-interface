@@ -37,7 +37,9 @@ export const API_ENDPOINTS = {
   AUTHORS: {
     BASE: '/api/blog/authors',
     BY_ID: (id) => `/api/blog/authors/${id}`,
+    BY_SLUG: (slug) => `/api/blog/authors/slug/${slug}`,
     PHOTO: (id) => `/api/blog/authors/${id}/photo`,
+    COVER: (id) => `/api/blog/authors/${id}/cover`,
   },
   RESOURCES: {
     BASE: '/api/resources',
