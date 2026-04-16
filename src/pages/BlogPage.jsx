@@ -5,11 +5,10 @@ import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
+import categoryService from '../services/categoryService'
 import { useTranslation } from 'react-i18next'
 
-const CATEGORY_IDS = ['all', 'Noticias', 'Eventos']
-const CATEGORY_KEYS = ['blog.filter_all', 'blog.filter_news', 'blog.filter_events']
-const ALL_TAGS = ['Noticias', 'Eventos']
+// Fallback for legacy posts that use tags instead of categories
 const TAG_KEY_MAP = {
     'Noticias': 'blog.filter_news',
     'Eventos': 'blog.filter_events',
@@ -206,8 +205,10 @@ function MobileFeaturedCard({ post, basePath = '/news-events' }) {
 }
 
 export default function BlogPage() {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'pt'
     const [posts, setPosts] = useState([])
+    const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [activeCategory, setActiveCategory] = useState('all')
@@ -216,6 +217,7 @@ export default function BlogPage() {
 
     useEffect(() => {
         loadPosts()
+        categoryService.getByType('news-event').then(cats => setCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
     }, [])
 
     const loadPosts = async () => {
@@ -232,11 +234,18 @@ export default function BlogPage() {
         }
     }
 
+    const catName = (slug) => {
+        const cat = categories.find(c => c.slug === slug)
+        return cat ? (lang === 'en' ? cat.name_en : cat.name_pt) : slug
+    }
+    const catSlugs = categories.map(c => c.slug)
+
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
-    // All news/events posts (unfiltered) — top 3 most recent always shown in featured section
+    // All news/events posts (unfiltered) — match by post_type OR legacy tags
     const allNewsEvents = posts.filter(post =>
-        post.tags?.some(tag => ALL_TAGS.some(t => t.toLowerCase() === tag.toLowerCase()))
+        post.post_type === 'news-event' ||
+        post.tags?.some(tag => ['Noticias', 'Eventos'].some(t => t.toLowerCase() === tag.toLowerCase()))
     )
     const featuredPost = allNewsEvents[0] || null
     const sidebarPosts = allNewsEvents.slice(1, 3)
@@ -245,12 +254,13 @@ export default function BlogPage() {
     const gridPosts = allNewsEvents.filter(post => {
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
-            normalize(post.title).includes(q) ||
+            normalize(lang === 'en' && post.title_en ? post.title_en : post.title).includes(q) ||
             normalize(post.excerpt).includes(q) ||
             normalize(post.content?.replace(/<[^>]*>/g, '')).includes(q) ||
             normalize(post.author).includes(q) ||
             post.tags?.some(tag => normalize(tag).includes(q) || (TAG_KEY_MAP[tag] && normalize(t(TAG_KEY_MAP[tag])).includes(q)))
         const matchesCategory = activeCategory === 'all' ||
+            post.categories?.includes(activeCategory) ||
             post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
         return matchesSearch && matchesCategory
     })
@@ -318,12 +328,12 @@ export default function BlogPage() {
                     {/* Filter bar */}
                     <div ref={filterRef} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8 mb-6" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
                         {/* Category pills — standalone on mobile, white container on desktop */}
-                        <div className="flex items-center gap-2 sm:gap-0 sm:bg-[#fffefc] sm:rounded-full sm:p-4 overflow-x-auto">
-                            {CATEGORY_IDS.map((id, index) => (
+                        <div className="flex items-center gap-2 sm:gap-0 sm:bg-[#fffefc] sm:rounded-full sm:p-4 overflow-x-auto flex-nowrap shrink-0" style={{ scrollbarWidth: 'none' }}>
+                            {['all', ...catSlugs].map((id) => (
                                 <button
                                     key={id}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`relative font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1.5 sm:py-1 rounded-full whitespace-nowrap cursor-pointer ${activeCategory !== id ? 'border border-[#e5e5e5] sm:border-0' : 'sm:border-0'}`}
+                                    className={`relative font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1.5 sm:py-1 rounded-full whitespace-nowrap cursor-pointer shrink-0 ${activeCategory !== id ? 'border border-[#e5e5e5] sm:border-0' : 'sm:border-0'}`}
                                 >
                                     {activeCategory === id && (
                                         <motion.div
@@ -333,7 +343,7 @@ export default function BlogPage() {
                                         />
                                     )}
                                     <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
-                                        {t(CATEGORY_KEYS[index])}
+                                        {id === 'all' ? t('blog.filter_all') : catName(id)}
                                     </span>
                                 </button>
                             ))}

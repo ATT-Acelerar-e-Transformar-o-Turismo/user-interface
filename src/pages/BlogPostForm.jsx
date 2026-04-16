@@ -8,6 +8,7 @@ import RichTextEditor from '../components/RichTextEditor'
 import ConfirmModal from '../components/ConfirmModal'
 import blogService from '../services/blogService'
 import authorService from '../services/authorService'
+import categoryService from '../services/categoryService'
 import { useTranslation } from 'react-i18next'
 
 function AuthorPhotoDropzone({ photoPreview, onDrop, label, aspectClass }) {
@@ -216,18 +217,29 @@ export default function BlogPostForm() {
     // Form state
     const [formData, setFormData] = useState({
         title: '',
+        title_en: '',
         content: '',
+        content_en: '',
         excerpt: '',
+        excerpt_en: '',
         author: '',
         author_id: '',
         author_photo: '',
         author_role: '',
+        post_type: 'news-event',
         publication_link: '',
         publication_link_label: '',
+        publication_link_label_en: '',
         status: 'draft',
+        categories: [],
+        keywords: [],
         tags: []
     })
     const [tagInput, setTagInput] = useState('')
+    const [allCategories, setAllCategories] = useState([])
+    const [activeLang, setActiveLang] = useState('pt')
+    const [catEdit, setCatEdit] = useState(null) // null = closed, {} = new, {id,...} = editing
+    const [catForm, setCatForm] = useState({ name_pt: '', name_en: '' })
     const [thumbnailFile, setThumbnailFile] = useState(null)
     const [thumbnailPreview, setThumbnailPreview] = useState(null)
     const [attachmentFiles, setAttachmentFiles] = useState([])
@@ -237,22 +249,18 @@ export default function BlogPostForm() {
 
     useEffect(() => {
         authorService.getAll().then(setAuthors).catch(() => {})
+        categoryService.getAll().then(cats => setAllCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
         if (isEditing) {
             loadPost()
         } else {
             setLoading(false)
-            setInitialFormData({
-                title: '',
-                content: '',
-                excerpt: '',
-                author: '',
-                author_photo: '',
-                author_role: '',
-                publication_link: '',
-                publication_link_label: '',
-                status: 'draft',
-                tags: []
-            })
+            const empty = {
+                title: '', title_en: '', content: '', content_en: '', excerpt: '', excerpt_en: '',
+                author: '', author_id: '', author_photo: '', author_role: '', post_type: 'news-event',
+                publication_link: '', publication_link_label: '', publication_link_label_en: '',
+                status: 'draft', categories: [], keywords: [], tags: []
+            }
+            setInitialFormData(empty)
         }
     }, [postId])
 
@@ -308,15 +316,22 @@ export default function BlogPostForm() {
             setPost(postData)
             const loadedFormData = {
                 title: postData.title,
+                title_en: postData.title_en || '',
                 content: postData.content,
+                content_en: postData.content_en || '',
                 excerpt: postData.excerpt || '',
+                excerpt_en: postData.excerpt_en || '',
                 author: postData.author,
                 author_id: postData.author_id || '',
                 author_photo: postData.author_photo || '',
                 author_role: postData.author_role || '',
+                post_type: postData.post_type || 'news-event',
                 publication_link: postData.publication_link || '',
                 publication_link_label: postData.publication_link_label || '',
+                publication_link_label_en: postData.publication_link_label_en || '',
                 status: postData.status,
+                categories: postData.categories || [],
+                keywords: postData.keywords || [],
                 tags: postData.tags || []
             }
             setFormData(loadedFormData)
@@ -345,24 +360,63 @@ export default function BlogPostForm() {
         }))
     }
 
-    const handleAddTag = (e) => {
+    const handleAddKeyword = (e) => {
         if (e.key === 'Enter' && tagInput.trim()) {
             e.preventDefault()
-            if (!formData.tags.includes(tagInput.trim())) {
+            if (!formData.keywords.includes(tagInput.trim())) {
                 setFormData(prev => ({
                     ...prev,
-                    tags: [...prev.tags, tagInput.trim()]
+                    keywords: [...prev.keywords, tagInput.trim()]
                 }))
             }
             setTagInput('')
         }
     }
 
-    const handleRemoveTag = (tagToRemove) => {
+    const handleRemoveKeyword = (kw) => {
         setFormData(prev => ({
             ...prev,
-            tags: prev.tags.filter(tag => tag !== tagToRemove)
+            keywords: prev.keywords.filter(k => k !== kw)
         }))
+    }
+
+    const toggleCategory = (slug) => {
+        setFormData(prev => ({
+            ...prev,
+            categories: prev.categories.includes(slug)
+                ? prev.categories.filter(c => c !== slug)
+                : [...prev.categories, slug]
+        }))
+    }
+
+    const handleSaveCategory = async () => {
+        if (!catForm.name_pt.trim() || !catForm.name_en.trim()) return
+        try {
+            if (catEdit?.id) {
+                const updated = await categoryService.update(catEdit.id, { ...catForm, type: formData.post_type })
+                setAllCategories(prev => prev.map(c => c.id === updated.id ? updated : c))
+            } else {
+                const created = await categoryService.create({ ...catForm, type: formData.post_type })
+                setAllCategories(prev => [...prev, created])
+            }
+            setCatEdit(null)
+            setCatForm({ name_pt: '', name_en: '' })
+        } catch (err) {
+            setError(err.userMessage || err.message)
+        }
+    }
+
+    const handleDeleteCategory = async () => {
+        if (!catEdit?.id || !window.confirm('Eliminar esta categoria?')) return
+        try {
+            await categoryService.delete(catEdit.id)
+            setAllCategories(prev => prev.filter(c => c.id !== catEdit.id))
+            setFormData(prev => ({ ...prev, categories: prev.categories.filter(s => s !== catEdit.slug) }))
+            setCatEdit(null)
+            setCatForm({ name_pt: '', name_en: '' })
+        } catch (err) {
+            setError(err.userMessage || err.message)
+        }
     }
 
     // Close author dropdown on outside click
@@ -561,6 +615,15 @@ export default function BlogPostForm() {
                 throw new Error(t('admin.blog.validation_required_fields'))
             }
 
+            // Publications must have at least one document
+            if (formData.post_type === 'publication') {
+                const hasExistingDoc = existingAttachments.some(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || ''))
+                const hasNewDoc = attachmentFiles.some(f => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(f.name))
+                if (!hasExistingDoc && !hasNewDoc) {
+                    throw new Error(t('admin.blog.validation_publication_document', 'Publicações necessitam de pelo menos um documento anexado.'))
+                }
+            }
+
             let savedPost
 
             if (isEditing) {
@@ -632,17 +695,61 @@ export default function BlogPostForm() {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-8">
+                        {/* Post Type selector */}
+                        <div>
+                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                {t('admin.blog.field_post_type', 'Tipo de publicação')}
+                            </label>
+                            <div className="flex gap-3">
+                                {[
+                                    { value: 'news-event', label: t('admin.blog.type_news_event', 'Notícia / Evento') },
+                                    { value: 'publication', label: t('admin.blog.type_publication', 'Publicação') },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, post_type: opt.value, categories: [] }))}
+                                        className={`font-['Onest'] text-sm font-medium px-5 py-2 rounded-full border transition-colors cursor-pointer ${
+                                            formData.post_type === opt.value
+                                                ? 'bg-primary text-white border-primary'
+                                                : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
+                                        }`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Language tabs */}
+                        <div className="flex gap-1 bg-[#f3f4f6] rounded-lg p-1 w-fit">
+                            {['pt', 'en'].map(lang => (
+                                <button
+                                    key={lang}
+                                    type="button"
+                                    onClick={() => setActiveLang(lang)}
+                                    className={`font-['Onest'] text-sm font-medium px-4 py-1.5 rounded-md transition-colors cursor-pointer ${
+                                        activeLang === lang
+                                            ? 'bg-white text-[#0a0a0a] shadow-sm'
+                                            : 'text-[#737373] hover:text-[#0a0a0a]'
+                                    }`}
+                                >
+                                    {lang === 'pt' ? 'Português' : 'English'}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* Title */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_title')}
+                                {t('admin.blog.field_title')} {activeLang === 'en' ? '(EN)' : '(PT)'}
                             </label>
                             <input
                                 type="text"
-                                name="title"
-                                value={formData.title}
+                                name={activeLang === 'pt' ? 'title' : 'title_en'}
+                                value={activeLang === 'pt' ? formData.title : formData.title_en}
                                 onChange={handleInputChange}
-                                required
+                                required={activeLang === 'pt'}
                                 className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                                 placeholder={t('admin.blog.placeholder_title')}
                             />
@@ -805,14 +912,31 @@ export default function BlogPostForm() {
                             </div>
                         </div>
 
+                        {/* Publication Link Label EN (next to PT) */}
+                        {formData.publication_link && activeLang === 'en' && (
+                            <div>
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                    {t('admin.blog.field_publication_link_label', 'Nome do link')} (EN)
+                                </label>
+                                <input
+                                    type="text"
+                                    name="publication_link_label_en"
+                                    value={formData.publication_link_label_en}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                    placeholder="Document name (EN)"
+                                />
+                            </div>
+                        )}
+
                         {/* Excerpt */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_excerpt')}
+                                {t('admin.blog.field_excerpt')} {activeLang === 'en' ? '(EN)' : '(PT)'}
                             </label>
                             <textarea
-                                name="excerpt"
-                                value={formData.excerpt}
+                                name={activeLang === 'pt' ? 'excerpt' : 'excerpt_en'}
+                                value={activeLang === 'pt' ? formData.excerpt : formData.excerpt_en}
                                 onChange={handleInputChange}
                                 rows={3}
                                 className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -823,13 +947,23 @@ export default function BlogPostForm() {
                         {/* Content */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_content')}
+                                {t('admin.blog.field_content')} {activeLang === 'en' ? '(EN)' : '(PT)'}
                             </label>
-                            <RichTextEditor
-                                value={formData.content}
-                                onChange={handleContentChange}
-                                placeholder={t('admin.blog.placeholder_content')}
-                            />
+                            {activeLang === 'pt' ? (
+                                <RichTextEditor
+                                    key="content-pt"
+                                    value={formData.content}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
+                                    placeholder={t('admin.blog.placeholder_content')}
+                                />
+                            ) : (
+                                <RichTextEditor
+                                    key="content-en"
+                                    value={formData.content_en}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, content_en: val }))}
+                                    placeholder="Write the content in English..."
+                                />
+                            )}
                             <div className="text-sm text-gray-500 mt-2">
                                 <p className="mb-1">{t('admin.blog.markdown_help_intro')}</p>
                                 <div className="grid grid-cols-2 gap-4 text-xs">
@@ -849,77 +983,186 @@ export default function BlogPostForm() {
                             </div>
                         </div>
 
-                        {/* Category (predefined tags) */}
+                        {/* Categories (dynamic, filtered by post_type) — inline management */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_category', 'Categoria')}
+                                {t('admin.blog.field_category', 'Categorias')}
                             </label>
-                            <div className="flex flex-wrap gap-2">
-                                {['Noticias', 'Eventos', 'Publicações Cientificas', 'Relatórios', 'Documentos'].map(cat => {
-                                    const isSelected = formData.tags.includes(cat)
-                                    return (
-                                        <button
-                                            key={cat}
-                                            type="button"
-                                            onClick={() => {
-                                                setFormData(prev => {
-                                                    const predefined = ['Noticias', 'Eventos', 'Publicações Cientificas', 'Relatórios', 'Documentos']
-                                                    // Remove any existing predefined category, keep keywords
-                                                    const keywords = prev.tags.filter(t => !predefined.includes(t))
-                                                    return { ...prev, tags: isSelected ? keywords : [cat, ...keywords] }
-                                                })
-                                            }}
-                                            className={`font-['Onest'] text-sm font-medium px-4 py-1.5 rounded-full border transition-colors cursor-pointer ${
-                                                isSelected
-                                                    ? 'bg-primary text-white border-primary'
-                                                    : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
-                                            }`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    )
-                                })}
-                            </div>
+                            {(() => {
+                                const filtered = allCategories.filter(c => c.type === formData.post_type)
+                                return (
+                                    <div className="flex flex-col gap-3">
+                                        {filtered.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {filtered.map(cat => {
+                                                    const isSelected = formData.categories.includes(cat.slug)
+                                                    return (
+                                                        <div key={cat.id} className="group relative inline-flex">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleCategory(cat.slug)}
+                                                                className={`font-['Onest'] text-sm font-medium pl-4 pr-8 py-1.5 rounded-full border transition-colors cursor-pointer ${
+                                                                    isSelected
+                                                                        ? 'bg-primary text-white border-primary'
+                                                                        : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
+                                                                }`}
+                                                                title={`${cat.name_pt} / ${cat.name_en}`}
+                                                            >
+                                                                {cat.name_pt}
+                                                            </button>
+                                                            {/* Edit / Delete on hover */}
+                                                            <div className="absolute right-0 top-0 bottom-0 flex items-center pr-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => { e.stopPropagation(); setCatEdit(cat); setCatForm({ name_pt: cat.name_pt, name_en: cat.name_en }) }}
+                                                                    className="w-5 h-5 rounded-full bg-white/80 border border-[#e5e5e5] flex items-center justify-center hover:bg-white cursor-pointer"
+                                                                    title={t('common.edit', 'Editar')}
+                                                                >
+                                                                    <svg className="w-2.5 h-2.5 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* Inline category add/edit form */}
+                                        {catEdit !== null ? (
+                                            <div className="flex flex-wrap items-end gap-2 bg-[#f3f4f6] rounded-xl p-3">
+                                                <div className="flex-1 min-w-[120px]">
+                                                    <label className="block font-['Onest'] text-xs text-[#737373] mb-1">PT</label>
+                                                    <input type="text" value={catForm.name_pt} onChange={e => setCatForm(p => ({ ...p, name_pt: e.target.value }))}
+                                                        className="w-full font-['Onest'] text-sm bg-white border border-[#e5e5e5] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Nome PT" />
+                                                </div>
+                                                <div className="flex-1 min-w-[120px]">
+                                                    <label className="block font-['Onest'] text-xs text-[#737373] mb-1">EN</label>
+                                                    <input type="text" value={catForm.name_en} onChange={e => setCatForm(p => ({ ...p, name_en: e.target.value }))}
+                                                        className="w-full font-['Onest'] text-sm bg-white border border-[#e5e5e5] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Name EN" />
+                                                </div>
+                                                <button type="button" onClick={handleSaveCategory}
+                                                    className="font-['Onest'] text-xs font-medium bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-[color:var(--color-primary-hover)] cursor-pointer">
+                                                    {catEdit?.id ? t('common.save', 'Guardar') : t('admin.categories.add', 'Adicionar')}
+                                                </button>
+                                                {catEdit?.id && (
+                                                    <button type="button" onClick={handleDeleteCategory}
+                                                        className="font-['Onest'] text-xs font-medium text-red-500 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 cursor-pointer">
+                                                        {t('common.delete', 'Eliminar')}
+                                                    </button>
+                                                )}
+                                                <button type="button" onClick={() => { setCatEdit(null); setCatForm({ name_pt: '', name_en: '' }) }}
+                                                    className="font-['Onest'] text-xs text-[#737373] px-3 py-1.5 cursor-pointer">
+                                                    {t('common.cancel', 'Cancelar')}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button type="button" onClick={() => setCatEdit({})}
+                                                className="font-['Onest'] text-sm text-primary font-medium cursor-pointer w-fit hover:underline">
+                                                + {t('admin.blog.add_category', 'Adicionar categoria')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )
+                            })()}
                         </div>
 
-                        {/* Keywords (free-form tags) */}
+                        {/* Keywords (free-form) */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
                                 {t('admin.blog.field_keywords', 'Keywords')}
                             </label>
                             <div className="flex flex-wrap gap-2 mb-2">
-                                {formData.tags
-                                    .filter(tag => !['Noticias', 'Eventos', 'Publicações Cientificas', 'Relatórios', 'Documentos'].includes(tag))
-                                    .map((tag, index) => (
-                                        <span
-                                            key={index}
-                                            className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
+                                {formData.keywords.map((kw, index) => (
+                                    <span
+                                        key={index}
+                                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
+                                    >
+                                        {kw}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveKeyword(kw)}
+                                            className="ml-2 text-xs"
                                         >
-                                            {tag}
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveTag(tag)}
-                                                className="ml-2 text-xs"
-                                            >
-                                                ×
-                                            </button>
-                                        </span>
-                                    ))}
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
                             </div>
                             <input
                                 type="text"
                                 value={tagInput}
                                 onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={handleAddTag}
+                                onKeyDown={handleAddKeyword}
                                 className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                                 placeholder={t('admin.blog.placeholder_keywords', 'Adicionar keyword e pressionar Enter')}
                             />
                         </div>
 
-                        {/* Thumbnail */}
+                        {/* Document (mandatory for publications) */}
+                        {formData.post_type === 'publication' && (
+                            <div>
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                    {t('admin.blog.field_document', 'Documento')} <span className="text-red-500">*</span>
+                                </label>
+
+                                {/* Existing document attachments */}
+                                {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || '')).length > 0 && (
+                                    <div className="mb-3 space-y-2">
+                                        {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || '')).map((att, i) => (
+                                            <div key={i} className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-lg">
+                                                <div className="flex items-center gap-3">
+                                                    <svg className="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    <span className="font-['Onest'] text-sm font-medium">{att.original_filename || att.filename}</span>
+                                                </div>
+                                                <button type="button" onClick={() => removeExistingAttachment(att.filename)}
+                                                    className="font-['Onest'] text-xs text-red-500 hover:text-red-700 cursor-pointer">{t('common.remove')}</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* New document files */}
+                                {attachmentFiles.filter(f => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(f.name)).length > 0 && (
+                                    <div className="mb-3 space-y-2">
+                                        {attachmentFiles.map((file, index) => (
+                                            /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(file.name) && (
+                                                <div key={index} className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-lg">
+                                                    <div className="flex items-center gap-3">
+                                                        <svg className="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                        <span className="font-['Onest'] text-sm font-medium">{file.name}</span>
+                                                    </div>
+                                                    <button type="button" onClick={() => removeAttachment(index)}
+                                                        className="font-['Onest'] text-xs text-red-500 hover:text-red-700 cursor-pointer">{t('common.remove')}</button>
+                                                </div>
+                                            )
+                                        ))}
+                                    </div>
+                                )}
+
+                                <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.xlsx,.txt,.csv"
+                                    onChange={handleAttachmentChange}
+                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                <p className="font-['Onest'] text-xs text-[#737373] mt-1">
+                                    {t('admin.blog.publication_doc_hint', 'A primeira página do documento será usada como capa. Formatos: PDF, DOC, DOCX, XLSX.')}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Thumbnail (optional for publications, shown for news-events) */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_thumbnail')}
+                                {formData.post_type === 'publication'
+                                    ? t('admin.blog.field_thumbnail_optional', 'Imagem de capa (opcional — substitui a pré-visualização do documento)')
+                                    : t('admin.blog.field_thumbnail')}
                             </label>
                             <ThumbnailDropzone
                                 preview={thumbnailPreview}
@@ -934,58 +1177,57 @@ export default function BlogPostForm() {
                             />
                         </div>
 
-                        {/* Attachments */}
+                        {/* Additional Attachments (for news-events, or extra files for publications) */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_attachments')}
+                                {formData.post_type === 'publication'
+                                    ? t('admin.blog.field_extra_attachments', 'Anexos adicionais')
+                                    : t('admin.blog.field_attachments')}
                             </label>
 
-                            {/* Existing attachments */}
-                            {existingAttachments.length > 0 && (
-                                <div className="mb-4">
-                                    <p className="text-sm text-gray-600 mb-2">{t('admin.blog.existing_attachments')}</p>
-                                    <div className="space-y-2">
-                                        {existingAttachments.map((attachment, index) => (
-                                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                                <span className="text-sm">{attachment.original_filename || attachment.filename}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeExistingAttachment(attachment.filename)}
-                                                    className="text-red-600 hover:text-red-800 text-sm"
-                                                >
-                                                    {t('common.remove')}
-                                                </button>
+                            {/* Existing attachments (for news: all, for publications: non-doc) */}
+                            {(() => {
+                                const shown = formData.post_type === 'publication'
+                                    ? existingAttachments.filter(a => !/\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || ''))
+                                    : existingAttachments
+                                return shown.length > 0 && (
+                                    <div className="mb-3 space-y-2">
+                                        {shown.map((att, i) => (
+                                            <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                                <span className="text-sm">{att.original_filename || att.filename}</span>
+                                                <button type="button" onClick={() => removeExistingAttachment(att.filename)}
+                                                    className="text-red-600 hover:text-red-800 text-sm">{t('common.remove')}</button>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                )
+                            })()}
 
-                            {/* New attachments */}
-                            {attachmentFiles.length > 0 && (
-                                <div className="mb-4">
-                                    <p className="text-sm text-gray-600 mb-2">{t('admin.blog.new_attachments')}</p>
-                                    <div className="space-y-2">
-                                        {attachmentFiles.map((file, index) => (
-                                            <div key={index} className="flex items-center justify-between p-2 bg-[#f3f4f6] rounded-lg">
-                                                <span className="text-sm">{file.name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeAttachment(index)}
-                                                    className="text-red-600 hover:text-red-800 text-sm"
-                                                >
-                                                    {t('common.remove')}
-                                                </button>
-                                            </div>
-                                        ))}
+                            {/* New attachment files */}
+                            {(() => {
+                                const shown = formData.post_type === 'publication'
+                                    ? attachmentFiles.filter((f, i) => !/\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(f.name))
+                                    : attachmentFiles
+                                return shown.length > 0 && (
+                                    <div className="mb-3 space-y-2">
+                                        {attachmentFiles.map((file, index) => {
+                                            const isDoc = /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(file.name)
+                                            if (formData.post_type === 'publication' && isDoc) return null
+                                            return (
+                                                <div key={index} className="flex items-center justify-between p-2 bg-[#f3f4f6] rounded-lg">
+                                                    <span className="text-sm">{file.name}</span>
+                                                    <button type="button" onClick={() => removeAttachment(index)}
+                                                        className="text-red-600 hover:text-red-800 text-sm">{t('common.remove')}</button>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
-                                </div>
-                            )}
+                                )
+                            })()}
 
                             <input
                                 type="file"
                                 multiple
-                                accept=".pdf,.doc,.docx,.xlsx,.txt,.csv"
                                 onChange={handleAttachmentChange}
                                 className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                             />

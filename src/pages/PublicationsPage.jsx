@@ -5,11 +5,17 @@ import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
+import categoryService from '../services/categoryService'
+import { PdfThumbnail } from '../components/PdfPreview'
 import { useTranslation } from 'react-i18next'
 
-const CATEGORY_IDS = ['all', 'Publicações Cientificas', 'Relatórios', 'Documentos']
-const CATEGORY_KEYS = ['blog.filter_all', 'blog.filter_scientific_publications', 'blog.filter_reports', 'blog.filter_documents']
-const ALL_TAGS = ['Publicações Cientificas', 'Relatórios', 'Documentos']
+function getDocUrl(post) {
+    const att = post.attachments?.find(a =>
+        /\.(pdf|doc|docx)$/i.test(a.filename || a.original_filename || '')
+    )
+    return att ? blogService.getFileUrl(att.url) : null
+}
+
 const TAG_KEY_MAP = {
     'Publicações Cientificas': 'blog.filter_scientific_publications',
     'Relatórios': 'blog.filter_reports',
@@ -18,6 +24,7 @@ const TAG_KEY_MAP = {
 
 function PublicationCard({ post, compact = false }) {
     const { t } = useTranslation()
+    const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -27,11 +34,20 @@ function PublicationCard({ post, compact = false }) {
             to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            {thumbnail && (
-                <div className="w-full aspect-video rounded sm:rounded-lg overflow-hidden">
+            <div className="w-full flex items-center justify-center bg-[#f3f4f6] rounded sm:rounded-lg overflow-hidden min-h-[120px]">
+                {docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfThumbnail url={docUrl} width={160} />
+                ) : thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-            )}
+                ) : (
+                    <div className="py-6 flex flex-col items-center text-[#737373]">
+                        <svg className="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="font-['Onest'] text-xs">{t('blog.document', 'Documento')}</span>
+                    </div>
+                )}
+            </div>
 
             <div className="flex items-start gap-4">
                 <h3 className="font-['Onest'] font-semibold text-sm sm:text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
@@ -88,6 +104,7 @@ function PublicationCard({ post, compact = false }) {
 function FeaturedPublication({ post }) {
     const { t } = useTranslation()
     if (!post) return null
+    const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -97,11 +114,17 @@ function FeaturedPublication({ post }) {
             to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            {thumbnail && (
-                <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden">
+            <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden flex items-center justify-center bg-[#f3f4f6]">
+                {docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfThumbnail url={docUrl} width={280} />
+                ) : thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-            )}
+                ) : (
+                    <svg className="w-16 h-16 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                )}
+            </div>
 
             <div className="flex items-start gap-4">
                 <div className="flex-1 flex flex-col gap-4">
@@ -158,17 +181,24 @@ function FeaturedPublication({ post }) {
 
 function MobileFeaturedCard({ post }) {
     const { t } = useTranslation()
+    const docUrl = getDocUrl(post)
     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
     return (
         <Link
             to={`/publications/${post.id}`}
             className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-white rounded-2xl p-4 flex flex-col gap-3 no-underline"
         >
-            {thumb && (
-                <div className="w-full aspect-video rounded-xl overflow-hidden">
+            <div className="w-full rounded-xl overflow-hidden flex items-center justify-center bg-[#f3f4f6] min-h-[140px]">
+                {docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfThumbnail url={docUrl} width={180} />
+                ) : thumb ? (
                     <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-            )}
+                ) : (
+                    <svg className="w-10 h-10 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                )}
+            </div>
             <div className="flex items-start justify-between gap-3">
                 <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a] line-clamp-2 flex-1">{post.title}</h3>
                 <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center">
@@ -204,8 +234,10 @@ function MobileFeaturedCard({ post }) {
 }
 
 export default function PublicationsPage() {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'pt'
     const [posts, setPosts] = useState([])
+    const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [activeCategory, setActiveCategory] = useState('all')
@@ -214,6 +246,7 @@ export default function PublicationsPage() {
 
     useEffect(() => {
         loadPosts()
+        categoryService.getByType('publication').then(cats => setCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
     }, [])
 
     const loadPosts = async () => {
@@ -230,11 +263,18 @@ export default function PublicationsPage() {
         }
     }
 
+    const catName = (slug) => {
+        const cat = categories.find(c => c.slug === slug)
+        return cat ? (lang === 'en' ? cat.name_en : cat.name_pt) : slug
+    }
+    const catSlugs = categories.map(c => c.slug)
+
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
-    // All publications (unfiltered) — top 3 most recent always shown in featured section
+    // All publications (unfiltered) — match by post_type OR legacy tags
     const allPublications = posts.filter(post =>
-        post.tags?.some(tag => ALL_TAGS.some(t => t.toLowerCase() === tag.toLowerCase()))
+        post.post_type === 'publication' ||
+        post.tags?.some(tag => ['Publicações Cientificas', 'Relatórios', 'Documentos'].some(t => t.toLowerCase() === tag.toLowerCase()))
     )
     const featuredPost = allPublications[0] || null
     const sidebarPosts = allPublications.slice(1, 3)
@@ -243,12 +283,13 @@ export default function PublicationsPage() {
     const gridPosts = allPublications.filter(post => {
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
-            normalize(post.title).includes(q) ||
+            normalize(lang === 'en' && post.title_en ? post.title_en : post.title).includes(q) ||
             normalize(post.excerpt).includes(q) ||
             normalize(post.content?.replace(/<[^>]*>/g, '')).includes(q) ||
             normalize(post.author).includes(q) ||
             post.tags?.some(tag => normalize(tag).includes(q) || (TAG_KEY_MAP[tag] && normalize(t(TAG_KEY_MAP[tag])).includes(q)))
         const matchesCategory = activeCategory === 'all' ||
+            post.categories?.includes(activeCategory) ||
             post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
         return matchesSearch && matchesCategory
     })
@@ -316,12 +357,12 @@ export default function PublicationsPage() {
                     {/* Filter bar */}
                     <div ref={filterRef} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8 mb-6" style={{ scrollMarginTop: 'calc(var(--navbar-height) + 6rem)' }}>
                         {/* Category pills — standalone on mobile, white container on desktop */}
-                        <div className="flex items-center gap-2 sm:gap-0 sm:bg-[#fffefc] sm:rounded-full sm:p-4 overflow-x-auto">
-                            {CATEGORY_IDS.map((id, index) => (
+                        <div className="flex items-center gap-2 sm:gap-0 sm:bg-[#fffefc] sm:rounded-full sm:p-4 overflow-x-auto flex-nowrap shrink-0" style={{ scrollbarWidth: 'none' }}>
+                            {['all', ...catSlugs].map((id) => (
                                 <button
                                     key={id}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`relative font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1.5 sm:py-1 rounded-full whitespace-nowrap cursor-pointer ${activeCategory !== id ? 'border border-[#e5e5e5] sm:border-0' : 'sm:border-0'}`}
+                                    className={`relative font-['Onest'] font-medium text-sm sm:text-lg px-3 py-1.5 sm:py-1 rounded-full whitespace-nowrap cursor-pointer shrink-0 ${activeCategory !== id ? 'border border-[#e5e5e5] sm:border-0' : 'sm:border-0'}`}
                                 >
                                     {activeCategory === id && (
                                         <motion.div
@@ -331,7 +372,7 @@ export default function PublicationsPage() {
                                         />
                                     )}
                                     <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
-                                        {t(CATEGORY_KEYS[index])}
+                                        {id === 'all' ? t('blog.filter_all') : catName(id)}
                                     </span>
                                 </button>
                             ))}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useLocation, Link } from 'react-router-dom'
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom'
 import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
@@ -8,6 +8,7 @@ import authorService from '../services/authorService'
 import hljs from 'highlight.js'
 import parse from 'html-react-parser'
 import BlogIndicatorWidget from '../components/BlogIndicatorWidget'
+import PdfPreview from '../components/PdfPreview'
 import { useTranslation } from 'react-i18next'
 
 function slugify(text) {
@@ -25,6 +26,7 @@ const TAG_KEY_MAP = {
 export default function BlogPostPage() {
     const { postId } = useParams()
     const { t } = useTranslation()
+    const navigate = useNavigate()
     const [post, setPost] = useState(null)
     const [authorSlug, setAuthorSlug] = useState(null)
     const [relatedPosts, setRelatedPosts] = useState([])
@@ -116,6 +118,9 @@ export default function BlogPostPage() {
         : null
 
     const authorLink = authorSlug ? `/author/${authorSlug}` : null
+    const isPublication = post.post_type === 'publication' || location.pathname.startsWith('/publications')
+    const primaryDoc = post.attachments?.find(a => /\.(pdf|doc|docx)$/i.test(a.filename || a.original_filename || ''))
+    const primaryDocUrl = primaryDoc ? blogService.getFileUrl(primaryDoc.url) : null
 
     const articleStyles = `
         .blog-content h1 { font-size: 2rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; line-height: 1; letter-spacing: -0.32px; }
@@ -277,12 +282,11 @@ export default function BlogPostPage() {
 
                 {/* ===== MOBILE LAYOUT ===== */}
                 <div className="sm:hidden">
-                    {/* Full-bleed hero image — starts at top-0, behind the fixed navbar */}
-                    {thumbnail ? (
+                    {/* Hero: image for news, skip for publications */}
+                    {!isPublication && thumbnail ? (
                         <div className="relative w-full">
                             <img src={thumbnail} alt={post.title} className="w-full h-auto block" />
                             <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-                            {/* Expand button — positioned above the overlapping rounded card */}
                             <button
                                 onClick={() => setImageExpanded(true)}
                                 className="absolute bottom-12 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors z-10"
@@ -292,22 +296,23 @@ export default function BlogPostPage() {
                                 </svg>
                             </button>
                         </div>
-                    ) : (
+                    ) : !isPublication ? (
                         <div className="w-full h-32 bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)]" style={{ marginTop: 'var(--navbar-height)' }} />
+                    ) : (
+                        <div style={{ paddingTop: 'var(--navbar-height)' }} />
                     )}
 
-                    {/* Content card slides up over image */}
-                    <div className="relative -mt-8 z-10">
-                        {/* Main rounded card */}
-                        <div className="bg-[#f3f4f6] rounded-t-[24px] px-4 pt-6 pb-8 flex flex-col gap-6">
+                    {/* Content card */}
+                    <div className={`relative z-10 ${!isPublication ? '-mt-8' : ''}`}>
+                        <div className={`${!isPublication ? 'bg-[#f3f4f6] rounded-t-[24px]' : 'bg-[#f3f4f6]'} px-4 pt-6 pb-8 flex flex-col gap-6`}>
                             {/* Back button */}
-                            <Link to={backPath}
-                                className="inline-flex items-center gap-2 border border-[#d4d4d4] bg-white/80 backdrop-blur rounded-full px-3 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] shadow-sm w-fit">
+                            <button onClick={() => navigate(-1)}
+                                className="inline-flex items-center gap-2 border border-[#d4d4d4] bg-white/80 backdrop-blur rounded-full px-3 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] shadow-sm w-fit cursor-pointer">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                                 {t('common.back')}
-                            </Link>
+                            </button>
 
                             {/* Title + author */}
                             <div className="flex flex-col gap-2">
@@ -327,17 +332,35 @@ export default function BlogPostPage() {
                                 )}
                             </div>
 
-                            {/* Article body */}
-                            <article className="blog-content font-['Onest'] text-[#0a0a0a]">
-                                {parse(post.content, parseOptions)}
-                                <style dangerouslySetInnerHTML={{ __html: articleStyles }} />
-                            </article>
+                            {/* Publication: document preview + download */}
+                            {isPublication && primaryDocUrl && (
+                                <div className="flex flex-col gap-4">
+                                    {primaryDocUrl.endsWith('.pdf') && (
+                                        <PdfPreview url={primaryDocUrl} pages={2} width={Math.min(window.innerWidth - 48, 360)} className="w-full" />
+                                    )}
+                                    <a href={primaryDocUrl} download={primaryDoc.original_filename || primaryDoc.filename}
+                                        className="inline-flex items-center justify-center gap-2 bg-primary text-white font-['Onest'] font-medium text-sm px-6 py-3 rounded-full hover:bg-[color:var(--color-primary-hover)] transition-colors w-full">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        {t('blog.download_document', 'Descarregar documento')}
+                                    </a>
+                                </div>
+                            )}
 
-                            {/* Attachments */}
-                            {post.attachments?.length > 0 && (
+                            {/* Article body (excerpt or content) */}
+                            {post.content && (
+                                <article className="blog-content font-['Onest'] text-[#0a0a0a]">
+                                    {parse(post.content, parseOptions)}
+                                    <style dangerouslySetInnerHTML={{ __html: articleStyles }} />
+                                </article>
+                            )}
+
+                            {/* Other attachments (non-primary) */}
+                            {post.attachments?.filter(a => a !== primaryDoc).length > 0 && (
                                 <section className="border-t border-gray-200 pt-6 flex flex-col gap-4">
                                     <h2 className="font-['Onest'] font-semibold text-xl text-[#0a0a0a]">{t('blog.attachments_title')}</h2>
-                                    {post.attachments.map((att, i) => (
+                                    {post.attachments.filter(a => a !== primaryDoc).map((att, i) => (
                                         <a key={i} href={blogService.getFileUrl(att.url)} download={att.original_filename || att.filename}
                                             className="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors">
                                             <svg className="w-5 h-5 text-[#0a0a0a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,13 +384,13 @@ export default function BlogPostPage() {
                 <div className="hidden sm:block max-w-[1512px] mx-auto px-12 pb-20" style={{ paddingTop: 'calc(var(--navbar-height) + 6rem)' }}>
                     {/* Back button + breadcrumbs */}
                     <div className="flex items-center gap-4 mb-6">
-                        <Link to={backPath}
-                            className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm shrink-0">
+                        <button onClick={() => navigate(-1)}
+                            className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm shrink-0 cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                             {t('common.back')}
-                        </Link>
+                        </button>
                         <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
                             <Link to={backPath} className="hover:underline text-[#737373]">{t('blog.header_title')}</Link>
                             <span className="text-gray-400">/</span>
@@ -422,8 +445,24 @@ export default function BlogPostPage() {
                                 </div>
                             </div>
 
-                            {/* Hero image */}
-                            {thumbnail && (
+                            {/* Publication: document preview + download */}
+                            {isPublication && primaryDocUrl && (
+                                <div className="flex flex-col gap-6 items-center">
+                                    {primaryDocUrl.endsWith('.pdf') && (
+                                        <PdfPreview url={primaryDocUrl} pages={2} width={500} />
+                                    )}
+                                    <a href={primaryDocUrl} download={primaryDoc.original_filename || primaryDoc.filename}
+                                        className="inline-flex items-center gap-2 bg-primary text-white font-['Onest'] font-medium text-base px-8 py-3 rounded-full hover:bg-[color:var(--color-primary-hover)] transition-colors">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        {t('blog.download_document', 'Descarregar documento')}
+                                    </a>
+                                </div>
+                            )}
+
+                            {/* Hero image (news-events only) */}
+                            {!isPublication && thumbnail && (
                                 <div className="w-full rounded-2xl overflow-hidden shadow-[0_0_3px_2px_rgba(0,0,0,0.05)]">
                                     <img src={thumbnail} alt={post.title} className="w-full h-auto" />
                                 </div>

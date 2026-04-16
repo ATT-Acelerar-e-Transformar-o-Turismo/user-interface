@@ -375,15 +375,15 @@ export default function DomainTemplate() {
           {/* Back button + breadcrumbs */}
           {!isSearchMode && !isAllIndicatorsMode && (
             <div className="flex flex-col gap-4 mb-6 pt-8">
-              <Link
-                to="/indicators"
-                className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm w-fit"
+              <button
+                onClick={() => navigateTo(-1)}
+                className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm w-fit cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 {t('common.back')}
-              </Link>
+              </button>
               <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
                 <Link to="/indicators" className="hover:underline">{t('domains.breadcrumb_dimensions')}</Link>
                 <span className="text-gray-400">/</span>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import PageTemplate from './PageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
@@ -25,6 +25,7 @@ const TAG_KEY_MAP = {
 export default function AuthorPage() {
     const { authorSlug } = useParams()
     const { t } = useTranslation()
+    const navigate = useNavigate()
     const [author, setAuthor] = useState(null)
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -136,11 +137,11 @@ export default function AuthorPage() {
                     <div className="relative -mt-10 z-10">
                         <div className="bg-[#f3f4f6] rounded-t-[24px] px-4 pt-6 pb-8">
                             {/* Back button — left aligned */}
-                            <Link to="/news-events"
-                                className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] bg-white hover:bg-gray-50 shadow-sm mb-4">
+                            <button onClick={() => navigate(-1)}
+                                className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] bg-white hover:bg-gray-50 shadow-sm mb-4 cursor-pointer">
                                 <HiOutlineChevronLeft className="w-4 h-4" />
                                 {t('common.back')}
-                            </Link>
+                            </button>
 
                             {/* Avatar — overlapping card top edge */}
                             <div className="flex flex-col items-center -mt-28 mb-4">
@@ -306,11 +307,11 @@ export default function AuthorPage() {
                     <div className={`relative max-w-[1512px] mx-auto px-12 pb-20 ${coverUrl ? '-mt-12 z-10 bg-[#f3f4f6] rounded-t-[32px] pt-6' : ''}`} style={coverUrl ? {} : { paddingTop: 'calc(var(--navbar-height) + 2rem)' }}>
                         {/* Back button */}
                         <div className="mb-4">
-                            <Link to="/news-events"
-                                className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-4 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] bg-white hover:bg-gray-50 shadow-sm">
+                            <button onClick={() => navigate(-1)}
+                                className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-4 py-1.5 text-sm font-['Onest'] font-medium text-[#0a0a0a] bg-white hover:bg-gray-50 shadow-sm cursor-pointer">
                                 <HiOutlineChevronLeft className="w-4 h-4" />
                                 {t('common.back')}
-                            </Link>
+                            </button>
                         </div>
 
                         {/* Avatar + info */}
