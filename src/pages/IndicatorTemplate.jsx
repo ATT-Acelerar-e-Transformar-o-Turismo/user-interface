@@ -609,7 +609,7 @@ export default function IndicatorTemplate() {
                       themeMode="light"
                       disableAnimations={!isInitialLoad}
                       onViewportChange={handleViewportChange}
-                      xaxisRange={viewport.min && viewport.max ? viewport : null}
+                      xaxisRange={viewport.min != null && viewport.max != null ? viewport : null}
                     />
                   </div>
                 ) : !dataLoading ? (

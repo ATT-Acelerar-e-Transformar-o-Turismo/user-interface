@@ -57,7 +57,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         let xaxisMin = undefined;
         let xaxisMax = undefined;
 
-        if (xaxisRange?.min && xaxisRange?.max) {
+        if (xaxisRange?.min != null && xaxisRange?.max != null) {
             xaxisMin = xaxisRange.min;
             xaxisMax = xaxisRange.max;
         }
@@ -334,7 +334,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, xaxisRange])
 
     return <div ref={chartContainerRef} className="w-full h-full" />
 })
