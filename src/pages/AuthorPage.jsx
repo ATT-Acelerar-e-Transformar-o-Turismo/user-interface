@@ -303,11 +303,12 @@ export default function AuthorPage() {
                             <img src={coverUrl} alt="" className="w-full h-full object-cover" />
                         </div>
                     ) : (
-                        <div className="w-full h-48 bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)]" style={{ marginTop: 'var(--navbar-height)' }} />
+                        <div className="w-full h-48 bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)]" />
                     )}
 
                     {/* Rounded card overlapping cover */}
-                    <div className={`relative max-w-[1512px] mx-auto px-12 pb-20 ${coverUrl ? '-mt-12 z-10 bg-[#f3f4f6] rounded-t-[32px] pt-6' : ''}`} style={coverUrl ? {} : { paddingTop: 'calc(var(--navbar-height) + 2rem)' }}>
+                    <div className="relative -mt-12 z-10 bg-[#f3f4f6] rounded-t-[32px] pt-6">
+                    <div className="max-w-[1512px] mx-auto px-12 pb-20">
                         {/* Back button */}
                         <div className="mb-4">
                             <button onClick={() => navigate(-1)}
@@ -318,7 +319,7 @@ export default function AuthorPage() {
                         </div>
 
                         {/* Avatar + info */}
-                        <div className={`flex flex-col items-center ${coverUrl ? '-mt-32' : ''}`}>
+                        <div className="flex flex-col items-center -mt-32">
                             <Avatar />
                             <h1 className="font-['Onest'] font-semibold text-4xl text-[#0a0a0a] tracking-tight mt-4 text-center">
                                 {author.name}
@@ -441,6 +442,7 @@ export default function AuthorPage() {
                                 <p className="text-gray-600">{t('blog.no_results_hint')}</p>
                             </div>
                         ) : null}
+                    </div>
                     </div>
                 </div>
             </div>
