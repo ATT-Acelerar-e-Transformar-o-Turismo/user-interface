@@ -17,16 +17,9 @@ export default function RedesCertificacoes() {
               {t('roots.redes.intro')}
             </p>
             <div className="flex flex-wrap items-center gap-6 md:gap-10 mt-2">
-              <img
-                src="/assets/roots/logo-turismo-portugal.png"
-                alt="Turismo de Portugal"
-                className="h-12 md:h-16 w-auto object-contain"
-              />
-              <img
-                src="/assets/roots/logo-turismo-centro.png"
-                alt="Turismo Centro de Portugal"
-                className="h-16 md:h-20 w-auto object-contain"
-              />
+              <span className="text-base md:text-lg lg:text-2xl italic text-base-content/60">
+                {t('roots.redes.coming_soon')}
+              </span>
             </div>
           </div>
           <img
@@ -50,7 +43,7 @@ export default function RedesCertificacoes() {
             <p className="text-base md:text-lg lg:text-2xl leading-relaxed text-base-content">
               {t('roots.redes.conhecimento_p1')}
             </p>
-            <p className="text-base md:text-lg lg:text-2xl leading-relaxed text-base-content">
+            <p className="text-base md:text-lg lg:text-2xl leading-relaxed italic text-base-content/60">
               {t('roots.redes.conhecimento_p2')}
             </p>
           </div>
@@ -69,7 +62,6 @@ export default function RedesCertificacoes() {
               <li>{t('roots.redes.iniciativas_item1')}</li>
               <li>{t('roots.redes.iniciativas_item2')}</li>
               <li>{t('roots.redes.iniciativas_item3')}</li>
-              <li>{t('roots.redes.iniciativas_item4')}</li>
             </ul>
           </div>
           <img

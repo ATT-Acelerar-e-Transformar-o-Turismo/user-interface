@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -48,4 +48,75 @@ export default function PdfPreview({ url, pages = 1, width = 300, className = ''
  */
 export function PdfThumbnail({ url, width = 200, className = '' }) {
     return <PdfPreview url={url} pages={1} width={width} className={className} />
+}
+
+/**
+ * Renders PDF pages filling the container width — use on desktop publication view.
+ */
+export function PdfFillPreview({ url, pages = 2, className = '' }) {
+    const [containerWidth, setContainerWidth] = useState(null)
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        if (!containerRef.current) return
+        const observer = new ResizeObserver(entries => {
+            setContainerWidth(Math.floor(entries[0].contentRect.width))
+        })
+        observer.observe(containerRef.current)
+        setContainerWidth(Math.floor(containerRef.current.getBoundingClientRect().width))
+        return () => observer.disconnect()
+    }, [])
+
+    return (
+        <div ref={containerRef} className={`w-full ${className}`}>
+            {containerWidth ? (
+                <PdfPreview url={url} pages={pages} width={containerWidth} />
+            ) : (
+                <div className="animate-pulse bg-gray-200 rounded-lg w-full h-[500px]" />
+            )}
+        </div>
+    )
+}
+
+/**
+ * Renders the first PDF page filling its container width (clip height via overflow-hidden on parent).
+ * Use when you want the PDF to behave like a cover image on a card.
+ */
+export function PdfCardFill({ url, className = '' }) {
+    const [containerWidth, setContainerWidth] = useState(null)
+    const [error, setError] = useState(false)
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        if (!containerRef.current) return
+        const observer = new ResizeObserver(entries => {
+            setContainerWidth(Math.floor(entries[0].contentRect.width))
+        })
+        observer.observe(containerRef.current)
+        setContainerWidth(Math.floor(containerRef.current.getBoundingClientRect().width))
+        return () => observer.disconnect()
+    }, [])
+
+    if (!url || error) return null
+
+    return (
+        <div ref={containerRef} className={`w-full h-full overflow-hidden ${className}`}>
+            {containerWidth ? (
+                <Document
+                    file={url}
+                    onLoadError={() => setError(true)}
+                    loading={<div className="animate-pulse bg-gray-200 w-full h-full" />}
+                >
+                    <Page
+                        pageNumber={1}
+                        width={containerWidth}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                    />
+                </Document>
+            ) : (
+                <div className="w-full h-full animate-pulse bg-gray-200" />
+            )}
+        </div>
+    )
 }

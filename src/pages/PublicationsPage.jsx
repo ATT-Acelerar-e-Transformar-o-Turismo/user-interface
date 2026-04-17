@@ -6,7 +6,7 @@ import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import categoryService from '../services/categoryService'
-import { PdfThumbnail } from '../components/PdfPreview'
+import { PdfCardFill } from '../components/PdfPreview'
 import { useTranslation } from 'react-i18next'
 
 function getDocUrl(post) {
@@ -34,13 +34,13 @@ function PublicationCard({ post, compact = false }) {
             to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            <div className="w-full flex items-center justify-center bg-[#f3f4f6] rounded sm:rounded-lg overflow-hidden min-h-[120px]">
-                {docUrl && docUrl.endsWith('.pdf') ? (
-                    <PdfThumbnail url={docUrl} width={160} />
-                ) : thumbnail ? (
+            <div className="w-full rounded sm:rounded-lg overflow-hidden min-h-[120px]">
+                {thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                ) : docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfCardFill url={docUrl} />
                 ) : (
-                    <div className="py-6 flex flex-col items-center text-[#737373]">
+                    <div className="py-6 flex flex-col items-center text-[#737373] bg-[#f3f4f6]">
                         <svg className="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -114,15 +114,17 @@ function FeaturedPublication({ post }) {
             to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden flex items-center justify-center bg-[#f3f4f6]">
-                {docUrl && docUrl.endsWith('.pdf') ? (
-                    <PdfThumbnail url={docUrl} width={280} />
-                ) : thumbnail ? (
+            <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden">
+                {thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                ) : docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfCardFill url={docUrl} />
                 ) : (
-                    <svg className="w-16 h-16 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                    <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-[#f3f4f6]">
+                        <svg className="w-16 h-16 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
                 )}
             </div>
 
@@ -186,48 +188,55 @@ function MobileFeaturedCard({ post }) {
     return (
         <Link
             to={`/publications/${post.id}`}
-            className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-white rounded-2xl p-4 flex flex-col gap-3 no-underline"
+            className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-[#fffefc] rounded-2xl p-4 flex flex-col gap-4 no-underline overflow-hidden"
         >
-            <div className="w-full rounded-xl overflow-hidden flex items-center justify-center bg-[#f3f4f6] min-h-[140px]">
-                {docUrl && docUrl.endsWith('.pdf') ? (
-                    <PdfThumbnail url={docUrl} width={180} />
-                ) : thumb ? (
+            <div className="w-full h-[184px] rounded-lg overflow-hidden">
+                {thumb ? (
                     <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
+                ) : docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfCardFill url={docUrl} />
                 ) : (
-                    <svg className="w-10 h-10 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                    <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6]">
+                        <svg className="w-10 h-10 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
                 )}
             </div>
-            <div className="flex items-start justify-between gap-3">
-                <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a] line-clamp-2 flex-1">{post.title}</h3>
-                <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center">
+            <div className="flex items-start gap-4">
+                <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    <h3 className="font-['Onest'] font-semibold text-2xl leading-[1.2] text-[#0a0a0a] tracking-[-0.48px] line-clamp-2">{post.title}</h3>
+                    <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
+                        {t('blog.author_label', 'Autor')}: {post.author || t('blog.default_author')}
+                    </span>
+                </div>
+                <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
                     <svg className="w-3.5 h-3.5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
                     </svg>
                 </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 mt-auto">
-                <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                        {post.author_photo ? (
-                            <img src={blogService.getFileUrl(post.author_photo)} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-[10px] font-bold">
-                                {(post.author || 'A')[0].toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] truncate">{post.author || t('blog.default_author')}</span>
-                </div>
-                <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] whitespace-nowrap">
-                    {blogService.formatDate(post.published_at || post.created_at)}
+        </Link>
+    )
+}
+
+function MobileListItem({ post, isLast }) {
+    const { t } = useTranslation()
+    return (
+        <Link
+            to={`/publications/${post.id}`}
+            className={`flex items-center justify-between px-4 py-3 no-underline ${!isLast ? 'border-b border-[#e5e5e5]' : ''}`}
+        >
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a] truncate">{post.title}</span>
+                <span className="font-['Onest'] text-xs text-[#737373]">
+                    {t('blog.author_label', 'Autor')}: {post.author || t('blog.default_author')}
                 </span>
-                {post.tags?.[0] && TAG_KEY_MAP[post.tags[0]] && (
-                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
-                        {t(TAG_KEY_MAP[post.tags[0]])}
-                    </span>
-                )}
+            </div>
+            <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm ml-3">
+                <svg className="w-3.5 h-3.5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                </svg>
             </div>
         </Link>
     )
@@ -393,13 +402,22 @@ export default function PublicationsPage() {
                         </div>
                     </div>
 
-                    {/* Cards grid */}
+                    {/* Cards / list */}
                     {gridPosts.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
-                            {gridPosts.map((post) => (
-                                <PublicationCard key={post.id} post={post} />
-                            ))}
-                        </div>
+                        <>
+                            {/* Mobile: flat list in white card */}
+                            <div className="sm:hidden bg-[#fffefc] rounded-2xl overflow-hidden">
+                                {gridPosts.map((post, i) => (
+                                    <MobileListItem key={post.id} post={post} isLast={i === gridPosts.length - 1} />
+                                ))}
+                            </div>
+                            {/* Desktop: grid */}
+                            <div className="hidden sm:grid grid-cols-3 xl:grid-cols-4 gap-6">
+                                {gridPosts.map((post) => (
+                                    <PublicationCard key={post.id} post={post} />
+                                ))}
+                            </div>
+                        </>
                     ) : (
                         <div className="text-center py-16">
                             <h3 className="font-['Onest'] text-xl font-medium text-gray-900 mb-2">

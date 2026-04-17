@@ -38,7 +38,7 @@ export default function AboutSection() {
         </div>
 
         {/* Right Side: Text Content */}
-        <div className="w-full lg:w-1/2 lg:min-w-[575px] flex flex-col justify-center text-white z-10">
+        <div className="w-full lg:w-1/2 flex flex-col justify-center text-white z-10">
           <div className="mb-12 lg:mb-20 text-center lg:text-right" data-aos="fade-left" data-aos-delay="100">
             <h2 className="font-['Onest'] font-semibold text-[32px] md:text-[40px] lg:text-[48px] leading-none mb-4 lg:mb-8">{t('about.title')}</h2>
             <p className="font-['Onest'] font-normal text-[16px] md:text-[20px] lg:text-[24px] leading-relaxed opacity-90 max-w-xl mx-auto lg:ml-auto lg:mr-0">
