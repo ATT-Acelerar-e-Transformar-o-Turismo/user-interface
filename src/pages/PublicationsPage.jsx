@@ -6,33 +6,48 @@ import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import blogService from '../services/blogService'
 import categoryService from '../services/categoryService'
+import { PdfCardFill } from '../components/PdfPreview'
 import { useTranslation } from 'react-i18next'
 
-// Fallback for legacy posts that use tags instead of categories
+function getDocUrl(post) {
+    const att = post.attachments?.find(a =>
+        /\.(pdf|doc|docx)$/i.test(a.filename || a.original_filename || '')
+    )
+    return att ? blogService.getFileUrl(att.url) : null
+}
+
 const TAG_KEY_MAP = {
-    'Noticias': 'blog.filter_news',
-    'Eventos': 'blog.filter_events',
     'Publicações Cientificas': 'blog.filter_scientific_publications',
     'Relatórios': 'blog.filter_reports',
     'Documentos': 'blog.filter_documents',
 }
 
-function PostCard({ post, compact = false }) {
+function PublicationCard({ post, compact = false }) {
     const { t } = useTranslation()
+    const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
 
     return (
         <Link
-            to={`/news-events/${post.id}`}
+            to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            {thumbnail && (
-                <div className="w-full h-[160px] sm:h-[200px] rounded sm:rounded-lg overflow-hidden">
+            <div className="w-full h-[160px] sm:h-[200px] rounded sm:rounded-lg overflow-hidden">
+                {thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-            )}
+                ) : docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfCardFill url={docUrl} />
+                ) : (
+                    <div className="py-6 flex flex-col items-center text-[#737373] bg-[#f3f4f6]">
+                        <svg className="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="font-['Onest'] text-xs">{t('blog.document', 'Documento')}</span>
+                    </div>
+                )}
+            </div>
 
             <div className="flex items-start gap-4">
                 <h3 className="font-['Onest'] font-semibold text-sm sm:text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
@@ -46,7 +61,7 @@ function PostCard({ post, compact = false }) {
             </div>
 
             {!compact && post.excerpt && (
-                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-3 sm:line-clamp-4">
+                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-3">
                     {post.excerpt}
                 </p>
             )}
@@ -76,9 +91,9 @@ function PostCard({ post, compact = false }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && (
+                {post.tags && post.tags[0] && TAG_KEY_MAP[post.tags[0]] && (
                     <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
+                        {t(TAG_KEY_MAP[post.tags[0]])}
                     </span>
                 )}
             </div>
@@ -86,23 +101,34 @@ function PostCard({ post, compact = false }) {
     )
 }
 
-function FeaturedPost({ post }) {
+function FeaturedPublication({ post }) {
     const { t } = useTranslation()
     if (!post) return null
+    const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
 
     return (
         <Link
-            to={`/news-events/${post.id}`}
+            to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            {thumbnail && (
-                <div className="w-full flex-1 min-h-0 rounded-2xl overflow-hidden relative">
+            <div className="w-full flex-1 min-h-0 rounded-2xl overflow-hidden relative">
+                {thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
-                </div>
-            )}
+                ) : docUrl && docUrl.endsWith('.pdf') ? (
+                    <div className="absolute inset-0">
+                        <PdfCardFill url={docUrl} />
+                    </div>
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#f3f4f6]">
+                        <svg className="w-16 h-16 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                )}
+            </div>
 
             <div className="flex items-start gap-4">
                 <div className="flex-1 flex flex-col gap-4">
@@ -147,9 +173,9 @@ function FeaturedPost({ post }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && (
+                {post.tags && post.tags[0] && TAG_KEY_MAP[post.tags[0]] && (
                     <span className="ml-auto font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
+                        {t(TAG_KEY_MAP[post.tags[0]])}
                     </span>
                 )}
             </div>
@@ -157,54 +183,68 @@ function FeaturedPost({ post }) {
     )
 }
 
-function MobileFeaturedCard({ post, basePath = '/news-events' }) {
+function MobileFeaturedCard({ post }) {
     const { t } = useTranslation()
+    const docUrl = getDocUrl(post)
     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
     return (
         <Link
-            to={`${basePath}/${post.id}`}
-            className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-white rounded-2xl p-4 flex flex-col gap-3 no-underline"
+            to={`/publications/${post.id}`}
+            className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-[#fffefc] rounded-2xl p-4 flex flex-col gap-4 no-underline overflow-hidden"
         >
-            {thumb && (
-                <div className="w-full aspect-video rounded-xl overflow-hidden">
+            <div className="w-full h-[184px] rounded-lg overflow-hidden">
+                {thumb ? (
                     <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
+                ) : docUrl && docUrl.endsWith('.pdf') ? (
+                    <PdfCardFill url={docUrl} />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6]">
+                        <svg className="w-10 h-10 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                )}
+            </div>
+            <div className="flex items-start gap-4">
+                <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    <h3 className="font-['Onest'] font-semibold text-2xl leading-[1.2] text-[#0a0a0a] tracking-[-0.48px] line-clamp-2">{post.title}</h3>
+                    <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a]">
+                        {t('blog.author_label', 'Autor')}: {post.author || t('blog.default_author')}
+                    </span>
                 </div>
-            )}
-            <div className="flex items-start justify-between gap-3">
-                <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a] line-clamp-2 flex-1">{post.title}</h3>
-                <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center">
+                <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
                     <svg className="w-3.5 h-3.5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
                     </svg>
                 </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 mt-auto">
-                <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                        {post.author_photo ? (
-                            <img src={blogService.getFileUrl(post.author_photo)} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-[10px] font-bold">
-                                {(post.author || 'A')[0].toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] truncate">{post.author || t('blog.default_author')}</span>
-                </div>
-                <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] whitespace-nowrap">
-                    {blogService.formatDate(post.published_at || post.created_at)}
+        </Link>
+    )
+}
+
+function MobileListItem({ post, isLast }) {
+    const { t } = useTranslation()
+    return (
+        <Link
+            to={`/publications/${post.id}`}
+            className={`flex items-center justify-between px-4 py-3 no-underline ${!isLast ? 'border-b border-[#e5e5e5]' : ''}`}
+        >
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <span className="font-['Onest'] font-medium text-sm text-[#0a0a0a] truncate">{post.title}</span>
+                <span className="font-['Onest'] text-xs text-[#737373]">
+                    {t('blog.author_label', 'Autor')}: {post.author || t('blog.default_author')}
                 </span>
-                {post.tags?.[0] && (
-                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
-                    </span>
-                )}
+            </div>
+            <div className="shrink-0 w-8 h-8 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm ml-3">
+                <svg className="w-3.5 h-3.5 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                </svg>
             </div>
         </Link>
     )
 }
 
-export default function BlogPage() {
+export default function PublicationsPage() {
     const { t, i18n } = useTranslation()
     const lang = i18n.language?.startsWith('en') ? 'en' : 'pt'
     const [posts, setPosts] = useState([])
@@ -217,7 +257,7 @@ export default function BlogPage() {
 
     useEffect(() => {
         loadPosts()
-        categoryService.getByType('news-event').then(cats => setCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
+        categoryService.getByType('publication').then(cats => setCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
     }, [])
 
     const loadPosts = async () => {
@@ -242,16 +282,16 @@ export default function BlogPage() {
 
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
-    // All news/events posts (unfiltered) — match by post_type OR legacy tags
-    const allNewsEvents = posts.filter(post =>
-        post.post_type === 'news-event' ||
-        post.tags?.some(tag => ['Noticias', 'Eventos'].some(t => t.toLowerCase() === tag.toLowerCase()))
+    // All publications (unfiltered) — match by post_type OR legacy tags
+    const allPublications = posts.filter(post =>
+        post.post_type === 'publication' ||
+        post.tags?.some(tag => ['Publicações Cientificas', 'Relatórios', 'Documentos'].some(t => t.toLowerCase() === tag.toLowerCase()))
     )
-    const featuredPost = allNewsEvents[0] || null
-    const sidebarPosts = allNewsEvents.slice(1, 3)
+    const featuredPost = allPublications[0] || null
+    const sidebarPosts = allPublications.slice(1, 3)
 
-    // Filtered posts for the grid below
-    const gridPosts = allNewsEvents.filter(post => {
+    // Filtered publications for the grid below
+    const gridPosts = allPublications.filter(post => {
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
             normalize(lang === 'en' && post.title_en ? post.title_en : post.title).includes(q) ||
@@ -288,10 +328,10 @@ export default function BlogPage() {
                     {/* Header */}
                     <div className="flex flex-col gap-2 sm:gap-4 mb-8 sm:mb-14">
                         <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
-                            {t('blog.header_title')}
+                            {t('blog.publications_featured', 'Publicações em destaque')}
                         </h1>
-                        <p className="font-['Onest'] text-base sm:text-2xl leading-relaxed text-[#0a0a0a]">
-                            {t('blog.header_subtitle')}
+                        <p className="hidden sm:block font-['Onest'] text-2xl leading-relaxed text-[#0a0a0a]">
+                            {t('blog.publications_subtitle', 'Fique a par das novidades: histórias, dados e projetos ROOTS')}
                         </p>
                     </div>
 
@@ -301,18 +341,18 @@ export default function BlogPage() {
                             {/* Mobile: horizontal scroll of cards */}
                             <div className="sm:hidden flex overflow-x-auto gap-3 mb-6 snap-x snap-mandatory -mx-4 pl-6 pr-4 scroll-pl-6" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                                 {[featuredPost, ...sidebarPosts].map(post => (
-                                    <MobileFeaturedCard key={post.id} post={post} basePath="/news-events" />
+                                    <MobileFeaturedCard key={post.id} post={post} />
                                 ))}
                             </div>
                             {/* Desktop: featured + sidebar */}
                             <div className="hidden sm:flex flex-col lg:flex-row lg:items-stretch gap-6 mb-14">
                                 <div className="flex-1 min-h-0">
-                                    <FeaturedPost post={featuredPost} />
+                                    <FeaturedPublication post={featuredPost} />
                                 </div>
                                 {sidebarPosts.length > 0 && (
                                     <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
                                         {sidebarPosts.map((post) => (
-                                            <PostCard key={post.id} post={post} compact />
+                                            <PublicationCard key={post.id} post={post} compact />
                                         ))}
                                     </div>
                                 )}
@@ -322,7 +362,7 @@ export default function BlogPage() {
 
                     {/* Section heading — mobile only */}
                     <h2 className="sm:hidden font-['Onest'] font-semibold text-2xl text-[#0a0a0a] mb-4">
-                        {t('blog.all_news', 'Todas as notícias')}
+                        {t('blog.all_publications', 'Todas as publicações')}
                     </h2>
 
                     {/* Filter bar */}
@@ -337,7 +377,7 @@ export default function BlogPage() {
                                 >
                                     {activeCategory === id && (
                                         <motion.div
-                                            layoutId="blogFilterPill"
+                                            layoutId="pubFilterPill"
                                             className="absolute inset-0 bg-primary rounded-full"
                                             transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                                         />
@@ -364,14 +404,23 @@ export default function BlogPage() {
                         </div>
                     </div>
 
-                    {/* Cards grid */}
+                    {/* Cards / list */}
                     {gridPosts.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
-                            {gridPosts.map((post) => (
-                                <PostCard key={post.id} post={post} />
-                            ))}
-                        </div>
-                    ) : gridPosts.length === 0 && (
+                        <>
+                            {/* Mobile: flat list in white card */}
+                            <div className="sm:hidden bg-[#fffefc] rounded-2xl overflow-hidden">
+                                {gridPosts.map((post, i) => (
+                                    <MobileListItem key={post.id} post={post} isLast={i === gridPosts.length - 1} />
+                                ))}
+                            </div>
+                            {/* Desktop: grid */}
+                            <div className="hidden sm:grid grid-cols-3 xl:grid-cols-4 gap-6">
+                                {gridPosts.map((post) => (
+                                    <PublicationCard key={post.id} post={post} />
+                                ))}
+                            </div>
+                        </>
+                    ) : (
                         <div className="text-center py-16">
                             <h3 className="font-['Onest'] text-xl font-medium text-gray-900 mb-2">
                                 {t('blog.no_results_title')}

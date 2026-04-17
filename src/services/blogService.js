@@ -73,11 +73,7 @@ class BlogService {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await this.api.post(API_ENDPOINTS.BLOG.THUMBNAIL(postId), formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await this.api.post(API_ENDPOINTS.BLOG.THUMBNAIL(postId), formData);
             return response.data;
         } catch (error) {
             throw new Error('Failed to upload thumbnail');
@@ -89,11 +85,7 @@ class BlogService {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await this.api.post(API_ENDPOINTS.BLOG.ATTACHMENTS(postId), formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await this.api.post(API_ENDPOINTS.BLOG.ATTACHMENTS(postId), formData);
             return response.data;
         } catch (error) {
             throw new Error('Failed to upload attachment');
@@ -114,11 +106,7 @@ class BlogService {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await this.api.post(API_ENDPOINTS.BLOG.UPLOAD_THUMBNAIL, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await this.api.post(API_ENDPOINTS.BLOG.UPLOAD_THUMBNAIL, formData);
             return response.data;
         } catch (error) {
             throw new Error('Failed to upload thumbnail');
@@ -130,11 +118,7 @@ class BlogService {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await this.api.post(API_ENDPOINTS.BLOG.UPLOAD_ATTACHMENT, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await this.api.post(API_ENDPOINTS.BLOG.UPLOAD_ATTACHMENT, formData);
             return response.data;
         } catch (error) {
             throw new Error('Failed to upload attachment');

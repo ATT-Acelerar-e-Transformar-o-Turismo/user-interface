@@ -82,7 +82,9 @@
     "researcher_role": "ROOTS Researcher",
     "keywords_title": "Keywords",
     "related_publications": "Related Publications",
-    "share_post": "Share Post"
+    "share_post": "Share Post",
+    "publications_title": "ROOTS Publications",
+    "publications_subtitle": "Stay up to date with the latest: stories, data and ROOTS projects"
   },
   "hero": {
     "title_prefix": "The Root",
@@ -526,13 +528,13 @@
       "intro": "ROOTS promotes collaboration with various institutions linked to tourism, research, and territorial development. Key institutional partners include:",
       "conhecimento_title": "Knowledge Networks",
       "conhecimento_p1": "ROOTS seeks to integrate knowledge-sharing networks related to sustainable tourism monitoring.",
-      "conhecimento_p2": "Among these, the International Network of Sustainable Tourism Observatories, promoted by UN Tourism, stands out.",
+      "conhecimento_p2": "Coming soon.",
+      "coming_soon": "Coming soon",
       "iniciativas_title": "Initiatives & Certifications",
       "iniciativas_intro": "The Observatory follows and promotes initiatives related to sustainability and innovation in tourism, including:",
       "iniciativas_item1": "Monitoring sustainability indicators",
       "iniciativas_item2": "Applied research projects",
-      "iniciativas_item3": "Certification and best practice programmes",
-      "iniciativas_item4": "Local certifications or initiatives"
+      "iniciativas_item3": "Certification and best practice programmes"
     },
     "nav": {
       "quem_somos": "Who are we?",

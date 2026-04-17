@@ -82,7 +82,9 @@
     "researcher_role": "Investigador ROOTS",
     "keywords_title": "Keywords",
     "related_publications": "Publicações Relacionadas",
-    "share_post": "Partilhar Publicação"
+    "share_post": "Partilhar Publicação",
+    "publications_title": "Publicações ROOTS",
+    "publications_subtitle": "Fique a par das novidades: histórias, dados e projetos ROOTS"
   },
   "hero": {
     "title_prefix": "A Raíz",
@@ -526,13 +528,13 @@
       "intro": "A ROOTS promove a colaboração com diferentes instituições ligadas ao turismo, à investigação e ao desenvolvimento territorial. Entre os parceiros institucionais destacam-se:",
       "conhecimento_title": "Redes de Conhecimento",
       "conhecimento_p1": "A ROOTS procura integrar redes de partilha de conhecimento relacionadas com a monitorização do turismo sustentável.",
-      "conhecimento_p2": "Entre estas destaca-se a International Network of Sustainable Tourism Observatories, promovida pela UN Tourism.",
+      "conhecimento_p2": "Em breve.",
+      "coming_soon": "Em breve",
       "iniciativas_title": "Iniciativas e Certificações",
       "iniciativas_intro": "O Observatório acompanha e promove iniciativas relacionadas com a sustentabilidade e inovação no turismo, incluindo:",
       "iniciativas_item1": "Monitorização de indicadores de sustentabilidade",
       "iniciativas_item2": "Projetos de investigação aplicada",
-      "iniciativas_item3": "Programas de certificação e boas práticas",
-      "iniciativas_item4": "Certificações ou iniciativas locais"
+      "iniciativas_item3": "Programas de certificação e boas práticas"
     },
     "nav": {
       "quem_somos": "Quem somos?",

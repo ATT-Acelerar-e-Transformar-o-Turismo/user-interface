@@ -507,16 +507,15 @@ export default function IndicatorTemplate() {
         <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-18">
           {/* Back button */}
           <div className="pt-6 mb-6">
-            <Link
-              to={domainPath}
-              state={{ domainId: resolvedDomainObj?.id }}
-              className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm"
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               {t('common.back')}
-            </Link>
+            </button>
           </div>
 
           {/* Indicator navigation dropdowns */}
