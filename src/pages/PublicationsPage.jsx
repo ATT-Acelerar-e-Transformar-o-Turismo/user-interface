@@ -22,8 +22,10 @@ const TAG_KEY_MAP = {
     'Documentos': 'blog.filter_documents',
 }
 
-function PublicationCard({ post, compact = false }) {
-    const { t } = useTranslation()
+function PublicationCard({ post: rawPost, compact = false, catName }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
@@ -91,19 +93,21 @@ function PublicationCard({ post, compact = false }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && TAG_KEY_MAP[post.tags[0]] && (
-                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
-                        {t(TAG_KEY_MAP[post.tags[0]])}
+                {catName && post.categories?.map((slug, i) => (
+                    <span key={`cat-${i}`} className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
+                        {catName(slug)}
                     </span>
-                )}
+                ))}
             </div>
         </Link>
     )
 }
 
-function FeaturedPublication({ post }) {
-    const { t } = useTranslation()
-    if (!post) return null
+function FeaturedPublication({ post: rawPost, catName }) {
+    const { t, i18n } = useTranslation()
+    if (!rawPost) return null
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
@@ -173,18 +177,24 @@ function FeaturedPublication({ post }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && TAG_KEY_MAP[post.tags[0]] && (
-                    <span className="ml-auto font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
-                        {t(TAG_KEY_MAP[post.tags[0]])}
-                    </span>
+                {post.categories?.length > 0 && (
+                    <div className="ml-auto flex flex-wrap gap-2">
+                        {post.categories.map((slug, i) => (
+                            <span key={i} className="font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
+                                {catName(slug)}
+                            </span>
+                        ))}
+                    </div>
                 )}
             </div>
         </Link>
     )
 }
 
-function MobileFeaturedCard({ post }) {
-    const { t } = useTranslation()
+function MobileFeaturedCard({ post: rawPost }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const docUrl = getDocUrl(post)
     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
     return (
@@ -347,12 +357,12 @@ export default function PublicationsPage() {
                             {/* Desktop: featured + sidebar */}
                             <div className="hidden sm:flex flex-col lg:flex-row lg:items-stretch gap-6 mb-14">
                                 <div className="flex-1 min-h-0">
-                                    <FeaturedPublication post={featuredPost} />
+                                    <FeaturedPublication post={featuredPost} catName={catName} />
                                 </div>
                                 {sidebarPosts.length > 0 && (
                                     <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
                                         {sidebarPosts.map((post) => (
-                                            <PublicationCard key={post.id} post={post} compact />
+                                            <PublicationCard key={post.id} post={post} compact catName={catName} />
                                         ))}
                                     </div>
                                 )}
@@ -416,7 +426,7 @@ export default function PublicationsPage() {
                             {/* Desktop: grid */}
                             <div className="hidden sm:grid grid-cols-3 xl:grid-cols-4 gap-6">
                                 {gridPosts.map((post) => (
-                                    <PublicationCard key={post.id} post={post} />
+                                    <PublicationCard key={post.id} post={post} catName={catName} />
                                 ))}
                             </div>
                         </>

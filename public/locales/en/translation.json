@@ -84,7 +84,11 @@
     "related_publications": "Related Publications",
     "share_post": "Share Post",
     "publications_title": "ROOTS Publications",
-    "publications_subtitle": "Stay up to date with the latest: stories, data and ROOTS projects"
+    "publications_subtitle": "Stay up to date with the latest: stories, data and ROOTS projects",
+    "publication_link": "Publication Link",
+    "author_publications": "Publications by",
+    "publications_featured": "Featured publications",
+    "all_publications": "All publications"
   },
   "hero": {
     "title_prefix": "The Root",

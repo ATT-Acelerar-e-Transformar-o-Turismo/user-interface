@@ -198,10 +198,28 @@ export default function IndicatorTemplate() {
   };
 
   const handleExportImage = async () => {
+    // Try client-side export first via ApexCharts
+    const chartInstance = indicatorChartRef.current?.chart;
+    if (chartInstance) {
+      try {
+        const { imgURI } = await chartInstance.dataURI({ scale: 2 });
+        const a = document.createElement('a');
+        a.href = imgURI;
+        a.download = `${indicatorData?.name || 'indicator'}_chart.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      } catch (e) {
+        console.warn('Client-side chart export failed, trying server:', e);
+      }
+    }
+
+    // Fallback to server-side export
     try {
       let exportStartDate = fetchParams.startDate;
       let exportEndDate = fetchParams.endDate;
-      
+
       if (viewport.min && viewport.max) {
          exportStartDate = new Date(viewport.min).toISOString();
          exportEndDate = new Date(viewport.max).toISOString();
@@ -222,7 +240,7 @@ export default function IndicatorTemplate() {
       };
 
       const blob = await indicatorService.exportChartImage(indicatorId, exportPayload);
-      
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -591,6 +609,7 @@ export default function IndicatorTemplate() {
                       themeMode="light"
                       disableAnimations={!isInitialLoad}
                       onViewportChange={handleViewportChange}
+                      xaxisRange={viewport.min != null && viewport.max != null ? viewport : null}
                     />
                   </div>
                 ) : !dataLoading ? (

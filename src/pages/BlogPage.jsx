@@ -17,8 +17,10 @@ const TAG_KEY_MAP = {
     'Documentos': 'blog.filter_documents',
 }
 
-function PostCard({ post, compact = false }) {
-    const { t } = useTranslation()
+function PostCard({ post: rawPost, compact = false, catName }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -76,19 +78,21 @@ function PostCard({ post, compact = false }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && (
-                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
+                {catName && post.categories?.map((slug, i) => (
+                    <span key={i} className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
+                        {catName(slug)}
                     </span>
-                )}
+                ))}
             </div>
         </Link>
     )
 }
 
-function FeaturedPost({ post }) {
-    const { t } = useTranslation()
-    if (!post) return null
+function FeaturedPost({ post: rawPost, catName }) {
+    const { t, i18n } = useTranslation()
+    if (!rawPost) return null
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -147,18 +151,24 @@ function FeaturedPost({ post }) {
                         {blogService.formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
-                {post.tags && post.tags[0] && (
-                    <span className="ml-auto font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
-                    </span>
+                {catName && post.categories?.length > 0 && (
+                    <div className="ml-auto flex flex-wrap gap-2">
+                        {post.categories.map((slug, i) => (
+                            <span key={i} className="font-['Onest'] font-medium text-base text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
+                                {catName(slug)}
+                            </span>
+                        ))}
+                    </div>
                 )}
             </div>
         </Link>
     )
 }
 
-function MobileFeaturedCard({ post, basePath = '/news-events' }) {
-    const { t } = useTranslation()
+function MobileFeaturedCard({ post: rawPost, basePath = '/news-events', catName }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
     return (
         <Link
@@ -194,11 +204,11 @@ function MobileFeaturedCard({ post, basePath = '/news-events' }) {
                 <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] whitespace-nowrap">
                     {blogService.formatDate(post.published_at || post.created_at)}
                 </span>
-                {post.tags?.[0] && (
-                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
-                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
+                {catName && post.categories?.map((slug, i) => (
+                    <span key={i} className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
+                        {catName(slug)}
                     </span>
-                )}
+                ))}
             </div>
         </Link>
     )
@@ -301,18 +311,18 @@ export default function BlogPage() {
                             {/* Mobile: horizontal scroll of cards */}
                             <div className="sm:hidden flex overflow-x-auto gap-3 mb-6 snap-x snap-mandatory -mx-4 pl-6 pr-4 scroll-pl-6" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                                 {[featuredPost, ...sidebarPosts].map(post => (
-                                    <MobileFeaturedCard key={post.id} post={post} basePath="/news-events" />
+                                    <MobileFeaturedCard key={post.id} post={post} basePath="/news-events" catName={catName} />
                                 ))}
                             </div>
                             {/* Desktop: featured + sidebar */}
                             <div className="hidden sm:flex flex-col lg:flex-row lg:items-stretch gap-6 mb-14">
                                 <div className="flex-1 min-h-0">
-                                    <FeaturedPost post={featuredPost} />
+                                    <FeaturedPost post={featuredPost} catName={catName} />
                                 </div>
                                 {sidebarPosts.length > 0 && (
                                     <div className="flex flex-col gap-6 lg:w-[334px] shrink-0">
                                         {sidebarPosts.map((post) => (
-                                            <PostCard key={post.id} post={post} compact />
+                                            <PostCard key={post.id} post={post} compact catName={catName} />
                                         ))}
                                     </div>
                                 )}
@@ -368,7 +378,7 @@ export default function BlogPage() {
                     {gridPosts.length > 0 ? (
                         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
                             {gridPosts.map((post) => (
-                                <PostCard key={post.id} post={post} />
+                                <PostCard key={post.id} post={post} catName={catName} />
                             ))}
                         </div>
                     ) : gridPosts.length === 0 && (

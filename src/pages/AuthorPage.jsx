@@ -9,6 +9,15 @@ import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 import { FaLinkedinIn, FaInstagram, FaFacebookF, FaGithub, FaOrcid } from 'react-icons/fa6'
 import { HiOutlineMail, HiOutlineChevronLeft } from 'react-icons/hi'
+import { PdfCardFill } from '../components/PdfPreview'
+import categoryService from '../services/categoryService'
+
+function getDocUrl(post) {
+    const att = post.attachments?.find(a =>
+        /\.(pdf|doc|docx)$/i.test(a.filename || a.original_filename || '')
+    )
+    return att ? blogService.getFileUrl(att.url) : null
+}
 
 function slugify(text) {
     return text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[-\s]+/g, '-').replace(/^-+|-+$/g, '')
@@ -24,16 +33,20 @@ const TAG_KEY_MAP = {
 
 export default function AuthorPage() {
     const { authorSlug } = useParams()
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const navigate = useNavigate()
     const [author, setAuthor] = useState(null)
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [categories, setCategories] = useState([])
     const [activeCategory, setActiveCategory] = useState('all')
     const [searchQuery, setSearchQuery] = useState('')
 
     useEffect(() => { loadAuthor() }, [authorSlug])
+    useEffect(() => {
+        categoryService.getAll().then(cats => setCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
+    }, [])
 
     const loadAuthor = async () => {
         try {
@@ -94,10 +107,14 @@ export default function AuthorPage() {
         { key: 'orcid', url: author.orcid, icon: <FaOrcid className="w-4 h-4" /> },
     ].filter(s => s.url)
 
-    // Derive unique tags from the author's posts for filter pills
-    const allPostTags = [...new Set(posts.flatMap(p => p.tags || []))]
-    const categoryIds = ['all', ...allPostTags]
-    const categoryKeys = ['blog.filter_all', ...allPostTags.map(tag => TAG_KEY_MAP[tag] || tag)]
+    // Derive unique category slugs from the author's posts for filter pills
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'pt'
+    const postCatSlugs = [...new Set(posts.flatMap(p => p.categories || []))]
+    const catSlugs = postCatSlugs.filter(slug => categories.some(c => c.slug === slug))
+    const catName = (slug) => {
+        const cat = categories.find(c => c.slug === slug)
+        return cat ? (lang === 'en' ? cat.name_en || cat.name_pt : cat.name_pt) : slug
+    }
 
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
@@ -105,10 +122,9 @@ export default function AuthorPage() {
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
             normalize(post.title).includes(q) ||
-            normalize(post.excerpt).includes(q) ||
-            post.tags?.some(tag => normalize(tag).includes(q) || (TAG_KEY_MAP[tag] && normalize(t(TAG_KEY_MAP[tag])).includes(q)))
+            normalize(post.excerpt).includes(q)
         const matchesCategory = activeCategory === 'all' ||
-            post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
+            post.categories?.includes(activeCategory)
         return matchesSearch && matchesCategory
     })
 
@@ -184,14 +200,23 @@ export default function AuthorPage() {
                                     <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory -mx-4 pl-6 pr-4 scroll-pl-6" style={{ scrollbarWidth: 'none' }}>
                                         {featuredPosts.map(post => {
                                             const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+                                            const docUrl = getDocUrl(post)
                                             return (
                                                 <Link key={post.id} to={`/news-events/${post.id}`}
                                                     className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-white rounded-2xl p-4 flex flex-col gap-3 no-underline">
-                                                    {thumb && (
-                                                        <div className="w-full aspect-video rounded-xl overflow-hidden">
+                                                    <div className="w-full h-[160px] rounded-xl overflow-hidden">
+                                                        {thumb ? (
                                                             <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                                                        </div>
-                                                    )}
+                                                        ) : docUrl?.endsWith('.pdf') ? (
+                                                            <PdfCardFill url={docUrl} />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6] text-[#737373]">
+                                                                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a] line-clamp-2">{post.title}</h3>
                                                 </Link>
                                             )
@@ -209,7 +234,7 @@ export default function AuthorPage() {
 
                                     {/* Filter pills — single row, horizontally scrollable */}
                                     <div className="flex items-center gap-2 overflow-x-auto flex-nowrap mb-3" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                                        {categoryIds.map((id, index) => (
+                                        {['all', ...catSlugs].map((id, index) => (
                                             <button
                                                 key={id}
                                                 onClick={() => setActiveCategory(id)}
@@ -223,7 +248,7 @@ export default function AuthorPage() {
                                                     />
                                                 )}
                                                 <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
-                                                    {TAG_KEY_MAP[id] ? t(TAG_KEY_MAP[id]) : (id === 'all' ? t(categoryKeys[0]) : id)}
+                                                    {id === 'all' ? t('blog.filter_all') : catName(id)}
                                                 </span>
                                             </button>
                                         ))}
@@ -248,14 +273,23 @@ export default function AuthorPage() {
                                         <div className="grid grid-cols-2 gap-2">
                                             {filteredPosts.map(post => {
                                                 const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+                                                const docUrl = getDocUrl(post)
                                                 return (
                                                     <Link key={post.id} to={`/news-events/${post.id}`}
                                                         className="bg-[#fffefc] flex flex-col gap-3 p-4 rounded-lg overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline">
-                                                        {thumb && (
-                                                            <div className="w-full aspect-video rounded overflow-hidden">
+                                                        <div className="w-full h-[120px] rounded overflow-hidden">
+                                                            {thumb ? (
                                                                 <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                                                            </div>
-                                                        )}
+                                                            ) : docUrl?.endsWith('.pdf') ? (
+                                                                <PdfCardFill url={docUrl} />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6] text-[#737373]">
+                                                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <h3 className="font-['Onest'] font-semibold text-sm leading-snug text-[#0a0a0a] line-clamp-2">{post.title}</h3>
                                                         <div className="flex flex-wrap items-center gap-1 mt-auto">
                                                             <div className="flex items-center gap-1 shrink-0">
@@ -303,11 +337,12 @@ export default function AuthorPage() {
                             <img src={coverUrl} alt="" className="w-full h-full object-cover" />
                         </div>
                     ) : (
-                        <div className="w-full h-48 bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)]" style={{ marginTop: 'var(--navbar-height)' }} />
+                        <div className="w-full h-48 bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)]" />
                     )}
 
                     {/* Rounded card overlapping cover */}
-                    <div className={`relative max-w-[1512px] mx-auto px-12 pb-20 ${coverUrl ? '-mt-12 z-10 bg-[#f3f4f6] rounded-t-[32px] pt-6' : ''}`} style={coverUrl ? {} : { paddingTop: 'calc(var(--navbar-height) + 2rem)' }}>
+                    <div className="relative -mt-12 z-10 bg-[#f3f4f6] rounded-t-[32px] pt-6">
+                    <div className="max-w-[1512px] mx-auto px-12 pb-20">
                         {/* Back button */}
                         <div className="mb-4">
                             <button onClick={() => navigate(-1)}
@@ -318,7 +353,7 @@ export default function AuthorPage() {
                         </div>
 
                         {/* Avatar + info */}
-                        <div className={`flex flex-col items-center ${coverUrl ? '-mt-32' : ''}`}>
+                        <div className="flex flex-col items-center -mt-32">
                             <Avatar />
                             <h1 className="font-['Onest'] font-semibold text-4xl text-[#0a0a0a] tracking-tight mt-4 text-center">
                                 {author.name}
@@ -352,7 +387,7 @@ export default function AuthorPage() {
                             <div className="flex items-center justify-between gap-8 mb-6">
                                 {/* Category pills */}
                                 <div className="flex items-center bg-[#fffefc] rounded-full p-4">
-                                    {categoryIds.map((id, index) => (
+                                    {['all', ...catSlugs].map((id, index) => (
                                         <button
                                             key={id}
                                             onClick={() => setActiveCategory(id)}
@@ -366,7 +401,7 @@ export default function AuthorPage() {
                                                 />
                                             )}
                                             <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
-                                                {TAG_KEY_MAP[id] ? t(TAG_KEY_MAP[id]) : (id === 'all' ? t(categoryKeys[0]) : id)}
+                                                {id === 'all' ? t('blog.filter_all') : catName(id)}
                                             </span>
                                         </button>
                                     ))}
@@ -393,14 +428,23 @@ export default function AuthorPage() {
                             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {filteredPosts.map(post => {
                                     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+                                    const docUrl = getDocUrl(post)
                                     return (
                                         <Link key={post.id} to={`/news-events/${post.id}`}
                                             className="bg-[#fffefc] flex flex-col gap-4 p-6 rounded-xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline">
-                                            {thumb && (
-                                                <div className="w-full aspect-video rounded-lg overflow-hidden">
+                                            <div className="w-full h-[160px] sm:h-[200px] rounded-lg overflow-hidden">
+                                                {thumb ? (
                                                     <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
+                                                ) : docUrl?.endsWith('.pdf') ? (
+                                                    <PdfCardFill url={docUrl} />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6] text-[#737373]">
+                                                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="flex items-start gap-4">
                                                 <h3 className="font-['Onest'] font-semibold text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">{post.title}</h3>
                                                 <div className="shrink-0 w-6 h-6 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
@@ -441,6 +485,7 @@ export default function AuthorPage() {
                                 <p className="text-gray-600">{t('blog.no_results_hint')}</p>
                             </div>
                         ) : null}
+                    </div>
                     </div>
                 </div>
             </div>

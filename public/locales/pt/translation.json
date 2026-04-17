@@ -84,7 +84,11 @@
     "related_publications": "Publicações Relacionadas",
     "share_post": "Partilhar Publicação",
     "publications_title": "Publicações ROOTS",
-    "publications_subtitle": "Fique a par das novidades: histórias, dados e projetos ROOTS"
+    "publications_subtitle": "Fique a par das novidades: histórias, dados e projetos ROOTS",
+    "publication_link": "Link para a Publicação",
+    "author_publications": "Publicações de",
+    "publications_featured": "Publicações em destaque",
+    "all_publications": "Todas as publicações"
   },
   "hero": {
     "title_prefix": "A Raíz",

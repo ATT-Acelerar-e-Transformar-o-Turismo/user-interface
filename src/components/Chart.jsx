@@ -4,7 +4,7 @@ import ApexCharts from 'apexcharts'
 
 const DEFAULT_ANNOTATIONS = { xaxis: [], yaxis: [] }
 
-const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, disableAnimations = false, onViewportChange }, ref) => {
+const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
     const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -57,13 +57,9 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         let xaxisMin = undefined;
         let xaxisMax = undefined;
 
-        if (xaxisType === 'datetime' && _series.length > 0 && _series[0].data.length > 0) {
-            const allData = _series.flatMap(s => s.data);
-            const dataMin = Math.min(...allData.map(d => d.x));
-            const dataMax = Math.max(...allData.map(d => d.x));
-
-            xaxisMin = dataMax - (dataMax - dataMin) * 0.5;
-            xaxisMax = dataMax;
+        if (xaxisRange?.min != null && xaxisRange?.max != null) {
+            xaxisMin = xaxisRange.min;
+            xaxisMax = xaxisRange.max;
         }
 
         const chartOptions = {
@@ -105,7 +101,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 toolbar: {
                     show: showToolbar,
                     tools: {
-                        download: false,
+                        download: allowUserInteraction,
                         selection: allowUserInteraction,
                         zoom: allowUserInteraction,
                         zoomin: allowUserInteraction,
@@ -113,7 +109,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         pan: allowUserInteraction,
                         reset: allowUserInteraction
                     },
-                    autoSelected: allowUserInteraction ? 'pan' : undefined,
+                    autoSelected: allowUserInteraction ? 'zoom' : undefined,
                     export: {
                         csv: {
                             headerCategory: 'x',
@@ -338,7 +334,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, xaxisRange])
 
     return <div ref={chartContainerRef} className="w-full h-full" />
 })
@@ -376,7 +372,11 @@ GChart.propTypes = {
     allowUserInteraction: PropTypes.bool,
     compact: PropTypes.bool,
     disableAnimations: PropTypes.bool,
-    onViewportChange: PropTypes.func
+    onViewportChange: PropTypes.func,
+    xaxisRange: PropTypes.shape({
+        min: PropTypes.number,
+        max: PropTypes.number
+    })
 }
 
 GChart.defaultProps = {

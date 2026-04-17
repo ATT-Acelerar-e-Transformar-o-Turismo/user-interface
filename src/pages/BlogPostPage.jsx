@@ -23,11 +23,25 @@ const TAG_KEY_MAP = {
     'Eventos': 'blog.filter_events',
 }
 
+/** Resolve localized fields on a post object based on current language. */
+function localizePost(raw, lang) {
+    if (!raw) return null;
+    const en = (lang || 'pt').startsWith('en');
+    return {
+        ...raw,
+        title: (en && raw.title_en) || raw.title,
+        content: (en && raw.content_en) || raw.content,
+        excerpt: (en && raw.excerpt_en) || raw.excerpt,
+        publication_link_label: (en && raw.publication_link_label_en) || raw.publication_link_label,
+    };
+}
+
 export default function BlogPostPage() {
     const { postId } = useParams()
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const navigate = useNavigate()
-    const [post, setPost] = useState(null)
+    const [rawPost, setRawPost] = useState(null)
+    const post = localizePost(rawPost, i18n.language)
     const [authorSlug, setAuthorSlug] = useState(null)
     const [relatedPosts, setRelatedPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -57,7 +71,7 @@ export default function BlogPostPage() {
                     if (author) setAuthorSlug(author.slug || slugify(author.name))
                 }
             } catch { /* silent */ }
-            setPost(postData)
+            setRawPost(postData)
             // Load related posts
             try {
                 const all = await blogService.getPublishedPosts(0, 10)
@@ -194,13 +208,13 @@ export default function BlogPostPage() {
             )}
 
             {/* Keywords */}
-            {post.tags?.length > 0 && (
+            {post.keywords?.length > 0 && (
                 <div className={`bg-[#fffefc] rounded-2xl flex flex-col gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)] ${mobile ? 'p-4' : 'px-8 py-6'}`}>
                     <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.keywords_title')}</h3>
                     <div className="flex flex-wrap gap-2">
-                        {post.tags.map((tag, i) => (
+                        {post.keywords.map((kw, i) => (
                             <span key={i} className="font-['Onest'] text-sm text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
-                                {TAG_KEY_MAP[tag] ? t(TAG_KEY_MAP[tag]) : tag}
+                                {kw}
                             </span>
                         ))}
                     </div>
@@ -366,11 +380,15 @@ export default function BlogPostPage() {
                                     {post.keywords?.length > 0 && (
                                         <div className="bg-[#fffefc] rounded-2xl p-4 flex flex-col gap-4 shadow-[0_0_3px_2px_rgba(0,0,0,0.05)]">
                                             <h2 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-[-0.48px]">
-                                                {t('blog.keywords_section', 'Palavras-Chave')}
+                                                {t('blog.keywords_title', 'Palavras-Chave')}
                                             </h2>
-                                            <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] leading-[1.5]">
-                                                {post.keywords.join(', ')}
-                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {post.keywords.map((kw, i) => (
+                                                    <span key={i} className="font-['Onest'] text-sm text-primary bg-[#f3f4f6] rounded-full px-3 py-1">
+                                                        {kw}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
 
