@@ -17,8 +17,10 @@ const TAG_KEY_MAP = {
     'Documentos': 'blog.filter_documents',
 }
 
-function PostCard({ post, compact = false }) {
-    const { t } = useTranslation()
+function PostCard({ post: rawPost, compact = false }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -86,9 +88,11 @@ function PostCard({ post, compact = false }) {
     )
 }
 
-function FeaturedPost({ post }) {
-    const { t } = useTranslation()
-    if (!post) return null
+function FeaturedPost({ post: rawPost }) {
+    const { t, i18n } = useTranslation()
+    if (!rawPost) return null
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
         : null
@@ -157,8 +161,10 @@ function FeaturedPost({ post }) {
     )
 }
 
-function MobileFeaturedCard({ post, basePath = '/news-events' }) {
-    const { t } = useTranslation()
+function MobileFeaturedCard({ post: rawPost, basePath = '/news-events' }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
     return (
         <Link

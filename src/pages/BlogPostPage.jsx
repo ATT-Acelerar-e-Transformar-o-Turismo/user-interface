@@ -23,11 +23,25 @@ const TAG_KEY_MAP = {
     'Eventos': 'blog.filter_events',
 }
 
+/** Resolve localized fields on a post object based on current language. */
+function localizePost(raw, lang) {
+    if (!raw) return null;
+    const en = (lang || 'pt').startsWith('en');
+    return {
+        ...raw,
+        title: (en && raw.title_en) || raw.title,
+        content: (en && raw.content_en) || raw.content,
+        excerpt: (en && raw.excerpt_en) || raw.excerpt,
+        publication_link_label: (en && raw.publication_link_label_en) || raw.publication_link_label,
+    };
+}
+
 export default function BlogPostPage() {
     const { postId } = useParams()
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const navigate = useNavigate()
-    const [post, setPost] = useState(null)
+    const [rawPost, setRawPost] = useState(null)
+    const post = localizePost(rawPost, i18n.language)
     const [authorSlug, setAuthorSlug] = useState(null)
     const [relatedPosts, setRelatedPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -57,7 +71,7 @@ export default function BlogPostPage() {
                     if (author) setAuthorSlug(author.slug || slugify(author.name))
                 }
             } catch { /* silent */ }
-            setPost(postData)
+            setRawPost(postData)
             // Load related posts
             try {
                 const all = await blogService.getPublishedPosts(0, 10)

@@ -22,8 +22,10 @@ const TAG_KEY_MAP = {
     'Documentos': 'blog.filter_documents',
 }
 
-function PublicationCard({ post, compact = false }) {
-    const { t } = useTranslation()
+function PublicationCard({ post: rawPost, compact = false }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
@@ -101,9 +103,11 @@ function PublicationCard({ post, compact = false }) {
     )
 }
 
-function FeaturedPublication({ post }) {
-    const { t } = useTranslation()
-    if (!post) return null
+function FeaturedPublication({ post: rawPost }) {
+    const { t, i18n } = useTranslation()
+    if (!rawPost) return null
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const docUrl = getDocUrl(post)
     const thumbnail = post.thumbnail_url
         ? blogService.getFileUrl(post.thumbnail_url)
@@ -183,8 +187,10 @@ function FeaturedPublication({ post }) {
     )
 }
 
-function MobileFeaturedCard({ post }) {
-    const { t } = useTranslation()
+function MobileFeaturedCard({ post: rawPost }) {
+    const { t, i18n } = useTranslation()
+    const en = i18n.language?.startsWith('en')
+    const post = { ...rawPost, title: (en && rawPost.title_en) || rawPost.title, excerpt: (en && rawPost.excerpt_en) || rawPost.excerpt }
     const docUrl = getDocUrl(post)
     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
     return (
