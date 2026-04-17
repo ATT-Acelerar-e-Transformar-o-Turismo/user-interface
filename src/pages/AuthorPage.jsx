@@ -9,6 +9,14 @@ import blogService from '../services/blogService'
 import { useTranslation } from 'react-i18next'
 import { FaLinkedinIn, FaInstagram, FaFacebookF, FaGithub, FaOrcid } from 'react-icons/fa6'
 import { HiOutlineMail, HiOutlineChevronLeft } from 'react-icons/hi'
+import { PdfCardFill } from '../components/PdfPreview'
+
+function getDocUrl(post) {
+    const att = post.attachments?.find(a =>
+        /\.(pdf|doc|docx)$/i.test(a.filename || a.original_filename || '')
+    )
+    return att ? blogService.getFileUrl(att.url) : null
+}
 
 function slugify(text) {
     return text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[-\s]+/g, '-').replace(/^-+|-+$/g, '')
@@ -184,14 +192,23 @@ export default function AuthorPage() {
                                     <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory -mx-4 pl-6 pr-4 scroll-pl-6" style={{ scrollbarWidth: 'none' }}>
                                         {featuredPosts.map(post => {
                                             const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+                                            const docUrl = getDocUrl(post)
                                             return (
                                                 <Link key={post.id} to={`/news-events/${post.id}`}
                                                     className="w-[calc(100vw-3rem)] shrink-0 snap-start bg-white rounded-2xl p-4 flex flex-col gap-3 no-underline">
-                                                    {thumb && (
-                                                        <div className="w-full aspect-video rounded-xl overflow-hidden">
+                                                    <div className="w-full h-[160px] rounded-xl overflow-hidden">
+                                                        {thumb ? (
                                                             <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                                                        </div>
-                                                    )}
+                                                        ) : docUrl?.endsWith('.pdf') ? (
+                                                            <PdfCardFill url={docUrl} />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6] text-[#737373]">
+                                                                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <h3 className="font-['Onest'] font-semibold text-lg text-[#0a0a0a] line-clamp-2">{post.title}</h3>
                                                 </Link>
                                             )
@@ -248,14 +265,23 @@ export default function AuthorPage() {
                                         <div className="grid grid-cols-2 gap-2">
                                             {filteredPosts.map(post => {
                                                 const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+                                                const docUrl = getDocUrl(post)
                                                 return (
                                                     <Link key={post.id} to={`/news-events/${post.id}`}
                                                         className="bg-[#fffefc] flex flex-col gap-3 p-4 rounded-lg overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline">
-                                                        {thumb && (
-                                                            <div className="w-full aspect-video rounded overflow-hidden">
+                                                        <div className="w-full h-[120px] rounded overflow-hidden">
+                                                            {thumb ? (
                                                                 <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                                                            </div>
-                                                        )}
+                                                            ) : docUrl?.endsWith('.pdf') ? (
+                                                                <PdfCardFill url={docUrl} />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6] text-[#737373]">
+                                                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <h3 className="font-['Onest'] font-semibold text-sm leading-snug text-[#0a0a0a] line-clamp-2">{post.title}</h3>
                                                         <div className="flex flex-wrap items-center gap-1 mt-auto">
                                                             <div className="flex items-center gap-1 shrink-0">
@@ -394,14 +420,23 @@ export default function AuthorPage() {
                             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {filteredPosts.map(post => {
                                     const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+                                    const docUrl = getDocUrl(post)
                                     return (
                                         <Link key={post.id} to={`/news-events/${post.id}`}
                                             className="bg-[#fffefc] flex flex-col gap-4 p-6 rounded-xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline">
-                                            {thumb && (
-                                                <div className="w-full aspect-video rounded-lg overflow-hidden">
+                                            <div className="w-full h-[160px] sm:h-[200px] rounded-lg overflow-hidden">
+                                                {thumb ? (
                                                     <img src={thumb} alt={post.title} className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
+                                                ) : docUrl?.endsWith('.pdf') ? (
+                                                    <PdfCardFill url={docUrl} />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-[#f3f4f6] text-[#737373]">
+                                                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="flex items-start gap-4">
                                                 <h3 className="font-['Onest'] font-semibold text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">{post.title}</h3>
                                                 <div className="shrink-0 w-6 h-6 rounded-full border border-[#e5e5e5] flex items-center justify-center shadow-sm">
