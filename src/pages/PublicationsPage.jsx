@@ -34,7 +34,7 @@ function PublicationCard({ post, compact = false }) {
             to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
-            <div className="w-full rounded sm:rounded-lg overflow-hidden min-h-[120px]">
+            <div className="w-full h-[160px] sm:h-[200px] rounded sm:rounded-lg overflow-hidden">
                 {thumbnail ? (
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
                 ) : docUrl && docUrl.endsWith('.pdf') ? (
@@ -114,13 +114,15 @@ function FeaturedPublication({ post }) {
             to={`/publications/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden">
+            <div className="w-full flex-1 min-h-0 rounded-2xl overflow-hidden relative">
                 {thumbnail ? (
-                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                    <img src={thumbnail} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
                 ) : docUrl && docUrl.endsWith('.pdf') ? (
-                    <PdfCardFill url={docUrl} />
+                    <div className="absolute inset-0">
+                        <PdfCardFill url={docUrl} />
+                    </div>
                 ) : (
-                    <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-[#f3f4f6]">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#f3f4f6]">
                         <svg className="w-16 h-16 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -343,8 +345,8 @@ export default function PublicationsPage() {
                                 ))}
                             </div>
                             {/* Desktop: featured + sidebar */}
-                            <div className="hidden sm:flex flex-col lg:flex-row gap-6 mb-14">
-                                <div className="flex-1">
+                            <div className="hidden sm:flex flex-col lg:flex-row lg:items-stretch gap-6 mb-14">
+                                <div className="flex-1 min-h-0">
                                     <FeaturedPublication post={featuredPost} />
                                 </div>
                                 {sidebarPosts.length > 0 && (

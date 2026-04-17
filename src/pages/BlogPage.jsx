@@ -29,7 +29,7 @@ function PostCard({ post, compact = false }) {
             className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline"
         >
             {thumbnail && (
-                <div className="w-full aspect-video rounded sm:rounded-lg overflow-hidden">
+                <div className="w-full h-[160px] sm:h-[200px] rounded sm:rounded-lg overflow-hidden">
                     <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
                 </div>
             )}
@@ -99,8 +99,8 @@ function FeaturedPost({ post }) {
             className="bg-[#fffefc] flex flex-col gap-8 p-8 rounded-2xl shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
             {thumbnail && (
-                <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden">
-                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                <div className="w-full flex-1 min-h-0 rounded-2xl overflow-hidden relative">
+                    <img src={thumbnail} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
                 </div>
             )}
 
@@ -305,8 +305,8 @@ export default function BlogPage() {
                                 ))}
                             </div>
                             {/* Desktop: featured + sidebar */}
-                            <div className="hidden sm:flex flex-col lg:flex-row gap-6 mb-14">
-                                <div className="flex-1">
+                            <div className="hidden sm:flex flex-col lg:flex-row lg:items-stretch gap-6 mb-14">
+                                <div className="flex-1 min-h-0">
                                     <FeaturedPost post={featuredPost} />
                                 </div>
                                 {sidebarPosts.length > 0 && (
