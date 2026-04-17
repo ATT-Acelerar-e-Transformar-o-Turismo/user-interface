@@ -307,11 +307,13 @@ export default function AuthorPage() {
                                                             <span className="font-['Onest'] font-medium text-xs text-[#0a0a0a] whitespace-nowrap">
                                                                 {blogService.formatDate(post.published_at || post.created_at)}
                                                             </span>
-                                                            {post.tags?.[0] && (
-                                                                <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
-                                                                    {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
-                                                                </span>
-                                                            )}
+                                                            <div className="ml-auto flex flex-wrap gap-1 justify-end">
+                                                                {post.categories?.map((slug, i) => (
+                                                                    <span key={i} className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate">
+                                                                        {catName(slug)}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </Link>
                                                 )
@@ -467,11 +469,13 @@ export default function AuthorPage() {
                                                         {blogService.formatDate(post.published_at || post.created_at)}
                                                     </span>
                                                 </div>
-                                                {post.tags?.[0] && (
-                                                    <span className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
-                                                        {TAG_KEY_MAP[post.tags[0]] ? t(TAG_KEY_MAP[post.tags[0]]) : post.tags[0]}
-                                                    </span>
-                                                )}
+                                                <div className="ml-auto flex flex-wrap gap-1 justify-end">
+                                                    {post.categories?.map((slug, i) => (
+                                                        <span key={i} className="font-['Onest'] font-medium text-xs text-primary bg-[#f3f4f6] rounded-full px-2 py-0.5 truncate max-w-full">
+                                                            {catName(slug)}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </Link>
                                     )
