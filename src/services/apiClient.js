@@ -11,6 +11,10 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
+    // Let the browser set Content-Type with boundary for FormData
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     if (keycloak.authenticated) {
       try {
         await keycloak.updateToken(30);
