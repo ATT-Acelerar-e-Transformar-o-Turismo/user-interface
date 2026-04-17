@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { FaLinkedinIn, FaInstagram, FaFacebookF, FaGithub, FaOrcid } from 'react-icons/fa6'
 import { HiOutlineMail, HiOutlineChevronLeft } from 'react-icons/hi'
 import { PdfCardFill } from '../components/PdfPreview'
+import categoryService from '../services/categoryService'
 
 function getDocUrl(post) {
     const att = post.attachments?.find(a =>
@@ -32,16 +33,20 @@ const TAG_KEY_MAP = {
 
 export default function AuthorPage() {
     const { authorSlug } = useParams()
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const navigate = useNavigate()
     const [author, setAuthor] = useState(null)
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [categories, setCategories] = useState([])
     const [activeCategory, setActiveCategory] = useState('all')
     const [searchQuery, setSearchQuery] = useState('')
 
     useEffect(() => { loadAuthor() }, [authorSlug])
+    useEffect(() => {
+        categoryService.getAll().then(cats => setCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
+    }, [])
 
     const loadAuthor = async () => {
         try {
@@ -102,10 +107,14 @@ export default function AuthorPage() {
         { key: 'orcid', url: author.orcid, icon: <FaOrcid className="w-4 h-4" /> },
     ].filter(s => s.url)
 
-    // Derive unique tags from the author's posts for filter pills
-    const allPostTags = [...new Set(posts.flatMap(p => p.tags || []))]
-    const categoryIds = ['all', ...allPostTags]
-    const categoryKeys = ['blog.filter_all', ...allPostTags.map(tag => TAG_KEY_MAP[tag] || tag)]
+    // Derive unique category slugs from the author's posts for filter pills
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'pt'
+    const postCatSlugs = [...new Set(posts.flatMap(p => p.categories || []))]
+    const catSlugs = postCatSlugs.filter(slug => categories.some(c => c.slug === slug))
+    const catName = (slug) => {
+        const cat = categories.find(c => c.slug === slug)
+        return cat ? (lang === 'en' ? cat.name_en || cat.name_pt : cat.name_pt) : slug
+    }
 
     const normalize = (str) => str?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() || ''
 
@@ -113,10 +122,9 @@ export default function AuthorPage() {
         const q = normalize(searchQuery)
         const matchesSearch = !searchQuery ||
             normalize(post.title).includes(q) ||
-            normalize(post.excerpt).includes(q) ||
-            post.tags?.some(tag => normalize(tag).includes(q) || (TAG_KEY_MAP[tag] && normalize(t(TAG_KEY_MAP[tag])).includes(q)))
+            normalize(post.excerpt).includes(q)
         const matchesCategory = activeCategory === 'all' ||
-            post.tags?.some(tag => tag.toLowerCase() === activeCategory.toLowerCase())
+            post.categories?.includes(activeCategory)
         return matchesSearch && matchesCategory
     })
 
@@ -226,7 +234,7 @@ export default function AuthorPage() {
 
                                     {/* Filter pills — single row, horizontally scrollable */}
                                     <div className="flex items-center gap-2 overflow-x-auto flex-nowrap mb-3" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                                        {categoryIds.map((id, index) => (
+                                        {['all', ...catSlugs].map((id, index) => (
                                             <button
                                                 key={id}
                                                 onClick={() => setActiveCategory(id)}
@@ -240,7 +248,7 @@ export default function AuthorPage() {
                                                     />
                                                 )}
                                                 <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
-                                                    {TAG_KEY_MAP[id] ? t(TAG_KEY_MAP[id]) : (id === 'all' ? t(categoryKeys[0]) : id)}
+                                                    {id === 'all' ? t('blog.filter_all') : catName(id)}
                                                 </span>
                                             </button>
                                         ))}
@@ -379,7 +387,7 @@ export default function AuthorPage() {
                             <div className="flex items-center justify-between gap-8 mb-6">
                                 {/* Category pills */}
                                 <div className="flex items-center bg-[#fffefc] rounded-full p-4">
-                                    {categoryIds.map((id, index) => (
+                                    {['all', ...catSlugs].map((id, index) => (
                                         <button
                                             key={id}
                                             onClick={() => setActiveCategory(id)}
@@ -393,7 +401,7 @@ export default function AuthorPage() {
                                                 />
                                             )}
                                             <span className={`relative z-10 transition-colors duration-300 ${activeCategory === id ? 'text-primary-content' : 'text-[#0a0a0a]'}`}>
-                                                {TAG_KEY_MAP[id] ? t(TAG_KEY_MAP[id]) : (id === 'all' ? t(categoryKeys[0]) : id)}
+                                                {id === 'all' ? t('blog.filter_all') : catName(id)}
                                             </span>
                                         </button>
                                     ))}
