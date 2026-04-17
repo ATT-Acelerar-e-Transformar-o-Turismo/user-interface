@@ -48,7 +48,10 @@ export default function AuthorPage() {
                 const list = Array.isArray(allAuthors) ? allAuthors : (allAuthors?.authors || [])
                 authorData = list.find(a => (a.slug || slugify(a.name)) === authorSlug) || null
             }
-            if (!authorData) throw new Error('Author not found')
+            if (!authorData) {
+                setAuthor(null)
+                return
+            }
             setAuthor(authorData)
             try {
                 const all = await blogService.getPublishedPosts(0, 50)

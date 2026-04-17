@@ -30,18 +30,14 @@ const authorService = {
   uploadPhoto: async (id, file) => {
     const formData = new FormData();
     formData.append('file', file);
-    const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.PHOTO(id), formData, {
-      headers: { 'Content-Type': undefined },
-    });
+    const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.PHOTO(id), formData);
     return data;
   },
 
   uploadCover: async (id, file) => {
     const formData = new FormData();
     formData.append('file', file);
-    const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.COVER(id), formData, {
-      headers: { 'Content-Type': undefined },
-    });
+    const { data } = await apiClient.post(API_ENDPOINTS.AUTHORS.COVER(id), formData);
     return data;
   },
 

@@ -248,7 +248,7 @@ export default function BlogPostForm() {
     const [initialFormData, setInitialFormData] = useState(null)
 
     useEffect(() => {
-        authorService.getAll().then(setAuthors).catch(() => {})
+        authorService.getAll().then(resp => setAuthors(Array.isArray(resp) ? resp : resp?.authors || [])).catch(() => {})
         categoryService.getAll().then(cats => setAllCategories(Array.isArray(cats) ? cats : [])).catch(() => {})
         if (isEditing) {
             loadPost()
@@ -407,7 +407,7 @@ export default function BlogPostForm() {
     }
 
     const handleDeleteCategory = async () => {
-        if (!catEdit?.id || !window.confirm('Eliminar esta categoria?')) return
+        if (!catEdit?.id || !window.confirm(t('blogPostForm.delete_category_confirm', 'Eliminar esta categoria?'))) return
         try {
             await categoryService.delete(catEdit.id)
             setAllCategories(prev => prev.filter(c => c.id !== catEdit.id))
@@ -555,7 +555,7 @@ export default function BlogPostForm() {
             setAuthors(prev => prev.filter(a => a.id !== deleteAuthorConfirm.id))
             if (selectedAuthorId === deleteAuthorConfirm.id) {
                 setSelectedAuthorId(null)
-                setFormData(prev => ({ ...prev, author: '', author_photo: '', author_role: '' }))
+                setFormData(prev => ({ ...prev, author_id: '', author: '', author_photo: '', author_role: '' }))
             }
             setDeleteAuthorConfirm(null)
             setDeleteAuthorPosts([])
@@ -1108,9 +1108,9 @@ export default function BlogPostForm() {
                                 </label>
 
                                 {/* Existing document attachments */}
-                                {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || '')).length > 0 && (
+                                {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || '')).length > 0 && (
                                     <div className="mb-3 space-y-2">
-                                        {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || '')).map((att, i) => (
+                                        {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || '')).map((att, i) => (
                                             <div key={i} className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-lg">
                                                 <div className="flex items-center gap-3">
                                                     <svg className="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1188,7 +1188,7 @@ export default function BlogPostForm() {
                             {/* Existing attachments (for news: all, for publications: non-doc) */}
                             {(() => {
                                 const shown = formData.post_type === 'publication'
-                                    ? existingAttachments.filter(a => !/\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || ''))
+                                    ? existingAttachments.filter(a => !/\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || ''))
                                     : existingAttachments
                                 return shown.length > 0 && (
                                     <div className="mb-3 space-y-2">
@@ -1228,6 +1228,7 @@ export default function BlogPostForm() {
                             <input
                                 type="file"
                                 multiple
+                                accept=".pdf,.doc,.docx,.xlsx,.txt,.csv,image/*"
                                 onChange={handleAttachmentChange}
                                 className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                             />

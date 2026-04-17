@@ -52,14 +52,9 @@ export default function BlogPostPage() {
             const postData = await blogService.getPost(postId)
             // Resolve author slug for profile link
             try {
-                const authorsResp = await authorService.getAll()
-                const list = Array.isArray(authorsResp) ? authorsResp : (authorsResp?.authors || [])
-                const match = list.find(a =>
-                    (postData.author_id && a.id === postData.author_id) || a.name === postData.author
-                )
-                if (match) {
-                    if (!postData.author_id) postData.author_id = match.id
-                    setAuthorSlug(match.slug || slugify(match.name))
+                if (postData.author_id) {
+                    const author = await authorService.getById(postData.author_id)
+                    if (author) setAuthorSlug(author.slug || slugify(author.name))
                 }
             } catch { /* silent */ }
             setPost(postData)
