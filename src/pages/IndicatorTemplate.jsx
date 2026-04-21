@@ -907,7 +907,7 @@ export default function IndicatorTemplate() {
 
             {/* Sidebar: Ferramentas + Opções */}
             <div className="w-full xl:w-84 shrink-0 space-y-6">
-            {/* Ferramentas (Tools) card */}
+            {/* Ferramentas (Tools) card — hidden for now
             <div className={cardClass}>
               <div className="flex flex-col gap-4">
                 <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
@@ -915,9 +915,8 @@ export default function IndicatorTemplate() {
                 </h3>
 
                 <div className="space-y-4">
-                  {/* Date range */}
+                  {/* Date range * /}
                   <div>
-                    <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] mb-2">{t('indicator.granularity')}:</p>
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-4">
                         <span className="font-['Onest'] text-sm text-[#0a0a0a] w-6">{t('indicator.start_date_short', 'De')}</span>
@@ -940,7 +939,7 @@ export default function IndicatorTemplate() {
                     </div>
                   </div>
 
-                  {/* Interval selector */}
+                  {/* Interval selector — hidden for now
                   <div>
                     <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] mb-2">{t('indicator.interval', 'Intervalo')}:</p>
                     <div className="flex">
@@ -961,9 +960,11 @@ export default function IndicatorTemplate() {
                       ))}
                     </div>
                   </div>
+                  * /}
+
                 </div>
 
-                {/* Reset button */}
+                {/* Reset button * /}
                 <button
                   onClick={handleResetFilters}
                   className="w-full font-['Onest'] font-medium text-base text-[#0a0a0a] border border-[#d4d4d4] rounded-full py-2 shadow-sm hover:bg-black/[0.02] transition-colors cursor-pointer"
@@ -972,6 +973,7 @@ export default function IndicatorTemplate() {
                 </button>
               </div>
             </div>
+            */}
 
             {/* Opções (Options) card */}
             <div className={cardClass}>
