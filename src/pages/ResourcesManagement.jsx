@@ -99,11 +99,9 @@ export default function ResourcesManagement() {
         return;
       }
 
-      // Delete the resource
+      // Delete the resource (resource-service publishes resource_deleted event,
+      // which the indicator-service consumes to unlink the resource automatically)
       await resourceService.delete(resourceId);
-
-      // Remove resource from indicator's resource list
-      await indicatorService.removeResource(indicator, resourceId);
 
       // Update local state
       setResources(resources.filter(id => id !== resourceId));

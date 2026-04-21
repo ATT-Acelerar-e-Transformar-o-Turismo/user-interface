@@ -21,7 +21,7 @@ export const useIndicatorData = (indicatorId, indicatorName = 'Data', options = 
         setError(null);
         
         // Fetch real data from API with dynamic options
-        const apiData = await dataService.getIndicatorData(indicatorId, 0, limit, 'desc', granularity, startDate, endDate);
+        const apiData = await dataService.getIndicatorData(indicatorId, 0, limit, 'asc', granularity, startDate, endDate);
         
         if (apiData && apiData.length > 0) {
           // Transform real data for chart

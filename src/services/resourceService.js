@@ -69,6 +69,11 @@ export const resourceService = {
     return response.data;
   },
 
+  async getResourceData(resourceId, limit = 500) {
+    const response = await apiClient.get(`/api/resources/${resourceId}/data?limit=${limit}`);
+    return response.data;
+  },
+
   async getFileInfo(fileId) {
     const response = await apiClient.get(`/api/resources/wrappers/files/${fileId}`);
     return response.data;
