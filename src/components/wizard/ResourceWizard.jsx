@@ -295,16 +295,16 @@ export default function ResourceWizard({
               : w
           ));
 
-          // When wrapper completes, fetch the resource data for visualization
+          // When wrapper completes, fetch resource metadata + data points for preview
           if ((updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') && updatedWrapper.resource_id) {
             try {
-              const resourceData = await resourceService.getById(updatedWrapper.resource_id);
-              console.log(`Resource data for ${updatedWrapper.resource_id}:`, resourceData);
-
-              // Update wrapper data with resource info
+              const [resourceData, dataResult] = await Promise.all([
+                resourceService.getById(updatedWrapper.resource_id),
+                resourceService.getResourceData(updatedWrapper.resource_id),
+              ]);
               setWrappersData(prev => prev.map(w =>
                 w.wrapper.wrapper_id === updatedWrapper.wrapper_id
-                  ? { ...w, resourceData: resourceData }
+                  ? { ...w, resourceData, chartData: dataResult.data }
                   : w
               ));
             } catch (error) {
@@ -654,30 +654,27 @@ export default function ResourceWizard({
                       {/* Wrapper Data Visualization */}
                       {isComplete && wrapperInfo.resourceData && (
                         <div className="mt-4">
-                          {/* Show data preview */}
                           <div className="bg-[#f1f0f0] rounded-lg p-3 mb-3">
                             <p className="font-['Onest',sans-serif] text-xs text-gray-700">
                               <strong>{t('wizard.resource.resource_created')}</strong> {wrapperInfo.resourceData.name || t('wizard.resource.no_name')}
                             </p>
-                            {wrapperInfo.resourceData.first_entry_date && (
+                            {wrapperInfo.resourceData.startPeriod && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
-                                <strong>{t('wizard.resource.first_entry')}</strong> {new Date(wrapperInfo.resourceData.first_entry_date).toLocaleDateString()}
+                                <strong>{t('wizard.resource.first_entry')}</strong> {new Date(wrapperInfo.resourceData.startPeriod).toLocaleDateString()}
                               </p>
                             )}
-                            {wrapperInfo.resourceData.last_entry_date && (
+                            {wrapperInfo.resourceData.endPeriod && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
-                                <strong>{t('wizard.resource.last_entry')}</strong> {new Date(wrapperInfo.resourceData.last_entry_date).toLocaleDateString()}
+                                <strong>{t('wizard.resource.last_entry')}</strong> {new Date(wrapperInfo.resourceData.endPeriod).toLocaleDateString()}
                               </p>
                             )}
-                            {wrapperInfo.resourceData.total_entries !== undefined && (
+                            {wrapperInfo.wrapper?.data_points_count > 0 && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
-                                <strong>{t('wizard.resource.total_entries')}</strong> {wrapperInfo.resourceData.total_entries}
+                                <strong>{t('wizard.resource.total_entries')}</strong> {wrapperInfo.wrapper.data_points_count}
                               </p>
                             )}
                           </div>
-
-                          {/* Show chart if data series available */}
-                          {wrapperInfo.resourceData.data && wrapperInfo.resourceData.data.length > 0 && (
+                          {wrapperInfo.chartData?.length > 0 && (
                             <GChart
                               title={`Dados - ${wrapperInfo.fileName}`}
                               chartId={`wrapper-chart-${index}`}
@@ -685,12 +682,13 @@ export default function ResourceWizard({
                               xaxisType="datetime"
                               series={[{
                                 name: wrapperInfo.resourceData.name || 'Data',
-                                data: wrapperInfo.resourceData.data.map(entry => ({
-                                  x: new Date(entry.date).getTime(),
-                                  y: parseFloat(entry.value) || 0
+                                data: wrapperInfo.chartData.map(p => ({
+                                  x: new Date(p.x).getTime(),
+                                  y: parseFloat(p.y) || 0
                                 }))
                               }]}
                               height={250}
+                              disableAnimations={true}
                             />
                           )}
                         </div>

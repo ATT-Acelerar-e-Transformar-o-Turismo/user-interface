@@ -211,7 +211,13 @@ export default function IndicatorTemplate() {
       setAllLoadedData(prevData => {
         if (!prevData) {
           setIsLoadingMore(false);
-          return chartData;
+          return {
+            ...chartData,
+            series: chartData.series.map(s => ({
+              ...s,
+              data: [...s.data].sort((a, b) => a.x - b.x)
+            }))
+          };
         } else {
           const mergedData = {
             ...chartData,
