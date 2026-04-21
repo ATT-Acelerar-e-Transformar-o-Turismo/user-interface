@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
+import { showInfo } from '../utils/toast'
 
 export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
     const { t } = useTranslation();
@@ -59,7 +60,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
     }
 
     const handleForgotPassword = () => {
-        alert(t('auth.forgot_password_alert'))
+        showInfo(t('auth.forgot_password_alert'))
     }
 
     const handleClose = () => {

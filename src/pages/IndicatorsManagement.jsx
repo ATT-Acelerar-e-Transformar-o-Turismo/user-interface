@@ -13,6 +13,7 @@ import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorWizard from '../components/wizard/IndicatorWizard';
 import DomainWizard from '../components/wizard/DomainWizard';
 import SuccessModal from '../components/wizard/SuccessModal';
+import { showInfo } from '../utils/toast';
 
 export default function IndicatorsManagement() {
   const { t } = useTranslation();
@@ -32,11 +33,23 @@ export default function IndicatorsManagement() {
   const [editingDomainId, setEditingDomainId] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(0);
+  // Pagination state — initialized from URL so back-navigation restores the page
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = parseInt(searchParams.get('page') || '0', 10);
+    return Number.isFinite(p) && p >= 0 ? p : 0;
+  });
   const [pageSize] = useState(10);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    const urlPage = parseInt(newParams.get('page') || '0', 10) || 0;
+    if (urlPage === currentPage) return;
+    if (currentPage > 0) newParams.set('page', String(currentPage));
+    else newParams.delete('page');
+    setSearchParams(newParams, { replace: true });
+  }, [currentPage]);
   
   // Sorting and filtering state
   const [sortBy, setSortBy] = useState('name');
@@ -453,7 +466,7 @@ export default function IndicatorsManagement() {
                   </svg>
                 }
                 title={t('admin.indicators.view_drafts')}
-                onClick={() => alert(t('admin.indicators.drafts_wip'))}
+                onClick={() => showInfo(t('admin.indicators.drafts_wip'))}
                 className="w-[210px]"
               />
 

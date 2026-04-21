@@ -23,7 +23,7 @@ export default function DomainTemplate() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Check if this is a search results page
   const searchQuery = searchParams.get('q');
@@ -86,8 +86,11 @@ export default function DomainTemplate() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(0);
+  // Pagination state — initialized from URL so back-navigation restores the page
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = parseInt(searchParams.get('page') || '0', 10);
+    return Number.isFinite(p) && p >= 0 ? p : 0;
+  });
   const [pageSize] = useState(12); // 12 indicators per page (3 full rows of 4)
   const [totalIndicators, setTotalIndicators] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -114,6 +117,16 @@ export default function DomainTemplate() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Keep ?page= in URL in sync with currentPage (so the back button restores it)
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    const urlPage = parseInt(newParams.get('page') || '0', 10) || 0;
+    if (urlPage === currentPage) return;
+    if (currentPage > 0) newParams.set('page', String(currentPage));
+    else newParams.delete('page');
+    setSearchParams(newParams, { replace: true });
+  }, [currentPage]);
 
   // Domain state
   const [selectedSubdomain, setSelectedSubdomain] = useState(initialSubdomain);
@@ -618,15 +631,15 @@ export default function DomainTemplate() {
                     </div>
                   ) : (
                     /* Table view */
-                    <div className="bg-[#fffefc] rounded-2xl overflow-hidden border border-[#e5e5e5]">
-                      <table className="w-full font-['Onest']">
+                    <div className="bg-[#fffefc] rounded-2xl border border-[#e5e5e5] overflow-x-auto">
+                      <table className="min-w-full font-['Onest']">
                         <thead>
                           <tr className="border-b border-[#e5e5e5] text-left text-sm text-gray-500">
-                            <th className="px-6 py-4 font-medium">{t('domains.table_name')}</th>
-                            <th className="px-6 py-4 font-medium">{t('domains.table_dimension')}</th>
-                            <th className="px-6 py-4 font-medium">{t('domains.table_subdomain')}</th>
-                            <th className="px-6 py-4 font-medium">{t('domains.table_unit')}</th>
-                            <th className="px-6 py-4 font-medium">{t('domains.filter_governance')}</th>
+                            <th className="px-4 sm:px-6 py-4 font-medium">{t('domains.table_name')}</th>
+                            <th className="px-4 sm:px-6 py-4 font-medium">{t('domains.table_dimension')}</th>
+                            <th className="hidden md:table-cell px-4 sm:px-6 py-4 font-medium">{t('domains.table_subdomain')}</th>
+                            <th className="hidden sm:table-cell px-4 sm:px-6 py-4 font-medium">{t('domains.table_unit')}</th>
+                            <th className="hidden lg:table-cell px-4 sm:px-6 py-4 font-medium">{t('domains.filter_governance')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -646,22 +659,22 @@ export default function DomainTemplate() {
                                     state: { indicatorId: indicator.id, domainName: indDomainName, subdomainName: indSubdomain }
                                   })}
                                 >
-                                  <td className="px-6 py-4 text-sm font-semibold text-[#0a0a0a]">
+                                  <td className="px-4 sm:px-6 py-4 text-sm font-semibold text-[#0a0a0a]">
                                     {isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
                                   </td>
-                                  <td className="px-6 py-4">
+                                  <td className="px-4 sm:px-6 py-4">
                                     {indDomainName && (
                                       <span
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap"
                                         style={{ backgroundColor: indDomainObj?.color || '#9ca3af' }}
                                       >
                                         {indDomainName}
                                       </span>
                                     )}
                                   </td>
-                                  <td className="px-6 py-4 text-sm text-gray-600">{indSubdomain}</td>
-                                  <td className="px-6 py-4 text-sm text-gray-600">{indicator.unit || '—'}</td>
-                                  <td className="px-6 py-4 text-sm text-gray-600">{indicator.governance ? t('common.yes') : t('common.no')}</td>
+                                  <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indSubdomain}</td>
+                                  <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indicator.unit || '—'}</td>
+                                  <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indicator.governance ? t('common.yes') : t('common.no')}</td>
                                 </tr>
                               );
                             })}

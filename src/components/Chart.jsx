@@ -48,6 +48,24 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         const shape = series.map(s => s.shape)
         const _series = series.filter(s => !s.hidden)
 
+        // Resolve CSS custom properties and modern color functions (oklch, etc.) to
+        // plain rgb(...) so the chart exports cleanly to PNG.
+        const resolveColor = (input) => {
+            if (!input) return input;
+            try {
+                const probe = document.createElement('div');
+                probe.style.color = 'transparent';
+                probe.style.color = input;
+                if (!probe.style.color || probe.style.color === 'transparent') return input;
+                document.body.appendChild(probe);
+                const resolved = getComputedStyle(probe).color;
+                document.body.removeChild(probe);
+                return resolved || input;
+            } catch (_) {
+                return input;
+            }
+        };
+
         const brandColors = [
             'var(--color-primary)',
             'var(--color-primary-hover)',
@@ -57,7 +75,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             'oklch(76% 0.177 163.223)',
             'oklch(82% 0.18659 84.429)',
             'oklch(71% 0.194 13.428)'
-        ]
+        ].map(resolveColor)
 
         let xaxisMin = undefined;
         let xaxisMax = undefined;
@@ -106,39 +124,34 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 toolbar: {
                     show: showToolbar,
                     tools: {
-                        download: allowUserInteraction,
-                        selection: allowUserInteraction,
-                        zoom: allowUserInteraction,
+                        // Must be truthy so ApexCharts builds the download menu DOM —
+                        // chart.dataURI() reads .style on it internally. The toolbar
+                        // is hidden offscreen via CSS, so this is invisible to users.
+                        download: true,
+                        selection: allowUserInteraction && !needsDateConversion,
+                        zoom: allowUserInteraction && !needsDateConversion,
                         zoomin: allowUserInteraction,
                         zoomout: allowUserInteraction,
-                        pan: allowUserInteraction,
+                        pan: allowUserInteraction && !needsDateConversion,
                         reset: allowUserInteraction
                     },
-                    autoSelected: allowUserInteraction ? 'zoom' : undefined,
-                    export: {
-                        csv: {
-                            headerCategory: 'x',
-                            dateFormatter: formatValue
-                        }
-                    }
+                    autoSelected: allowUserInteraction && !needsDateConversion ? 'zoom' : undefined
                 },
                 events: {
                     beforeMount: function (chart) {
-                        console.log('Chart mounting with scroll functionality');
-                        const style = document.createElement('style')
+                        if (document.getElementById('roots-apexcharts-theme')) return;
+                        const style = document.createElement('style');
+                        style.id = 'roots-apexcharts-theme';
                         style.innerHTML = `
                             .apexcharts-toolbar {
-                                background: var(--color-base-200) !important;
+                                position: absolute !important;
+                                left: -10000px !important;
+                                top: -10000px !important;
+                                opacity: 0 !important;
+                                pointer-events: none !important;
                             }
-                            .apexcharts-menu {
-                                background: var(--color-base-200) !important;
-                                border: 2px solid var(--color-base-300) !important;
-                            }
-                            .apexcharts-menu-item:hover {
-                                background: var(--color-base-300) !important;
-                            }
-                        `
-                        document.head.appendChild(style)
+                        `;
+                        document.head.appendChild(style);
                     },
                     mounted: function(chart) {
                         console.log('Chart mounted, pan enabled:', chart.opts.chart.pan);

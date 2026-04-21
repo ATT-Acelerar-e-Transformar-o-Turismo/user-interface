@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageTemplate from "./PageTemplate";
 import Dropdowns from "../components/DomainDropdown";
 import IndicatorCard from "../components/IndicatorCard";
@@ -17,9 +18,22 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(0);
+  // Pagination state — synced with URL so back-navigation restores the page
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = parseInt(searchParams.get('page') || '0', 10);
+    return Number.isFinite(p) && p >= 0 ? p : 0;
+  });
   const [pageSize] = useState(9);
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    const urlPage = parseInt(newParams.get('page') || '0', 10) || 0;
+    if (urlPage === currentPage) return;
+    if (currentPage > 0) newParams.set('page', String(currentPage));
+    else newParams.delete('page');
+    setSearchParams(newParams, { replace: true });
+  }, [currentPage]);
 
   // Function to load favorites from API
   const loadFavorites = useCallback(async () => {

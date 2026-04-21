@@ -9,6 +9,7 @@ import GChart from "../components/Chart";
 import ResourceWizard from "../components/wizard/ResourceWizard";
 import IndicatorWizard from "../components/wizard/IndicatorWizard";
 import indicatorService from "../services/indicatorService";
+import { showError, showSuccess } from "../utils/toast";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 
@@ -73,11 +74,113 @@ export default function IndicatorTemplate() {
   }, []);
 
   const chartTypeOptions = [
-    { value: 'line', label: t('indicator.chart_line', 'Linha'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-    { value: 'column', label: t('indicator.chart_column', 'Colunas'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 10V19M16 7V19M8 14V19M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-    { value: 'bar', label: t('indicator.chart_bar', 'Barras'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-    { value: 'scatter', label: t('indicator.chart_scatter', 'Dispersão'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H7.8C6.12 21 5.28 21 4.638 20.673C4.074 20.385 3.615 19.927 3.327 19.362C3 18.72 3 17.88 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'line', label: t('indicator.chart_line'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'column', label: t('indicator.chart_column'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 10V19M16 7V19M8 14V19M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'bar', label: t('indicator.chart_bar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'scatter', label: t('indicator.chart_scatter'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H7.8C6.12 21 5.28 21 4.638 20.673C4.074 20.385 3.615 19.927 3.327 19.362C3 18.72 3 17.88 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
   ];
+
+  const chartSupportsTools = chartType !== 'bar' && chartType !== 'column';
+
+  const modeIcons = {
+    zoom: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
+    pan: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    selection: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3"/></svg>,
+  };
+
+  const chartToolModes = [
+    { value: 'zoom', label: t('indicator.chart_tool_zoom'), icon: modeIcons.zoom },
+    { value: 'pan', label: t('indicator.chart_tool_pan'), icon: modeIcons.pan },
+    { value: 'selection', label: t('indicator.chart_tool_selection'), icon: modeIcons.selection },
+  ];
+
+  const zoomInIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
+  const zoomOutIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
+  const resetIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+
+  const [activeChartTool, setActiveChartTool] = useState('zoom');
+  const [toolDropdownOpen, setToolDropdownOpen] = useState(false);
+  const toolDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (toolDropdownRef.current && !toolDropdownRef.current.contains(e.target)) setToolDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const clickToolbarButton = (selector) => {
+    const chart = indicatorChartRef.current?.chart;
+    const root = chart?.el;
+    if (!root) return false;
+    const btn = root.querySelector(selector);
+    if (btn) {
+      btn.click();
+      return true;
+    }
+    return false;
+  };
+
+  const getDataXBounds = () => {
+    const points = (allLoadedData || chartData)?.series?.[0]?.data || [];
+    if (points.length === 0) return null;
+    const xs = points.map(p => typeof p.x === 'number' ? p.x : new Date(p.x).getTime()).filter(v => !isNaN(v));
+    if (xs.length === 0) return null;
+    return { min: Math.min(...xs), max: Math.max(...xs) };
+  };
+
+  const applyCappedZoom = (factor) => {
+    const bounds = getDataXBounds();
+    if (!bounds || !(bounds.min < bounds.max)) return false;
+
+    const currentMin = (viewport?.min != null) ? viewport.min : bounds.min;
+    const currentMax = (viewport?.max != null) ? viewport.max : bounds.max;
+    if (!(currentMin < currentMax)) return false;
+
+    const currentRange = currentMax - currentMin;
+    const newRange = currentRange * factor;
+    const dataRange = bounds.max - bounds.min;
+
+    if (newRange >= dataRange) {
+      setViewport({ min: null, max: null });
+      return true;
+    }
+
+    const center = (currentMax + currentMin) / 2;
+    let newMin = center - newRange / 2;
+    let newMax = center + newRange / 2;
+    if (newMin < bounds.min) { newMax += bounds.min - newMin; newMin = bounds.min; }
+    if (newMax > bounds.max) { newMin -= newMax - bounds.max; newMax = bounds.max; }
+    if (newMin < bounds.min) newMin = bounds.min;
+
+    setViewport({ min: newMin, max: newMax });
+    return true;
+  };
+
+  const handleChartToolSelect = (tool) => {
+    if (tool === 'reset') {
+      setViewport({ min: null, max: null });
+      clickToolbarButton('.apexcharts-reset-icon');
+      return;
+    }
+    if (tool === 'zoomOut' && applyCappedZoom(2)) return;
+    if (tool === 'zoomIn' && applyCappedZoom(0.5)) return;
+
+    const selectorMap = {
+      zoom: '.apexcharts-zoom-icon',
+      pan: '.apexcharts-pan-icon',
+      selection: '.apexcharts-selection-icon',
+      zoomIn: '.apexcharts-zoomin-icon',
+      zoomOut: '.apexcharts-zoomout-icon',
+    };
+    const selector = selectorMap[tool];
+    if (!selector) return;
+    if (['zoom', 'pan', 'selection'].includes(tool)) {
+      setActiveChartTool(tool);
+    }
+    clickToolbarButton(selector);
+  };
 
   const handleViewportChange = useCallback((newViewport) => {
     if (newViewport.min !== viewport.min || newViewport.max !== viewport.max) {
@@ -186,15 +289,22 @@ export default function IndicatorTemplate() {
     });
   };
 
+  const formatCsvDate = (x) => {
+    if (x == null || x === '') return '';
+    const t = typeof x === 'number' ? x : new Date(x).getTime();
+    if (!Number.isFinite(t)) return String(x);
+    return new Date(t).toISOString().slice(0, 10);
+  };
+
   const handleExportCSV = () => {
     if (!chartData?.series?.[0]?.data) return;
 
     const csvContent = [
       ['Date', 'Value'],
-      ...chartData.series[0].data.map(point => [point.x, point.y])
+      ...chartData.series[0].data.map(point => [formatCsvDate(point.x), point.y])
     ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -206,120 +316,129 @@ export default function IndicatorTemplate() {
   };
 
   const handleExportImage = async () => {
-    // Try client-side export first via ApexCharts
-    const chartInstance = indicatorChartRef.current?.chart;
-    if (chartInstance) {
-      try {
-        const { imgURI } = await chartInstance.dataURI({ scale: 2 });
-        const a = document.createElement('a');
-        a.href = imgURI;
-        a.download = `${indicatorData?.name || 'indicator'}_chart.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        return;
-      } catch (e) {
-        console.warn('Client-side chart export failed, trying server:', e);
-      }
+    // Snapshot the live chart SVG directly from the DOM (robust against
+    // ApexCharts' internal chart rebuilds that can null out elWrap mid-export).
+    const chartEl = indicatorChartRef.current?.chart?.el
+      || document.getElementById(`indicator-${indicatorId}`)?.closest('[class*="apexcharts"]');
+    const svgEl = chartEl?.querySelector('.apexcharts-svg')
+      || document.querySelector('.apexcharts-svg');
+    if (!svgEl) {
+      showError(t('indicator.export_image_error'));
+      return;
     }
 
-    // Fallback to server-side export
     try {
-      let exportStartDate = fetchParams.startDate;
-      let exportEndDate = fetchParams.endDate;
+      const scale = 2;
+      const rect = svgEl.getBoundingClientRect();
+      const width = rect.width || svgEl.clientWidth || parseFloat(svgEl.getAttribute('width')) || 800;
+      const height = rect.height || svgEl.clientHeight || parseFloat(svgEl.getAttribute('height')) || 400;
 
-      if (viewport.min && viewport.max) {
-         exportStartDate = new Date(viewport.min).toISOString();
-         exportEndDate = new Date(viewport.max).toISOString();
+      // Clone and ensure explicit width/height/xmlns so the SVG is fully self-contained
+      const clone = svgEl.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', String(width));
+      clone.setAttribute('height', String(height));
+
+      // Strip <foreignObject> blocks — their HTML content pulls in document
+      // stylesheets (Font Awesome CDN, etc.) and taints the canvas on export.
+      clone.querySelectorAll('foreignObject').forEach(n => n.remove());
+
+      const svgString = new XMLSerializer().serializeToString(clone);
+      // Use a data URL (not blob:) so the browser treats the resource as
+      // same-origin and avoids cross-origin taints on the canvas.
+      const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = svgUrl;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Watermarks (drawn before the chart so they sit behind the data).
+      // Offsets are percentages of the canvas so they land inside the plot
+      // area (away from axis labels and the legend at the bottom).
+      const brandBlue = '#084D92';
+
+      // Top-left: indicator name
+      const indicatorName = getName(indicatorData) || indicatorData?.name || '';
+      if (indicatorName) {
+        ctx.save();
+        ctx.globalAlpha = 0.08;
+        ctx.fillStyle = brandBlue;
+        const fontSize = Math.round(28 * scale);
+        ctx.font = `700 ${fontSize}px Onest, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const left = Math.round(canvas.width * 0.09);
+        const top = Math.round(canvas.height * 0.08);
+        const maxWidth = canvas.width - left - Math.round(canvas.width * 0.05);
+        let text = indicatorName;
+        while (ctx.measureText(text).width > maxWidth && text.length > 1) {
+          text = text.slice(0, -2) + '…';
+        }
+        ctx.fillText(text, left, top);
+        ctx.restore();
       }
 
-      const exportPayload = {
-        chart_type: chartType,
-        theme: 'light',
-        width: 1200,
-        height: 600,
-        granularity: fetchParams.granularity,
-        start_date: exportStartDate,
-        end_date: exportEndDate,
-        title: indicatorData?.name || 'Indicator',
-        xaxis_type: 'datetime',
-        colors: ['#084d92', '#009368', '#00d1b2', '#3abff8'],
-        annotations: { xaxis: [], yaxis: [] }
-      };
+      // Bottom-right: ROOTS logo
+      try {
+        const logo = new Image();
+        logo.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          logo.onload = resolve;
+          logo.onerror = reject;
+          logo.src = '/roots.svg';
+        });
+        const logoW = Math.round(Math.min(130, canvas.width * 0.1) * scale);
+        const aspect = logo.naturalWidth && logo.naturalHeight
+          ? logo.naturalHeight / logo.naturalWidth
+          : 58 / 165;
+        const logoH = Math.round(logoW * aspect);
+        const right = Math.round(canvas.width * 0.05);
+        const bottomOffset = Math.round(canvas.height * 0.15);
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.drawImage(
+          logo,
+          canvas.width - logoW - right,
+          canvas.height - logoH - bottomOffset,
+          logoW,
+          logoH
+        );
+        ctx.restore();
+      } catch (logoErr) {
+        console.warn('Logo watermark failed:', logoErr);
+      }
 
-      const blob = await indicatorService.exportChartImage(indicatorId, exportPayload);
+      // Chart on top of the watermarks
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      const url = window.URL.createObjectURL(blob);
+      const pngUrl = canvas.toDataURL('image/png');
       const a = document.createElement('a');
-      a.href = url;
+      a.href = pngUrl;
       a.download = `${indicatorData?.name || 'indicator'}_chart.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed:', error);
-
-      if (error.response && error.response.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          console.error('Export error details:', reader.result);
-        };
-        reader.readAsText(error.response.data);
-      }
-
-      alert(t('indicator.export_image_error'));
-    }
-  };
-
-  const fallbackImageExport = () => {
-    const chartElement = document.querySelector('.apexcharts-canvas svg');
-    console.log('🖼️ Chart element found:', !!chartElement);
-
-    if (chartElement) {
-      console.log('🖼️ Using fallback SVG export method');
-      const svgData = new XMLSerializer().serializeToString(chartElement);
-      console.log('🖼️ SVG data length:', svgData.length);
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-        console.log('🖼️ Image loaded successfully, dimensions:', img.width, 'x', img.height);
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        const dataURL = canvas.toDataURL('image/png');
-        console.log('🖼️ Canvas dataURL created, length:', dataURL.length);
-
-        const a = document.createElement('a');
-        a.href = dataURL;
-        a.download = `${indicatorData?.name || 'indicator'}_chart.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        console.log('🖼️ Download triggered');
-      };
-
-      img.onerror = (error) => {
-        console.error('🖼️ Image load failed:', error);
-      };
-
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const svgUrl = URL.createObjectURL(svgBlob);
-      img.src = svgUrl;
-      console.log('🖼️ Image src set to:', svgUrl);
-    } else {
-      console.error('🖼️ No chart found for export');
+    } catch (e) {
+      console.error('Chart export failed:', e);
+      showError(t('indicator.export_image_error'));
     }
   };
 
   const handleCopyReference = () => {
     const reference = `${window.location.origin}/indicator/${indicatorId}`;
     navigator.clipboard.writeText(reference);
-    alert(t('indicator.reference_copied'));
+    showSuccess(t('indicator.reference_copied'));
   };
 
   const handleEditInformation = () => {
@@ -344,10 +463,10 @@ export default function IndicatorTemplate() {
 
     const csvContent = [
       ['Date', 'Value', 'Source'],
-      ...chartData.series[0].data.map(point => [point.x, point.y, sourceName])
+      ...chartData.series[0].data.map(point => [formatCsvDate(point.x), point.y, sourceName])
     ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -623,32 +742,113 @@ export default function IndicatorTemplate() {
                 <h2 className="font-['Onest'] font-semibold text-2xl xl:text-3xl text-[#0a0a0a] tracking-tight leading-tight">
                   {getName(indicatorData)} {indicatorData.unit ? `(${indicatorData.unit})` : ''}
                 </h2>
-                <div ref={chartDropdownRef} className="relative shrink-0">
+                <div className="flex flex-col-reverse md:flex-row items-end md:items-center gap-2 shrink-0">
+                  {/* Desktop: standalone action buttons */}
                   <button
-                    onClick={() => setChartDropdownOpen(!chartDropdownOpen)}
-                    className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
-                    title={chartTypeOptions.find(o => o.value === chartType)?.label}
+                    onClick={() => handleChartToolSelect('zoomOut')}
+                    className="hidden md:flex text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
+                    title={t('indicator.chart_tool_zoom_out')}
                   >
-                    {chartTypeOptions.find(o => o.value === chartType)?.icon}
-                    <svg className={`w-3.5 h-3.5 text-[#0a0a0a] shrink-0 transition-transform ${chartDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    {zoomOutIcon}
                   </button>
-                  {chartDropdownOpen && (
-                    <div className="absolute z-50 mt-2 right-0 bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden">
-                      {chartTypeOptions.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => { setChartType(option.value); setChartDropdownOpen(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl cursor-pointer whitespace-nowrap ${chartType === option.value ? 'text-primary bg-black/[0.02]' : 'text-[#0a0a0a]'}`}
-                          title={option.label}
-                        >
-                          {option.icon}
-                          <span className="font-['Onest'] text-sm">{option.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <button
+                    onClick={() => handleChartToolSelect('zoomIn')}
+                    className="hidden md:flex text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
+                    title={t('indicator.chart_tool_zoom_in')}
+                  >
+                    {zoomInIcon}
+                  </button>
+                  <button
+                    onClick={() => handleChartToolSelect('reset')}
+                    className="hidden md:flex text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
+                    title={t('indicator.chart_tool_reset')}
+                  >
+                    {resetIcon}
+                  </button>
+
+                  {/* Tools dropdown: desktop = modes only (hidden on bar/column); mobile = modes + actions */}
+                  <div ref={toolDropdownRef} className={`relative ${!chartSupportsTools ? 'md:hidden' : ''}`}>
+                      <button
+                        onClick={() => setToolDropdownOpen(!toolDropdownOpen)}
+                        className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
+                        title={t('indicator.chart_tools')}
+                      >
+                        {chartSupportsTools ? (modeIcons[activeChartTool] || modeIcons.zoom) : zoomInIcon}
+                        <svg className={`w-3.5 h-3.5 text-[#0a0a0a] shrink-0 transition-transform ${toolDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {toolDropdownOpen && (
+                        <div className="absolute z-50 mt-2 right-0 bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden min-w-[180px]">
+                          {chartSupportsTools && chartToolModes.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleChartToolSelect(option.value)}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors cursor-pointer whitespace-nowrap ${activeChartTool === option.value ? 'text-primary bg-black/[0.02]' : 'text-[#0a0a0a]'}`}
+                              title={option.label}
+                            >
+                              {option.icon}
+                              <span className="font-['Onest'] text-sm">{option.label}</span>
+                            </button>
+                          ))}
+                          {chartSupportsTools && <div className="border-t border-[#e5e5e5] md:hidden" />}
+                          {/* Actions: mobile-only inside dropdown */}
+                          <div className="md:hidden">
+                            <button
+                              onClick={() => handleChartToolSelect('zoomIn')}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors cursor-pointer whitespace-nowrap text-[#0a0a0a]"
+                              title={t('indicator.chart_tool_zoom_in')}
+                            >
+                              {zoomInIcon}
+                              <span className="font-['Onest'] text-sm">{t('indicator.chart_tool_zoom_in')}</span>
+                            </button>
+                            <button
+                              onClick={() => handleChartToolSelect('zoomOut')}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors cursor-pointer whitespace-nowrap text-[#0a0a0a]"
+                              title={t('indicator.chart_tool_zoom_out')}
+                            >
+                              {zoomOutIcon}
+                              <span className="font-['Onest'] text-sm">{t('indicator.chart_tool_zoom_out')}</span>
+                            </button>
+                            <button
+                              onClick={() => handleChartToolSelect('reset')}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors cursor-pointer whitespace-nowrap text-[#0a0a0a]"
+                              title={t('indicator.chart_tool_reset')}
+                            >
+                              {resetIcon}
+                              <span className="font-['Onest'] text-sm">{t('indicator.chart_tool_reset')}</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                  <div ref={chartDropdownRef} className="relative">
+                    <button
+                      onClick={() => setChartDropdownOpen(!chartDropdownOpen)}
+                      className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
+                      title={chartTypeOptions.find(o => o.value === chartType)?.label}
+                    >
+                      {chartTypeOptions.find(o => o.value === chartType)?.icon}
+                      <svg className={`w-3.5 h-3.5 text-[#0a0a0a] shrink-0 transition-transform ${chartDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {chartDropdownOpen && (
+                      <div className="absolute z-50 mt-2 right-0 bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden">
+                        {chartTypeOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => { setChartType(option.value); setChartDropdownOpen(false); }}
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl cursor-pointer whitespace-nowrap ${chartType === option.value ? 'text-primary bg-black/[0.02]' : 'text-[#0a0a0a]'}`}
+                            title={option.label}
+                          >
+                            {option.icon}
+                            <span className="font-['Onest'] text-sm">{option.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="h-72 sm:h-96 xl:h-[550px] relative">
