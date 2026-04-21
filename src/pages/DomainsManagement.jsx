@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AdminPageTemplate from './AdminPageTemplate';
 import ActionCard from '../components/ActionCard';
@@ -14,12 +15,25 @@ import useLocalizedName from '../hooks/useLocalizedName';
 export default function DomainsManagement() {
   const { t } = useTranslation();
   const getName = useLocalizedName();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = parseInt(searchParams.get('page') || '0', 10);
+    return Number.isFinite(p) && p >= 0 ? p : 0;
+  });
   const [pageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    const urlPage = parseInt(newParams.get('page') || '0', 10) || 0;
+    if (urlPage === currentPage) return;
+    if (currentPage > 0) newParams.set('page', String(currentPage));
+    else newParams.delete('page');
+    setSearchParams(newParams, { replace: true });
+  }, [currentPage]);
 
   // Sorting and filtering state
   const [sortBy, setSortBy] = useState('name');

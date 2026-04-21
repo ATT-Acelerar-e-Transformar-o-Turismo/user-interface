@@ -483,7 +483,20 @@
     "no_sources": "No sources associated with this indicator",
     "col_name": "Name",
     "col_start_period": "Start Period",
-    "col_end_period": "End Period"
+    "col_end_period": "End Period",
+    "chart_line": "Line",
+    "chart_column": "Columns",
+    "chart_bar": "Bars",
+    "chart_scatter": "Scatter",
+    "chart_tools": "Tools",
+    "chart_tool_zoom": "Zoom",
+    "chart_tool_pan": "Pan",
+    "chart_tool_selection": "Selection",
+    "chart_tool_zoom_in": "Zoom in",
+    "chart_tool_zoom_out": "Zoom out",
+    "chart_tool_reset": "Reset zoom",
+    "sources_load_partial": "Failed to load {{count}} of {{total}} source(s).",
+    "sources_load_failed": "Failed to load sources. The resource service may be unreachable."
   },
   "footer_simple": {
     "contacts": "Contacts:",

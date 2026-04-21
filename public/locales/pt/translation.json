@@ -483,7 +483,20 @@
     "no_sources": "Nenhuma fonte associada a este indicador",
     "col_name": "Nome",
     "col_start_period": "Período Início",
-    "col_end_period": "Período Fim"
+    "col_end_period": "Período Fim",
+    "chart_line": "Linha",
+    "chart_column": "Colunas",
+    "chart_bar": "Barras",
+    "chart_scatter": "Dispersão",
+    "chart_tools": "Ferramentas",
+    "chart_tool_zoom": "Zoom",
+    "chart_tool_pan": "Mover",
+    "chart_tool_selection": "Seleção",
+    "chart_tool_zoom_in": "Ampliar",
+    "chart_tool_zoom_out": "Reduzir",
+    "chart_tool_reset": "Repor zoom",
+    "sources_load_partial": "Falha ao carregar {{count}} de {{total}} fonte(s).",
+    "sources_load_failed": "Falha ao carregar fontes. O serviço de recursos pode estar inacessível."
   },
   "footer_simple": {
     "contacts": "Contactos:",

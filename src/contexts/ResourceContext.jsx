@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import resourceService from '../services/resourceService';
 
@@ -63,10 +63,6 @@ const initialState = {
 
 export function ResourceProvider({ children }) {
   const [state, dispatch] = useReducer(resourceReducer, initialState);
-
-  useEffect(() => {
-    loadResources();
-  }, []);
 
   const loadResources = async () => {
     try {

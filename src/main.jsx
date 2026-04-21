@@ -7,6 +7,7 @@ import { DomainProvider } from './contexts/DomainContext';
 import { IndicatorProvider } from './contexts/IndicatorContext';
 import { ResourceProvider } from './contexts/ResourceContext';
 import { WrapperProvider } from './contexts/WrapperContext';
+import ToastContainer from './components/ToastContainer';
 import './i18n';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 router={router}
                 future={{ v7_startTransition: true ,}}
               />
+              <ToastContainer />
             </WrapperProvider>
           </ResourceProvider>
         </IndicatorProvider>

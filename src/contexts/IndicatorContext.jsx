@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import indicatorService from '../services/indicatorService';
 
@@ -85,16 +85,12 @@ const indicatorReducer = (state, action) => {
 
 const initialState = {
   indicators: [],
-  loading: true,
+  loading: false,
   error: null
 };
 
 export function IndicatorProvider({ children }) {
   const [state, dispatch] = useReducer(indicatorReducer, initialState);
-
-  useEffect(() => {
-    loadIndicators();
-  }, []);
 
   const loadIndicators = async () => {
     try {
