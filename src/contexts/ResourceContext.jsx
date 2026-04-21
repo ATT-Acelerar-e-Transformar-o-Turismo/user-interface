@@ -64,10 +64,6 @@ const initialState = {
 export function ResourceProvider({ children }) {
   const [state, dispatch] = useReducer(resourceReducer, initialState);
 
-  useEffect(() => {
-    loadResources();
-  }, []);
-
   const loadResources = async () => {
     try {
       dispatch({ type: 'LOAD_START' });

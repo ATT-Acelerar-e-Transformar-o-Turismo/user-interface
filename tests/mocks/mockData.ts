@@ -54,15 +54,11 @@ export const MOCK_INDICATORS = [
     description: "Biodiversity indicator measuring the presence of endemic plants and rare animals in the region",
     font: "CM Ílhavo",
     scale: "local",
+    unit: "units",
     id: "6882aed71331d722c9da1f61",
     domain: "6882aed21331d722c9da1f60",
     subdomain: "Natural capital and land use",
     resources: [],
-    characteristics: {
-      unit_of_measure: "units",
-      source: "CM Ílhavo",
-      periodicity: "annual"
-    },
     categorization: "Biodiversity"
   },
   {
@@ -73,15 +69,11 @@ export const MOCK_INDICATORS = [
     description: "Indicator measuring the number of protected species in the destination",
     font: "CM Ílhavo",
     scale: "local",
+    unit: "species",
     id: "6882aed71331d722c9da1f62",
     domain: "6882aed21331d722c9da1f60",
     subdomain: "Natural capital and land use",
     resources: [],
-    characteristics: {
-      unit_of_measure: "species",
-      source: "CM Ílhavo",
-      periodicity: "annual"
-    },
     categorization: "Biodiversity"
   },
   {
@@ -92,15 +84,11 @@ export const MOCK_INDICATORS = [
     description: "Indicator measuring the percentage of area designated for tourism purposes",
     font: "CM Ílhavo",
     scale: "local",
+    unit: "percentage",
     id: "6882aed71331d722c9da1f63",
     domain: "6882aed21331d722c9da1f60",
     subdomain: "Natural capital and land use",
     resources: [],
-    characteristics: {
-      unit_of_measure: "percentage",
-      source: "CM Ílhavo",
-      periodicity: "annual"
-    },
     categorization: "Land Use"
   }
 ];

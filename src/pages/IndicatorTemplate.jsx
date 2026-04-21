@@ -1,12 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useDomain } from "../contexts/DomainContext";
-import { useIndicator } from "../contexts/IndicatorContext";
-import { useResource } from "../contexts/ResourceContext";
 import { useAuth } from "../contexts/AuthContext";
+import resourceService from "../services/resourceService";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
 import IndicatorDropdowns from "../components/IndicatorDropdowns";
 import GChart from "../components/Chart";
+import ResourceWizard from "../components/wizard/ResourceWizard";
+import IndicatorWizard from "../components/wizard/IndicatorWizard";
 import indicatorService from "../services/indicatorService";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
@@ -22,8 +23,6 @@ export default function IndicatorTemplate() {
   const { user, isAuthenticated } = useAuth();
   const indicatorChartRef = useRef(null);
 
-  const { getIndicatorById, loading } = useIndicator();
-  const { resources } = useResource();
   const getName = useLocalizedName();
   const { t } = useTranslation();
 
@@ -52,6 +51,15 @@ export default function IndicatorTemplate() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [chartDropdownOpen, setChartDropdownOpen] = useState(false);
+  const [indicatorResources, setIndicatorResources] = useState([]);
+  const [sourcesError, setSourcesError] = useState(null);
+  const [isResourceWizardOpen, setIsResourceWizardOpen] = useState(false);
+  const [isIndicatorWizardOpen, setIsIndicatorWizardOpen] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedFilePreview, setSelectedFilePreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
+  const [showSourceDetailsModal, setShowSourceDetailsModal] = useState(false);
   const chartDropdownRef = useRef(null);
 
   const isAdmin = user?.role === 'admin';
@@ -315,11 +323,20 @@ export default function IndicatorTemplate() {
   };
 
   const handleEditInformation = () => {
-    navigate(`/indicator/${indicatorId}/edit`);
+    setIsIndicatorWizardOpen(true);
   };
 
   const handleAddSources = () => {
-    navigate(`/indicator/${indicatorId}/sources/add`);
+    setIsResourceWizardOpen(true);
+  };
+
+  const refreshIndicatorResources = async () => {
+    try {
+      const fresh = await indicatorService.getById(indicatorId);
+      setIndicatorData(fresh);
+    } catch (err) {
+      console.error('Failed to refresh indicator after resource change:', err);
+    }
   };
 
   const handleSourceExportCSV = (sourceName) => {
@@ -341,14 +358,30 @@ export default function IndicatorTemplate() {
     window.URL.revokeObjectURL(url);
   };
 
-  const handleSourceView = (sourceName) => {
-    console.log('Filtering by source:', sourceName);
-  };
-
-  const handleSourceDelete = (sourceName) => {
-    if (window.confirm(t('indicator.confirm_delete_source'))) {
-      console.log('Deleting source:', sourceName);
-      window.location.reload();
+  const handleSourceView = async (resource) => {
+    setSelectedResource(resource);
+    setSelectedFilePreview(null);
+    setPreviewError(null);
+    setShowSourceDetailsModal(true);
+    if (!resource?.wrapper_id) {
+      setPreviewError(t('indicator.no_preview_available', 'Pré-visualização indisponível para esta fonte.'));
+      return;
+    }
+    setPreviewLoading(true);
+    try {
+      const wrapper = await resourceService.getWrapper(resource.wrapper_id);
+      const fileId = wrapper?.source_config?.file_id;
+      if (!fileId) {
+        setPreviewError(t('indicator.preview_only_for_files', 'Pré-visualização apenas disponível para fontes CSV/XLSX.'));
+        return;
+      }
+      const fileInfo = await resourceService.getFileInfo(fileId);
+      setSelectedFilePreview(fileInfo);
+    } catch (err) {
+      console.error('Failed to load source preview:', err);
+      setPreviewError(t('indicator.preview_load_failed', 'Falha ao carregar a pré-visualização.'));
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
@@ -371,7 +404,42 @@ export default function IndicatorTemplate() {
     }
   }, [indicatorId]);
 
-  if (loading) {
+  useEffect(() => {
+    let cancelled = false;
+    const fetchResources = async () => {
+      if (!indicatorData?.resources?.length) {
+        setIndicatorResources([]);
+        setSourcesError(null);
+        return;
+      }
+      const results = await Promise.all(
+        indicatorData.resources.map(id =>
+          resourceService.getById(id).then(
+            r => ({ ok: true, resource: r }),
+            err => ({ ok: false, id, err })
+          )
+        )
+      );
+      if (cancelled) return;
+      const loaded = results.filter(r => r.ok).map(r => r.resource);
+      const failed = results.filter(r => !r.ok);
+      setIndicatorResources(loaded);
+      if (failed.length) {
+        console.error('Failed to load some resources:', failed);
+        setSourcesError(
+          loaded.length
+            ? `Failed to load ${failed.length} of ${results.length} source(s).`
+            : 'Failed to load sources. The resource service may be unreachable.'
+        );
+      } else {
+        setSourcesError(null);
+      }
+    };
+    fetchResources();
+    return () => { cancelled = true; };
+  }, [indicatorData?.resources]);
+
+  if (indicatorLoading) {
     return (
       <PageTemplate>
         <div className="flex justify-center items-center h-64">
@@ -449,9 +517,6 @@ export default function IndicatorTemplate() {
     ? `/indicators/${resolvedDomainObj.name.toLowerCase().replace(/\s+/g, '-')}`
     : '/indicators';
 
-  const indicatorResources = indicatorData?.resources
-    ? resources.filter(r => indicatorData.resources.includes(r.id))
-    : [];
 
   const cardClass = "bg-[#fffefc] rounded-lg p-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]";
 
@@ -765,10 +830,10 @@ export default function IndicatorTemplate() {
                     </p>
                   )}
                   <div className="font-['Onest'] text-sm text-[#0a0a0a] space-y-6">
-                    <p><span className="font-semibold">{t('indicator.sources_label')}</span> {indicatorData.characteristics?.source || indicatorData.font || indicatorData.source || "INE"}</p>
-                    <p><span className="font-semibold">{t('indicator.scale_label')}</span> N/A</p>
-                    <p><span className="font-semibold">{t('indicator.units_label')}</span> {indicatorData.characteristics?.unit_of_measure || indicatorData.unit_of_measure || "N/A"}</p>
-                    <p><span className="font-semibold">{t('indicator.periodicity_label')}</span> {indicatorData.characteristics?.periodicity || indicatorData.periodicity || "Anual"}</p>
+                    <p><span className="font-semibold">{t('indicator.sources_label')}</span> {indicatorData.font || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.scale_label')}</span> {indicatorData.scale || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.units_label')}</span> {indicatorData.unit || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.periodicity_label')}</span> {indicatorData.periodicity || "N/A"}</p>
                     <p><span className="font-semibold">{t('indicator.governance_label')}</span> {indicatorData?.governance ? t('common.yes') : t('common.no')}</p>
                     <p><span className="font-semibold">{t('indicator.dimension_label')}</span> {getName(resolvedDomainObj)}</p>
                     <p><span className="font-semibold">{t('indicator.domain_label')}</span> {resolvedSubdomainName || ""}</p>
@@ -803,11 +868,16 @@ export default function IndicatorTemplate() {
                       </svg>
                     </button>
                   )}
-                  {indicatorResources.length === 0 ? (
+                  {sourcesError && (
+                    <div className="mb-4 p-3 bg-error/10 border border-error/30 rounded text-sm text-error">
+                      {sourcesError}
+                    </div>
+                  )}
+                  {indicatorResources.length === 0 && !sourcesError ? (
                     <div className="text-center py-8 text-[#737373]">
                       <p>{t('indicator.no_sources')}</p>
                     </div>
-                  ) : (
+                  ) : indicatorResources.length === 0 ? null : (
                     <div className="overflow-x-auto">
                       <table className="w-full font-['Onest']">
                         <thead>
@@ -833,14 +903,9 @@ export default function IndicatorTemplate() {
                                   <button onClick={() => handleSourceExportCSV(resource.name)} className="text-[#737373] hover:text-primary transition-colors cursor-pointer" title={t('indicator.export_csv')}>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                   </button>
-                                  <button onClick={() => handleSourceView(resource.name)} className="text-[#737373] hover:text-success transition-colors cursor-pointer">
+                                  <button onClick={() => handleSourceView(resource)} className="text-[#737373] hover:text-success transition-colors cursor-pointer">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                   </button>
-                                  {isAdmin && (
-                                    <button onClick={() => handleSourceDelete(resource.name)} className="text-[#737373] hover:text-error transition-colors cursor-pointer">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
-                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -855,6 +920,62 @@ export default function IndicatorTemplate() {
           </div>
         </div>
       </div>
+      <ResourceWizard
+        isOpen={isResourceWizardOpen}
+        onClose={() => setIsResourceWizardOpen(false)}
+        indicatorId={indicatorId}
+        onSuccess={refreshIndicatorResources}
+      />
+      <IndicatorWizard
+        key="indicator-wizard"
+        isOpen={isIndicatorWizardOpen}
+        onClose={() => setIsIndicatorWizardOpen(false)}
+        indicatorId={indicatorId}
+        onSuccess={refreshIndicatorResources}
+      />
+      {showSourceDetailsModal && selectedResource && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-4xl">
+            <h3 className="font-bold text-lg mb-4">
+              {t('indicator.source_preview', 'Pré-visualização da Fonte')}: {selectedResource.name}
+            </h3>
+            {previewLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="loading loading-spinner loading-lg"></div>
+              </div>
+            ) : previewError ? (
+              <div className="p-4 bg-warning/10 border border-warning/30 rounded text-sm">
+                {previewError}
+              </div>
+            ) : selectedFilePreview ? (
+              <div className="space-y-3">
+                <div className="text-sm text-[#737373]">
+                  <strong>{selectedFilePreview.filename}</strong>
+                  {selectedFilePreview.file_size != null && (
+                    <span> — {(selectedFilePreview.file_size / 1024).toFixed(1)} KB</span>
+                  )}
+                </div>
+                <pre className="bg-base-300 text-base-content p-4 rounded-lg text-xs font-mono overflow-auto max-h-96 whitespace-pre">
+                  {selectedFilePreview.preview_data || t('indicator.preview_empty', '(sem dados)')}
+                </pre>
+              </div>
+            ) : null}
+            <div className="modal-action">
+              <button
+                className="btn"
+                onClick={() => {
+                  setShowSourceDetailsModal(false);
+                  setSelectedResource(null);
+                  setSelectedFilePreview(null);
+                  setPreviewError(null);
+                }}
+              >
+                {t('common.close', 'Fechar')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageTemplate>
   );
 }

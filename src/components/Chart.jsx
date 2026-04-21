@@ -28,7 +28,12 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         }
     }, [themeMode])
 
+    const needsDateConversion = (chartType === 'bar' || chartType === 'column') && xaxisType === 'datetime';
+
     const formatValue = (value) => {
+        if (needsDateConversion) {
+            return value;
+        }
         if (xaxisType === 'datetime') {
             return new Date(value).toLocaleDateString('pt-PT')
         } else if (typeof value === 'number') {
@@ -57,7 +62,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         let xaxisMin = undefined;
         let xaxisMax = undefined;
 
-        if (xaxisRange?.min != null && xaxisRange?.max != null) {
+        if (xaxisRange?.min != null && xaxisRange?.max != null && !needsDateConversion) {
             xaxisMin = xaxisRange.min;
             xaxisMax = xaxisRange.max;
         }
@@ -195,11 +200,19 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     }
                 }
             },
-            // sort series
-            series: xaxisType == 'category' ? _series : _series.map(s => ({
-                ...s,
-                data: s.data.sort((a, b) => a.x - b.x)
-            })),
+            series: _series.map(s => {
+                const sortedData = [...s.data].sort((a, b) => a.x - b.x);
+                if (needsDateConversion) {
+                    return {
+                        ...s,
+                        data: sortedData.map(d => ({
+                            x: new Date(d.x).toLocaleDateString('pt-PT'),
+                            y: d.y
+                        }))
+                    };
+                }
+                return { ...s, data: sortedData };
+            }),
             title: {
                 text: '',
                 style: {

@@ -67,6 +67,11 @@ export const resourceService = {
   async getWrapperLogs(wrapperId, limit = 200) {
     const response = await apiClient.get(`/api/resources/wrappers/${wrapperId}/logs?limit=${limit}`);
     return response.data;
+  },
+
+  async getFileInfo(fileId) {
+    const response = await apiClient.get(`/api/resources/wrappers/files/${fileId}`);
+    return response.data;
   }
 };
 
