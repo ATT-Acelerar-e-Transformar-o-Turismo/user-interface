@@ -668,7 +668,7 @@ export default function ResourceWizard({
                                 <strong>{t('wizard.resource.last_entry')}</strong> {new Date(wrapperInfo.resourceData.endPeriod).toLocaleDateString()}
                               </p>
                             )}
-                            {wrapperInfo.wrapper?.data_points_count > 0 && (
+                            {wrapperInfo.wrapper?.data_points_count != null && (
                               <p className="font-['Onest',sans-serif] text-xs text-gray-600 mt-1">
                                 <strong>{t('wizard.resource.total_entries')}</strong> {wrapperInfo.wrapper.data_points_count}
                               </p>
