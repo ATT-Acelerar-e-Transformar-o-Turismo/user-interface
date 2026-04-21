@@ -494,7 +494,9 @@
     "chart_tool_selection": "Selection",
     "chart_tool_zoom_in": "Zoom in",
     "chart_tool_zoom_out": "Zoom out",
-    "chart_tool_reset": "Reset zoom"
+    "chart_tool_reset": "Reset zoom",
+    "sources_load_partial": "Failed to load {{count}} of {{total}} source(s).",
+    "sources_load_failed": "Failed to load sources. The resource service may be unreachable."
   },
   "footer_simple": {
     "contacts": "Contacts:",

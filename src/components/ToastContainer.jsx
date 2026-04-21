@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { subscribeToasts } from '../utils/toast';
 
 const variantStyles = {
@@ -33,18 +33,26 @@ const variantStyles = {
 
 export default function ToastContainer() {
   const [toasts, setToasts] = useState([]);
+  const timersRef = useRef({});
 
   const dismiss = useCallback((id) => {
+    clearTimeout(timersRef.current[id]);
+    delete timersRef.current[id];
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
   useEffect(() => {
-    return subscribeToasts((toast) => {
+    const unsubscribe = subscribeToasts((toast) => {
       setToasts(prev => [...prev, toast]);
       if (toast.duration > 0) {
-        setTimeout(() => dismiss(toast.id), toast.duration);
+        timersRef.current[toast.id] = setTimeout(() => dismiss(toast.id), toast.duration);
       }
     });
+    const timers = timersRef.current;
+    return () => {
+      unsubscribe();
+      Object.values(timers).forEach(clearTimeout);
+    };
   }, [dismiss]);
 
   if (toasts.length === 0) return null;

@@ -11,7 +11,6 @@ import IndicatorWizard from "../components/wizard/IndicatorWizard";
 import indicatorService from "../services/indicatorService";
 import { showError, showSuccess } from "../utils/toast";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
 
 import useIndicatorData from "../hooks/useIndicatorData";
 import useLocalizedName from "../hooks/useLocalizedName";
@@ -547,8 +546,8 @@ export default function IndicatorTemplate() {
         console.error('Failed to load some resources:', failed);
         setSourcesError(
           loaded.length
-            ? `Failed to load ${failed.length} of ${results.length} source(s).`
-            : 'Failed to load sources. The resource service may be unreachable.'
+            ? t('indicator.sources_load_partial', { count: failed.length, total: results.length })
+            : t('indicator.sources_load_failed')
         );
       } else {
         setSourcesError(null);

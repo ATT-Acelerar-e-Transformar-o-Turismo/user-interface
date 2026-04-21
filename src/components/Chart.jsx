@@ -214,7 +214,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 }
             },
             series: _series.map(s => {
-                const sortedData = [...s.data].sort((a, b) => a.x - b.x);
+                const sortedData = xaxisType === 'datetime'
+                    ? [...s.data].sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime())
+                    : xaxisType === 'numeric'
+                        ? [...s.data].sort((a, b) => a.x - b.x)
+                        : [...s.data];
                 if (needsDateConversion) {
                     return {
                         ...s,

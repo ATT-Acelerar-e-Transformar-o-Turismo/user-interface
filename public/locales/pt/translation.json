@@ -494,7 +494,9 @@
     "chart_tool_selection": "Seleção",
     "chart_tool_zoom_in": "Ampliar",
     "chart_tool_zoom_out": "Reduzir",
-    "chart_tool_reset": "Repor zoom"
+    "chart_tool_reset": "Repor zoom",
+    "sources_load_partial": "Falha ao carregar {{count}} de {{total}} fonte(s).",
+    "sources_load_failed": "Falha ao carregar fontes. O serviço de recursos pode estar inacessível."
   },
   "footer_simple": {
     "contacts": "Contactos:",
