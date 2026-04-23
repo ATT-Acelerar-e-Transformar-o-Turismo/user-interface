@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
-import { useDomain } from './DomainContext';
+import { useArea } from './AreaContext';
 
 export function LocalStorageInitializer() {
-  const { domains } = useDomain();
+  const { areas } = useArea();
 
   useEffect(() => {
-    if (!domains || domains.length === 0) {
-      return; // Wait until domains is loaded
+    if (!areas || areas.length === 0) {
+      return; // Wait until areas is loaded
     }
 
     function getRandomFavourites() {
@@ -18,25 +18,25 @@ export function LocalStorageInitializer() {
     }
 
     if (!localStorage.getItem('indicators') || !localStorage.getItem('resources')) {
-      // Check if domains have the old JSON structure (subdominios/indicadores) or new API structure
-      const hasOldStructure = domains && domains.some(domain => domain.subdominios && Array.isArray(domain.subdominios));
+      // Check if areas have the old JSON structure (subdominios/indicadores) or new API structure
+      const hasOldStructure = areas && areas.some(area => area.subdominios && Array.isArray(area.subdominios));
       
       let indicators = [];
       let resources = [];
       
       if (hasOldStructure) {
         // Handle old JSON structure
-        domains && domains.forEach((domain) => {
-          if (domain.subdominios && Array.isArray(domain.subdominios)) {
-        domain.subdominios.forEach((subdomain) => {
-              if (subdomain.indicadores && Array.isArray(subdomain.indicadores)) {
-          subdomain.indicadores.forEach((indicator) => {
+        areas && areas.forEach((area) => {
+          if (area.subdominios && Array.isArray(area.subdominios)) {
+        area.subdominios.forEach((dimension) => {
+              if (dimension.indicadores && Array.isArray(dimension.indicadores)) {
+          dimension.indicadores.forEach((indicator) => {
             indicators.push({
               id: indicators.length + 1,
               name: indicator.nome,
               periodicity: indicator.caracteristicas.periodicidade,
-              domain: domain.nome,
-              subdomain: subdomain.nome,
+              area: area.nome,
+              dimension: dimension.nome,
               favourites: getRandomFavourites(),
               governance: getRandomGovernance(),
               description: "",
@@ -59,30 +59,30 @@ export function LocalStorageInitializer() {
       });
       } else {
         // Handle new API structure - create minimal test data since the API structure doesn't include indicators
-        console.log('Domains loaded from API - using minimal test data for localStorage');
+        console.log('Areas loaded from API - using minimal test data for localStorage');
         
-        // Create some test indicators for each domain
-        domains && domains.forEach((domain) => {
-          if (domain.subdomains && Array.isArray(domain.subdomains)) {
-            domain.subdomains.forEach((subdomain) => {
-              // Create 2-3 test indicators per subdomain
+        // Create some test indicators for each area
+        areas && areas.forEach((area) => {
+          if (area.dimensions && Array.isArray(area.dimensions)) {
+            area.dimensions.forEach((dimension) => {
+              // Create 2-3 test indicators per dimension
               for (let i = 0; i < 2; i++) {
                 indicators.push({
                   id: indicators.length + 1,
-                  name: `Test Indicator ${i + 1} - ${subdomain}`,
+                  name: `Test Indicator ${i + 1} - ${dimension}`,
                   periodicity: 'Monthly',
-                  domain: domain.name,
-                  subdomain: subdomain,
+                  area: area.name,
+                  dimension: dimension,
                   favourites: getRandomFavourites(),
                   governance: getRandomGovernance(),
-                  description: `Test indicator for ${subdomain} in ${domain.name}`,
+                  description: `Test indicator for ${dimension} in ${area.name}`,
                   font: "",
                   scale: "Units",
                 });
 
                 resources.push({
                   id: resources.length + 1,
-                  name: `test_indicator_${i + 1}_${subdomain.replace(/\s+/g, '_').toLowerCase()}.csv`,
+                  name: `test_indicator_${i + 1}_${dimension.replace(/\s+/g, '_').toLowerCase()}.csv`,
                   'start period': '',
                   'end period': '',
                   indicator: indicators.length,
@@ -104,7 +104,7 @@ export function LocalStorageInitializer() {
         localStorage.setItem('resources', JSON.stringify(resources));
       }
     }
-  }, [domains]);
+  }, [areas]);
 
   return null; // This component doesn't render anything
 }

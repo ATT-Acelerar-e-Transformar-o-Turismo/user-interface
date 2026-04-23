@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import FormInput from './forms/FormInput';
+import FormSelect from './forms/FormSelect';
 
 export default function APIConfigForm({ onConfigChange }) {
     const [config, setConfig] = useState({
@@ -57,129 +59,116 @@ export default function APIConfigForm({ onConfigChange }) {
         handleChange('query_params', newParams);
     };
 
+    const authTypeOptions = [
+        { value: 'none', label: 'None' },
+        { value: 'api_key', label: 'API Key' },
+        { value: 'bearer', label: 'Bearer Token' },
+        { value: 'basic', label: 'Basic Auth' },
+    ];
+
     return (
-        <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
-            <h3 className="font-bold text-lg">API Configuration</h3>
+        <div className="space-y-4 p-4 rounded-lg bg-[#f8f8f8]">
+            <h3 className="font-['Onest',sans-serif] font-bold text-lg">API Configuration</h3>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">API Endpoint URL *</label>
-                <input
-                    type="url"
-                    className="input input-bordered w-full"
-                    value={config.location}
-                    onChange={(e) => handleChange('location', e.target.value)}
-                    placeholder="https://api.example.com/data"
-                    required
-                />
-            </div>
+            <FormInput
+                label="API Endpoint URL"
+                name="location"
+                type="url"
+                value={config.location}
+                onChange={(value) => handleChange('location', value)}
+                placeholder="https://api.example.com/data"
+                required
+            />
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Authentication Type</label>
-                <select
-                    className="select select-bordered w-full"
-                    value={config.auth_type}
-                    onChange={(e) => handleChange('auth_type', e.target.value)}
-                >
-                    <option value="none">None</option>
-                    <option value="api_key">API Key</option>
-                    <option value="bearer">Bearer Token</option>
-                    <option value="basic">Basic Auth</option>
-                </select>
-            </div>
+            <FormSelect
+                label="Authentication Type"
+                name="auth_type"
+                value={config.auth_type}
+                onChange={(value) => handleChange('auth_type', value)}
+                options={authTypeOptions}
+            />
 
             {config.auth_type === 'api_key' && (
                 <>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">API Key</label>
-                        <input
-                            type="password"
-                            className="input input-bordered w-full"
-                            value={config.api_key}
-                            onChange={(e) => handleChange('api_key', e.target.value)}
-                            placeholder="Enter API key"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">API Key Header Name</label>
-                        <input
-                            type="text"
-                            className="input input-bordered w-full"
-                            value={config.api_key_header}
-                            onChange={(e) => handleChange('api_key_header', e.target.value)}
-                            placeholder="X-API-Key"
-                        />
-                    </div>
+                    <FormInput
+                        label="API Key"
+                        name="api_key"
+                        type="password"
+                        value={config.api_key}
+                        onChange={(value) => handleChange('api_key', value)}
+                        placeholder="Enter API key"
+                    />
+                    <FormInput
+                        label="API Key Header Name"
+                        name="api_key_header"
+                        value={config.api_key_header}
+                        onChange={(value) => handleChange('api_key_header', value)}
+                        placeholder="X-API-Key"
+                    />
                 </>
             )}
 
             {config.auth_type === 'bearer' && (
-                <div>
-                    <label className="block text-sm font-medium mb-1">Bearer Token</label>
-                    <input
-                        type="password"
-                        className="input input-bordered w-full"
-                        value={config.bearer_token}
-                        onChange={(e) => handleChange('bearer_token', e.target.value)}
-                        placeholder="Enter bearer token"
-                    />
-                </div>
+                <FormInput
+                    label="Bearer Token"
+                    name="bearer_token"
+                    type="password"
+                    value={config.bearer_token}
+                    onChange={(value) => handleChange('bearer_token', value)}
+                    placeholder="Enter bearer token"
+                />
             )}
 
             {config.auth_type === 'basic' && (
                 <>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Username</label>
-                        <input
-                            type="text"
-                            className="input input-bordered w-full"
-                            value={config.username}
-                            onChange={(e) => handleChange('username', e.target.value)}
-                            placeholder="Enter username"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Password</label>
-                        <input
-                            type="password"
-                            className="input input-bordered w-full"
-                            value={config.password}
-                            onChange={(e) => handleChange('password', e.target.value)}
-                            placeholder="Enter password"
-                        />
-                    </div>
+                    <FormInput
+                        label="Username"
+                        name="username"
+                        value={config.username}
+                        onChange={(value) => handleChange('username', value)}
+                        placeholder="Enter username"
+                    />
+                    <FormInput
+                        label="Password"
+                        name="password"
+                        type="password"
+                        value={config.password}
+                        onChange={(value) => handleChange('password', value)}
+                        placeholder="Enter password"
+                    />
                 </>
             )}
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Timeout (seconds)</label>
-                <input
-                    type="number"
-                    className="input input-bordered w-full"
-                    value={config.timeout_seconds}
-                    onChange={(e) => handleChange('timeout_seconds', parseInt(e.target.value))}
-                />
-            </div>
+            <FormInput
+                label="Timeout (seconds)"
+                name="timeout_seconds"
+                type="number"
+                value={String(config.timeout_seconds ?? '')}
+                onChange={(value) => handleChange('timeout_seconds', parseInt(value, 10) || 0)}
+            />
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Custom Headers</label>
-                <div className="flex gap-2 mb-2">
-                    <input
-                        type="text"
-                        className="input input-bordered flex-1"
+            <div className="flex flex-col gap-2">
+                <label className="font-['Onest',sans-serif] font-medium text-sm text-black">
+                    Custom Headers
+                </label>
+                <div className="flex gap-2">
+                    <FormInput
+                        name="customHeaderKey"
                         value={customHeaderKey}
-                        onChange={(e) => setCustomHeaderKey(e.target.value)}
+                        onChange={setCustomHeaderKey}
                         placeholder="Header name"
+                        className="flex-1"
                     />
-                    <input
-                        type="text"
-                        className="input input-bordered flex-1"
+                    <FormInput
+                        name="customHeaderValue"
                         value={customHeaderValue}
-                        onChange={(e) => setCustomHeaderValue(e.target.value)}
+                        onChange={setCustomHeaderValue}
                         placeholder="Header value"
+                        className="flex-1"
                     />
                     <button
                         type="button"
-                        className="btn btn-sm btn-neutral"
+                        className="btn btn-primary self-end"
                         onClick={addCustomHeader}
                     >
                         Add
@@ -189,7 +178,7 @@ export default function APIConfigForm({ onConfigChange }) {
                     <div className="space-y-1">
                         {Object.entries(config.custom_headers).map(([key, value]) => (
                             <div key={key} className="flex justify-between items-center bg-white p-2 rounded">
-                                <span className="text-sm"><strong>{key}:</strong> {value}</span>
+                                <span className="font-['Onest',sans-serif] text-sm"><strong>{key}:</strong> {value}</span>
                                 <button
                                     type="button"
                                     className="btn btn-xs btn-ghost"
@@ -203,26 +192,28 @@ export default function APIConfigForm({ onConfigChange }) {
                 )}
             </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Query Parameters</label>
-                <div className="flex gap-2 mb-2">
-                    <input
-                        type="text"
-                        className="input input-bordered flex-1"
+            <div className="flex flex-col gap-2">
+                <label className="font-['Onest',sans-serif] font-medium text-sm text-black">
+                    Query Parameters
+                </label>
+                <div className="flex gap-2">
+                    <FormInput
+                        name="queryParamKey"
                         value={queryParamKey}
-                        onChange={(e) => setQueryParamKey(e.target.value)}
+                        onChange={setQueryParamKey}
                         placeholder="Parameter name"
+                        className="flex-1"
                     />
-                    <input
-                        type="text"
-                        className="input input-bordered flex-1"
+                    <FormInput
+                        name="queryParamValue"
                         value={queryParamValue}
-                        onChange={(e) => setQueryParamValue(e.target.value)}
+                        onChange={setQueryParamValue}
                         placeholder="Parameter value"
+                        className="flex-1"
                     />
                     <button
                         type="button"
-                        className="btn btn-sm btn-neutral"
+                        className="btn btn-primary self-end"
                         onClick={addQueryParam}
                     >
                         Add
@@ -232,7 +223,7 @@ export default function APIConfigForm({ onConfigChange }) {
                     <div className="space-y-1">
                         {Object.entries(config.query_params).map(([key, value]) => (
                             <div key={key} className="flex justify-between items-center bg-white p-2 rounded">
-                                <span className="text-sm"><strong>{key}:</strong> {value}</span>
+                                <span className="font-['Onest',sans-serif] text-sm"><strong>{key}:</strong> {value}</span>
                                 <button
                                     type="button"
                                     className="btn btn-xs btn-ghost"

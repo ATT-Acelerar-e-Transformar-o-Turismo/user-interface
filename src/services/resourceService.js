@@ -59,6 +59,11 @@ export const resourceService = {
     return response.data;
   },
 
+  async regenerateWrapper(wrapperId) {
+    const response = await apiClient.post(`/api/resources/wrappers/${wrapperId}/regenerate`);
+    return response.data;
+  },
+
   async listWrappers(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE) {
     const response = await apiClient.get(`/api/resources/wrappers?skip=${skip}&limit=${limit}`);
     return response.data;

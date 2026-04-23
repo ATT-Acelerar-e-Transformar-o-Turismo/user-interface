@@ -1,5 +1,6 @@
 import axios from 'axios';
 import keycloak, { storeTokens, clearStoredTokens } from '../keycloak';
+import { showError } from '../utils/toast';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // Use relative URLs since nginx handles routing
@@ -45,13 +46,49 @@ apiClient.interceptors.response.use(
       requestData: error.config?.data
     });
 
-    const errorMessage = error.response?.data?.detail ||
+    // FastAPI/Pydantic return `detail` as a string, or — for 422 validation
+    // errors — an array of { type, loc, msg, input } objects. Callers drop
+    // userMessage straight into JSX, so coerce to a string here to avoid
+    // React error #31 ("objects are not valid as a React child").
+    const rawDetail = error.response?.data?.detail;
+    let derived;
+    if (typeof rawDetail === 'string') {
+      derived = rawDetail;
+    } else if (Array.isArray(rawDetail)) {
+      derived = rawDetail
+        .map(e => {
+          if (!e || typeof e !== 'object') return String(e);
+          const loc = Array.isArray(e.loc) ? e.loc.join('.') : e.loc;
+          return loc ? `${loc}: ${e.msg || 'invalid'}` : (e.msg || JSON.stringify(e));
+        })
+        .join('; ');
+    } else if (rawDetail && typeof rawDetail === 'object') {
+      derived = rawDetail.msg || JSON.stringify(rawDetail);
+    }
+
+    error.userMessage = derived ||
                         error.response?.data?.message ||
                         error.message ||
                         'An unexpected error occurred';
 
-    error.userMessage = errorMessage;
-    
+    // Surface the error to the user via a global toast so failures don't go
+    // silently unnoticed. Callers that show their own modal/banner still see
+    // the rejected promise and can dedupe — the toast is an extra safety net.
+    //
+    // Skip:
+    //  - 401: auth layer redirects to login; a toast would be confusing.
+    //  - Requests explicitly opted out via `{ suppressErrorToast: true }`.
+    //  - Canceled requests (navigation, aborted fetches).
+    const status = error.response?.status;
+    const suppressed = error.config?.suppressErrorToast;
+    const canceled = axios.isCancel ? axios.isCancel(error) : error.code === 'ERR_CANCELED';
+    if (!suppressed && !canceled && status !== 401) {
+      const method = (error.config?.method || 'request').toUpperCase();
+      const url = error.config?.url || '';
+      const prefix = status ? `${status} ${method} ${url}` : `${method} ${url}`;
+      showError(`${prefix} — ${error.userMessage}`, 7000);
+    }
+
     return Promise.reject(error);
   }
 );

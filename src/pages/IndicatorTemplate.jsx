@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useDomain } from "../contexts/DomainContext";
+import { useArea } from "../contexts/AreaContext";
 import { useAuth } from "../contexts/AuthContext";
 import resourceService from "../services/resourceService";
 import PageTemplate from "./PageTemplate";
@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 export default function IndicatorTemplate() {
   const navigate = useNavigate();
   const { indicatorId } = useParams();
-  const { domains } = useDomain();
+  const { areas } = useArea();
   const { user, isAuthenticated } = useAuth();
   const indicatorChartRef = useRef(null);
 
@@ -72,12 +72,29 @@ export default function IndicatorTemplate() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const chartTypeOptions = [
+  const allChartTypeOptions = [
     { value: 'line', label: t('indicator.chart_line'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'area', label: t('chart_types.area'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 17.5L7 13L11 15L17 8L21 12V21H3V17.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="currentColor" fillOpacity="0.2"/></svg> },
     { value: 'column', label: t('indicator.chart_column'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 10V19M16 7V19M8 14V19M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'bar', label: t('indicator.chart_bar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'scatter', label: t('indicator.chart_scatter'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H7.8C6.12 21 5.28 21 4.638 20.673C4.074 20.385 3.615 19.927 3.327 19.362C3 18.72 3 17.88 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'pie', label: t('chart_types.pie'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 3v9l7 5" stroke="currentColor" strokeWidth="2"/></svg> },
+    { value: 'donut', label: t('chart_types.donut'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/></svg> },
+    { value: 'treemap', label: t('chart_types.treemap'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="10" height="12" stroke="currentColor" strokeWidth="2"/><rect x="13" y="3" width="8" height="7" stroke="currentColor" strokeWidth="2"/><rect x="13" y="10" width="8" height="11" stroke="currentColor" strokeWidth="2"/><rect x="3" y="15" width="10" height="6" stroke="currentColor" strokeWidth="2"/></svg> },
+    { value: 'heatmap', label: t('chart_types.heatmap'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" stroke="currentColor" strokeWidth="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18" stroke="currentColor" strokeWidth="1.5"/></svg> },
+    { value: 'boxPlot', label: t('chart_types.boxPlot'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v4M12 17v4M6 9h12v6H6zM9 9v6M15 9v6" stroke="currentColor" strokeWidth="2"/></svg> },
+    { value: 'candlestick', label: t('chart_types.candlestick'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 3v4M8 15v6M16 5v2M16 17v4M6 7h4v8H6zM14 7h4v10h-4z" stroke="currentColor" strokeWidth="2"/></svg> },
+    { value: 'rangeBar', label: t('chart_types.rangeBar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="10" height="3" stroke="currentColor" strokeWidth="2"/><rect x="8" y="11" width="12" height="3" stroke="currentColor" strokeWidth="2"/><rect x="6" y="16" width="8" height="3" stroke="currentColor" strokeWidth="2"/></svg> },
+    { value: 'rangeArea', label: t('chart_types.rangeArea'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 15L7 10L11 13L17 7L21 11L21 17L3 17Z" stroke="currentColor" strokeWidth="2" fill="currentColor" fillOpacity="0.2"/></svg> },
   ];
+
+  const chartTypeOptions = (() => {
+    const allowed = indicatorData?.chart_types;
+    if (!Array.isArray(allowed) || allowed.length === 0) {
+      return allChartTypeOptions.filter(o => ['line', 'column', 'bar', 'scatter'].includes(o.value));
+    }
+    return allChartTypeOptions.filter(o => allowed.includes(o.value));
+  })();
 
   const chartSupportsTools = chartType !== 'bar' && chartType !== 'column';
 
@@ -515,6 +532,9 @@ export default function IndicatorTemplate() {
         setIndicatorLoading(true);
         const data = await indicatorService.getById(indicatorId);
         setIndicatorData(data);
+        if (data?.default_chart_type) {
+          setChartType(data.default_chart_type);
+        }
       } catch (err) {
         console.error("Failed to fetch indicator data:", err);
         setError(err.message);
@@ -573,8 +593,8 @@ export default function IndicatorTemplate() {
     );
   }
 
-  if (!domains || domains.length === 0) {
-    return <div>{t('indicator.loading_domains')}</div>;
+  if (!areas || areas.length === 0) {
+    return <div>{t('indicator.loading_areas')}</div>;
   }
 
   if (indicatorLoading) {
@@ -585,39 +605,43 @@ export default function IndicatorTemplate() {
     return <div>{error || t('indicator.not_found')}</div>;
   }
 
-  let resolvedDomainObj = indicatorData.domain ?
-    (typeof indicatorData.domain === 'object' ? indicatorData.domain :
-     domains.find(domain => domain.id === indicatorData.domain)) : null;
+  // Backend returns the top-level group as `domain` (populated Domain object
+  // or bare id). UI continues to call it `area`.
+  const rawArea = indicatorData.domain ?? indicatorData.area;
+  let resolvedAreaObj = rawArea
+    ? (typeof rawArea === 'object' ? rawArea : areas.find(area => area.id === rawArea))
+    : null;
 
-  if (resolvedDomainObj && resolvedDomainObj.subdomains) {
-    resolvedDomainObj = {
-      ...resolvedDomainObj,
-      subdomains: resolvedDomainObj.subdomains.map(subdomain => 
-        typeof subdomain === 'string' ? { name: subdomain } : subdomain
-      )
+  if (resolvedAreaObj) {
+    // Backend's field is `subdomains`; UI uses `dimensions`. Normalize both
+    // shapes into a uniform list of objects so downstream reads work.
+    const rawList = resolvedAreaObj.dimensions || resolvedAreaObj.subdomains || resolvedAreaObj.subdominios || [];
+    resolvedAreaObj = {
+      ...resolvedAreaObj,
+      dimensions: rawList.map(d => (typeof d === 'string' ? { name: d } : d)),
     };
   }
 
-  if (!resolvedDomainObj) {
-    return <div>{t('indicator.domain_not_found')}</div>;
+  if (!resolvedAreaObj) {
+    return <div>{t('indicator.area_not_found')}</div>;
   }
 
-  const resolvedSubdomainName = indicatorData.subdomain || 'Unknown Subdomain';
+  const resolvedDimensionName = indicatorData.subdomain || indicatorData.dimension || 'Unknown Dimension';
 
-  const subdomainObj = resolvedDomainObj.subdomains?.find((sub) => sub.name === resolvedSubdomainName);
+  const dimensionObj = resolvedAreaObj.dimensions?.find((sub) => sub.name === resolvedDimensionName);
 
-  const handleIndicatorChange = (newDomain, newSubdomain, newIndicator) => {
+  const handleIndicatorChange = (newArea, newDimension, newIndicator) => {
     navigate(`/indicator/${newIndicator.id}`, {
       state: {
-        domainName: newDomain.name,
-        subdomainName: typeof newSubdomain === 'string' ? newSubdomain : newSubdomain.name,
+        areaName: newArea.name,
+        dimensionName: typeof newDimension === 'string' ? newDimension : newDimension.name,
         indicatorId: newIndicator.id,
       },
     });
   };
 
-  const images = resolvedDomainObj.DomainCarouselImages?.length > 0
-    ? resolvedDomainObj.DomainCarouselImages
+  const images = resolvedAreaObj.AreaCarouselImages?.length > 0
+    ? resolvedAreaObj.AreaCarouselImages
     : [];
 
   const realCharts = [
@@ -635,10 +659,10 @@ export default function IndicatorTemplate() {
     }
   ];
 
-  const domainColor = resolvedDomainObj?.DomainColor || resolvedDomainObj?.color || '#C3F25E';
-  const domainIcon = resolvedDomainObj?.DomainIcon;
-  const domainPath = resolvedDomainObj?.name
-    ? `/indicators/${resolvedDomainObj.name.toLowerCase().replace(/\s+/g, '-')}`
+  const areaColor = resolvedAreaObj?.AreaColor || resolvedAreaObj?.color || '#C3F25E';
+  const areaIcon = resolvedAreaObj?.AreaIcon;
+  const areaPath = resolvedAreaObj?.name
+    ? `/indicators/${resolvedAreaObj.name.toLowerCase().replace(/\s+/g, '-')}`
     : '/indicators';
 
 
@@ -673,7 +697,7 @@ export default function IndicatorTemplate() {
               </filter>
             </defs>
             <g filter="url(#indicator-mobile-wave)">
-              <path d="M9.59497 26.3733C82.3981 54.3991 127.74 43.7612 190.611 31.5028C280.743 13.9292 338.564 29.4627 426.1 47.1511" stroke={domainColor} strokeWidth="44.329"/>
+              <path d="M9.59497 26.3733C82.3981 54.3991 127.74 43.7612 190.611 31.5028C280.743 13.9292 338.564 29.4627 426.1 47.1511" stroke={areaColor} strokeWidth="44.329"/>
             </g>
           </svg>
           <svg
@@ -697,15 +721,15 @@ export default function IndicatorTemplate() {
             <g filter="url(#indicator-wave-shadow)">
               <path
                 d="M-56.7861 98.2787C105.288 132.099 121.652 141.321 293.331 107.848C468.398 73.7143 641.792 88.1376 762.805 119.016C1016 183.621 1352.56 229.014 1565.73 53.2341"
-                stroke={domainColor}
+                stroke={areaColor}
                 strokeWidth="99.1626"
                 strokeLinecap="round"
               />
             </g>
           </svg>
-          {domainIcon && (
+          {areaIcon && (
             <div className="absolute left-4 sm:left-12 bottom-4 sm:bottom-10 bg-white rounded-full p-3 sm:p-5 flex items-center justify-center z-10 w-17 h-17 sm:w-28 sm:h-28 shadow-sm">
-              <img src={domainIcon} alt="" className="w-10 h-10 sm:w-19 sm:h-19 object-contain" />
+              <img src={areaIcon} alt="" className="w-10 h-10 sm:w-19 sm:h-19 object-contain" />
             </div>
           )}
         </div>
@@ -726,14 +750,14 @@ export default function IndicatorTemplate() {
           </div>
 
           {/* Indicator navigation dropdowns */}
-          {resolvedDomainObj && (
+          {resolvedAreaObj && (
             <div className="mb-6">
               <IndicatorDropdowns
-                currentDomain={resolvedDomainObj}
-                currentSubdomain={subdomainObj || { name: resolvedSubdomainName }}
+                currentArea={resolvedAreaObj}
+                currentDimension={dimensionObj || { name: resolvedDimensionName }}
                 currentIndicator={indicatorData}
                 onIndicatorChange={handleIndicatorChange}
-                allowSubdomainClear={false}
+                allowDimensionClear={false}
               />
             </div>
           )}
@@ -1042,8 +1066,8 @@ export default function IndicatorTemplate() {
                     <p><span className="font-semibold">{t('indicator.units_label')}</span> {indicatorData.unit || "N/A"}</p>
                     <p><span className="font-semibold">{t('indicator.periodicity_label')}</span> {indicatorData.periodicity || "N/A"}</p>
                     <p><span className="font-semibold">{t('indicator.governance_label')}</span> {indicatorData?.governance ? t('common.yes') : t('common.no')}</p>
-                    <p><span className="font-semibold">{t('indicator.dimension_label')}</span> {getName(resolvedDomainObj)}</p>
-                    <p><span className="font-semibold">{t('indicator.domain_label')}</span> {resolvedSubdomainName || ""}</p>
+                    <p><span className="font-semibold">{t('indicator.dimension_label')}</span> {getName(resolvedAreaObj)}</p>
+                    <p><span className="font-semibold">{t('indicator.area_label')}</span> {resolvedDimensionName || ""}</p>
                   </div>
                 </div>
               )}

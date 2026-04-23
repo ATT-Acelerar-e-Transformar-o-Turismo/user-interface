@@ -104,8 +104,8 @@ const SearchBox = forwardRef(function SearchBox(props, ref) {
         value: {
           id: item.id,
           name: item.name,
-          subdomain: item.subdomain,
-          domain: item.domain
+          dimension: item.dimension,
+          area: item.area
         },
         timestamp: Date.now()
       };
@@ -141,7 +141,7 @@ const SearchBox = forwardRef(function SearchBox(props, ref) {
     setShowDropdown(false);
     setIsExpanded(false);
     
-    // Navigate to search results page using DomainTemplate
+    // Navigate to search results page using AreaTemplate
     navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
   };
 
@@ -247,15 +247,15 @@ const SearchBox = forwardRef(function SearchBox(props, ref) {
                 >
                   <i 
                     className="fas fa-chart-line text-sm" 
-                    style={{ color: indicator.domain?.color || '#6366f1' }}
+                    style={{ color: indicator.area?.color || '#6366f1' }}
                   ></i>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">
                       {highlightSearchTerms(indicator.name, query)}
                     </div>
-                    {indicator.subdomain && (
+                    {indicator.dimension && (
                       <div className="text-xs text-base-content/60 truncate">
-                        {highlightSearchTerms(indicator.subdomain, query)}
+                        {highlightSearchTerms(indicator.dimension, query)}
                       </div>
                     )}
                   </div>
@@ -304,15 +304,15 @@ const SearchBox = forwardRef(function SearchBox(props, ref) {
                     <>
                       <i 
                         className="fas fa-chart-line text-sm" 
-                        style={{ color: item.value.domain?.color || '#6366f1' }}
+                        style={{ color: item.value.area?.color || '#6366f1' }}
                       ></i>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm truncate">
                           {item.value.name}
                         </div>
-                        {item.value.subdomain && (
+                        {item.value.dimension && (
                           <div className="text-xs text-base-content/60 truncate">
-                            {item.value.subdomain}
+                            {item.value.dimension}
                           </div>
                         )}
                       </div>

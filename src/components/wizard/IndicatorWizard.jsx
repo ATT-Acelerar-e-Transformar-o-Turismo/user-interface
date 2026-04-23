@@ -13,7 +13,13 @@ import FormCheckbox from '../forms/FormCheckbox';
 import useWizard from '../../hooks/useWizard';
 import { validateRequired, validateForm, hasErrors } from '../../utils/formValidation';
 import indicatorService from '../../services/indicatorService';
-import domainService from '../../services/domainService';
+import areaService from '../../services/areaService';
+import {
+  CHART_TYPES,
+  CHART_TYPE_LABEL_KEYS,
+  DEFAULT_CHART_TYPES,
+  DEFAULT_CHART_TYPE,
+} from '../../constants/chartTypes';
 
 export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, onSuccess = null }) {
   const navigate = useNavigate();
@@ -23,55 +29,61 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   const [errorMessage, setErrorMessage] = useState('');
   const [showResourceWizard, setShowResourceWizard] = useState(false);
   const [createdIndicatorId, setCreatedIndicatorId] = useState(null);
-  const [domains, setDomains] = useState([]);
-  const [subdomains, setSubdomains] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [dimensions, setDimensions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const steps = [t('wizard.indicator.step_info'), t('wizard.indicator.step_units')];
+  const steps = [
+    t('wizard.indicator.step_info'),
+    t('wizard.indicator.step_units'),
+    t('wizard.indicator.step_charts'),
+  ];
 
   const initialData = {
     name: '',
     name_en: '',
     description: '',
     description_en: '',
-    domain: '',
-    subdomain: '',
+    area: '',
+    dimension: '',
     unit: '',
     scale: '',
     font: '',
     periodicity: '',
     governance: false,
     carrying_capacity_enabled: false,
-    carrying_capacity: ''
+    carrying_capacity: '',
+    chart_types: [...DEFAULT_CHART_TYPES],
+    default_chart_type: DEFAULT_CHART_TYPE,
   };
 
   const wizard = useWizard(steps.length, initialData, handleSubmit);
 
-  // Load domains and indicator data on mount
+  // Load areas and indicator data on mount
   useEffect(() => {
     if (isOpen) {
       loadData();
     }
   }, [isOpen, indicatorId]);
 
-  // Update subdomains when domain changes
+  // Update dimensions when area changes
   useEffect(() => {
-    if (wizard.formData.domain) {
-      const selectedDomain = domains.find(d => d.id === wizard.formData.domain);
-      if (selectedDomain) {
-        setSubdomains(selectedDomain.subdomains || selectedDomain.subdominios || []);
+    if (wizard.formData.area) {
+      const selectedArea = areas.find(d => d.id === wizard.formData.area);
+      if (selectedArea) {
+        setDimensions(selectedArea.dimensions || selectedArea.subdominios || []);
       }
     } else {
-      setSubdomains([]);
+      setDimensions([]);
     }
-  }, [wizard.formData.domain, domains]);
+  }, [wizard.formData.area, areas]);
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      const domainsData = await domainService.getAll();
-      setDomains(domainsData || []);
+      const areasData = await areaService.getAll();
+      setAreas(areasData || []);
 
       if (indicatorId) {
         const indicator = await indicatorService.getById(indicatorId);
@@ -81,15 +93,22 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
             name_en: indicator.name_en || '',
             description: indicator.description || '',
             description_en: indicator.description_en || '',
-            domain: indicator.domain?.id || indicator.domain || '',
-            subdomain: indicator.subdomain || '',
+            // Backend returns the top-level group as `domain` (a populated
+            // Domain object on GET, or plain id) and the middle group as
+            // `subdomain`. UI state keeps the friendlier names area/dimension.
+            area: indicator.domain?.id || indicator.domain || indicator.area?.id || indicator.area || '',
+            dimension: indicator.subdomain || indicator.dimension || '',
             unit: indicator.unit || '',
             scale: indicator.scale || '',
             font: indicator.font || '',
             periodicity: indicator.periodicity || '',
             governance: indicator.governance || false,
             carrying_capacity_enabled: !!indicator.carrying_capacity,
-            carrying_capacity: indicator.carrying_capacity || ''
+            carrying_capacity: indicator.carrying_capacity || '',
+            chart_types: Array.isArray(indicator.chart_types) && indicator.chart_types.length > 0
+              ? indicator.chart_types
+              : [...DEFAULT_CHART_TYPES],
+            default_chart_type: indicator.default_chart_type || DEFAULT_CHART_TYPE,
           });
         }
       }
@@ -107,14 +126,36 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
       const nameError = validateRequired(wizard.formData.name, t('validation.required', { field: t('wizard.indicator.name_pt') }));
       if (nameError) errors.name = nameError;
 
-      const domainError = validateRequired(wizard.formData.domain, t('validation.required', { field: t('wizard.indicator.domain') }));
-      if (domainError) errors.domain = domainError;
+      const areaError = validateRequired(wizard.formData.area, t('validation.required', { field: t('wizard.indicator.area') }));
+      if (areaError) errors.area = areaError;
 
-      const subdomainError = validateRequired(wizard.formData.subdomain, t('validation.required', { field: t('wizard.indicator.subdomain') }));
-      if (subdomainError) errors.subdomain = subdomainError;
+      const dimensionError = validateRequired(wizard.formData.dimension, t('validation.required', { field: t('wizard.indicator.dimension') }));
+      if (dimensionError) errors.dimension = dimensionError;
+    }
+
+    if (stepIndex === 2) {
+      if (!wizard.formData.chart_types || wizard.formData.chart_types.length === 0) {
+        errors.chart_types = t('wizard.indicator.chart_types_required');
+      } else if (!wizard.formData.chart_types.includes(wizard.formData.default_chart_type)) {
+        errors.default_chart_type = t('wizard.indicator.default_chart_type_invalid');
+      }
     }
 
     return errors;
+  };
+
+  const toggleChartType = (type) => {
+    const current = wizard.formData.chart_types || [];
+    const has = current.includes(type);
+    const next = has ? current.filter(t => t !== type) : [...current, type];
+    wizard.updateFormData('chart_types', next);
+    // Keep default_chart_type consistent: if it got removed, fall back to
+    // the first remaining selection.
+    if (has && wizard.formData.default_chart_type === type) {
+      wizard.updateFormData('default_chart_type', next[0] || '');
+    } else if (!wizard.formData.default_chart_type && next.length > 0) {
+      wizard.updateFormData('default_chart_type', next[0]);
+    }
   };
 
   const handleNext = () => {
@@ -142,19 +183,24 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         carrying_capacity: data.carrying_capacity_enabled && data.carrying_capacity
           ? data.carrying_capacity
           : null,
-        favourites: 0
+        favourites: 0,
+        chart_types: data.chart_types,
+        default_chart_type: data.default_chart_type,
       };
 
       let result;
       let savedIndicatorId;
 
       if (indicatorId) {
-        indicatorData.domain = data.domain;
-        indicatorData.subdomain = data.subdomain;
+        // Backend schema field names are domain / subdomain; map from our
+        // UI-facing area / dimension before sending.
+        indicatorData.domain = data.area;
+        indicatorData.subdomain = data.dimension;
         result = await indicatorService.update(indicatorId, indicatorData);
         savedIndicatorId = indicatorId;
       } else {
-        result = await indicatorService.create(data.domain, data.subdomain, indicatorData);
+        // create() passes these as positional URL segments (domain_id / subdomain_name).
+        result = await indicatorService.create(data.area, data.dimension, indicatorData);
         savedIndicatorId = result?.id || result?.indicator_id;
       }
 
@@ -201,14 +247,14 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     }
   };
 
-  // Domain options for select
-  const domainOptions = domains.map(d => ({
+  // Area options for select
+  const areaOptions = areas.map(d => ({
     value: d.id,
     label: d.name
   }));
 
-  // Subdomain options for select
-  const subdomainOptions = subdomains.map(s => ({
+  // Dimension options for select
+  const dimensionOptions = dimensions.map(s => ({
     value: typeof s === 'string' ? s : s.name,
     label: typeof s === 'string' ? s : s.name
   }));
@@ -260,30 +306,30 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
             />
 
             <FormSelect
-              label={t('wizard.indicator.domain')}
-              name="domain"
-              value={wizard.formData.domain}
+              label={t('wizard.indicator.area')}
+              name="area"
+              value={wizard.formData.area}
               onChange={(value) => {
-                wizard.updateFormData('domain', value);
-                wizard.updateFormData('subdomain', ''); // Clear subdomain when domain changes
+                wizard.updateFormData('area', value);
+                wizard.updateFormData('dimension', ''); // Clear dimension when area changes
               }}
-              options={domainOptions}
-              placeholder={t('wizard.indicator.domain_placeholder')}
+              options={areaOptions}
+              placeholder={t('wizard.indicator.area_placeholder')}
               required
-              error={wizard.errors.domain}
+              error={wizard.errors.area}
               disabled={loading}
             />
 
             <FormSelect
-              label={t('wizard.indicator.subdomain')}
-              name="subdomain"
-              value={wizard.formData.subdomain}
-              onChange={(value) => wizard.updateFormData('subdomain', value)}
-              options={subdomainOptions}
-              placeholder={t('wizard.indicator.subdomain_placeholder')}
+              label={t('wizard.indicator.dimension')}
+              name="dimension"
+              value={wizard.formData.dimension}
+              onChange={(value) => wizard.updateFormData('dimension', value)}
+              options={dimensionOptions}
+              placeholder={t('wizard.indicator.dimension_placeholder')}
               required
-              error={wizard.errors.subdomain}
-              disabled={!wizard.formData.domain || loading}
+              error={wizard.errors.dimension}
+              disabled={!wizard.formData.area || loading}
             />
 
             <FormTextarea
@@ -368,6 +414,55 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
                 type="number"
               />
             )}
+          </WizardStep>
+        )}
+
+        {wizard.currentStep === 2 && (
+          <WizardStep
+            title={t('wizard.indicator.step_charts')}
+            description={t('wizard.indicator.step_charts_desc')}
+          >
+            <div className="space-y-2">
+              <p className="text-sm font-medium">{t('wizard.indicator.chart_types_label')}</p>
+              <p className="text-xs text-gray-500">{t('wizard.indicator.chart_types_hint')}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {CHART_TYPES.map(type => {
+                  const checked = (wizard.formData.chart_types || []).includes(type);
+                  return (
+                    <label key={type} className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded px-2 py-1.5">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm"
+                        checked={checked}
+                        onChange={() => toggleChartType(type)}
+                      />
+                      <span className="text-sm">{t(CHART_TYPE_LABEL_KEYS[type])}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {wizard.errors.chart_types && (
+                <p className="text-xs text-red-600">{wizard.errors.chart_types}</p>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <FormSelect
+                label={t('wizard.indicator.default_chart_type_label')}
+                name="default_chart_type"
+                value={wizard.formData.default_chart_type || ''}
+                onChange={(value) => wizard.updateFormData('default_chart_type', value)}
+                options={(wizard.formData.chart_types || []).map(type => ({
+                  value: type,
+                  label: t(CHART_TYPE_LABEL_KEYS[type]),
+                }))}
+                placeholder={t('wizard.indicator.default_chart_type_placeholder')}
+                required
+                error={wizard.errors.default_chart_type}
+                disabled={(wizard.formData.chart_types || []).length === 0}
+              />
+              <p className="text-xs text-gray-500 mt-1">{t('wizard.indicator.default_chart_type_hint')}</p>
+            </div>
           </WizardStep>
         )}
       </Wizard>

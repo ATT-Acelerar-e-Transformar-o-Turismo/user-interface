@@ -18,10 +18,10 @@ export default Node.create({
       name: {
         default: 'Indicador',
       },
-      domain: {
+      area: {
         default: null,
       },
-      subdomain: {
+      dimension: {
         default: null,
       },
     }
@@ -36,8 +36,8 @@ export default Node.create({
             id: element.getAttribute('data-indicator-id') || element.getAttribute('id'),
             type: element.getAttribute('type') || 'line',
             name: element.getAttribute('name') || 'Indicador',
-            domain: element.getAttribute('domain') || null,
-            subdomain: element.getAttribute('subdomain') || null,
+            area: element.getAttribute('area') || null,
+            dimension: element.getAttribute('dimension') || null,
           }
         },
       },
@@ -48,7 +48,7 @@ export default Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { id, type, name, domain, subdomain } = HTMLAttributes
+    const { id, type, name, area, dimension } = HTMLAttributes
 
 
     return [
@@ -61,8 +61,8 @@ export default Node.create({
         'id': id,
         'type': type,
         'name': name,
-        'domain': domain,
-        'subdomain': subdomain
+        'area': area,
+        'dimension': dimension
       }),
       [
         'div',
@@ -77,7 +77,7 @@ export default Node.create({
       [
         'div',
         { style: 'font-size: 12px; margin-bottom: 4px; opacity: 0.8;' },
-        domain && subdomain ? `${domain} > ${subdomain}` : (domain || 'Domínio não definido')
+        area && dimension ? `${area} > ${dimension}` : (area || 'Área não definido')
       ],
       [
         'div',

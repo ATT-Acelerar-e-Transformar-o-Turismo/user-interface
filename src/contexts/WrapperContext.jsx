@@ -67,7 +67,7 @@ export const WrapperProvider = ({ children }) => {
           onStatusChange(wrapper);
         }
 
-        if (wrapper.status === 'completed' || wrapper.status === 'executing' || wrapper.status === 'error') {
+        if (wrapper.status === 'completed' || wrapper.status === 'error') {
           stopPolling(wrapperId);
         }
       } catch (error) {
@@ -109,6 +109,17 @@ export const WrapperProvider = ({ children }) => {
     }
   }, [getWrapperStatus]);
 
+  const regenerateWrapper = useCallback(async (wrapperId) => {
+    try {
+      const wrapper = await resourceService.regenerateWrapper(wrapperId);
+      setWrappers(prev => ({ ...prev, [wrapperId]: wrapper }));
+      return wrapper;
+    } catch (error) {
+      console.error('Wrapper regeneration failed:', error);
+      throw error;
+    }
+  }, []);
+
   const listWrappers = useCallback(async (skip = 0, limit = 10) => {
     try {
       const wrappersList = await resourceService.listWrappers(skip, limit);
@@ -132,6 +143,7 @@ export const WrapperProvider = ({ children }) => {
     startPolling,
     stopPolling,
     executeWrapper,
+    regenerateWrapper,
     listWrappers,
     isPolling: (wrapperId) => !!intervalsRef.current[wrapperId],
   };

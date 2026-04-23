@@ -24,8 +24,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async getCountByDomain(domainId, governanceFilter = null, includeHidden = false) {
-    let url = API_ENDPOINTS.INDICATORS.COUNT_BY_DOMAIN(domainId);
+  async getCountByArea(areaId, governanceFilter = null, includeHidden = false) {
+    let url = API_ENDPOINTS.INDICATORS.COUNT_BY_AREA(areaId);
     const params = [];
     if (governanceFilter !== null) {
       params.push(`governance_filter=${governanceFilter}`);
@@ -38,8 +38,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async getCountBySubdomain(domainId, subdomainName, governanceFilter = null, includeHidden = false) {
-    let url = API_ENDPOINTS.INDICATORS.COUNT_BY_SUBDOMAIN(domainId, subdomainName);
+  async getCountByDimension(areaId, dimensionName, governanceFilter = null, includeHidden = false) {
+    let url = API_ENDPOINTS.INDICATORS.COUNT_BY_SUBDOMAIN(areaId, dimensionName);
     const params = [];
     if (governanceFilter !== null) {
       params.push(`governance_filter=${governanceFilter}`);
@@ -52,7 +52,7 @@ export const indicatorService = {
     return response.data;
   },
 
-  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, domainFilter = null, subdomainFilter = null, includeHidden = false) {
+  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, areaFilter = null, dimensionFilter = null, includeHidden = false) {
     if (!query || query.trim().length < APP_CONFIG.MIN_SEARCH_QUERY_LENGTH) {
       return [];
     }
@@ -60,11 +60,13 @@ export const indicatorService = {
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
-    if (domainFilter !== null) {
-      url += `&domain_filter=${encodeURIComponent(domainFilter)}`;
+    // Backend expects domain_filter / subdomain_filter even though the UI
+    // exposes these as areaFilter / dimensionFilter.
+    if (areaFilter !== null) {
+      url += `&domain_filter=${encodeURIComponent(areaFilter)}`;
     }
-    if (subdomainFilter !== null) {
-      url += `&subdomain_filter=${encodeURIComponent(subdomainFilter)}`;
+    if (dimensionFilter !== null) {
+      url += `&subdomain_filter=${encodeURIComponent(dimensionFilter)}`;
     }
     if (includeHidden) {
       url += `&include_hidden=true`;
@@ -73,8 +75,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async getByDomain(domainId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
-    let url = `${API_ENDPOINTS.INDICATORS.BY_DOMAIN(domainId)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+  async getByArea(areaId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
+    let url = `${API_ENDPOINTS.INDICATORS.BY_AREA(areaId)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
@@ -85,8 +87,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async getBySubdomain(domainId, subdomainName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
-    let url = `${API_ENDPOINTS.INDICATORS.BY_SUBDOMAIN(domainId, subdomainName)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+  async getByDimension(areaId, dimensionName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
+    let url = `${API_ENDPOINTS.INDICATORS.BY_SUBDOMAIN(areaId, dimensionName)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
@@ -102,8 +104,8 @@ export const indicatorService = {
     return response.data;
   },
 
-  async create(domainId, subdomainName, indicatorData) {
-    const response = await apiClient.post(API_ENDPOINTS.INDICATORS.CREATE(domainId, subdomainName), indicatorData);
+  async create(areaId, dimensionName, indicatorData) {
+    const response = await apiClient.post(API_ENDPOINTS.INDICATORS.CREATE(areaId, dimensionName), indicatorData);
     return response.data;
   },
 

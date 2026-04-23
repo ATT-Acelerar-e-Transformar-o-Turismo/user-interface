@@ -4,6 +4,51 @@ import ApexCharts from 'apexcharts'
 
 const DEFAULT_ANNOTATIONS = { xaxis: [], yaxis: [] }
 
+// Global guard: ApexCharts has several internal promise chains (animations,
+// zoom, updates) whose rejections we cannot intercept from the caller. A
+// rejected internal promise becomes an "Uncaught (in promise)" and pollutes
+// the console, and in some browsers counts as an app-level error. Swallow
+// anything that originates from within Apex so a single bad chart can't make
+// the whole page look broken; still log loudly enough to diagnose.
+if (typeof window !== 'undefined' && !window.__apexUnhandledGuardInstalled) {
+    window.__apexUnhandledGuardInstalled = true;
+    window.addEventListener('unhandledrejection', (event) => {
+        const err = event.reason;
+        const stack = err && err.stack ? String(err.stack) : '';
+        const msg = err && err.message ? String(err.message) : String(err);
+        // Heuristic match: errors originating inside the apexcharts bundle
+        // either reference 'apexcharts' or have the minified 'r.value' frames
+        // we've seen at the top of the stack.
+        const looksLikeApex = /apexcharts|apexcharts\.js|r\.value \(/.test(stack) || /apexcharts/i.test(msg);
+        if (looksLikeApex) {
+            console.warn('[Chart] Suppressed ApexCharts internal rejection:', err);
+            event.preventDefault();
+            return;
+        }
+        // Everything else: surface to the user as a toast so runtime errors
+        // aren't silent. Axios errors already fire their own toast from the
+        // response interceptor, so skip those.
+        const isAxios = err && (err.isAxiosError || err.config || err.response);
+        if (isAxios) return;
+        try {
+            // Lazy-require to avoid a circular import chain at module init.
+            import('../utils/toast').then(({ showError }) => {
+                showError(`Erro: ${msg}`, 7000);
+            });
+        } catch (_) { /* swallow */ }
+    });
+
+    window.addEventListener('error', (event) => {
+        const msg = event?.error?.message || event?.message || '';
+        if (!msg) return;
+        try {
+            import('../utils/toast').then(({ showError }) => {
+                showError(`Erro: ${msg}`, 7000);
+            });
+        } catch (_) { /* swallow */ }
+    });
+}
+
 const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
     const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
@@ -29,6 +74,28 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     }, [themeMode])
 
     const needsDateConversion = (chartType === 'bar' || chartType === 'column') && xaxisType === 'datetime';
+    // ApexCharts uses these internal type names; a few of our selectable
+    // values map onto them.
+    const apexChartType = (
+        chartType === 'column' ? 'bar'
+        : chartType === 'donut' ? 'donut'
+        : chartType === 'pie' ? 'pie'
+        : chartType === 'treemap' ? 'treemap'
+        : chartType === 'heatmap' ? 'heatmap'
+        : chartType === 'boxPlot' ? 'boxPlot'
+        : chartType === 'candlestick' ? 'candlestick'
+        : chartType === 'rangeBar' ? 'rangeBar'
+        : chartType === 'rangeArea' ? 'rangeArea'
+        : chartType
+    );
+    const isCategoricalAggregate = chartType === 'pie' || chartType === 'donut' || chartType === 'treemap';
+    const isHeatmap = chartType === 'heatmap';
+    // Types requiring specially-shaped data that our flat {x, y} series
+    // cannot produce. Detected at render time so they fail soft.
+    const shapeSpecificTypes = ['boxPlot', 'candlestick', 'rangeBar', 'rangeArea'];
+    const firstPoint = series?.[0]?.data?.[0];
+    const hasArrayY = firstPoint && Array.isArray(firstPoint.y);
+    const shapeMismatch = shapeSpecificTypes.includes(chartType) && !hasArrayY;
 
     const formatValue = (value) => {
         if (needsDateConversion) {
@@ -44,6 +111,23 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     }
 
     useEffect(() => {
+        if (shapeMismatch) {
+            // Clear any previous chart render and show a placeholder instead
+            // of a broken Apex error. Not every wrapper produces OHLC / range /
+            // box-plot shaped data, so this keeps the UI useful.
+            if (chartRef.current) {
+                chartRef.current.destroy();
+                chartRef.current = null;
+            }
+            if (chartContainerRef.current) {
+                chartContainerRef.current.innerHTML = `
+                    <div class="flex items-center justify-center w-full h-full text-xs text-base-content/60 text-center px-4">
+                        This chart type requires multi-valued data and can't be drawn from the current series.
+                    </div>
+                `;
+            }
+            return;
+        }
 
         const shape = series.map(s => s.shape)
         const _series = series.filter(s => !s.hidden)
@@ -85,10 +169,44 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             xaxisMax = xaxisRange.max;
         }
 
+        // Build the series / labels payload for this chart type.
+        let apexSeries;
+        let apexLabels;
+        if (isCategoricalAggregate) {
+            // Aggregate per series: sum of y-values per series, labeled by series name.
+            apexLabels = _series.map((s, i) => s.name || `Series ${i + 1}`);
+            apexSeries = _series.map(s =>
+                (s.data || []).reduce((acc, d) => acc + (parseFloat(d.y) || 0), 0)
+            );
+        } else if (isHeatmap) {
+            apexSeries = _series.map(s => ({
+                name: s.name,
+                data: (s.data || []).map(d => ({ x: d.x, y: parseFloat(d.y) || 0 })),
+            }));
+        } else {
+            apexSeries = _series.map(s => {
+                const sortedData = xaxisType === 'datetime'
+                    ? [...s.data].sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime())
+                    : xaxisType === 'numeric'
+                        ? [...s.data].sort((a, b) => a.x - b.x)
+                        : [...s.data];
+                if (needsDateConversion) {
+                    return {
+                        ...s,
+                        data: sortedData.map(d => ({
+                            x: new Date(d.x).toLocaleDateString('pt-PT'),
+                            y: d.y
+                        }))
+                    };
+                }
+                return { ...s, data: sortedData };
+            });
+        }
+
         const chartOptions = {
             colors: brandColors,
             chart: {
-                type: chartType === 'column' ? 'bar' : chartType,
+                type: apexChartType,
                 id: chartId,
                 group: group,
                 background: 'transparent',
@@ -213,23 +331,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     }
                 }
             },
-            series: _series.map(s => {
-                const sortedData = xaxisType === 'datetime'
-                    ? [...s.data].sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime())
-                    : xaxisType === 'numeric'
-                        ? [...s.data].sort((a, b) => a.x - b.x)
-                        : [...s.data];
-                if (needsDateConversion) {
-                    return {
-                        ...s,
-                        data: sortedData.map(d => ({
-                            x: new Date(d.x).toLocaleDateString('pt-PT'),
-                            y: d.y
-                        }))
-                    };
-                }
-                return { ...s, data: sortedData };
-            }),
+            series: apexSeries,
+            ...(apexLabels ? { labels: apexLabels } : {}),
             title: {
                 text: '',
                 style: {
@@ -305,9 +408,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     },
                 }))
             },
-            markers: {
-                shape: shape
-            },
+            markers: (shape || []).some(s => s) ? { shape } : {},
             legend: {
                 show: showLegend,
                 showForSingleSeries: showLegend,
@@ -332,32 +433,71 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     dataPointIndex,
                     w
                 }) => {
+                    // Pie / donut / treemap: one value per "series" (slice).
+                    if (isCategoricalAggregate) {
+                        const label = w?.config?.labels?.[seriesIndex] ?? `Série ${seriesIndex + 1}`;
+                        const value = Array.isArray(series) ? series[seriesIndex] : undefined;
+                        return `<div class="bg-base-100">
+                            <div class="bg-base-200 p-2 font-bold text-base-content">${label}</div>
+                            <div class="p-2"><span>${value ?? ''}</span></div>
+                        </div>`;
+                    }
+                    // Heatmap: x value is the column, y is the cell value.
+                    if (isHeatmap) {
+                        const point = _series?.[seriesIndex]?.data?.[dataPointIndex];
+                        const name = _series?.[seriesIndex]?.name || `Série ${seriesIndex + 1}`;
+                        const xLabel = point ? formatValue(point.x) : '';
+                        const yValue = point ? point.y : '';
+                        return `<div class="bg-base-100">
+                            <div class="bg-base-200 p-2 font-bold text-base-content">${xLabel}</div>
+                            <div class="p-2"><span class="font-semibold">${name}:</span> <span>${yValue}</span></div>
+                        </div>`;
+                    }
+                    // Default {x, y} charts.
+                    const point = _series?.[seriesIndex]?.data?.[dataPointIndex];
+                    if (!point) return '';
                     const header = `<div class="bg-base-200 p-2 font-bold text-base-content">
-                        ${formatValue(_series[seriesIndex].data[dataPointIndex].x)}
-                    </div>`
-
+                        ${formatValue(point.x)}
+                    </div>`;
                     const body = w.config.series.map((s, index) => {
+                        const name = (s && typeof s === 'object') ? s.name : null;
+                        const value = Array.isArray(series[index]) ? series[index][dataPointIndex] : series[index];
                         return `<div class="p-2">
-                            <span class="font-semibold">${s.name || `Série ${index + 1}`}:</span>
-                            <span>${series[index][dataPointIndex]}</span>
-                        </div>`
-                    }).join('')
-
+                            <span class="font-semibold">${name || `Série ${index + 1}`}:</span>
+                            <span>${value}</span>
+                        </div>`;
+                    }).join('');
                     return `<div class="bg-base-100">
                         ${header}
                         ${body}
-                    </div>`
+                    </div>`;
                 } : undefined
             }
         }
 
         if (chartRef.current) {
-            chartRef.current.destroy()
+            try { chartRef.current.destroy() } catch (_) { /* swallow */ }
         }
 
-        const chart = new ApexCharts(chartContainerRef.current, chartOptions)
-        chart.render()
-        chartRef.current = chart
+        try {
+            const chart = new ApexCharts(chartContainerRef.current, chartOptions)
+            // render() returns a promise; catch rejections so a chart-specific
+            // failure (bad data shape for the chosen type) doesn't become an
+            // unhandled promise rejection that tanks the page.
+            chart.render().catch((err) => {
+                console.error('ApexCharts render failed:', err, { chartType, chartId, seriesPreview: Array.isArray(apexSeries) ? apexSeries.slice(0, 2) : apexSeries });
+                if (chartContainerRef.current) {
+                    chartContainerRef.current.innerHTML = `
+                        <div class="flex items-center justify-center w-full h-full text-xs text-base-content/60 text-center px-4">
+                            Could not render this chart type with the current data.
+                        </div>
+                    `;
+                }
+            });
+            chartRef.current = chart
+        } catch (err) {
+            console.error('ApexCharts construction failed:', err, { chartType, chartId });
+        }
 
         return () => {
             if (chartRef.current) {
@@ -372,7 +512,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
 GChart.propTypes = {
     title: PropTypes.string,
     chartId: PropTypes.string.isRequired,
-    chartType: PropTypes.oneOf(['line', 'area', 'bar', 'column', 'scatter']).isRequired,
+    chartType: PropTypes.oneOf([
+        'line', 'area', 'bar', 'column', 'scatter',
+        'pie', 'donut', 'treemap', 'heatmap',
+        'boxPlot', 'candlestick', 'rangeBar', 'rangeArea',
+    ]).isRequired,
     xaxisType: PropTypes.oneOf(['datetime', 'category', 'numeric']).isRequired,
     annotations: PropTypes.shape({
         xaxis: PropTypes.arrayOf(PropTypes.shape({

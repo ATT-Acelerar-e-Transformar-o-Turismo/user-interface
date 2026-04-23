@@ -5,13 +5,14 @@ import useLocalizedName from '../hooks/useLocalizedName';
 
 import Pagination from '../components/Pagination';
 import indicatorService from '../services/indicatorService';
-import domainService from '../services/domainService';
+import areaService from '../services/areaService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import ActionCard from '../components/ActionCard';
+import { confirmAction } from '../utils/confirm';
 import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorWizard from '../components/wizard/IndicatorWizard';
-import DomainWizard from '../components/wizard/DomainWizard';
+import AreaWizard from '../components/wizard/AreaWizard';
 import SuccessModal from '../components/wizard/SuccessModal';
 import { showInfo } from '../utils/toast';
 
@@ -24,13 +25,13 @@ export default function IndicatorsManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [indicators, setIndicators] = useState([]);
-  const [domains, setDomains] = useState([]);
+  const [areas, setAreas] = useState([]);
 
   // Wizard state
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingIndicatorId, setEditingIndicatorId] = useState(null);
-  const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
-  const [editingDomainId, setEditingDomainId] = useState(null);
+  const [isAreaWizardOpen, setIsAreaWizardOpen] = useState(false);
+  const [editingAreaId, setEditingAreaId] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   
   // Pagination state — initialized from URL so back-navigation restores the page
@@ -103,13 +104,13 @@ export default function IndicatorsManagement() {
           setHasNextPage(hasMore);
         }
 
-        const domainsData = await domainService.getAll();
-        setDomains(domainsData || []);
+        const areasData = await areaService.getAll();
+        setAreas(areasData || []);
       } else {
-        const domainsData = await domainService.getAll();
-        setDomains(domainsData || []);
+        const areasData = await areaService.getAll();
+        setAreas(areasData || []);
         setHasNextPage(false);
-        setTotalItems(domainsData?.length || 0);
+        setTotalItems(areasData?.length || 0);
       }
     } catch (err) {
       setError(err.message || 'Failed to load data');
@@ -129,8 +130,8 @@ export default function IndicatorsManagement() {
       setEditingIndicatorId(id);
       setIsWizardOpen(true);
     } else {
-      setEditingDomainId(id);
-      setIsDomainWizardOpen(true);
+      setEditingAreaId(id);
+      setIsAreaWizardOpen(true);
     }
   };
 
@@ -156,9 +157,9 @@ export default function IndicatorsManagement() {
         loadData();
         setSuccessMessage(t('admin.indicators.deleted_success'));
       } else {
-        await domainService.delete(id);
-        setDomains(domains.filter(domain => domain.id !== id));
-        setSuccessMessage(t('admin.domains.deleted_success'));
+        await areaService.delete(id);
+        setAreas(areas.filter(area => area.id !== id));
+        setSuccessMessage(t('admin.areas.deleted_success'));
       }
     } catch (err) {
       setError(err.message || 'Failed to delete item');
@@ -175,32 +176,35 @@ export default function IndicatorsManagement() {
 
   const tableContent = selectedOption === 'indicators'
       ? indicators.map(indicator => {
-        let domainInfo = null;
-        if (indicator.domain) {
-          if (typeof indicator.domain === 'object') {
-            domainInfo = indicator.domain;
+        // Backend field is `domain` (either a populated Domain object or an id).
+        // UI falls back to the legacy `area` field just in case.
+        const rawArea = indicator.domain ?? indicator.area;
+        let areaInfo = null;
+        if (rawArea) {
+          if (typeof rawArea === 'object') {
+            areaInfo = rawArea;
           } else {
-            domainInfo = domains.find(domain => domain.id === indicator.domain);
+            areaInfo = areas.find(area => area.id === rawArea);
           }
         }
 
         return {
           ...indicator,
           name: getName(indicator),
-          domain: getName(domainInfo) || indicator.subdomain || 'Unknown Domain',
-          color: domainInfo?.color || '#CCCCCC'
+          area: getName(areaInfo) || indicator.subdomain || indicator.dimension || 'Unknown Area',
+          color: areaInfo?.color || '#CCCCCC'
         };
       })
-      : domains.map(domain => ({
-          ...domain,
-          name: getName(domain)
+      : areas.map(area => ({
+          ...area,
+          name: getName(area)
         }));
 
   const sortableColumns = ['name', 'periodicity', 'favourites'];
   
   const visibleColumns =
     selectedOption === 'indicators'
-      ? ['name', 'periodicity', 'domain', 'favourites', 'governance']
+      ? ['name', 'periodicity', 'area', 'favourites', 'governance']
       : ['name', 'color'];
 
   const enhancedColumns = selectedOption === 'indicators'
@@ -218,10 +222,10 @@ export default function IndicatorsManagement() {
       }));
 
   const renderCellContent = (column, value, row) => {
-    if (selectedOption === 'domains' && column === 'color') {
+    if (selectedOption === 'areas' && column === 'color') {
       return <span style={{ backgroundColor: row.color || '#CCCCCC' }} className="inline-block w-4 h-4 rounded-full"></span>;
     }
-    if (selectedOption === 'indicators' && column === 'domain') {
+    if (selectedOption === 'indicators' && column === 'area') {
       return (
         <span style={{ borderColor: row.color }} className="inline-block px-2 py-1 rounded-full border-2 w-full text-center">
           {value}
@@ -238,7 +242,7 @@ export default function IndicatorsManagement() {
         </button>
       );
     }
-    if (selectedOption === 'domains' && column === 'name') {
+    if (selectedOption === 'areas' && column === 'name') {
       return row.name;
     }
     if (column === 'governance') {
@@ -323,7 +327,7 @@ export default function IndicatorsManagement() {
               {/* Table Header Row */}
               <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black">{t('admin.indicators.col_name')}</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_dimension')}</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_area')}</p>
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_governance')}</p>
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.indicators.col_options')}</p>
               </div>
@@ -355,13 +359,13 @@ export default function IndicatorsManagement() {
                         </button>
                       </div>
 
-                      {/* Domain Badge */}
+                      {/* Area Badge */}
                       <div className="flex justify-center">
                         <span
                           className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
                           style={{ borderColor: indicator.color || '#CCCCCC' }}
                         >
-                          {indicator.domain}
+                          {indicator.area}
                         </span>
                       </div>
 
@@ -406,10 +410,12 @@ export default function IndicatorsManagement() {
                           </svg>
                         </button>
                         <button
-                          onClick={() => {
-                            if (window.confirm(t('admin.indicators.confirm_delete', { name: indicator.name }))) {
-                              handleDelete(indicator.id);
-                            }
+                          onClick={async () => {
+                            const ok = await confirmAction({
+                              title: t('common.confirm_title'),
+                              message: t('admin.indicators.confirm_delete', { name: indicator.name }),
+                            });
+                            if (ok) handleDelete(indicator.id);
                           }}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
                           title={t('common.delete')}
@@ -495,14 +501,14 @@ export default function IndicatorsManagement() {
         }}
       />
 
-      {/* Domain Wizard Modal */}
-      <DomainWizard
-        isOpen={isDomainWizardOpen}
+      {/* Area Wizard Modal */}
+      <AreaWizard
+        isOpen={isAreaWizardOpen}
         onClose={() => {
-          setIsDomainWizardOpen(false);
-          setEditingDomainId(null);
+          setIsAreaWizardOpen(false);
+          setEditingAreaId(null);
         }}
-        domainId={editingDomainId}
+        areaId={editingAreaId}
         onSuccess={() => {
           loadData();
         }}

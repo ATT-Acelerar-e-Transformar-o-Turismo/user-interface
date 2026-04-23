@@ -4,20 +4,20 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/auth/logout',
     ME: '/api/auth/me',
   },
-  DOMAINS: {
+  AREAS: {
     BASE: '/api/domains/',
     BY_ID: (id) => `/api/domains/${id}`,
   },
   INDICATORS: {
     BASE: '/api/indicators',
     BY_ID: (id) => `/api/indicators/${id}`,
-    BY_DOMAIN: (domainId) => `/api/indicators/domain/${domainId}`,
-    BY_SUBDOMAIN: (domainId, subdomain) => `/api/indicators/domain/${domainId}/subdomain/${encodeURIComponent(subdomain)}`,
+    BY_AREA: (areaId) => `/api/indicators/domain/${areaId}`,
+    BY_SUBDOMAIN: (areaId, subdomain) => `/api/indicators/domain/${areaId}/subdomain/${encodeURIComponent(subdomain)}`,
     COUNT: '/api/indicators/count',
-    COUNT_BY_DOMAIN: (domainId) => `/api/indicators/domain/${domainId}/count`,
-    COUNT_BY_SUBDOMAIN: (domainId, subdomain) => `/api/indicators/domain/${domainId}/subdomain/${encodeURIComponent(subdomain)}/count`,
+    COUNT_BY_AREA: (areaId) => `/api/indicators/domain/${areaId}/count`,
+    COUNT_BY_SUBDOMAIN: (areaId, subdomain) => `/api/indicators/domain/${areaId}/subdomain/${encodeURIComponent(subdomain)}/count`,
     SEARCH: '/api/indicators/search',
-    CREATE: (domainId, subdomain) => `/api/indicators/${domainId}/${encodeURIComponent(subdomain)}/`,
+    CREATE: (areaId, subdomain) => `/api/indicators/${areaId}/${encodeURIComponent(subdomain)}/`,
     RESOURCES: (indicatorId) => `/api/indicators/${indicatorId}/resources`,
     RESOURCES_BY_ID: (indicatorId, resourceId) => `/api/indicators/${indicatorId}/resources/${resourceId}`,
     DATA: (indicatorId) => `/api/indicators/${indicatorId}/data`,
@@ -55,7 +55,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/api/users/${id}`,
   },
   UPLOADS: {
-    DOMAIN_ICONS: '/uploads/domain-icons/upload',
-    DOMAIN_IMAGES: '/uploads/domain-images/upload',
+    AREA_ICONS: '/uploads/domain-icons/upload',
+    AREA_IMAGES: '/uploads/domain-images/upload',
   },
 };

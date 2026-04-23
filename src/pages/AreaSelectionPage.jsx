@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom';
-import DomainCard from '../components/DomainCard';
+import AreaCard from '../components/AreaCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import PageTemplate from './PageTemplate';
-import { useDomain } from '../contexts/DomainContext';
+import { useArea } from '../contexts/AreaContext';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
 
-export default function DomainSelectionPage() {
+export default function AreaSelectionPage() {
   const { t } = useTranslation();
   const getName = useLocalizedName();
-  const { domains, loading, error } = useDomain();
+  const { areas, loading, error } = useArea();
 
   return (
     <PageTemplate showSearchBox={true}>
@@ -35,26 +35,26 @@ export default function DomainSelectionPage() {
             </p>
           </div>
 
-          {/* Domain cards — row with justify-between on desktop */}
+          {/* Area cards — row with justify-between on desktop */}
           {loading && <LoadingSkeleton />}
           {error && <ErrorDisplay error={error} />}
-          {!loading && !error && domains.length === 0 && (
+          {!loading && !error && areas.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">{t('home.no_domains')}</p>
+              <p className="text-gray-500 text-lg">{t('home.no_areas')}</p>
             </div>
           )}
-          {!loading && !error && domains.length > 0 && (
+          {!loading && !error && areas.length > 0 && (
             <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
-              {domains.map((domain, index) => (
-                <DomainCard
-                  key={domain?.id || index}
-                  title={getName(domain) || "Unnamed Domain"}
-                  domainId={domain?.id}
-                  page={`/indicators/${domain?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
-                  color={domain?.DomainColor || domain?.color}
-                  icon={domain?.DomainIcon}
-                  indicators={domain?.subdomains?.map(s => getName(s)) || []}
-                  shadowColor={domain?.DomainColor || domain?.color}
+              {areas.map((area, index) => (
+                <AreaCard
+                  key={area?.id || index}
+                  title={getName(area) || "Unnamed Area"}
+                  areaId={area?.id}
+                  page={`/indicators/${area?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
+                  color={area?.AreaColor || area?.color}
+                  icon={area?.AreaIcon}
+                  indicators={area?.dimensions?.map(s => getName(s)) || []}
+                  shadowColor={area?.AreaColor || area?.color}
                 />
               ))}
             </div>

@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageTemplate from "./PageTemplate";
-import Dropdowns from "../components/DomainDropdown";
+import Dropdowns from "../components/AreaDropdown";
 import IndicatorCard from "../components/IndicatorCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorDisplay from "../components/ErrorDisplay";
-import { useDomain } from "../contexts/DomainContext";
+import { useArea } from "../contexts/AreaContext";
 import indicatorService from "../services/indicatorService";
 import useLocalizedName from "../hooks/useLocalizedName";
 
 export default function FavoritesPage() {
-  const { domains } = useDomain();
+  const { areas } = useArea();
   const getName = useLocalizedName();
   const [favoriteIndicators, setFavoriteIndicators] = useState([]);
-  const [selectedDomain, setSelectedDomain] = useState(null);
-  const [selectedSubdomain, setSelectedSubdomain] = useState(null);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedDimension, setSelectedDimension] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -56,16 +56,16 @@ export default function FavoritesPage() {
         try {
           const indicator = await indicatorService.getById(favoriteId);
           
-          // Resolve domain information (indicator.domain should be a string ID now)
-          const domainObj = typeof indicator.domain === 'object' 
-            ? indicator.domain 
-            : domains.find(domain => domain.id === indicator.domain);
+          // Resolve area information (indicator.area should be a string ID now)
+          const areaObj = typeof indicator.area === 'object' 
+            ? indicator.area 
+            : areas.find(area => area.id === indicator.area);
             
           favoriteIndicatorObjects.push({
             ...indicator,
-            domainName: domainObj?.name,
-            subdomainName: indicator.subdomain,
-            domainColor: domainObj?.DomainColor || domainObj?.color
+            areaName: areaObj?.name,
+            dimensionName: indicator.dimension,
+            areaColor: areaObj?.AreaColor || areaObj?.color
           });
         } catch (err) {
           console.warn(`Failed to load favorite indicator ${favoriteId}:`, err);
@@ -79,14 +79,14 @@ export default function FavoritesPage() {
     } finally {
       setLoading(false);
     }
-  }, [domains]);
+  }, [areas]);
 
-  // Load favorites on component mount and when domains are loaded
+  // Load favorites on component mount and when areas are loaded
   useEffect(() => {
-    if (domains.length > 0) {
+    if (areas.length > 0) {
       loadFavorites();
     }
-  }, [domains.length, loadFavorites]);
+  }, [areas.length, loadFavorites]);
 
   // Setup storage event listener
   useEffect(() => {
@@ -105,20 +105,20 @@ export default function FavoritesPage() {
     };
   }, [loadFavorites]);
 
-  // Filter indicators based on selected domain/subdomain
+  // Filter indicators based on selected area/dimension
   const filteredIndicators = favoriteIndicators.filter(indicator => {
-    // No domain filter applied
-    if (!selectedDomain) {
+    // No area filter applied
+    if (!selectedArea) {
       return true;
     }
     
-    // Filter by domain
-    if (indicator.domainName !== selectedDomain?.name) {
+    // Filter by area
+    if (indicator.areaName !== selectedArea?.name) {
       return false;
     }
     
-    // Filter by subdomain if selected
-    if (selectedSubdomain && indicator.subdomainName !== selectedSubdomain?.name) {
+    // Filter by dimension if selected
+    if (selectedDimension && indicator.dimensionName !== selectedDimension?.name) {
       return false;
     }
     
@@ -128,11 +128,11 @@ export default function FavoritesPage() {
   // Reset pagination when filter changes
   useEffect(() => {
     setCurrentPage(0);
-  }, [selectedDomain, selectedSubdomain]);
+  }, [selectedArea, selectedDimension]);
 
   const clearFilters = () => {
-    setSelectedDomain(null);
-    setSelectedSubdomain(null);
+    setSelectedArea(null);
+    setSelectedDimension(null);
     setCurrentPage(0);
   };
 
@@ -177,15 +177,15 @@ export default function FavoritesPage() {
         <h1 className="text-3xl font-bold mb-6">My Favorite Indicators</h1>
         <div className="flex flex-col items-center gap-4">
           <Dropdowns
-            selectedDomain={selectedDomain}
-            selectedSubdomain={selectedSubdomain}
-            setSelectedDomain={setSelectedDomain}
-            setSelectedSubdomain={setSelectedSubdomain}
+            selectedArea={selectedArea}
+            selectedDimension={selectedDimension}
+            setSelectedArea={setSelectedArea}
+            setSelectedDimension={setSelectedDimension}
             showIndicatorDropdown={false}
-            redirectOnDomainChange={false}
-            allowSubdomainClear={true}
+            redirectOnAreaChange={false}
+            allowDimensionClear={true}
           />
-          {(selectedDomain || selectedSubdomain) && (
+          {(selectedArea || selectedDimension) && (
             <button 
               onClick={clearFilters}
               className="btn btn-outline btn-sm"
@@ -205,11 +205,11 @@ export default function FavoritesPage() {
           {filteredIndicators.length === 0 ? (
             <div className="text-center p-8">
               <h2 className="text-xl">
-                {selectedDomain 
-                  ? `Nenhum indicador favorito encontrado para ${getName(selectedDomain)}`
+                {selectedArea 
+                  ? `Nenhum indicador favorito encontrado para ${getName(selectedArea)}`
                   : "You don't have any favorite indicators yet."}
               </h2>
-              <p className="mt-2">Add indicators to favorites by clicking the heart icon on domain pages.</p>
+              <p className="mt-2">Add indicators to favorites by clicking the heart icon on area pages.</p>
             </div>
           ) : (
             <>
@@ -219,10 +219,11 @@ export default function FavoritesPage() {
                     key={indicator.id}
                     IndicatorTitle={getName(indicator)}
                     IndicatorId={indicator.id}
-                    domain={indicator.domainName}
-                    subdomain={indicator.subdomainName}
+                    area={indicator.areaName}
+                    dimension={indicator.dimensionName}
                     description={indicator.description}
                     description_en={indicator.description_en}
+                    defaultChartType={indicator.default_chart_type}
                   />
                 ))}
               </div>

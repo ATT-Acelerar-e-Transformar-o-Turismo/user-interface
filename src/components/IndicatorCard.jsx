@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { faHeart as faSolidHeart, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect } from "react";
-import { useDomain } from "../contexts/DomainContext";
+import { useArea } from "../contexts/AreaContext";
 import Chart from "./Chart";
 import useIndicatorData from "../hooks/useIndicatorData";
 import useLocalizedName from "../hooks/useLocalizedName";
 import PropTypes from "prop-types";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, subdomain, description, description_en, unit, hidden = false, onToggleHidden, isAdmin = false }) {
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimension, description, description_en, unit, hidden = false, onToggleHidden, isAdmin = false, defaultChartType = 'line' }) {
     const { t } = useTranslation();
     const getName = useLocalizedName();
     const localizedDescription = getName.field({ description, description_en }, 'description', 'description_en');
@@ -19,14 +19,14 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
     const [isAnimating, setIsAnimating] = useState(false);
     const [hearts, setHearts] = useState([]);
     const [indicatorData] = useState(null);
-    const { domains } = useDomain();
+    const { areas } = useArea();
     
     // Use the custom hook to fetch indicator data
     const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle);
 
-    // Find the domain for this indicator
-    const selectedDomain = domains.find(d => d.name === domain);
-    const domainColor = selectedDomain?.color || "#9ca3af";
+    // Find the area for this indicator
+    const selectedArea = areas.find(d => d.name === area);
+    const areaColor = selectedArea?.color || "#9ca3af";
 
     // Check localStorage on component mount
     useEffect(() => {
@@ -38,8 +38,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
         navigate(`/indicator/${IndicatorId}`, {
             state: { 
                 indicatorId: IndicatorId, 
-                domainName: selectedDomain?.name || "Unknown Domain",
-                subdomainName: subdomain, // Just pass the subdomain as is
+                areaName: selectedArea?.name || "Unknown Area",
+                dimensionName: dimension, // Just pass the dimension as is
             },
         });
     };
@@ -123,7 +123,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
                     <div className="flex-1">
                         <div
                             className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: domainColor }}
+                            style={{ backgroundColor: areaColor }}
                         ></div>
                     </div>
                     <div className="relative flex items-center gap-1">
@@ -170,7 +170,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
                     <div className="h-52 mx-2">
                         <Chart
                             chartId={`preview-${IndicatorId}`}
-                            chartType="line"
+                            chartType={defaultChartType || 'line'}
                             xaxisType="datetime"
                             series={chartData.series}
                             height={208}
@@ -202,11 +202,11 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
                   </p>
                 )}
                 <div className="flex flex-wrap gap-2 text-sm text-base-content/70">
-                    {domain && (
-                        <span className="px-2 py-1 bg-base-200 rounded-md">{domain}</span>
+                    {area && (
+                        <span className="px-2 py-1 bg-base-200 rounded-md">{area}</span>
                     )}
-                    {subdomain && (
-                        <span className="px-2 py-1 bg-base-200 rounded-md">{subdomain}</span>
+                    {dimension && (
+                        <span className="px-2 py-1 bg-base-200 rounded-md">{dimension}</span>
                     )}
                 </div>
             </div>
@@ -217,8 +217,8 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, domain, sub
 IndicatorCard.propTypes = {
     IndicatorTitle: PropTypes.string.isRequired,
     IndicatorId: PropTypes.string.isRequired,
-    domain: PropTypes.string,
-    subdomain: PropTypes.oneOfType([
+    area: PropTypes.string,
+    dimension: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.shape({
             name: PropTypes.string

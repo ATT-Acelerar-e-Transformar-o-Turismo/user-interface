@@ -153,17 +153,17 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
 
   const handleIndicatorSelected = async (indicator, vizType) => {
     try {
-      // Fetch full indicator details to get domain name
+      // Fetch full indicator details to get area name
       const fullIndicator = await indicatorService.getById(indicator.id)
 
-      const domainName = typeof fullIndicator.domain === 'object' ? fullIndicator.domain.name : fullIndicator.domain
+      const areaName = typeof fullIndicator.area === 'object' ? fullIndicator.area.name : fullIndicator.area
 
       const indicatorAttrs = {
         id: fullIndicator.id,
         type: vizType,
         name: fullIndicator.name,
-        domain: domainName,
-        subdomain: fullIndicator.subdomain
+        area: areaName,
+        dimension: fullIndicator.dimension
       }
 
       if (editingIndicatorPos !== null) {
@@ -184,8 +184,8 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
         id: indicator.id,
         type: vizType,
         name: indicator.name,
-        domain: typeof indicator.domain === 'object' ? indicator.domain.name : indicator.domain,
-        subdomain: indicator.subdomain
+        area: typeof indicator.area === 'object' ? indicator.area.name : indicator.area,
+        dimension: indicator.dimension
       }
 
       if (editingIndicatorPos !== null) {

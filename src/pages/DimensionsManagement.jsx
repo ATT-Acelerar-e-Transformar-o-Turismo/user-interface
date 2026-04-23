@@ -8,9 +8,10 @@ import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import AddDimensionModal from '../components/wizard/AddDimensionModal';
 import SuccessModal from '../components/wizard/SuccessModal';
-import domainService from '../services/domainService';
+import areaService from '../services/areaService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
+import { confirmAction } from '../utils/confirm';
 
 export default function DimensionsManagement() {
   const { t } = useTranslation();
@@ -55,37 +56,37 @@ export default function DimensionsManagement() {
       setLoading(true);
       setError(null);
 
-      // Fetch all domains (which contain subdomains)
-      const domains = await domainService.getAll();
+      // Fetch all areas (which contain dimensions)
+      const areas = await areaService.getAll();
 
-      // Extract subdomains from domains and count indicators
+      // Extract dimensions from areas and count indicators
       const dimensionsListPromises = [];
 
-      domains.forEach(domain => {
-        const subdomains = domain.subdomains || domain.subdominios || [];
+      areas.forEach(area => {
+        const dimensions = area.dimensions || area.subdominios || [];
 
-        subdomains.forEach(subdomain => {
-          const subdomainName = typeof subdomain === 'string' ? subdomain : subdomain.name;
-          const subdomainNameEn = typeof subdomain === 'string' ? '' : (subdomain.name_en || '');
+        dimensions.forEach(dimension => {
+          const dimensionName = typeof dimension === 'string' ? dimension : dimension.name;
+          const dimensionNameEn = typeof dimension === 'string' ? '' : (dimension.name_en || '');
 
-          // Create a promise to get the indicator count for this subdomain
+          // Create a promise to get the indicator count for this dimension
           const dimensionPromise = (async () => {
             let indicatorCount = 0;
             try {
-              indicatorCount = await indicatorService.getCountBySubdomain(domain.id, subdomainName);
+              indicatorCount = await indicatorService.getCountByDimension(area.id, dimensionName);
             } catch (err) {
-              console.warn(`Failed to get indicator count for subdomain ${subdomainName}:`, err);
+              console.warn(`Failed to get indicator count for dimension ${dimensionName}:`, err);
             }
 
             return {
-              id: `${domain.id}-${subdomainName}`, // Composite ID
-              name: subdomainName,
-              name_en: subdomainNameEn,
-              description: `Subdomínio de ${domain.name}`,
-              domainId: domain.id,
-              domainName: domain.name,
-              domainName_en: domain.name_en || '',
-              domainColor: domain.color,
+              id: `${area.id}-${dimensionName}`, // Composite ID
+              name: dimensionName,
+              name_en: dimensionNameEn,
+              description: `Dimensão de ${area.name}`,
+              areaId: area.id,
+              areaName: area.name,
+              areaName_en: area.name_en || '',
+              areaColor: area.color,
               indicatorCount: indicatorCount
             };
           })();
@@ -103,8 +104,8 @@ export default function DimensionsManagement() {
         filteredDimensions = dimensionsList.filter(dim =>
           dim.name.toLowerCase().includes(query) ||
           (dim.name_en || '').toLowerCase().includes(query) ||
-          dim.domainName.toLowerCase().includes(query) ||
-          (dim.domainName_en || '').toLowerCase().includes(query)
+          dim.areaName.toLowerCase().includes(query) ||
+          (dim.areaName_en || '').toLowerCase().includes(query)
         );
       }
 
@@ -143,21 +144,23 @@ export default function DimensionsManagement() {
   };
 
   const handleDelete = async (dimension) => {
-    if (!window.confirm(t('admin.dimensions.confirm_delete', { name: dimension.name }))) {
-      return;
-    }
+    const ok = await confirmAction({
+      title: t('common.confirm_title'),
+      message: t('admin.dimensions.confirm_delete', { name: dimension.name }),
+    });
+    if (!ok) return;
 
     try {
-      // To delete a subdomain, we need to update the domain
-      const domain = await domainService.getById(dimension.domainId);
-      const subdomains = (domain.subdomains || domain.subdominios || [])
+      // To delete a dimension, we need to update the area
+      const area = await areaService.getById(dimension.areaId);
+      const dimensions = (area.dimensions || area.subdominios || [])
         .filter(sub => {
           const subName = typeof sub === 'string' ? sub : sub.name;
           return subName !== dimension.name;
         });
 
-      await domainService.patch(dimension.domainId, {
-        subdomains: subdomains
+      await areaService.patch(dimension.areaId, {
+        dimensions: dimensions
       });
 
       // Reload dimensions
@@ -234,7 +237,7 @@ export default function DimensionsManagement() {
                     </svg>
                   )}
                 </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.dimensions.col_domain')}</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.dimensions.col_area')}</p>
                 <button
                   onClick={() => handleSort('indicatorCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
@@ -277,13 +280,13 @@ export default function DimensionsManagement() {
                         </span>
                       </div>
 
-                      {/* Domain Badge */}
+                      {/* Area Badge */}
                       <div className="flex justify-center">
                         <span
                           className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
-                          style={{ borderColor: dimension.domainColor || '#CCCCCC' }}
+                          style={{ borderColor: dimension.areaColor || '#CCCCCC' }}
                         >
-                          {getName({ name: dimension.domainName, name_en: dimension.domainName_en })}
+                          {getName({ name: dimension.areaName, name_en: dimension.areaName_en })}
                         </span>
                       </div>
 
@@ -375,7 +378,7 @@ export default function DimensionsManagement() {
           setEditingDimension(null);
         }}
         onSuccess={() => { loadDimensions(); }}
-        editDomainId={editingDimension?.domainId}
+        editAreaId={editingDimension?.areaId}
         editDimensionName={editingDimension?.name}
         editDimensionNameEn={editingDimension?.name_en}
       />

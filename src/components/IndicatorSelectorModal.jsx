@@ -99,7 +99,7 @@ export default function IndicatorSelectorModal({ isOpen, onClose, onSelect }) {
                                         >
                                             <div>
                                                 <div className="font-medium text-gray-900">{ind.name}</div>
-                                                <div className="text-xs text-gray-500">{ind.subdomain} • {ind.periodicity}</div>
+                                                <div className="text-xs text-gray-500">{ind.dimension} • {ind.periodicity}</div>
                                             </div>
                                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -117,7 +117,7 @@ export default function IndicatorSelectorModal({ isOpen, onClose, onSelect }) {
                             <div className="bg-green-50 p-4 rounded-lg border border-green-100 flex justify-between items-center">
                                 <div>
                                     <h3 className="font-bold text-green-900">{selectedIndicator.name}</h3>
-                                    <p className="text-sm text-green-700">{selectedIndicator.domain} / {selectedIndicator.subdomain}</p>
+                                    <p className="text-sm text-green-700">{selectedIndicator.area} / {selectedIndicator.dimension}</p>
                                 </div>
                                 <button 
                                     onClick={() => setSelectedIndicator(null)}

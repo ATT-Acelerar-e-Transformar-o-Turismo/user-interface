@@ -1,16 +1,16 @@
 // Mock data based on real API responses
-export const MOCK_DOMAINS = [
+export const MOCK_AREAS = [
   {
     name: "Environment",
     color: "#00FF00",
     image: "https://example.com/image.jpg",
-    subdomains: [
+    dimensions: [
       "Natural capital and land use",
       "Climate change",
       "Air quality"
     ],
     id: "6882aed21331d722c9da1f60",
-    DomainCarouselImages: [
+    AreaCarouselImages: [
       "https://example.com/image1.jpg",
       "https://example.com/image2.jpg"
     ]
@@ -19,12 +19,12 @@ export const MOCK_DOMAINS = [
     name: "Economy",
     color: "#FF0000",
     image: "https://example.com/economy.jpg",
-    subdomains: [
+    dimensions: [
       "Economic performance",
       "Tourism development"
     ],
     id: "6882aed21331d722c9da1f61",
-    DomainCarouselImages: [
+    AreaCarouselImages: [
       "https://example.com/economy1.jpg",
       "https://example.com/economy2.jpg"
     ]
@@ -33,12 +33,12 @@ export const MOCK_DOMAINS = [
     name: "Society",
     color: "#0000FF",
     image: "https://example.com/society.jpg",
-    subdomains: [
+    dimensions: [
       "Social well-being",
       "Community engagement"
     ],
     id: "6882aed21331d722c9da1f62",
-    DomainCarouselImages: [
+    AreaCarouselImages: [
       "https://example.com/society1.jpg",
       "https://example.com/society2.jpg"
     ]
@@ -56,8 +56,8 @@ export const MOCK_INDICATORS = [
     scale: "local",
     unit: "units",
     id: "6882aed71331d722c9da1f61",
-    domain: "6882aed21331d722c9da1f60",
-    subdomain: "Natural capital and land use",
+    area: "6882aed21331d722c9da1f60",
+    dimension: "Natural capital and land use",
     resources: [],
     categorization: "Biodiversity"
   },
@@ -71,8 +71,8 @@ export const MOCK_INDICATORS = [
     scale: "local",
     unit: "species",
     id: "6882aed71331d722c9da1f62",
-    domain: "6882aed21331d722c9da1f60",
-    subdomain: "Natural capital and land use",
+    area: "6882aed21331d722c9da1f60",
+    dimension: "Natural capital and land use",
     resources: [],
     categorization: "Biodiversity"
   },
@@ -86,8 +86,8 @@ export const MOCK_INDICATORS = [
     scale: "local",
     unit: "percentage",
     id: "6882aed71331d722c9da1f63",
-    domain: "6882aed21331d722c9da1f60",
-    subdomain: "Natural capital and land use",
+    area: "6882aed21331d722c9da1f60",
+    dimension: "Natural capital and land use",
     resources: [],
     categorization: "Land Use"
   }

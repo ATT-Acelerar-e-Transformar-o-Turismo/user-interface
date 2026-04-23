@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import arrowRight from '../assets/images/arrow-right.svg';
 
-export default function DomainCard({
+export default function AreaCard({
   title,
-  domainId,
+  areaId,
   page,
   color = "#C3F25E",
   icon,
@@ -21,7 +21,7 @@ export default function DomainCard({
   const handleClick = () => {
     if (page) {
       navigate(page, {
-        state: { domainId }
+        state: { areaId }
       });
     }
   };
@@ -56,7 +56,7 @@ export default function DomainCard({
           </h3>
         </div>
 
-        {/* Indicators (subdomain names) List */}
+        {/* Indicators (dimension names) List */}
         <ul className="w-full flex flex-col gap-2 sm:gap-6">
           {indicators.slice(0, 4).map((ind, i) => {
             const name = typeof ind === 'string' ? ind : ind.name;
@@ -68,8 +68,8 @@ export default function DomainCard({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (page) {
-                    navigate(`${page}?subdomain=${encodeURIComponent(name)}`, {
-                      state: { domainId, subdomain: name }
+                    navigate(`${page}?dimension=${encodeURIComponent(name)}`, {
+                      state: { areaId, dimension: name }
                     });
                   }
                 }}
@@ -88,7 +88,7 @@ export default function DomainCard({
             <div className="w-2 h-2 rounded-full bg-black opacity-30" />
           </div>
           <button className="bg-base-100 text-primary px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
-            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>{t('components.domain_card.view_all')}</span>
+            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>{t('components.area_card.view_all')}</span>
             <img src={arrowRight} alt="" className="w-5 h-5" />
           </button>
         </div>
@@ -111,7 +111,7 @@ export default function DomainCard({
   );
 }
 
-DomainCard.propTypes = {
+AreaCard.propTypes = {
     title: PropTypes.string.isRequired,
     page: PropTypes.string,
     color: PropTypes.string,

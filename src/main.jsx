@@ -3,11 +3,12 @@ import * as ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { routesList } from './routes.jsx'
 import { AuthProvider } from './contexts/AuthContext';
-import { DomainProvider } from './contexts/DomainContext';
+import { AreaProvider } from './contexts/AreaContext';
 import { IndicatorProvider } from './contexts/IndicatorContext';
 import { ResourceProvider } from './contexts/ResourceContext';
 import { WrapperProvider } from './contexts/WrapperContext';
 import ToastContainer from './components/ToastContainer';
+import ConfirmDialogHost from './components/ConfirmDialogHost';
 import './i18n';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -24,7 +25,7 @@ const router = createBrowserRouter(routesList)
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
-      <DomainProvider>
+      <AreaProvider>
         <IndicatorProvider>
           <ResourceProvider>
             <WrapperProvider>
@@ -33,10 +34,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 future={{ v7_startTransition: true ,}}
               />
               <ToastContainer />
+              <ConfirmDialogHost />
             </WrapperProvider>
           </ResourceProvider>
         </IndicatorProvider>
-      </DomainProvider>
+      </AreaProvider>
     </AuthProvider>
   </React.StrictMode>
 )

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageTemplate from './PageTemplate';
-import { useDomain } from '../contexts/DomainContext';
-import domainService from '../services/domainService';
+import { useArea } from '../contexts/AreaContext';
+import areaService from '../services/areaService';
 
-export default function NewDomain() {
-    const [subdomains, setSubdomains] = useState([]);
-    const [subdomainInput, setSubdomainInput] = useState('');
+export default function NewArea() {
+    const [dimensions, setDimensions] = useState([]);
+    const [dimensionInput, setDimensionInput] = useState('');
     const [name, setName] = useState('');
     const [color, setColor] = useState('#000000');
     const [image, setImage] = useState('');
@@ -15,47 +15,47 @@ export default function NewDomain() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const { id } = useParams();
-    const { refreshDomains } = useDomain();
+    const { refreshAreas } = useArea();
 
     useEffect(() => {
         if (id) {
-            const loadDomain = async () => {
+            const loadArea = async () => {
                 try {
                     setLoading(true);
-                    const domain = await domainService.getById(id);
-            if (domain) {
-                        setName(domain.name || '');
-                        setColor(domain.color || '#000000');
-                        setSubdomains(Array.isArray(domain.subdomains) ? domain.subdomains : []);
-                        setImage(domain.image || '');
-                        setIcon(domain.icon || '');
+                    const area = await areaService.getById(id);
+            if (area) {
+                        setName(area.name || '');
+                        setColor(area.color || '#000000');
+                        setDimensions(Array.isArray(area.dimensions) ? area.dimensions : []);
+                        setImage(area.image || '');
+                        setIcon(area.icon || '');
             }
                 } catch (err) {
-                    setError('Failed to load domain: ' + (err.userMessage || err.message));
+                    setError('Failed to load area: ' + (err.userMessage || err.message));
                 } finally {
                     setLoading(false);
                 }
             };
-            loadDomain();
+            loadArea();
         }
     }, [id]);
 
-    const handleAddSubdomain = () => {
-        if (subdomainInput.trim()) {
-            setSubdomains([...subdomains, subdomainInput.trim()]);
-            setSubdomainInput('');
+    const handleAddDimension = () => {
+        if (dimensionInput.trim()) {
+            setDimensions([...dimensions, dimensionInput.trim()]);
+            setDimensionInput('');
         }
     };
 
-    const handleRemoveSubdomain = (index) => {
-        setSubdomains(subdomains.filter((_, i) => i !== index));
+    const handleRemoveDimension = (index) => {
+        setDimensions(dimensions.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!name.trim()) {
-            setError('Domain name is required');
+            setError('Area name is required');
             return;
         }
 
@@ -63,10 +63,10 @@ export default function NewDomain() {
         setError(null);
 
         try {
-            const domainData = {
+            const areaData = {
                 name: name.trim(),
                 color: color || '#000000',
-                subdomains: subdomains || [],
+                dimensions: dimensions || [],
                 image: image || '',
                 icon: icon || ''
         };
@@ -74,16 +74,16 @@ export default function NewDomain() {
 
         
         if (id) {
-                await domainService.update(id, domainData);
+                await areaService.update(id, areaData);
         } else {
-                await domainService.create(domainData);
+                await areaService.create(areaData);
             }
             
-            // Refresh domains in context
-            await refreshDomains();
+            // Refresh areas in context
+            await refreshAreas();
         navigate('/admin/indicators-management');
         } catch (err) {
-            setError('Failed to save domain: ' + (err.userMessage || err.message));
+            setError('Failed to save area: ' + (err.userMessage || err.message));
         } finally {
             setLoading(false);
         }
@@ -92,7 +92,7 @@ export default function NewDomain() {
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            handleAddSubdomain();
+            handleAddDimension();
         }
     };
 
@@ -113,7 +113,7 @@ export default function NewDomain() {
             <div className="flex justify-center min-h-screen">
                 <div className="p-8 rounded-lg shadow-lg w-full ">
                     <h1 className="text-xl font-bold text-center mb-6">
-                        {id ? 'Edit Domain' : 'New Domain'}
+                        {id ? 'Edit Area' : 'New Area'}
                     </h1>
 
                     {error && (
@@ -149,21 +149,21 @@ export default function NewDomain() {
                         </div>
 
                         <div className="mb-6">
-                            <label htmlFor="subdomains-input" className="block mb-2 text-sm font-medium text-neutral">Dimensões</label>
+                            <label htmlFor="dimensions-input" className="block mb-2 text-sm font-medium text-neutral">Dimensões</label>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    id="subdomains-input"
-                                    value={subdomainInput}
-                                    onChange={(e) => setSubdomainInput(e.target.value)}
+                                    id="dimensions-input"
+                                    value={dimensionInput}
+                                    onChange={(e) => setDimensionInput(e.target.value)}
                                     className="input input-bordered flex-1"
                                     placeholder="Nome da dimensão"
                                 />
                                 <button 
                                     type="button" 
                                     className="btn btn-primary text-white"
-                                    onClick={handleAddSubdomain}
-                                    disabled={loading || !subdomainInput.trim()}
+                                    onClick={handleAddDimension}
+                                    disabled={loading || !dimensionInput.trim()}
                                 >
                                     Adicionar
                                 </button>
