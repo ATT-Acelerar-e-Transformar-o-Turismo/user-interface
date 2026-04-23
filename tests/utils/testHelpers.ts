@@ -5,10 +5,13 @@ export class TestHelpers {
    * Wait for areas to load and verify they are visible
    */
   static async waitForAreasToLoad(page: Page) {
-    await page.waitForResponse(response => 
-      response.url().includes("/api/areas"),
-      { timeout: 30000 }
-    );
+    // Backend endpoint is still `/api/domains/` (the UI-level rename to
+    // "areas" is display-only). Match both so the helper keeps working if
+    // the backend later gets renamed to /api/areas/.
+    await page.waitForResponse(response => {
+      const url = response.url();
+      return url.includes("/api/domains") || url.includes("/api/areas");
+    }, { timeout: 30000 });
   }
 
   /**
