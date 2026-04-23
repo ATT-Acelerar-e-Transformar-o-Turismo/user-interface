@@ -9,6 +9,7 @@ import { ResourceProvider } from './contexts/ResourceContext';
 import { WrapperProvider } from './contexts/WrapperContext';
 import ToastContainer from './components/ToastContainer';
 import ConfirmDialogHost from './components/ConfirmDialogHost';
+import UnderDevelopmentModal from './components/UnderDevelopmentModal';
 import './i18n';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               />
               <ToastContainer />
               <ConfirmDialogHost />
+              <UnderDevelopmentModal />
             </WrapperProvider>
           </ResourceProvider>
         </IndicatorProvider>
