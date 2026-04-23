@@ -14,6 +14,8 @@ import useWizard from '../../hooks/useWizard';
 import { validateRequired, validateForm, hasErrors } from '../../utils/formValidation';
 import indicatorService from '../../services/indicatorService';
 import areaService from '../../services/areaService';
+import dataService from '../../services/dataService';
+import ChartTypePreview from './ChartTypePreview';
 import {
   CHART_TYPES,
   CHART_TYPE_LABEL_KEYS,
@@ -32,6 +34,10 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   const [areas, setAreas] = useState([]);
   const [dimensions, setDimensions] = useState([]);
   const [loading, setLoading] = useState(false);
+  // Real data for the chart-type previews (only populated when editing an
+  // existing indicator that already has data). Otherwise previews fall back
+  // to a synthetic series inside ChartTypePreview.
+  const [previewData, setPreviewData] = useState([]);
 
   const steps = [
     t('wizard.indicator.step_info'),
@@ -47,9 +53,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     area: '',
     dimension: '',
     unit: '',
+    unit_en: '',
     scale: '',
+    scale_en: '',
     font: '',
+    font_en: '',
     periodicity: '',
+    periodicity_en: '',
     governance: false,
     carrying_capacity_enabled: false,
     carrying_capacity: '',
@@ -99,9 +109,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
             area: indicator.domain?.id || indicator.domain || indicator.area?.id || indicator.area || '',
             dimension: indicator.subdomain || indicator.dimension || '',
             unit: indicator.unit || '',
+            unit_en: indicator.unit_en || '',
             scale: indicator.scale || '',
+            scale_en: indicator.scale_en || '',
             font: indicator.font || '',
+            font_en: indicator.font_en || '',
             periodicity: indicator.periodicity || '',
+            periodicity_en: indicator.periodicity_en || '',
             governance: indicator.governance || false,
             carrying_capacity_enabled: !!indicator.carrying_capacity,
             carrying_capacity: indicator.carrying_capacity || '',
@@ -110,6 +124,21 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               : [...DEFAULT_CHART_TYPES],
             default_chart_type: indicator.default_chart_type || DEFAULT_CHART_TYPE,
           });
+        }
+
+        // Pull the indicator's real data so chart-type previews reflect what
+        // the user will actually see. Failure is non-fatal; previews fall
+        // back to the synthetic sample inside ChartTypePreview.
+        try {
+          const points = await dataService.getIndicatorData(indicatorId, 0, 50);
+          if (Array.isArray(points) && points.length > 0) {
+            const normalized = points
+              .map(p => ({ x: new Date(p.x).getTime(), y: Number(p.y) }))
+              .filter(p => !Number.isNaN(p.x) && !Number.isNaN(p.y));
+            setPreviewData(normalized);
+          }
+        } catch (err) {
+          console.warn('Chart-type preview: could not fetch indicator data', err);
         }
       }
     } catch (error) {
@@ -176,9 +205,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         description: data.description.trim() || '',
         description_en: data.description_en.trim() || '',
         font: data.font.trim() || '',
+        font_en: (data.font_en || '').trim(),
         scale: data.scale.trim() || '',
+        scale_en: (data.scale_en || '').trim(),
         unit: data.unit.trim() || '',
+        unit_en: (data.unit_en || '').trim(),
         periodicity: data.periodicity.trim() || '',
+        periodicity_en: (data.periodicity_en || '').trim(),
         governance: data.governance,
         carrying_capacity: data.carrying_capacity_enabled && data.carrying_capacity
           ? data.carrying_capacity
@@ -364,6 +397,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               onChange={(value) => wizard.updateFormData('unit', value)}
               placeholder={t('wizard.indicator.unit_placeholder')}
             />
+            <FormInput
+              label={t('wizard.indicator.unit_en')}
+              name="unit_en"
+              value={wizard.formData.unit_en}
+              onChange={(value) => wizard.updateFormData('unit_en', value)}
+              placeholder={t('wizard.indicator.unit_en_placeholder')}
+            />
 
             <FormInput
               label={t('wizard.indicator.scale')}
@@ -371,6 +411,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               value={wizard.formData.scale}
               onChange={(value) => wizard.updateFormData('scale', value)}
               placeholder={t('wizard.indicator.scale_placeholder')}
+            />
+            <FormInput
+              label={t('wizard.indicator.scale_en')}
+              name="scale_en"
+              value={wizard.formData.scale_en}
+              onChange={(value) => wizard.updateFormData('scale_en', value)}
+              placeholder={t('wizard.indicator.scale_en_placeholder')}
             />
 
             <FormInput
@@ -380,6 +427,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               onChange={(value) => wizard.updateFormData('font', value)}
               placeholder={t('wizard.indicator.source_placeholder')}
             />
+            <FormInput
+              label={t('wizard.indicator.source_en')}
+              name="font_en"
+              value={wizard.formData.font_en}
+              onChange={(value) => wizard.updateFormData('font_en', value)}
+              placeholder={t('wizard.indicator.source_en_placeholder')}
+            />
 
             <FormInput
               label={t('wizard.indicator.periodicity')}
@@ -387,6 +441,13 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               value={wizard.formData.periodicity}
               onChange={(value) => wizard.updateFormData('periodicity', value)}
               placeholder={t('wizard.indicator.periodicity_placeholder')}
+            />
+            <FormInput
+              label={t('wizard.indicator.periodicity_en')}
+              name="periodicity_en"
+              value={wizard.formData.periodicity_en}
+              onChange={(value) => wizard.updateFormData('periodicity_en', value)}
+              placeholder={t('wizard.indicator.periodicity_en_placeholder')}
             />
 
             <FormCheckbox
@@ -425,18 +486,28 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
             <div className="space-y-2">
               <p className="text-sm font-medium">{t('wizard.indicator.chart_types_label')}</p>
               <p className="text-xs text-gray-500">{t('wizard.indicator.chart_types_hint')}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {CHART_TYPES.map(type => {
                   const checked = (wizard.formData.chart_types || []).includes(type);
                   return (
-                    <label key={type} className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded px-2 py-1.5">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-sm"
-                        checked={checked}
-                        onChange={() => toggleChartType(type)}
-                      />
-                      <span className="text-sm">{t(CHART_TYPE_LABEL_KEYS[type])}</span>
+                    <label
+                      key={type}
+                      className={`flex flex-col gap-2 cursor-pointer border rounded-lg p-2 transition-colors ${
+                        checked ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-sm"
+                          checked={checked}
+                          onChange={() => toggleChartType(type)}
+                        />
+                        <span className="text-sm font-medium">{t(CHART_TYPE_LABEL_KEYS[type])}</span>
+                      </div>
+                      <div className="w-full h-[90px] bg-white rounded overflow-hidden">
+                        <ChartTypePreview chartType={type} data={previewData} height={90} />
+                      </div>
                     </label>
                   );
                 })}
