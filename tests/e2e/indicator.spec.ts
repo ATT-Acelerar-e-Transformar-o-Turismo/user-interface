@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { setupDomainApiMocks } from "../mocks/apiMocks";
+import { setupAreaApiMocks } from "../mocks/apiMocks";
 import { 
-  navigateToDomain, 
+  navigateToArea, 
   clickIndicator, 
   verifyIndicatorDetails 
 } from "../utils/testHelpers";
@@ -9,7 +9,7 @@ import {
 test.describe("Indicator Navigation Flow", () => {
   test.beforeEach(async ({ page }) => {
     // Setup API mocks
-    await setupDomainApiMocks(page);
+    await setupAreaApiMocks(page);
   });
 
   test("should navigate to indicator page when clicking indicator", async ({ page }) => {

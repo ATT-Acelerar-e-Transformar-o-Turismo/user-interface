@@ -1,43 +1,43 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { useDomain } from '../contexts/DomainContext';
+import { useArea } from '../contexts/AreaContext';
 import useLocalizedName from '../hooks/useLocalizedName';
 
-function SelectDomain({
-  setSelectedDomain,
-  setSelectedSubdomain,
-  domains: propDomains,
-  selectedDomain: propSelectedDomain,
-  selectedSubdomain: propSelectedSubdomain
+function SelectArea({
+  setSelectedArea,
+  setSelectedDimension,
+  areas: propAreas,
+  selectedArea: propSelectedArea,
+  selectedDimension: propSelectedDimension
 }) {
     const { t } = useTranslation();
     const getName = useLocalizedName();
-    const [selectedLocalDomain, setSelectedLocalDomain] = useState(null);
-    const [selectedLocalSubdomain, setSelectedLocalSubdomain] = useState(null);
-    const domainRef = useRef(null);
-    const subdomainRef = useRef(null);
+    const [selectedLocalArea, setSelectedLocalArea] = useState(null);
+    const [selectedLocalDimension, setSelectedLocalDimension] = useState(null);
+    const areaRef = useRef(null);
+    const dimensionRef = useRef(null);
     const containerRef = useRef(null);
     
-    // Use prop domains if provided, otherwise fallback to context
-    const { domains: contextDomains } = useDomain();
-    const domains = propDomains || contextDomains;
+    // Use prop areas if provided, otherwise fallback to context
+    const { areas: contextAreas } = useArea();
+    const areas = propAreas || contextAreas;
 
     // Initialize local state with provided values when editing
     useEffect(() => {
-        if (propSelectedDomain) {
-            setSelectedLocalDomain(propSelectedDomain);
+        if (propSelectedArea) {
+            setSelectedLocalArea(propSelectedArea);
         }
-        if (propSelectedSubdomain) {
-            setSelectedLocalSubdomain(propSelectedSubdomain);
+        if (propSelectedDimension) {
+            setSelectedLocalDimension(propSelectedDimension);
         }
-    }, [propSelectedDomain, propSelectedSubdomain]);
+    }, [propSelectedArea, propSelectedDimension]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
-                if (domainRef.current) domainRef.current.removeAttribute("open");
-                if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
+                if (areaRef.current) areaRef.current.removeAttribute("open");
+                if (dimensionRef.current) dimensionRef.current.removeAttribute("open");
             }
         };
 
@@ -45,82 +45,82 @@ function SelectDomain({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleSelectDomain = (domain) => {
-        if (domainRef.current) {
-            domainRef.current.removeAttribute("open"); // Close dropdown first
+    const handleSelectArea = (area) => {
+        if (areaRef.current) {
+            areaRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        setSelectedLocalDomain(domain);
-        setSelectedLocalSubdomain(null);
+        setSelectedLocalArea(area);
+        setSelectedLocalDimension(null);
         
-        // Call parent callbacks with the full domain object and clear subdomain
-        setSelectedDomain(domain); // Pass full domain object to the parent
-        setSelectedSubdomain(null);
+        // Call parent callbacks with the full area object and clear dimension
+        setSelectedArea(area); // Pass full area object to the parent
+        setSelectedDimension(null);
     };
 
-    const handleSelectSubdomain = (subdom) => {
-        if (subdomainRef.current) {
-            subdomainRef.current.removeAttribute("open"); // Close dropdown first
+    const handleSelectDimension = (subdom) => {
+        if (dimensionRef.current) {
+            dimensionRef.current.removeAttribute("open"); // Close dropdown first
         }
 
-        const subdomainName = typeof subdom === 'string' ? subdom : subdom.name;
-        setSelectedLocalSubdomain(subdomainName);
-        setSelectedSubdomain(subdomainName); // Update main page with subdomain name
+        const dimensionName = typeof subdom === 'string' ? subdom : subdom.name;
+        setSelectedLocalDimension(dimensionName);
+        setSelectedDimension(dimensionName); // Update main page with dimension name
     };
 
-    const getSubdomains = () => {
-        if (!selectedLocalDomain) return [];
-        return selectedLocalDomain.subdomains || selectedLocalDomain.subdominios || [];
+    const getDimensions = () => {
+        if (!selectedLocalArea) return [];
+        return selectedLocalArea.dimensions || selectedLocalArea.subdominios || [];
     };
 
     return (
         <div ref={containerRef} className="container mx-auto flex flex-col md:flex-row gap-4">
-            <details ref={domainRef} className="dropdown">
+            <details ref={areaRef} className="dropdown">
                 <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
-                    <span className={`${selectedLocalDomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                        {getName(selectedLocalDomain) || t('components.select_domain.choose_domain')}
+                    <span className={`${selectedLocalArea ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                        {getName(selectedLocalArea) || t('components.select_area.choose_area')}
                     </span>
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                 </summary>
                 <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
-                    {domains.map((domain, index) => (
-                        <li key={domain?.name || index}>
+                    {areas.map((area, index) => (
+                        <li key={area?.name || index}>
                             <a 
-                                onClick={() => { handleSelectDomain(domain); }}
+                                onClick={() => { handleSelectArea(area); }}
                                 className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
                             >
-                                {domain?.name || "Unnamed Domain"}
+                                {area?.name || "Unnamed Area"}
                             </a>
                         </li>
                     ))}
                 </ul>
             </details>
 
-            {selectedLocalDomain && (
-                <details ref={subdomainRef} className="dropdown">
+            {selectedLocalArea && (
+                <details ref={dimensionRef} className="dropdown">
                     <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
                         {
-                        selectedLocalSubdomain 
+                        selectedLocalDimension 
                         ? (
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-900 font-medium">{selectedLocalSubdomain}</span>
+                                <span className="text-gray-900 font-medium">{selectedLocalDimension}</span>
                             </div>) 
                         : (
-                            <span className="text-gray-500">{t('components.select_domain.choose_dimension')}</span>)
+                            <span className="text-gray-500">{t('components.select_area.choose_dimension')}</span>)
                         }
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     </summary>
                     <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
-                        {(getSubdomains()).map((subdom) => {
+                        {(getDimensions()).map((subdom) => {
                             const subName = typeof subdom === 'string' ? subdom : subdom.name;
                             return (
                                 <li key={subName}>
                                     <a 
-                                        onClick={() => { handleSelectSubdomain(subdom); }}
+                                        onClick={() => { handleSelectDimension(subdom); }}
                                         className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
                                     >
                                         {subName}
@@ -135,18 +135,18 @@ function SelectDomain({
     );
 }
 
-export default SelectDomain;
+export default SelectArea;
 
-SelectDomain.propTypes = {
-    setSelectedDomain: PropTypes.func.isRequired,
-    setSelectedSubdomain: PropTypes.func.isRequired,
-    domains: PropTypes.arrayOf(
+SelectArea.propTypes = {
+    setSelectedArea: PropTypes.func.isRequired,
+    setSelectedDimension: PropTypes.func.isRequired,
+    areas: PropTypes.arrayOf(
         PropTypes.shape({
             name: PropTypes.string.isRequired,
-            subdomains: PropTypes.array,
+            dimensions: PropTypes.array,
             subdominios: PropTypes.array,
         })
     ),
-    selectedDomain: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
-    selectedSubdomain: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+    selectedArea: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+    selectedDimension: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
 };

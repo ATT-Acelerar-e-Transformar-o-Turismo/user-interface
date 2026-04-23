@@ -135,7 +135,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         if (typeof item === 'string') {
             newItem = { type: 'search', value: item.trim(), timestamp: Date.now() };
         } else {
-            newItem = { type: 'indicator', value: { id: item.id, name: item.name, subdomain: item.subdomain, domain: item.domain }, timestamp: Date.now() };
+            newItem = { type: 'indicator', value: { id: item.id, name: item.name, dimension: item.dimension, area: item.area }, timestamp: Date.now() };
         }
         const filtered = recentItems.filter(existingItem => {
             if (existingItem.type !== newItem.type) return true;
@@ -235,7 +235,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     // Default public nav items (includes admin link when appropriate)
     const defaultItems = [
         { label: 'ROOTS', path: '/', exact: true },
-        { label: t('nav.domains'), path: '/indicators' },
+        { label: t('nav.areas'), path: '/indicators' },
         { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
@@ -277,7 +277,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     const defaultMobileItems = [
         { label: t('nav.home'), path: '/' },
         { label: 'ROOTS', path: '/roots', isRoots: true },
-        { label: t('nav.domains'), path: '/indicators' },
+        { label: t('nav.areas'), path: '/indicators' },
         { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),

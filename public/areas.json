@@ -1,14 +1,14 @@
 {
-    "domains": [
+    "areas": [
         {
             "name": "Environment",
-            "DomainPage": "/environment",
-            "DomainColor": "#B3E240",
-            "DomainImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
-            "DomainCarouselImages": [
+            "AreaPage": "/environment",
+            "AreaColor": "#B3E240",
+            "AreaImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
+            "AreaCarouselImages": [
                 "/costa-nova-beach.webp"
             ],
-            "subdomains": [
+            "dimensions": [
                 {
                     "name": "Natural capital and land use",
                     "indicators": [
@@ -406,13 +406,13 @@
         },
         {
             "name": "Economy",
-            "DomainPage": "/economy",
-            "DomainColor": "#FF6B35",
-            "DomainImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
-            "DomainCarouselImages": [
+            "AreaPage": "/economy",
+            "AreaColor": "#FF6B35",
+            "AreaImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
+            "AreaCarouselImages": [
                 "/costa-nova-beach.webp"
             ],
-            "subdomains": [
+            "dimensions": [
                 {
                     "name": "Destination marketing",
                     "indicators": [
@@ -854,13 +854,13 @@
         },
         {
             "name": "Society",
-            "DomainPage": "/society",
-            "DomainColor": "#4ECDC4",
-            "DomainImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
-            "DomainCarouselImages": [
+            "AreaPage": "/society",
+            "AreaColor": "#4ECDC4",
+            "AreaImage": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/233000/233148-Costa-Nova-Beach.jpg",
+            "AreaCarouselImages": [
                 "/costa-nova-beach.webp"
             ],
-            "subdomains": [
+            "dimensions": [
                 {
                     "name": "Sociocultural atmosphere",
                     "indicators": [

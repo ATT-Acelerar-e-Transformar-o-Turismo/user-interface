@@ -18,7 +18,7 @@ const ErrorDisplay = ({ error, onRetry }) => {
           />
         </svg>
         <div>
-          <h3 className="font-bold">Error loading domains</h3>
+          <h3 className="font-bold">Error loading areas</h3>
           <div className="text-xs">{error}</div>
         </div>
       </div>

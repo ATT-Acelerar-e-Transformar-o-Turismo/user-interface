@@ -5,7 +5,7 @@ import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 
 function AddDataDropdown({ onDataTypeSelect, text }) { 
-    const domainRef = useRef(null);
+    const areaRef = useRef(null);
     const containerRef = useRef(null);
 
     const [selectedType, setSelectedType] = useState("");
@@ -14,7 +14,7 @@ function AddDataDropdown({ onDataTypeSelect, text }) {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
-                if (domainRef.current) domainRef.current.removeAttribute("open");
+                if (areaRef.current) areaRef.current.removeAttribute("open");
             }
         };
 
@@ -23,8 +23,8 @@ function AddDataDropdown({ onDataTypeSelect, text }) {
     }, []);
 
     const handleSelectType = (type) => {
-        if (domainRef.current) {
-            domainRef.current.removeAttribute("open"); 
+        if (areaRef.current) {
+            areaRef.current.removeAttribute("open"); 
         }
 
         setSelectedType(type);
@@ -37,7 +37,7 @@ function AddDataDropdown({ onDataTypeSelect, text }) {
 
     return (
         <div ref={containerRef} >
-            <details ref={domainRef} className="dropdown dropdown-top">
+            <details ref={areaRef} className="dropdown dropdown-top">
                 <summary className="btn m-1">
                         {selectedType ? `Selected: ${selectedType}` : (text || 'Add Data Resource')}
                     <FontAwesomeIcon icon={faChevronRight} className="ml-2" />

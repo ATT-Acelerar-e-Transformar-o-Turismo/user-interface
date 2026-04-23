@@ -2,11 +2,11 @@ import { Page, expect } from '@playwright/test';
 
 export class TestHelpers {
   /**
-   * Wait for domains to load and verify they are visible
+   * Wait for areas to load and verify they are visible
    */
-  static async waitForDomainsToLoad(page: Page) {
+  static async waitForAreasToLoad(page: Page) {
     await page.waitForResponse(response => 
-      response.url().includes("/api/domains"),
+      response.url().includes("/api/areas"),
       { timeout: 30000 }
     );
   }
@@ -35,30 +35,30 @@ export class TestHelpers {
   }
 
   /**
-   * Navigate to home page and wait for domains to load
+   * Navigate to home page and wait for areas to load
    */
   static async navigateToHome(page: Page) {
     await page.goto("/home");
-    await TestHelpers.waitForDomainsToLoad(page);
+    await TestHelpers.waitForAreasToLoad(page);
   }
 
   /**
-   * Navigate to domain page and wait for indicators to load
+   * Navigate to area page and wait for indicators to load
    */
-  static async navigateToDomain(page: Page, domainName: string = "Environment") {
-    await page.goto(`/${domainName.toLowerCase()}`);
+  static async navigateToArea(page: Page, areaName: string = "Environment") {
+    await page.goto(`/${areaName.toLowerCase()}`);
     await TestHelpers.waitForIndicatorsToLoad(page);
   }
 
   /**
-   * Click on a domain and wait for navigation
+   * Click on a area and wait for navigation
    */
-  static async clickDomain(page: Page, domainName: string = "Environment") {
-    const domainButton = page.getByRole("button", { name: domainName });
-    await domainButton.click();
+  static async clickArea(page: Page, areaName: string = "Environment") {
+    const areaButton = page.getByRole("button", { name: areaName });
+    await areaButton.click();
     
     // Wait for URL to change
-    await expect(page).toHaveURL(`/${domainName.toLowerCase()}`);
+    await expect(page).toHaveURL(`/${areaName.toLowerCase()}`);
   }
 
   /**
@@ -84,20 +84,20 @@ export class TestHelpers {
   }
 
   /**
-   * Select a subdomain from dropdown
+   * Select a dimension from dropdown
    */
-  static async selectSubdomain(page: Page, subdomainName: string) {
-    // Open subdomain dropdown by clicking its summary
-    const subdomainSummary = page.getByText("Escolha o Subdomínio");
-    await subdomainSummary.click();
+  static async selectDimension(page: Page, dimensionName: string) {
+    // Open dimension dropdown by clicking its summary
+    const dimensionSummary = page.getByText("Escolha o Dimensão");
+    await dimensionSummary.click();
 
-    // Wait for dropdown menu to be visible and click subdomain option
-    await page.evaluate((subdomain) => {
+    // Wait for dropdown menu to be visible and click dimension option
+    await page.evaluate((dimension) => {
       const details = document.querySelectorAll("details")[1];
       details.setAttribute("open", "");
-      const link = Array.from(details.querySelectorAll("a")).find(a => a.textContent === subdomain);
+      const link = Array.from(details.querySelectorAll("a")).find(a => a.textContent === dimension);
       if (link) link.click();
-    }, subdomainName);
+    }, dimensionName);
   }
 
   /**
@@ -114,7 +114,7 @@ export class TestHelpers {
   /**
    * Verify indicator details page content
    */
-  static async verifyIndicatorDetails(page: Page, indicatorName: string, subdomainName: string) {
+  static async verifyIndicatorDetails(page: Page, indicatorName: string, dimensionName: string) {
     // Verify URL changed to indicator page
     const currentUrl = page.url();
     const urlPath = new URL(currentUrl).pathname;
@@ -124,19 +124,19 @@ export class TestHelpers {
     const indicatorNameHeading = page.getByRole("heading", { name: indicatorName });
     await expect(indicatorNameHeading).toBeVisible();
 
-    // Look for subdomain in the specific section where it should appear
-    const subdomainText = page.locator("p").filter({ hasText: "Subdomain" }).filter({ hasText: subdomainName });
-    await expect(subdomainText).toBeVisible();
+    // Look for dimension in the specific section where it should appear
+    const dimensionText = page.locator("p").filter({ hasText: "Dimension" }).filter({ hasText: dimensionName });
+    await expect(dimensionText).toBeVisible();
   }
 }
 
 // Convenience functions
-export const waitForDomainsToLoad = TestHelpers.waitForDomainsToLoad;
+export const waitForAreasToLoad = TestHelpers.waitForAreasToLoad;
 export const waitForIndicatorsToLoad = TestHelpers.waitForIndicatorsToLoad;
 export const navigateToHome = TestHelpers.navigateToHome;
-export const navigateToDomain = TestHelpers.navigateToDomain;
-export const clickDomain = TestHelpers.clickDomain;
+export const navigateToArea = TestHelpers.navigateToArea;
+export const clickArea = TestHelpers.clickArea;
 export const clickIndicator = TestHelpers.clickIndicator;
-export const selectSubdomain = TestHelpers.selectSubdomain;
+export const selectDimension = TestHelpers.selectDimension;
 export const verifyIndicatorCard = TestHelpers.verifyIndicatorCard;
 export const verifyIndicatorDetails = TestHelpers.verifyIndicatorDetails; 

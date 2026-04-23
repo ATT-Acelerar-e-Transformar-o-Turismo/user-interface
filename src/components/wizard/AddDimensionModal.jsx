@@ -5,16 +5,16 @@ import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
 import SuccessModal from './SuccessModal';
 import { validateRequired, hasErrors } from '../../utils/formValidation';
-import domainService from '../../services/domainService';
+import areaService from '../../services/areaService';
 import indicatorService from '../../services/indicatorService';
 
-// Fetch all indicators for a domain by paginating (backend max limit is 50)
-async function fetchAllDomainIndicators(domainId) {
+// Fetch all indicators for a area by paginating (backend max limit is 50)
+async function fetchAllAreaIndicators(areaId) {
   const all = [];
   let skip = 0;
   const limit = 50;
   while (true) {
-    const batch = await indicatorService.getByDomain(domainId, skip, limit);
+    const batch = await indicatorService.getByArea(areaId, skip, limit);
     all.push(...batch);
     if (batch.length < limit) break;
     skip += limit;
@@ -23,13 +23,13 @@ async function fetchAllDomainIndicators(domainId) {
 }
 
 /**
- * AddDimensionModal - Modal for adding or editing a dimension (subdomain) on a domain
+ * AddDimensionModal - Modal for adding or editing a dimension (dimension) on a area
  */
-export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDomainId = null, editDimensionName = null, editDimensionNameEn = null }) {
+export default function AddDimensionModal({ isOpen, onClose, onSuccess, editAreaId = null, editDimensionName = null, editDimensionNameEn = null }) {
   const { t } = useTranslation();
-  const isEditing = Boolean(editDomainId && editDimensionName);
-  const [domains, setDomains] = useState([]);
-  const [selectedDomain, setSelectedDomain] = useState('');
+  const isEditing = Boolean(editAreaId && editDimensionName);
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState('');
   const [dimensionName, setDimensionName] = useState('');
   const [dimensionNameEn, setDimensionNameEn] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,29 +38,29 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
 
   useEffect(() => {
     if (isOpen) {
-      loadDomains();
+      loadAreas();
       if (isEditing) {
-        setSelectedDomain(editDomainId);
+        setSelectedArea(editAreaId);
         setDimensionName(editDimensionName);
         setDimensionNameEn(editDimensionNameEn || '');
       }
     }
-  }, [isOpen, editDomainId, editDimensionName, editDimensionNameEn, isEditing]);
+  }, [isOpen, editAreaId, editDimensionName, editDimensionNameEn, isEditing]);
 
-  const loadDomains = async () => {
+  const loadAreas = async () => {
     try {
-      const domainsData = await domainService.getAll();
-      setDomains(domainsData || []);
+      const areasData = await areaService.getAll();
+      setAreas(areasData || []);
     } catch (error) {
-      console.error('Error loading domains:', error);
+      console.error('Error loading areas:', error);
     }
   };
 
   const validate = () => {
     const validationErrors = {};
 
-    const domainError = validateRequired(selectedDomain, t('validation.required', { field: t('wizard.dimension.domain') }));
-    if (domainError) validationErrors.domain = domainError;
+    const areaError = validateRequired(selectedArea, t('validation.required', { field: t('wizard.dimension.area') }));
+    if (areaError) validationErrors.area = areaError;
 
     const nameError = validateRequired(dimensionName, t('validation.required', { field: t('wizard.dimension.name_pt') }));
     if (nameError) validationErrors.name = nameError;
@@ -83,46 +83,46 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
       const getSubName = (s) => typeof s === 'string' ? s : s.name;
       const newSubObj = { name: dimensionName.trim(), name_en: dimensionNameEn.trim() };
 
-      if (isEditing && selectedDomain !== editDomainId) {
-        // Moving to a different domain: remove from old, add to new
-        const oldDomain = await domainService.getById(editDomainId);
-        const oldSubs = (oldDomain.subdomains || []).filter(s => getSubName(s) !== editDimensionName);
-        await domainService.patch(editDomainId, { subdomains: oldSubs });
+      if (isEditing && selectedArea !== editAreaId) {
+        // Moving to a different area: remove from old, add to new
+        const oldArea = await areaService.getById(editAreaId);
+        const oldSubs = (oldArea.dimensions || []).filter(s => getSubName(s) !== editDimensionName);
+        await areaService.patch(editAreaId, { dimensions: oldSubs });
 
-        const newDomain = await domainService.getById(selectedDomain);
-        const newSubs = [...(newDomain.subdomains || []), newSubObj];
-        await domainService.patch(selectedDomain, { subdomains: newSubs });
+        const newArea = await areaService.getById(selectedArea);
+        const newSubs = [...(newArea.dimensions || []), newSubObj];
+        await areaService.patch(selectedArea, { dimensions: newSubs });
 
-        // Update all affected indicators: change domain and subdomain name
-        const allIndicators = await fetchAllDomainIndicators(editDomainId);
-        const affected = allIndicators.filter(ind => ind.subdomain === editDimensionName);
+        // Update all affected indicators: change area and dimension name
+        const allIndicators = await fetchAllAreaIndicators(editAreaId);
+        const affected = allIndicators.filter(ind => ind.dimension === editDimensionName);
         await Promise.all(affected.map(ind =>
-          indicatorService.patch(ind.id, { subdomain: dimensionName.trim(), domain: selectedDomain })
+          indicatorService.patch(ind.id, { dimension: dimensionName.trim(), area: selectedArea })
         ));
       } else if (isEditing) {
-        // Same domain: rename
-        const domain = await domainService.getById(selectedDomain);
-        const currentSubdomains = domain.subdomains || [];
-        const updatedSubdomains = currentSubdomains.map(s => getSubName(s) === editDimensionName ? newSubObj : s);
-        await domainService.patch(selectedDomain, { subdomains: updatedSubdomains });
+        // Same area: rename
+        const area = await areaService.getById(selectedArea);
+        const currentDimensions = area.dimensions || [];
+        const updatedDimensions = currentDimensions.map(s => getSubName(s) === editDimensionName ? newSubObj : s);
+        await areaService.patch(selectedArea, { dimensions: updatedDimensions });
 
-        // Update all indicators with the old subdomain name
+        // Update all indicators with the old dimension name
         if (dimensionName.trim() !== editDimensionName) {
-          const allIndicators = await fetchAllDomainIndicators(selectedDomain);
-          const affected = allIndicators.filter(ind => ind.subdomain === editDimensionName);
+          const allIndicators = await fetchAllAreaIndicators(selectedArea);
+          const affected = allIndicators.filter(ind => ind.dimension === editDimensionName);
           await Promise.all(affected.map(ind =>
-            indicatorService.patch(ind.id, { subdomain: dimensionName.trim() })
+            indicatorService.patch(ind.id, { dimension: dimensionName.trim() })
           ));
         }
       } else {
-        // Add new subdomain
-        const domain = await domainService.getById(selectedDomain);
-        const currentSubdomains = domain.subdomains || [];
-        await domainService.patch(selectedDomain, { subdomains: [...currentSubdomains, newSubObj] });
+        // Add new dimension
+        const area = await areaService.getById(selectedArea);
+        const currentDimensions = area.dimensions || [];
+        await areaService.patch(selectedArea, { dimensions: [...currentDimensions, newSubObj] });
       }
 
       // Reset form
-      setSelectedDomain('');
+      setSelectedArea('');
       setDimensionName('');
       setDimensionNameEn('');
 
@@ -138,7 +138,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
 
   const handleClose = () => {
     if (!loading) {
-      setSelectedDomain('');
+      setSelectedArea('');
       setDimensionName('');
       setDimensionNameEn('');
       setErrors({});
@@ -169,7 +169,7 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
 
   if (!isOpen) return null;
 
-  const domainOptions = domains.map(d => ({
+  const areaOptions = areas.map(d => ({
     value: d.id,
     label: d.name
   }));
@@ -205,14 +205,14 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editDoma
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormSelect
-            label={t('wizard.dimension.domain')}
-            name="domain"
-            value={selectedDomain}
-            onChange={setSelectedDomain}
-            options={domainOptions}
-            placeholder={t('wizard.dimension.domain_placeholder')}
+            label={t('wizard.dimension.area')}
+            name="area"
+            value={selectedArea}
+            onChange={setSelectedArea}
+            options={areaOptions}
+            placeholder={t('wizard.dimension.area_placeholder')}
             required
-            error={errors.domain}
+            error={errors.area}
             disabled={loading}
           />
 
@@ -288,7 +288,7 @@ AddDimensionModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSuccess: PropTypes.func,
-  editDomainId: PropTypes.string,
+  editAreaId: PropTypes.string,
   editDimensionName: PropTypes.string,
   editDimensionNameEn: PropTypes.string,
 };

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ManagementTemplate from '../components/ManagementTemplate';
-import AddDataDropdown from '../components/AddDataDropdown';
 import ResourceWizard from '../components/wizard/ResourceWizard';
+import { confirmAction } from '../utils/confirm';
 import indicatorService from '../services/indicatorService';
 import resourceService from '../services/resourceService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -28,6 +29,8 @@ export default function ResourcesManagement() {
   // Resource wizard state
   const [isResourceWizardOpen, setIsResourceWizardOpen] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState(null);
+
+  const { t } = useTranslation();
 
   // Load data on component mount
   useEffect(() => {
@@ -93,18 +96,25 @@ export default function ResourcesManagement() {
   };
 
   const handleDelete = async (resourceId) => {
+    if (!resourceId || resourceId === 'undefined') {
+      setError('Invalid resource ID. Cannot delete.');
+      return;
+    }
+    const resource = resourcesDetails.find(r => r.id === resourceId);
+    const name = resource?.name || resourceId;
+    const ok = await confirmAction({
+      title: t('admin.resources.confirm_delete_title', 'Eliminar recurso?'),
+      message: t('admin.resources.confirm_delete', {
+        name,
+        defaultValue: `Tem a certeza que deseja eliminar o recurso "${name}"?`,
+      }),
+    });
+    if (!ok) return;
     try {
-      if (!resourceId || resourceId === 'undefined') {
-        setError('Invalid resource ID. Cannot delete.');
-        return;
-      }
-
-      // Delete the resource (resource-service publishes resource_deleted event,
-      // which the indicator-service consumes to unlink the resource automatically)
+      // resource-service publishes a resource_deleted event which the
+      // indicator-service consumes to unlink the resource automatically.
       await resourceService.delete(resourceId);
-
-      // Update local state
-      setResources(resources.filter(id => id !== resourceId));
+      setResources(resources.filter(rid => rid !== resourceId));
       setResourcesDetails(resourcesDetails.filter(r => r.id !== resourceId));
     } catch (err) {
       setError(err.message || 'Failed to delete resource');
@@ -135,26 +145,9 @@ export default function ResourcesManagement() {
     }
   };
 
-  const handleDataTypeSelect = (dataType) => {
-    // Open ResourceWizard modal instead of navigating
-    setEditingResourceId(null);
-    setIsResourceWizardOpen(true);
-  };
-
   const handleEditResource = (resourceId) => {
     setEditingResourceId(resourceId);
     setIsResourceWizardOpen(true);
-  };
-
-  const handleDataTypeSelect_OLD = (dataType) => {
-    navigate(`/add_data_resource/${indicator}`, {
-      state: {
-        dataToSend: {
-          ...indicatorData,
-          selectedDataType: dataType
-        }
-      }
-    });
   };
 
   const fetchWrapperLogs = async (wrapperId) => {
@@ -228,7 +221,15 @@ export default function ResourcesManagement() {
         emptyMessage="There are no resources yet"
         visibleColumns={visibleColumns}
         actions={actions}
-        headerActions={<AddDataDropdown onDataTypeSelect={handleDataTypeSelect} />}
+        headerActions={(
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => { setEditingResourceId(null); setIsResourceWizardOpen(true); }}
+          >
+            {t('admin.resources.add', 'Add Data Resource')}
+          </button>
+        )}
         showSearchBox={false}
       />
 
@@ -292,8 +293,8 @@ export default function ResourcesManagement() {
                       <div className="bg-base-200 p-4 rounded">
                         <h4 className="font-semibold mb-2">Metadata</h4>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                                    <div><strong>Domain:</strong> {selectedWrapper.metadata.domain}</div>
-                                    <div><strong>Dimensão:</strong> {selectedWrapper.metadata.subdomain}</div>
+                                    <div><strong>Area:</strong> {selectedWrapper.metadata.area}</div>
+                                    <div><strong>Dimensão:</strong> {selectedWrapper.metadata.dimension}</div>
                                     <div><strong>Description:</strong> {selectedWrapper.metadata.description || 'N/A'}</div>
                         </div>
                       </div>

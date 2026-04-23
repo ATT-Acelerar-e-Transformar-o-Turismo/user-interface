@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useDomain } from "../contexts/DomainContext";
+import { useArea } from "../contexts/AreaContext";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
-import Dropdowns from "../components/DomainDropdown";
+import Dropdowns from "../components/AreaDropdown";
 import IndicatorCard from "../components/IndicatorCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorDisplay from "../components/ErrorDisplay";
@@ -14,11 +14,11 @@ import useLocalizedName from "../hooks/useLocalizedName";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function DomainTemplate() {
+export default function AreaTemplate() {
   const location = useLocation();
-  const { domainPath } = useParams();
-  const { domainId: stateDomainId, domainName } = location.state || {};
-  const { domains, getDomainByName } = useDomain();
+  const { areaPath } = useParams();
+  const { areaId: stateAreaId, areaName } = location.state || {};
+  const { areas, getAreaByName } = useArea();
   const getName = useLocalizedName();
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -29,8 +29,8 @@ export default function DomainTemplate() {
   const searchQuery = searchParams.get('q');
   const isSearchMode = Boolean(searchQuery);
   
-  // Determine domain from state or URL path
-  const pathToDomainName = (path) => {
+  // Determine area from state or URL path
+  const pathToAreaName = (path) => {
     if (!path || typeof path !== 'string') return "";
     // Remove leading /indicators/ or /
     const cleanPath = path.replace(/^\/indicators\//, "").replace(/^\//, "");
@@ -42,43 +42,43 @@ export default function DomainTemplate() {
       .join(" ");
   };
   
-  const inferredDomainName = domainName || (location.pathname === '/all-indicators' ? '' : pathToDomainName(domainPath || location.pathname));
-  const isAllIndicatorsMode = !inferredDomainName && !isSearchMode;
+  const inferredAreaName = areaName || (location.pathname === '/all-indicators' ? '' : pathToAreaName(areaPath || location.pathname));
+  const isAllIndicatorsMode = !inferredAreaName && !isSearchMode;
 
   // Debug logging
-  console.log("DomainTemplate Debug:", {
-    domainPath,
+  console.log("AreaTemplate Debug:", {
+    areaPath,
     locationPathname: location.pathname,
-    domainName,
-    inferredDomainName,
+    areaName,
+    inferredAreaName,
     isAllIndicatorsMode,
-    domainsLength: domains.length,
-    domains: domains.map(d => ({ id: d?.id, name: d?.name }))
+    areasLength: areas.length,
+    areas: areas.map(d => ({ id: d?.id, name: d?.name }))
   });
   
-  // Find domain by ID first, then fallback to name match (PT and EN)
-  const foundDomain = (stateDomainId && domains.find(dom => dom?.id === stateDomainId))
-    || domains.find(dom =>
-      dom?.name === domainName || dom?.name === inferredDomainName ||
-      dom?.name_en === domainName || dom?.name_en === inferredDomainName
-    ) || getDomainByName(inferredDomainName);
+  // Find area by ID first, then fallback to name match (PT and EN)
+  const foundArea = (stateAreaId && areas.find(dom => dom?.id === stateAreaId))
+    || areas.find(dom =>
+      dom?.name === areaName || dom?.name === inferredAreaName ||
+      dom?.name_en === areaName || dom?.name_en === inferredAreaName
+    ) || getAreaByName(inferredAreaName);
   
-  const selectedDomainObj = foundDomain || (isAllIndicatorsMode ? null : {
+  const selectedAreaObj = foundArea || (isAllIndicatorsMode ? null : {
     id: location.pathname.replace("/", ""),
-    name: inferredDomainName || "Test Domain",
-    subdomains: [],
-    DomainCarouselImages: []
+    name: inferredAreaName || "Test Area",
+    dimensions: [],
+    AreaCarouselImages: []
   });
   
-  console.log("Selected Domain Object:", selectedDomainObj);
-  console.log("Subdomains detail:", selectedDomainObj?.subdomains);
+  console.log("Selected Area Object:", selectedAreaObj);
+  console.log("Dimensions detail:", selectedAreaObj?.dimensions);
   
-  // Ensure safe subdomains array 
-  if (selectedDomainObj?.subdomains && Array.isArray(selectedDomainObj.subdomains)) {
-    selectedDomainObj.subdomains = selectedDomainObj.subdomains.filter(sub => 
+  // Ensure safe dimensions array 
+  if (selectedAreaObj?.dimensions && Array.isArray(selectedAreaObj.dimensions)) {
+    selectedAreaObj.dimensions = selectedAreaObj.dimensions.filter(sub => 
       sub != null && (typeof sub === 'string' || (typeof sub === 'object' && sub.name != null))
     );
-    console.log("Filtered subdomains:", selectedDomainObj.subdomains);
+    console.log("Filtered dimensions:", selectedAreaObj.dimensions);
   }
 
   // API state management
@@ -99,10 +99,10 @@ export default function DomainTemplate() {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [governanceFilter, setGovernanceFilter] = useState(null);
-  const [domainFilter, setDomainFilter] = useState(null);
-  const initialSubdomainName = searchParams.get('subdomain') || location.state?.subdomain || null;
-  const initialSubdomain = initialSubdomainName ? { name: initialSubdomainName } : null;
-  const [subdomainFilter, setSubdomainFilter] = useState(initialSubdomainName);
+  const [areaFilter, setAreaFilter] = useState(null);
+  const initialDimensionName = searchParams.get('dimension') || location.state?.dimension || null;
+  const initialDimension = initialDimensionName ? { name: initialDimensionName } : null;
+  const [dimensionFilter, setDimensionFilter] = useState(initialDimensionName);
 
   // View mode and search state
   const [viewMode, setViewMode] = useState('grid');
@@ -128,13 +128,13 @@ export default function DomainTemplate() {
     setSearchParams(newParams, { replace: true });
   }, [currentPage]);
 
-  // Domain state
-  const [selectedSubdomain, setSelectedSubdomain] = useState(initialSubdomain);
-  const [,setSelectedDomain] = useState(selectedDomainObj);
+  // Area state
+  const [selectedDimension, setSelectedDimension] = useState(initialDimension);
+  const [,setSelectedArea] = useState(selectedAreaObj);
   const navigateTo = useNavigate();
 
-  const images = selectedDomainObj?.DomainCarouselImages?.length > 0
-    ? selectedDomainObj.DomainCarouselImages
+  const images = selectedAreaObj?.AreaCarouselImages?.length > 0
+    ? selectedAreaObj.AreaCarouselImages
     : [];
 
   // Graph icons
@@ -158,32 +158,32 @@ export default function DomainTemplate() {
 
       if (isSearchMode && searchQuery) {
         // Search mode: use search API with sorting and filtering
-        data = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isAdmin);
+        data = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, isAdmin);
         const hasMoreData = data.length === pageSize;
         totalCount = hasMoreData ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + data.length;
       } else if (isAllIndicatorsMode) {
         // All Indicators mode
-        // Check if we are filtering by domain via dropdown in All Indicators mode
-        if (domainFilter) {
-           if (subdomainFilter) {
-              // Filter by specific subdomain within a domain
+        // Check if we are filtering by area via dropdown in All Indicators mode
+        if (areaFilter) {
+           if (dimensionFilter) {
+              // Filter by specific dimension within a area
               const [indicatorsData, count] = await Promise.all([
-                indicatorService.getBySubdomain(domainFilter, subdomainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
-                indicatorService.getCountBySubdomain(domainFilter, subdomainFilter, governanceFilter, isAdmin)
+                indicatorService.getByDimension(areaFilter, dimensionFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+                indicatorService.getCountByDimension(areaFilter, dimensionFilter, governanceFilter, isAdmin)
               ]);
               data = indicatorsData;
               totalCount = count;
            } else {
-              // Filter by specific domain
+              // Filter by specific area
               const [indicatorsData, count] = await Promise.all([
-                indicatorService.getByDomain(domainFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
-                indicatorService.getCountByDomain(domainFilter, governanceFilter, isAdmin)
+                indicatorService.getByArea(areaFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+                indicatorService.getCountByArea(areaFilter, governanceFilter, isAdmin)
               ]);
               data = indicatorsData;
               totalCount = count;
            }
         } else {
-           // No domain filter, get everything
+           // No area filter, get everything
            const [indicatorsData, count] = await Promise.all([
              indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
              indicatorService.getCount(isAdmin)
@@ -192,30 +192,30 @@ export default function DomainTemplate() {
            totalCount = count;
         }
       } else {
-        // Specific Domain mode (legacy /environment etc or /indicators/environment)
-        if (domains.length === 0) {
-          // Domains still loading — keep spinner, effect will re-run when domains arrive
+        // Specific Area mode (legacy /environment etc or /indicators/environment)
+        if (areas.length === 0) {
+          // Areas still loading — keep spinner, effect will re-run when areas arrive
           return;
         }
 
-        if (!selectedDomainObj?.id || !selectedDomainObj.id.match(/^[a-fA-F0-9]{24}$/)) {
+        if (!selectedAreaObj?.id || !selectedAreaObj.id.match(/^[a-fA-F0-9]{24}$/)) {
           setLoading(false);
           return;
         }
 
         // Use parallel API calls to get both indicators and count
-        if (selectedSubdomain && selectedSubdomain.name) {
-          const subdomainName = typeof selectedSubdomain === 'string' ? selectedSubdomain : selectedSubdomain.name;
+        if (selectedDimension && selectedDimension.name) {
+          const dimensionName = typeof selectedDimension === 'string' ? selectedDimension : selectedDimension.name;
           const [indicatorsData, count] = await Promise.all([
-            indicatorService.getBySubdomain(selectedDomainObj.id, subdomainName, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
-            indicatorService.getCountBySubdomain(selectedDomainObj.id, subdomainName, governanceFilter, isAdmin)
+            indicatorService.getByDimension(selectedAreaObj.id, dimensionName, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+            indicatorService.getCountByDimension(selectedAreaObj.id, dimensionName, governanceFilter, isAdmin)
           ]);
           data = indicatorsData;
           totalCount = count;
         } else {
           const [indicatorsData, count] = await Promise.all([
-            indicatorService.getByDomain(selectedDomainObj.id, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
-            indicatorService.getCountByDomain(selectedDomainObj.id, governanceFilter, isAdmin)
+            indicatorService.getByArea(selectedAreaObj.id, skip, pageSize, sortBy, sortOrder, governanceFilter, isAdmin),
+            indicatorService.getCountByArea(selectedAreaObj.id, governanceFilter, isAdmin)
           ]);
           data = indicatorsData;
           totalCount = count;
@@ -256,11 +256,11 @@ export default function DomainTemplate() {
 
   useEffect(() => {
     loadIndicators();
-  }, [selectedDomainObj?.id, selectedSubdomain, currentPage, pageSize, domains, sortBy, sortOrder, governanceFilter, domainFilter, subdomainFilter, isSearchMode, searchQuery, isAllIndicatorsMode, isAdmin]);
+  }, [selectedAreaObj?.id, selectedDimension, currentPage, pageSize, areas, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, isSearchMode, searchQuery, isAllIndicatorsMode, isAdmin]);
 
-  // Reset pagination when subdomain changes
-  const handleSubdomainChange = (subdomain) => {
-    setSelectedSubdomain(subdomain);
+  // Reset pagination when dimension changes
+  const handleDimensionChange = (dimension) => {
+    setSelectedDimension(dimension);
     setCurrentPage(0);
   };
 
@@ -296,21 +296,21 @@ export default function DomainTemplate() {
     }
   }, [searchInput, isSearchMode, navigateTo]);
 
-  const domainColor = selectedDomainObj?.DomainColor || selectedDomainObj?.color || '#C3F25E';
-  const domainIcon = selectedDomainObj?.DomainIcon;
+  const areaColor = selectedAreaObj?.AreaColor || selectedAreaObj?.color || '#C3F25E';
+  const areaIcon = selectedAreaObj?.AreaIcon;
   const displayName = isSearchMode
-    ? t('domains.search_results_for', { query: searchQuery })
-    : getName(selectedDomainObj) || (isAllIndicatorsMode ? t('domains.all_indicators') : inferredDomainName || t('domains.indicators'));
+    ? t('areas.search_results_for', { query: searchQuery })
+    : getName(selectedAreaObj) || (isAllIndicatorsMode ? t('areas.all_indicators') : inferredAreaName || t('areas.indicators'));
   const displayDescription = isSearchMode
-    ? t('domains.search_results_description', { count: indicators.length })
+    ? t('areas.search_results_description', { count: indicators.length })
     : isAllIndicatorsMode
-      ? t('domains.all_indicators_description')
-      : t('domains.domain_description', { name: (selectedDomainObj?.name || inferredDomainName || '').toLowerCase() });
+      ? t('areas.all_indicators_description')
+      : t('areas.area_description', { name: (selectedAreaObj?.name || inferredAreaName || '').toLowerCase() });
 
   return (
     <PageTemplate fullBleed>
       <div className="min-h-screen bg-[#f3f4f6] overflow-x-hidden">
-        {/* Hero banner — tall image + domain-colored wave + icon */}
+        {/* Hero banner — tall image + area-colored wave + icon */}
         {!isSearchMode && !isAllIndicatorsMode && images.length > 0 && (
           <div className="relative w-full">
             {/* Dark photo background — ends at wave midpoint */}
@@ -321,7 +321,7 @@ export default function DomainTemplate() {
             </div>
             {/* Spacer for the bottom half of the wave (below the image) */}
             <div className="w-full h-12 sm:h-24 bg-[#f3f4f6]" />
-            {/* Domain-colored wave stroke at bottom of hero */}
+            {/* Area-colored wave stroke at bottom of hero */}
             {/* Mobile: wave */}
             <svg
               className="absolute bottom-0 left-[-5%] w-[110%] h-20 sm:hidden"
@@ -330,7 +330,7 @@ export default function DomainTemplate() {
               preserveAspectRatio="none"
             >
               <defs>
-                <filter id="domain-mobile-wave" x="0" y="0" width="432.123" height="70.5088" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <filter id="area-mobile-wave" x="0" y="0" width="432.123" height="70.5088" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
                   <feFlood floodOpacity="0" result="BackgroundImageFix"/>
                   <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
                   <feMorphology radius="0.652927" operator="dilate" in="SourceAlpha" result="effect1"/>
@@ -341,8 +341,8 @@ export default function DomainTemplate() {
                   <feBlend mode="normal" in="SourceGraphic" in2="effect1" result="shape"/>
                 </filter>
               </defs>
-              <g filter="url(#domain-mobile-wave)">
-                <path d="M9.59497 26.3733C82.3981 54.3991 127.74 43.7612 190.611 31.5028C280.743 13.9292 338.564 29.4627 426.1 47.1511" stroke={domainColor} strokeWidth="44.329"/>
+              <g filter="url(#area-mobile-wave)">
+                <path d="M9.59497 26.3733C82.3981 54.3991 127.74 43.7612 190.611 31.5028C280.743 13.9292 338.564 29.4627 426.1 47.1511" stroke={areaColor} strokeWidth="44.329"/>
               </g>
             </svg>
             {/* Desktop: thick wave band */}
@@ -353,7 +353,7 @@ export default function DomainTemplate() {
               preserveAspectRatio="none"
             >
               <defs>
-                <filter id="domain-wave-shadow" x="-110" y="0" width="1729" height="230" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <filter id="area-wave-shadow" x="-110" y="0" width="1729" height="230" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
                   <feFlood floodOpacity="0" result="BackgroundImageFix"/>
                   <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
                   <feMorphology radius="1.46" operator="dilate" in="SourceAlpha" result="effect1"/>
@@ -364,21 +364,21 @@ export default function DomainTemplate() {
                   <feBlend mode="normal" in="SourceGraphic" in2="effect1" result="shape"/>
                 </filter>
               </defs>
-              <g filter="url(#domain-wave-shadow)">
+              <g filter="url(#area-wave-shadow)">
                 <path
                   d="M-56.7861 98.2787C105.288 132.099 121.652 141.321 293.331 107.848C468.398 73.7143 641.792 88.1376 762.805 119.016C1016 183.621 1352.56 229.014 1565.73 53.2341"
-                  stroke={domainColor}
+                  stroke={areaColor}
                   strokeWidth="99.1626"
                   strokeLinecap="round"
                 />
               </g>
             </svg>
-            {/* Domain icon — overlapping the wave/content boundary */}
-            {domainIcon && (
+            {/* Area icon — overlapping the wave/content boundary */}
+            {areaIcon && (
               <div
                 className="absolute left-4 sm:left-12 bottom-4 sm:bottom-10 bg-white rounded-full p-3 sm:p-5 flex items-center justify-center z-10 w-17 h-17 sm:w-28 sm:h-28 shadow-sm"
               >
-                <img src={domainIcon} alt="" className="w-[40px] h-[40px] sm:w-[76px] sm:h-[76px] object-contain" />
+                <img src={areaIcon} alt="" className="w-[40px] h-[40px] sm:w-[76px] sm:h-[76px] object-contain" />
               </div>
             )}
           </div>
@@ -398,9 +398,9 @@ export default function DomainTemplate() {
                 {t('common.back')}
               </button>
               <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
-                <Link to="/indicators" className="hover:underline">{t('domains.breadcrumb_dimensions')}</Link>
+                <Link to="/indicators" className="hover:underline">{t('areas.breadcrumb_dimensions')}</Link>
                 <span className="text-gray-400">/</span>
-                <span className="underline underline-offset-4">{getName(selectedDomainObj) || inferredDomainName}</span>
+                <span className="underline underline-offset-4">{getName(selectedAreaObj) || inferredAreaName}</span>
               </nav>
             </div>
           )}
@@ -419,7 +419,7 @@ export default function DomainTemplate() {
           {!isSearchMode && !isAllIndicatorsMode && (
             <div className="flex flex-col lg:flex-row gap-8 mb-16">
               <div className="bg-[#fffefc] rounded-2xl flex-1 flex flex-col items-center justify-center p-8 gap-8">
-                <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">{t('domains.overall_performance')}</h2>
+                <h2 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight">{t('areas.overall_performance')}</h2>
                 <div className="flex flex-col items-center gap-8">
                   <div className="w-64 h-32 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-t-full opacity-30" />
                   <div className="flex items-center gap-4">
@@ -428,15 +428,15 @@ export default function DomainTemplate() {
                     <span className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a]">100</span>
                   </div>
                   <span className="bg-[#cef1aa] text-[#0a0a0a] font-['Onest'] font-medium text-sm rounded-full px-4 py-1">
-                    {t('domains.insufficient_data')}
+                    {t('areas.insufficient_data')}
                   </span>
                 </div>
               </div>
               <div className="flex flex-col gap-4 lg:w-96 shrink-0">
                 {[
-                  { label: t('domains.stat_available_indicators'), value: `${totalIndicators}`, status: t('domains.stat_active') },
-                  { label: t('domains.stat_subdomains'), value: `${selectedDomainObj?.subdomains?.length || 0}`, status: t('domains.stat_active') },
-                  { label: t('domains.stat_governance'), value: `${indicators.filter(i => i.governance).length}`, status: t('domains.stat_active') },
+                  { label: t('areas.stat_available_indicators'), value: `${totalIndicators}`, status: t('areas.stat_active') },
+                  { label: t('areas.stat_dimensions'), value: `${selectedAreaObj?.dimensions?.length || 0}`, status: t('areas.stat_active') },
+                  { label: t('areas.stat_governance'), value: `${indicators.filter(i => i.governance).length}`, status: t('areas.stat_active') },
                 ].map((stat, i) => (
                   <div key={i} className="bg-[#fffefc] rounded-2xl px-6 py-5 flex items-center gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)]">
                     <div className="w-10 h-10 rounded-lg bg-[#f3f4f6] flex items-center justify-center shrink-0">
@@ -459,38 +459,38 @@ export default function DomainTemplate() {
           {/* Todos os Indicadores section */}
           <div className="flex flex-col gap-6">
             <h2 className="font-['Onest'] font-semibold text-2xl sm:text-3xl text-[#0a0a0a] tracking-tight">
-              {t('domains.all_indicators')}
+              {t('areas.all_indicators')}
             </h2>
 
             {/* Filter bar */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4">
               {/* Left: filters */}
               <div className="flex flex-wrap items-center gap-3 sm:gap-6 w-full sm:w-auto">
-                {/* Domain/Subdomain dropdowns */}
+                {/* Area/Dimension dropdowns */}
                 {!isSearchMode && (
                   <Dropdowns
-                    selectedDomain={isAllIndicatorsMode ? (domainFilter ? domains.find(d => d.id === domainFilter) : null) : selectedDomainObj}
-                    setSelectedDomain={(domain) => {
+                    selectedArea={isAllIndicatorsMode ? (areaFilter ? areas.find(d => d.id === areaFilter) : null) : selectedAreaObj}
+                    setSelectedArea={(area) => {
                       if (isAllIndicatorsMode) {
-                        setDomainFilter(domain?.id || null);
-                        setSubdomainFilter(null);
+                        setAreaFilter(area?.id || null);
+                        setDimensionFilter(null);
                         setCurrentPage(0);
                       } else {
-                        setSelectedDomain(domain);
+                        setSelectedArea(area);
                       }
                     }}
-                    selectedSubdomain={isAllIndicatorsMode ? (subdomainFilter ? { name: subdomainFilter } : null) : selectedSubdomain}
-                    setSelectedSubdomain={(sub) => {
+                    selectedDimension={isAllIndicatorsMode ? (dimensionFilter ? { name: dimensionFilter } : null) : selectedDimension}
+                    setSelectedDimension={(sub) => {
                       if (isAllIndicatorsMode) {
-                        setSubdomainFilter(sub?.name || null);
+                        setDimensionFilter(sub?.name || null);
                         setCurrentPage(0);
                       } else {
-                        handleSubdomainChange(sub);
+                        handleDimensionChange(sub);
                       }
                     }}
-                    redirectOnDomainChange={!isAllIndicatorsMode}
-                    allowSubdomainClear={true}
-                    allowDomainClear={isAllIndicatorsMode}
+                    redirectOnAreaChange={!isAllIndicatorsMode}
+                    allowDimensionClear={true}
+                    allowAreaClear={isAllIndicatorsMode}
                   />
                 )}
 
@@ -504,7 +504,7 @@ export default function DomainTemplate() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
                     </svg>
                     <span className="truncate">
-                      {sortBy === 'name' ? t('domains.sort_name') : sortBy === 'periodicity' ? t('domains.sort_periodicity') : t('domains.sort_favorites')}
+                      {sortBy === 'name' ? t('areas.sort_name') : sortBy === 'periodicity' ? t('areas.sort_periodicity') : t('areas.sort_favorites')}
                     </span>
                     <svg className={`w-4 h-4 text-[#0a0a0a] shrink-0 transition-transform ${isSortDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -513,9 +513,9 @@ export default function DomainTemplate() {
                   {isSortDropdownOpen && (
                     <div className="absolute z-50 mt-2 w-full bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden">
                       {[
-                        { value: 'name', label: t('domains.sort_name') },
-                        { value: 'periodicity', label: t('domains.sort_periodicity') },
-                        { value: 'favourites', label: t('domains.sort_favorites') },
+                        { value: 'name', label: t('areas.sort_name') },
+                        { value: 'periodicity', label: t('areas.sort_periodicity') },
+                        { value: 'favourites', label: t('areas.sort_favorites') },
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -537,7 +537,7 @@ export default function DomainTemplate() {
                     checked={governanceFilter === true}
                     onChange={(e) => { handleGovernanceFilter(e.target.checked ? true : null); }}
                   />
-                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">{t('domains.filter_governance')}</span>
+                  <span className="font-['Onest'] text-sm text-[#0a0a0a]">{t('areas.filter_governance')}</span>
                 </label>
               </div>
 
@@ -552,7 +552,7 @@ export default function DomainTemplate() {
                         ? 'bg-black/[0.03] border-[#d4d4d4]'
                         : 'bg-[#fffefc] border-[#e5e5e5] hover:bg-black/[0.02]'
                     }`}
-                    title={t('domains.view_grid')}
+                    title={t('areas.view_grid')}
                   >
                     <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -565,7 +565,7 @@ export default function DomainTemplate() {
                         ? 'bg-black/[0.03] border-[#d4d4d4]'
                         : 'bg-[#fffefc] border-[#e5e5e5] hover:bg-black/[0.02]'
                     }`}
-                    title={t('domains.view_table')}
+                    title={t('areas.view_table')}
                   >
                     <svg className="w-4 h-4 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M3 6h18M3 18h18" />
@@ -579,7 +579,7 @@ export default function DomainTemplate() {
                     type="text"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder={t('domains.search_placeholder')}
+                    placeholder={t('areas.search_placeholder')}
                     className="font-['Onest'] bg-[#fffefc] border border-[#e5e5e5] rounded-full h-10 pl-4 pr-10 w-48 sm:w-72 text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                   <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
@@ -608,19 +608,26 @@ export default function DomainTemplate() {
                             key={indicator.id}
                             IndicatorTitle={isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
                             IndicatorId={indicator.id}
-                            domain={
-                              (typeof indicator.domain === 'object' ? indicator.domain?.name : domains.find(d => d.id === indicator.domain)?.name)
-                              || selectedDomainObj?.name
-                            }
-                            subdomain={
-                              isSearchMode || isAllIndicatorsMode
-                                ? (indicator.subdomain || undefined)
-                                : (getName(selectedSubdomain) || indicator.subdomain || undefined)
-                            }
+                            area={(() => {
+                              // Backend field is `domain`; legacy fallback is `area`.
+                              const raw = indicator.domain ?? indicator.area;
+                              const resolved = typeof raw === 'object'
+                                ? raw?.name
+                                : areas.find(d => d.id === raw)?.name;
+                              return resolved || selectedAreaObj?.name;
+                            })()}
+                            dimension={(() => {
+                              // Backend field is `subdomain`; legacy fallback is `dimension`.
+                              const fromIndicator = indicator.subdomain || indicator.dimension;
+                              return (isSearchMode || isAllIndicatorsMode)
+                                ? (fromIndicator || undefined)
+                                : (getName(selectedDimension) || fromIndicator || undefined);
+                            })()}
                             description={getName.field(indicator, 'description', 'description_en')}
                             unit={indicator.unit}
                             hidden={!!indicator.hidden}
                             isAdmin={isAdmin}
+                            defaultChartType={indicator.default_chart_type}
                             onToggleHidden={async (e) => {
                               e.stopPropagation();
                               await indicatorService.patch(indicator.id, { hidden: !indicator.hidden });
@@ -635,44 +642,48 @@ export default function DomainTemplate() {
                       <table className="min-w-full font-['Onest']">
                         <thead>
                           <tr className="border-b border-[#e5e5e5] text-left text-sm text-gray-500">
-                            <th className="px-4 sm:px-6 py-4 font-medium">{t('domains.table_name')}</th>
-                            <th className="px-4 sm:px-6 py-4 font-medium">{t('domains.table_dimension')}</th>
-                            <th className="hidden md:table-cell px-4 sm:px-6 py-4 font-medium">{t('domains.table_subdomain')}</th>
-                            <th className="hidden sm:table-cell px-4 sm:px-6 py-4 font-medium">{t('domains.table_unit')}</th>
-                            <th className="hidden lg:table-cell px-4 sm:px-6 py-4 font-medium">{t('domains.filter_governance')}</th>
+                            <th className="px-4 sm:px-6 py-4 font-medium">{t('areas.table_name')}</th>
+                            <th className="px-4 sm:px-6 py-4 font-medium">{t('areas.table_dimension')}</th>
+                            <th className="hidden md:table-cell px-4 sm:px-6 py-4 font-medium">{t('areas.table_dimension')}</th>
+                            <th className="hidden sm:table-cell px-4 sm:px-6 py-4 font-medium">{t('areas.table_unit')}</th>
+                            <th className="hidden lg:table-cell px-4 sm:px-6 py-4 font-medium">{t('areas.filter_governance')}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {indicators
                             .filter(ind => ind?.name && ind?.id)
                             .map((indicator) => {
-                              const indDomainName = (typeof indicator.domain === 'object' ? indicator.domain?.name : domains.find(d => d.id === indicator.domain)?.name) || selectedDomainObj?.name;
-                              const indDomainObj = domains.find(d => d.name === indDomainName);
-                              const indSubdomain = isSearchMode || isAllIndicatorsMode
-                                ? (indicator.subdomain || '')
-                                : (getName(selectedSubdomain) || indicator.subdomain || '');
+                              const rawArea = indicator.domain ?? indicator.area;
+                              const indAreaName = (typeof rawArea === 'object'
+                                ? rawArea?.name
+                                : areas.find(d => d.id === rawArea)?.name) || selectedAreaObj?.name;
+                              const indAreaObj = areas.find(d => d.name === indAreaName);
+                              const fromIndicator = indicator.subdomain || indicator.dimension;
+                              const indDimension = isSearchMode || isAllIndicatorsMode
+                                ? (fromIndicator || '')
+                                : (getName(selectedDimension) || fromIndicator || '');
                               return (
                                 <tr
                                   key={indicator.id}
                                   className={`border-b border-[#f3f4f6] hover:bg-[#f9fafb] cursor-pointer transition-colors ${indicator.hidden ? 'opacity-50' : ''}`}
                                   onClick={() => navigateTo(`/indicator/${indicator.id}`, {
-                                    state: { indicatorId: indicator.id, domainName: indDomainName, subdomainName: indSubdomain }
+                                    state: { indicatorId: indicator.id, areaName: indAreaName, dimensionName: indDimension }
                                   })}
                                 >
                                   <td className="px-4 sm:px-6 py-4 text-sm font-semibold text-[#0a0a0a]">
                                     {isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
                                   </td>
                                   <td className="px-4 sm:px-6 py-4">
-                                    {indDomainName && (
+                                    {indAreaName && (
                                       <span
                                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap"
-                                        style={{ backgroundColor: indDomainObj?.color || '#9ca3af' }}
+                                        style={{ backgroundColor: indAreaObj?.color || '#9ca3af' }}
                                       >
-                                        {indDomainName}
+                                        {indAreaName}
                                       </span>
                                     )}
                                   </td>
-                                  <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indSubdomain}</td>
+                                  <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indDimension}</td>
                                   <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indicator.unit || '—'}</td>
                                   <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indicator.governance ? t('common.yes') : t('common.no')}</td>
                                 </tr>
@@ -685,14 +696,14 @@ export default function DomainTemplate() {
                 ) : (
                   <div className="text-center py-16">
                     <h3 className="font-['Onest'] text-2xl font-semibold text-[#0a0a0a] mb-2">
-                      {t('domains.no_indicators_found')}
+                      {t('areas.no_indicators_found')}
                     </h3>
                     <p className="font-['Onest'] text-gray-600">
                       {isSearchMode
-                        ? t('domains.no_indicators_search', { query: searchQuery })
-                        : getName(selectedSubdomain)
-                          ? t('domains.no_indicators_subdomain', { name: getName(selectedSubdomain) })
-                          : t('domains.no_indicators_domain', { name: getName(selectedDomainObj) || inferredDomainName })}
+                        ? t('areas.no_indicators_search', { query: searchQuery })
+                        : getName(selectedDimension)
+                          ? t('areas.no_indicators_dimension', { name: getName(selectedDimension) })
+                          : t('areas.no_indicators_area', { name: getName(selectedAreaObj) || inferredAreaName })}
                     </p>
                   </div>
                 )}
@@ -707,7 +718,7 @@ export default function DomainTemplate() {
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName={t('domains.item_name_indicators')}
+                    itemName={t('areas.item_name_indicators')}
                   />
                 </div>
               </>

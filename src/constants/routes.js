@@ -1,12 +1,12 @@
 export const ROUTES = {
   HOME: '/',
   INDICATORS: '/indicators',
-  DOMAIN: (domainName) => `/${domainName.toLowerCase().replace(/\s+/g, '-')}`,
+  AREA: (areaName) => `/${areaName.toLowerCase().replace(/\s+/g, '-')}`,
   BLOG: '/news-events',
   BLOG_POST: (postId) => `/news-events/${postId}`,
   ADMIN: {
     LOGIN: '/admin/login',
-    DOMAINS: '/admin/domains',
+    AREAS: '/admin/areas',
     INDICATORS: '/admin/indicators',
     RESOURCES: '/admin/resources',
     USERS: '/admin/users',

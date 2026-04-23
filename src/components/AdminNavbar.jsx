@@ -40,7 +40,7 @@ export default function AdminNavbar() {
         { label: t('admin.nav.overview'), path: '/admin', exact: true },
         { label: t('admin.nav.indicators'), path: '/admin/indicators-management' },
         { label: t('admin.nav.dimensions'), path: '/admin/dimensions' },
-        { label: t('admin.nav.domains'), path: '/admin/domains-management' },
+        { label: t('admin.nav.areas'), path: '/admin/areas-management' },
         { label: t('admin.nav.news_events'), path: '/admin/news-events' },
     ];
 

@@ -6,17 +6,18 @@ import ActionCard from '../components/ActionCard';
 import Pagination from '../components/Pagination';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
-import DomainWizard from '../components/wizard/DomainWizard';
+import AreaWizard from '../components/wizard/AreaWizard';
 import SuccessModal from '../components/wizard/SuccessModal';
-import domainService from '../services/domainService';
+import areaService from '../services/areaService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
+import { confirmAction } from '../utils/confirm';
 
-export default function DomainsManagement() {
+export default function AreasManagement() {
   const { t } = useTranslation();
   const getName = useLocalizedName();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [domains, setDomains] = useState([]);
+  const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(() => {
@@ -41,101 +42,103 @@ export default function DomainsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal state
-  const [isDomainWizardOpen, setIsDomainWizardOpen] = useState(false);
-  const [editingDomainId, setEditingDomainId] = useState(null);
+  const [isAreaWizardOpen, setIsAreaWizardOpen] = useState(false);
+  const [editingAreaId, setEditingAreaId] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
-    loadDomains();
+    loadAreas();
   }, [currentPage, sortBy, sortOrder, searchQuery]);
 
-  const loadDomains = async () => {
+  const loadAreas = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch all domains
-      const domainsData = await domainService.getAll();
+      // Fetch all areas
+      const areasData = await areaService.getAll();
 
-      // Enhance domains with indicator counts and subdomain counts
-      const enhancedDomainsPromises = domainsData.map(async (domain) => {
-        const subdomainCount = (domain.subdomains || domain.subdominios || []).length;
+      // Enhance areas with indicator counts and dimension counts
+      const enhancedAreasPromises = areasData.map(async (area) => {
+        const dimensionCount = (area.dimensions || area.subdominios || []).length;
 
         // Use the count endpoint for efficiency
         let indicatorCount = 0;
         try {
-          indicatorCount = await indicatorService.getCountByDomain(domain.id);
+          indicatorCount = await indicatorService.getCountByArea(area.id);
         } catch (err) {
-          console.warn(`Failed to get indicator count for domain ${domain.id}:`, err);
+          console.warn(`Failed to get indicator count for area ${area.id}:`, err);
         }
 
         return {
-          ...domain,
+          ...area,
           indicatorCount,
-          subdomainCount
+          dimensionCount
         };
       });
 
-      const enhancedDomains = await Promise.all(enhancedDomainsPromises);
+      const enhancedAreas = await Promise.all(enhancedAreasPromises);
 
       // Apply search filter
-      let filteredDomains = enhancedDomains;
+      let filteredAreas = enhancedAreas;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        filteredDomains = enhancedDomains.filter(domain =>
-          domain.name.toLowerCase().includes(query) ||
-          (domain.name_en || '').toLowerCase().includes(query)
+        filteredAreas = enhancedAreas.filter(area =>
+          area.name.toLowerCase().includes(query) ||
+          (area.name_en || '').toLowerCase().includes(query)
         );
       }
 
       // Apply sorting
-      filteredDomains.sort((a, b) => {
+      filteredAreas.sort((a, b) => {
         let comparison = 0;
 
         if (sortBy === 'name') {
           comparison = a.name.localeCompare(b.name);
         } else if (sortBy === 'indicatorCount') {
           comparison = a.indicatorCount - b.indicatorCount;
-        } else if (sortBy === 'subdomainCount') {
-          comparison = a.subdomainCount - b.subdomainCount;
+        } else if (sortBy === 'dimensionCount') {
+          comparison = a.dimensionCount - b.dimensionCount;
         }
 
         return sortOrder === 'asc' ? comparison : -comparison;
       });
 
       // Apply pagination
-      setTotalItems(filteredDomains.length);
+      setTotalItems(filteredAreas.length);
       const start = currentPage * pageSize;
       const end = start + pageSize;
-      const paginatedDomains = filteredDomains.slice(start, end);
+      const paginatedAreas = filteredAreas.slice(start, end);
 
-      setDomains(paginatedDomains);
+      setAreas(paginatedAreas);
 
     } catch (err) {
-      setError(err.message || t('admin.domains.load_error'));
-      console.error('Error loading domains:', err);
+      setError(err.message || t('admin.areas.load_error'));
+      console.error('Error loading areas:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (domain) => {
-    setEditingDomainId(domain.id);
-    setIsDomainWizardOpen(true);
+  const handleEdit = (area) => {
+    setEditingAreaId(area.id);
+    setIsAreaWizardOpen(true);
   };
 
-  const handleDelete = async (domain) => {
-    if (!window.confirm(t('admin.domains.confirm_delete', { name: domain.name }))) {
-      return;
-    }
+  const handleDelete = async (area) => {
+    const ok = await confirmAction({
+      title: t('common.confirm_title'),
+      message: t('admin.areas.confirm_delete', { name: area.name }),
+    });
+    if (!ok) return;
 
     try {
-      await domainService.delete(domain.id);
-      loadDomains();
-      setSuccessMessage(t('admin.domains.deleted_success', { name: domain.name }));
+      await areaService.delete(area.id);
+      loadAreas();
+      setSuccessMessage(t('admin.areas.deleted_success', { name: area.name }));
     } catch (err) {
-      setError(err.message || t('admin.domains.delete_error'));
-      console.error('Error deleting domain:', err);
+      setError(err.message || t('admin.areas.delete_error'));
+      console.error('Error deleting area:', err);
     }
   };
 
@@ -169,7 +172,7 @@ export default function DomainsManagement() {
   if (error) {
     return (
     <AdminPageTemplate>
-        <ErrorDisplay error={error} onRetry={loadDomains} />
+        <ErrorDisplay error={error} onRetry={loadAreas} />
       </AdminPageTemplate>
     );
   }
@@ -181,10 +184,10 @@ export default function DomainsManagement() {
         <div className="max-w-7xl mx-auto">
           {/* Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
-            {/* Left Column - Domains Table */}
+            {/* Left Column - Areas Table */}
             <div className="bg-[#f1f0f0] rounded-[23px] p-8">
               <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                {t('admin.domains.title')}
+                {t('admin.areas.title')}
               </h1>
 
               {/* Table Header */}
@@ -193,7 +196,7 @@ export default function DomainsManagement() {
                   onClick={() => handleSort('name')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-primary flex items-center gap-1"
                 >
-                  {t('admin.domains.col_name')}
+                  {t('admin.areas.col_name')}
                   {sortBy === 'name' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -205,11 +208,11 @@ export default function DomainsManagement() {
                   )}
                 </button>
                 <button
-                  onClick={() => handleSort('subdomainCount')}
+                  onClick={() => handleSort('dimensionCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
                 >
-                  {t('admin.domains.col_dimensions')}
-                  {sortBy === 'subdomainCount' && (
+                  {t('admin.areas.col_dimensions')}
+                  {sortBy === 'dimensionCount' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -223,7 +226,7 @@ export default function DomainsManagement() {
                   onClick={() => handleSort('indicatorCount')}
                   className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
                 >
-                  {t('admin.domains.col_indicators')}
+                  {t('admin.areas.col_indicators')}
                   {sortBy === 'indicatorCount' && (
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {sortOrder === 'asc' ? (
@@ -234,29 +237,29 @@ export default function DomainsManagement() {
                     </svg>
                   )}
                 </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.domains.col_options')}</p>
+                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.areas.col_options')}</p>
               </div>
 
               {/* Table Rows */}
               <div className="space-y-3">
-                {domains.length === 0 ? (
+                {areas.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    {t('admin.domains.empty')}
+                    {t('admin.areas.empty')}
                   </div>
                 ) : (
-                  domains.map((domain) => (
+                  areas.map((area) => (
                     <div
-                      key={domain.id}
+                      key={area.id}
                       className="bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_1fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors"
                     >
                       {/* Name with Color Badge */}
                       <div className="flex items-center gap-3">
                         <div
                           className="w-7 h-7 rounded-md flex items-center justify-center"
-                          style={{ backgroundColor: domain.color || '#CCCCCC' }}
+                          style={{ backgroundColor: area.color || '#CCCCCC' }}
                         >
-                          {domain.icon ? (
-                            <img src={domain.icon} alt="" className="w-4 h-4" />
+                          {area.icon ? (
+                            <img src={area.icon} alt="" className="w-4 h-4" />
                           ) : (
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -264,28 +267,28 @@ export default function DomainsManagement() {
                           )}
                         </div>
                         <span className="font-['Onest',sans-serif] font-normal text-sm text-black">
-                          {getName(domain)}
+                          {getName(area)}
                         </span>
                       </div>
 
-                      {/* Subdomain Count */}
+                      {/* Dimension Count */}
                       <div className="flex justify-center">
                         <span className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                          {domain.subdomainCount}
+                          {area.dimensionCount}
                         </span>
                       </div>
 
                       {/* Indicator Count */}
                       <div className="flex justify-center">
                         <span className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                          {domain.indicatorCount}
+                          {area.indicatorCount}
                         </span>
                       </div>
 
                       {/* Actions */}
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleEdit(domain)}
+                          onClick={() => handleEdit(area)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
                           title={t('common.edit')}
                         >
@@ -294,7 +297,7 @@ export default function DomainsManagement() {
                           </svg>
                         </button>
                         <button
-                          onClick={() => handleDelete(domain)}
+                          onClick={() => handleDelete(area)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
                           title={t('common.delete')}
                         >
@@ -309,17 +312,17 @@ export default function DomainsManagement() {
               </div>
 
               {/* Pagination */}
-              {domains.length > 0 && (
+              {areas.length > 0 && (
                 <div className="mt-6">
                   <Pagination
                     currentPage={currentPage}
                     totalItems={totalItems}
                     pageSize={pageSize}
-                    hasNextPage={currentPage * pageSize + domains.length < totalItems}
+                    hasNextPage={currentPage * pageSize + areas.length < totalItems}
                     onPageChange={handlePageChange}
                     loading={loading}
                     showItemCount={true}
-                    itemName={t('admin.domains.title').toLowerCase()}
+                    itemName={t('admin.areas.title').toLowerCase()}
                   />
                 </div>
               )}
@@ -333,17 +336,17 @@ export default function DomainsManagement() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 }
-                title={t('admin.domains.add')}
+                title={t('admin.areas.add')}
                 onClick={() => {
-                  setEditingDomainId(null);
-                  setIsDomainWizardOpen(true);
+                  setEditingAreaId(null);
+                  setIsAreaWizardOpen(true);
                 }}
                 className="w-[210px]"
               />
 
               <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
                 <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  {t('admin.domains.total', { count: totalItems })}
+                  {t('admin.areas.total', { count: totalItems })}
                 </p>
               </div>
             </div>
@@ -351,16 +354,16 @@ export default function DomainsManagement() {
         </div>
       </div>
 
-      {/* Domain Wizard Modal */}
-      <DomainWizard
-        isOpen={isDomainWizardOpen}
+      {/* Area Wizard Modal */}
+      <AreaWizard
+        isOpen={isAreaWizardOpen}
         onClose={() => {
-          setIsDomainWizardOpen(false);
-          setEditingDomainId(null);
+          setIsAreaWizardOpen(false);
+          setEditingAreaId(null);
         }}
-        domainId={editingDomainId}
+        areaId={editingAreaId}
         onSuccess={() => {
-          loadDomains();
+          loadAreas();
         }}
       />
 

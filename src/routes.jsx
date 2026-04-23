@@ -1,14 +1,14 @@
 import App from "./App";
-import DomainTemplate from "./pages/DomainTemplate";
-import DomainSelectionPage from "./pages/DomainSelectionPage";
-import DomainsManagement from "./pages/DomainsManagement";
+import AreaTemplate from "./pages/AreaTemplate";
+import AreaSelectionPage from "./pages/AreaSelectionPage";
+import AreasManagement from "./pages/AreasManagement";
 import FavoritesPage from "./pages/FavoritesPage";
 import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
 import IndicatorsManagement from "./pages/IndicatorsManagement";
 import DimensionsManagement from "./pages/DimensionsManagement";
 import ResourcesManagement from "./pages/ResourcesManagement";
-import NewDomain from "./pages/NewDomain";
+import NewArea from "./pages/NewArea";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import PublicationsPage from "./pages/PublicationsPage";
@@ -64,7 +64,7 @@ export const routesList = [
                 <Helmet>
                     <title>Indicators</title>
                 </Helmet>
-                <DomainSelectionPage />
+                <AreaSelectionPage />
             </>
         )
     },
@@ -75,18 +75,18 @@ export const routesList = [
                 <Helmet>
                     <title>ROOTS - Todos os Indicadores</title>
                 </Helmet>
-                <DomainTemplate />
+                <AreaTemplate />
             </>
         )
     },
     {
-        path: '/indicators/:domainPath',
+        path: '/indicators/:areaPath',
         element: (
             <>
                 <Helmet>
-                    <title>Domain Indicators</title>
+                    <title>Area Indicators</title>
                 </Helmet>
-                <DomainTemplate />
+                <AreaTemplate />
             </>
         )
     },
@@ -146,24 +146,24 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/domains',
+        path: '/admin/areas',
         element: (
             <ProtectedRoute>
                 <Helmet>
-                    <title>Indicadores por Domínio</title>
+                    <title>Indicadores por Área</title>
                 </Helmet>
-                <DomainSelectionPage />
+                <AreaSelectionPage />
             </ProtectedRoute>
         )
     },
     {
-        path: '/admin/domains-management',
+        path: '/admin/areas-management',
         element: (
             <ProtectedRoute>
                 <Helmet>
-                    <title>Domains Management</title>
+                    <title>Areas Management</title>
                 </Helmet>
-                <DomainsManagement />
+                <AreasManagement />
             </ProtectedRoute>
         )
     },
@@ -179,24 +179,24 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/new_domain',
+        path: '/admin/new_area',
         element: (
             <ProtectedRoute>
                 <Helmet>
-                    <title>New Domain</title>
+                    <title>New Area</title>
                 </Helmet>
-                <NewDomain />
+                <NewArea />
             </ProtectedRoute>
         )
     },
     {
-        path: '/admin/edit_domain/:id',
+        path: '/admin/edit_area/:id',
         element: (
             <ProtectedRoute>
                 <Helmet>
-                    <title>Edit Domain</title>
+                    <title>Edit Area</title>
                 </Helmet>
-                <NewDomain />
+                <NewArea />
             </ProtectedRoute>
         )
     },
@@ -207,7 +207,7 @@ export const routesList = [
                 <Helmet>
                     <title>Search Results</title>
                 </Helmet>
-                <DomainTemplate />
+                <AreaTemplate />
             </>
         )
     },

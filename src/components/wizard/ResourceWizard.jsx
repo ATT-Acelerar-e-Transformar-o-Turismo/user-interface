@@ -7,12 +7,14 @@ import ExcelJS from 'exceljs';
 import Wizard from './Wizard';
 import WizardStep from './WizardStep';
 import SuccessModal from './SuccessModal';
+import RegenerateWrapperButton from './RegenerateWrapperButton';
 import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
 import FormFileUpload from '../forms/FormFileUpload';
 import APIConfigForm from '../APIConfigForm';
 import GChart from '../Chart';
 import useWizard from '../../hooks/useWizard';
+import { showError } from '../../utils/toast';
 import { validateRequired, validateURL, validateFileSize, validateFileType, hasErrors } from '../../utils/formValidation';
 import { useWrapper } from '../../contexts/WrapperContext';
 import indicatorService from '../../services/indicatorService';
@@ -34,6 +36,7 @@ export default function ResourceWizard({
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { uploadFile, generateWrapper, startPolling } = useWrapper();
+  const [previewModal, setPreviewModal] = useState({ open: false, wrapperId: null, loading: false, data: [], error: null });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [indicator, setIndicator] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -249,8 +252,12 @@ export default function ResourceWizard({
           },
           metadata: {
             name: `${indicator.name} - ${file.name}`,
-            domain: indicator.domain?.name || indicator.domain,
-            subdomain: indicator.subdomain,
+            // Backend IndicatorMetadata requires `domain` / `subdomain`.
+            // Indicator docs expose these as `domain` (object or id) and
+            // `subdomain` (string); legacy fallbacks to `area` / `dimension`.
+            domain: indicator.domain?.name || (typeof indicator.domain === 'string' ? indicator.domain : '')
+              || indicator.area?.name || indicator.area || '',
+            subdomain: indicator.subdomain || indicator.dimension || '',
             description: indicator.description || '',
             unit: indicator.unit || '',
             source: indicator.font || '',
@@ -289,22 +296,33 @@ export default function ResourceWizard({
           console.log(`Wrapper ${wrapper.wrapper_id} status:`, updatedWrapper.status);
 
           // Update the status in the wrappers array
-          setWrappersData(prev => prev.map(w =>
-            w.wrapper.wrapper_id === updatedWrapper.wrapper_id
-              ? { ...w, status: updatedWrapper.status, wrapper: updatedWrapper }
-              : w
-          ));
+          setWrappersData(prev => {
+            const prevEntry = prev.find(w => w.wrapper.wrapper_id === updatedWrapper.wrapper_id);
+            const prevStatus = prevEntry?.status;
+            // First transition into `error` for this wrapper: surface it to
+            // the user. Without this they just see the card sit in "Processing"
+            // or "Done" with no chart — silent failure.
+            if (updatedWrapper.status === 'error' && prevStatus !== 'error') {
+              const name = prevEntry?.fileName || updatedWrapper.wrapper_id;
+              const reason = updatedWrapper.error_message || t('wizard.resource.generation_failed');
+              showError(`${name}: ${reason}`, 10000);
+            }
+            return prev.map(w =>
+              w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+                ? { ...w, status: updatedWrapper.status, wrapper: updatedWrapper }
+                : w
+            );
+          });
 
-          // When wrapper completes, fetch resource metadata + data points for preview
+          // Fetch resource metadata once wrapper is running or finished, so the
+          // card can show name / period / point count. Chart data is fetched
+          // on-demand when the user clicks "Preview data".
           if ((updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') && updatedWrapper.resource_id) {
             try {
-              const [resourceData, dataResult] = await Promise.all([
-                resourceService.getById(updatedWrapper.resource_id),
-                resourceService.getResourceData(updatedWrapper.resource_id),
-              ]);
+              const resourceData = await resourceService.getById(updatedWrapper.resource_id);
               setWrappersData(prev => prev.map(w =>
                 w.wrapper.wrapper_id === updatedWrapper.wrapper_id
-                  ? { ...w, resourceData, chartData: dataResult.data }
+                  ? { ...w, resourceData }
                   : w
               ));
             } catch (error) {
@@ -321,6 +339,61 @@ export default function ResourceWizard({
     } finally {
       setGeneratingWrappers(false);
     }
+  };
+
+  const openPreview = async (wrapperInfo) => {
+    const wrapperId = wrapperInfo.wrapper.wrapper_id;
+    const resourceId = wrapperInfo.resourceId || wrapperInfo.wrapper.resource_id;
+    setPreviewModal({ open: true, wrapperId, loading: true, data: [], error: null });
+    try {
+      const dataResult = await resourceService.getResourceData(resourceId);
+      setPreviewModal({ open: true, wrapperId, loading: false, data: dataResult.data || [], error: null });
+    } catch (error) {
+      console.error('Failed to load preview data:', error);
+      setPreviewModal({ open: true, wrapperId, loading: false, data: [], error: error?.userMessage || t('wizard.resource.preview_load_failed') });
+    }
+  };
+
+  const closePreview = () => setPreviewModal({ open: false, wrapperId: null, loading: false, data: [], error: null });
+
+  // Called by RegenerateWrapperButton after a successful re-queue: reset
+  // the card's cached resource data and resume polling so the UI reflects
+  // the new generation lifecycle.
+  const handleRegenerated = (updated) => {
+    const wrapperId = updated.wrapper_id;
+    setWrappersData(prev => prev.map(w =>
+      w.wrapper.wrapper_id === wrapperId
+        ? { ...w, status: updated.status, wrapper: updated, resourceData: undefined }
+        : w
+    ));
+    startPolling(wrapperId, 2000, async (updatedWrapper) => {
+      setWrappersData(prev => {
+        const prevEntry = prev.find(w => w.wrapper.wrapper_id === updatedWrapper.wrapper_id);
+        const prevStatus = prevEntry?.status;
+        if (updatedWrapper.status === 'error' && prevStatus !== 'error') {
+          const name = prevEntry?.fileName || updatedWrapper.wrapper_id;
+          const reason = updatedWrapper.error_message || t('wizard.resource.generation_failed');
+          showError(`${name}: ${reason}`, 10000);
+        }
+        return prev.map(w =>
+          w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+            ? { ...w, status: updatedWrapper.status, wrapper: updatedWrapper }
+            : w
+        );
+      });
+      if ((updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') && updatedWrapper.resource_id) {
+        try {
+          const resourceData = await resourceService.getById(updatedWrapper.resource_id);
+          setWrappersData(prev => prev.map(w =>
+            w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+              ? { ...w, resourceData }
+              : w
+          ));
+        } catch (error) {
+          console.error(`Error fetching resource data for ${updatedWrapper.resource_id}:`, error);
+        }
+      }
+    });
   };
 
   const validateStep = (stepIndex) => {
@@ -388,8 +461,9 @@ export default function ResourceWizard({
           source_config: data.apiConfig,
           metadata: {
             name: indicator.name,
-            domain: indicator.domain?.name || indicator.domain,
-            subdomain: indicator.subdomain,
+            domain: indicator.domain?.name || (typeof indicator.domain === 'string' ? indicator.domain : '')
+              || indicator.area?.name || indicator.area || '',
+            subdomain: indicator.subdomain || indicator.dimension || '',
             description: indicator.description || '',
             unit: indicator.unit || '',
             source: indicator.font || '',
@@ -674,23 +748,19 @@ export default function ResourceWizard({
                               </p>
                             )}
                           </div>
-                          {wrapperInfo.chartData?.length > 0 && (
-                            <GChart
-                              title={`Dados - ${wrapperInfo.fileName}`}
-                              chartId={`wrapper-chart-${index}`}
-                              chartType="line"
-                              xaxisType="datetime"
-                              series={[{
-                                name: wrapperInfo.resourceData.name || 'Data',
-                                data: wrapperInfo.chartData.map(p => ({
-                                  x: new Date(p.x).getTime(),
-                                  y: parseFloat(p.y) || 0
-                                }))
-                              }]}
-                              height={250}
-                              disableAnimations={true}
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-primary"
+                              onClick={() => openPreview(wrapperInfo)}
+                            >
+                              {t('wizard.resource.preview_data')}
+                            </button>
+                            <RegenerateWrapperButton
+                              wrapperId={wrapperInfo.wrapper.wrapper_id}
+                              onRegenerated={handleRegenerated}
                             />
-                          )}
+                          </div>
                         </div>
                       )}
 
@@ -714,12 +784,20 @@ export default function ResourceWizard({
                         </div>
                       )}
 
-                      {/* Error Message */}
-                      {isError && wrapperInfo.wrapper?.error_message && (
-                        <div className="mt-4 bg-red-50 rounded-lg p-3">
-                          <p className="font-['Onest',sans-serif] text-xs text-red-600">
-                            {wrapperInfo.wrapper.error_message}
-                          </p>
+                      {/* Error state: show message + Regenerate action. */}
+                      {isError && (
+                        <div className="mt-4 space-y-2">
+                          {wrapperInfo.wrapper?.error_message && (
+                            <div className="bg-red-50 rounded-lg p-3">
+                              <p className="font-['Onest',sans-serif] text-xs text-red-600">
+                                {wrapperInfo.wrapper.error_message}
+                              </p>
+                            </div>
+                          )}
+                          <RegenerateWrapperButton
+                            wrapperId={wrapperInfo.wrapper.wrapper_id}
+                            onRegenerated={handleRegenerated}
+                          />
                         </div>
                       )}
                     </div>
@@ -759,6 +837,53 @@ export default function ResourceWizard({
           onClick: handleAddNewResource
         }}
       />
+
+      {previewModal.open && (
+        <dialog className="modal modal-open">
+          <div className="modal-box w-11/12 max-w-4xl">
+            <h3 className="font-bold text-lg mb-4">{t('wizard.resource.preview_title')}</h3>
+            {previewModal.loading && (
+              <div className="flex justify-center py-10">
+                <span className="loading loading-spinner loading-lg" />
+              </div>
+            )}
+            {!previewModal.loading && previewModal.error && (
+              <div className="alert alert-error">
+                <span>{previewModal.error}</span>
+              </div>
+            )}
+            {!previewModal.loading && !previewModal.error && previewModal.data.length === 0 && (
+              <p className="text-sm text-gray-600">{t('wizard.resource.preview_empty')}</p>
+            )}
+            {!previewModal.loading && !previewModal.error && previewModal.data.length > 0 && (
+              <GChart
+                title={t('wizard.resource.preview_title')}
+                chartId={`preview-chart-${previewModal.wrapperId}`}
+                chartType="line"
+                xaxisType="datetime"
+                series={[{
+                  name: t('wizard.resource.preview_series_name'),
+                  data: previewModal.data.map(p => ({
+                    x: new Date(p.x).getTime(),
+                    y: parseFloat(p.y) || 0,
+                  })),
+                }]}
+                height={350}
+                disableAnimations={true}
+              />
+            )}
+            <div className="modal-action">
+              <button type="button" className="btn" onClick={closePreview}>
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop" onClick={closePreview}>
+            <button>close</button>
+          </form>
+        </dialog>
+      )}
+
     </>
   );
 }

@@ -105,9 +105,9 @@ export function IndicatorProvider({ children }) {
 
       const normalizedIndicators = data.map(indicator => ({
         ...indicator,
-        domain: typeof indicator.domain === 'object'
-          ? (indicator.domain.id || indicator.domain._id || indicator.domain)
-          : indicator.domain
+        area: typeof indicator.area === 'object'
+          ? (indicator.area.id || indicator.area._id || indicator.area)
+          : indicator.area
       }));
 
       dispatch({ type: 'LOAD_SUCCESS', payload: normalizedIndicators || [] });
@@ -117,10 +117,10 @@ export function IndicatorProvider({ children }) {
     }
   };
 
-  const createIndicator = async (domainId, subdomainName, indicatorData) => {
+  const createIndicator = async (areaId, dimensionName, indicatorData) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      const newIndicator = await indicatorService.create(domainId, subdomainName, indicatorData);
+      const newIndicator = await indicatorService.create(areaId, dimensionName, indicatorData);
       dispatch({ type: 'CREATE_INDICATOR', payload: newIndicator });
       return newIndicator;
     } catch (err) {
@@ -171,26 +171,26 @@ export function IndicatorProvider({ children }) {
     return state.indicators.find(indicator => indicator.id === indicatorId) || null;
   };
 
-  const getIndicatorsByDomain = async (domainId) => {
+  const getIndicatorsByArea = async (areaId) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      const data = await indicatorService.getByDomain(domainId);
+      const data = await indicatorService.getByArea(areaId);
       return data || [];
     } catch (err) {
       dispatch({ type: 'SET_ERROR', payload: err.message });
-      console.error('Failed to get indicators by domain:', err);
+      console.error('Failed to get indicators by area:', err);
       throw err;
     }
   };
 
-  const getIndicatorsBySubdomain = async (domainId, subdomainName) => {
+  const getIndicatorsByDimension = async (areaId, dimensionName) => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      const data = await indicatorService.getBySubdomain(domainId, subdomainName);
+      const data = await indicatorService.getByDimension(areaId, dimensionName);
       return data || [];
     } catch (err) {
       dispatch({ type: 'SET_ERROR', payload: err.message });
-      console.error('Failed to get indicators by subdomain:', err);
+      console.error('Failed to get indicators by dimension:', err);
       throw err;
     }
   };
@@ -235,8 +235,8 @@ export function IndicatorProvider({ children }) {
       patchIndicator,
       deleteIndicator,
       getIndicatorById,
-      getIndicatorsByDomain,
-      getIndicatorsBySubdomain,
+      getIndicatorsByArea,
+      getIndicatorsByDimension,
       addResourceToIndicator,
       removeResourceFromIndicator,
       refreshIndicators

@@ -1,11 +1,11 @@
 import React from 'react';
-import DomainCard from '../DomainCard';
-import { useDomain } from '../../contexts/DomainContext';
+import AreaCard from '../AreaCard';
+import { useArea } from '../../contexts/AreaContext';
 import useLocalizedName from '../../hooks/useLocalizedName';
 import { useTranslation } from 'react-i18next';
 
 export default function DimensionsSection() {
-  const { domains, loading, error } = useDomain();
+  const { areas, loading, error } = useArea();
   const getName = useLocalizedName();
   const { t } = useTranslation();
 
@@ -29,21 +29,21 @@ export default function DimensionsSection() {
 
         {error && (
           <div className="text-center py-12 text-red-600">
-            <p>{t('home.error_loading_domains', { error })}</p>
+            <p>{t('home.error_loading_areas', { error })}</p>
           </div>
         )}
 
         {!loading && !error && (
           <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:justify-center gap-8 lg:gap-[120px]">
-            {domains.map((domain, index) => (
-              <DomainCard
-                key={domain.id}
-                title={getName(domain)}
-                color={domain.DomainColor}
-                indicators={domain.subdomains?.map(sub => getName(sub)) || []}
-                icon={domain.DomainIcon}
-                shadowColor={domain.DomainColor}
-                page={`/indicators/${domain.name.toLowerCase()}`}
+            {areas.map((area, index) => (
+              <AreaCard
+                key={area.id}
+                title={getName(area)}
+                color={area.AreaColor}
+                indicators={area.dimensions?.map(sub => getName(sub)) || []}
+                icon={area.AreaIcon}
+                shadowColor={area.AreaColor}
+                page={`/indicators/${area.name.toLowerCase()}`}
                 data-aos="fade-up"
                 data-aos-delay={100 + (index * 150)}
               />

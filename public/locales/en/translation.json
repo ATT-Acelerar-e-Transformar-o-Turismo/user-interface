@@ -2,7 +2,7 @@
   "nav": {
     "home": "Home",
     "about": "About",
-    "domains": "Domains",
+    "areas": "Areas",
     "indicators": "Indicators",
     "search": "Search",
     "search_placeholder": "Search indicators...",
@@ -26,9 +26,9 @@
   "home": {
     "title": "Get to know our tourism numbers",
     "subtitle": "Choose a dimension to understand how the territory is transforming",
-    "no_domains": "No domains available at the moment.",
+    "no_areas": "No areas available at the moment.",
     "view_all_indicators": "View all indicators",
-    "error_loading_domains": "Error loading domains: {{error}}"
+    "error_loading_areas": "Error loading areas: {{error}}"
   },
   "auth": {
     "login_title": "Login",
@@ -149,13 +149,14 @@
       "overview": "Overview",
       "indicators": "Indicators",
       "dimensions": "Dimensions",
-      "domains": "Domains",
+      "areas": "Areas",
       "news_events": "News & Events",
       "user_management": "User Management"
     },
     "indicators": {
       "title": "Indicators",
       "col_name": "Name",
+      "col_area": "Area",
       "col_dimension": "Dimension",
       "col_governance": "Governance",
       "col_options": "Options",
@@ -169,24 +170,24 @@
       "show": "Show",
       "deleted_success": "Indicator deleted successfully."
     },
-    "domains": {
-      "title": "Domains",
+    "areas": {
+      "title": "Areas",
       "col_name": "Name",
       "col_dimensions": "Dimensions",
       "col_indicators": "Indicators",
       "col_options": "Options",
-      "empty": "No domains yet",
-      "add": "Add\nDomain",
-      "total": "Total: {{count}} domains",
-      "confirm_delete": "Are you sure you want to delete the domain \"{{name}}\"?",
-      "load_error": "Failed to load domains",
-      "delete_error": "Failed to delete domain",
-      "deleted_success": "Domain \"{{name}}\" deleted successfully."
+      "empty": "No areas yet",
+      "add": "Add\nArea",
+      "total": "Total: {{count}} areas",
+      "confirm_delete": "Are you sure you want to delete the area \"{{name}}\"?",
+      "load_error": "Failed to load areas",
+      "delete_error": "Failed to delete area",
+      "deleted_success": "Area \"{{name}}\" deleted successfully."
     },
     "dimensions": {
       "title": "Dimensions",
       "col_name": "Name",
-      "col_domain": "Domain",
+      "col_area": "Area",
       "col_indicators": "Indicators",
       "col_options": "Options",
       "empty": "No dimensions yet",
@@ -195,6 +196,11 @@
       "confirm_delete": "Are you sure you want to delete the dimension \"{{name}}\"?",
       "delete_error": "Failed to delete dimension",
       "deleted_success": "Dimension \"{{name}}\" deleted successfully."
+    },
+    "resources": {
+      "add": "Add Data Resource",
+      "confirm_delete_title": "Delete resource?",
+      "confirm_delete": "Are you sure you want to delete the resource \"{{name}}\"? This action cannot be undone."
     },
     "blog": {
       "title": "Manage Blog",
@@ -263,10 +269,10 @@
       "name_pt_placeholder": "Enter the indicator name",
       "name_en": "Indicator Name (EN 🇬🇧)",
       "name_en_placeholder": "Enter the indicator name",
-      "domain": "Domain",
-      "domain_placeholder": "Select a domain",
-      "subdomain": "Subdomain",
-      "subdomain_placeholder": "Select a subdomain",
+      "area": "Area",
+      "area_placeholder": "Select a area",
+      "dimension": "Dimension",
+      "dimension_placeholder": "Select a dimension",
       "description_pt": "Description (PT 🇵🇹)",
       "description_pt_placeholder": "Describe the indicator (optional)",
       "description_en": "Description (EN 🇬🇧)",
@@ -288,37 +294,46 @@
       "success_updated": "Indicator Updated!",
       "success_message": "Would you like to add data sources now?",
       "add_sources": "Add Sources",
-      "add_sources_later": "Add sources later"
+      "add_sources_later": "Add sources later",
+      "step_charts": "Chart Types",
+      "step_charts_desc": "Choose which chart types this indicator supports and which one is shown by default.",
+      "chart_types_label": "Supported chart types",
+      "chart_types_hint": "Pick one or more chart types. The card and detail page will offer the user exactly these options.",
+      "chart_types_required": "Select at least one chart type.",
+      "default_chart_type_label": "Default chart type",
+      "default_chart_type_placeholder": "Select the default chart type",
+      "default_chart_type_hint": "This is the chart type shown on the indicator card and selected first on the detail page.",
+      "default_chart_type_invalid": "The default must be one of the supported chart types."
     },
-    "domain": {
-      "title_new": "New Domain",
-      "title_edit": "Edit Domain",
-      "step": "Domain Information",
-      "step_desc": "Configure the name, color, and subdomains",
-      "name_pt": "Domain Name (PT 🇵🇹)",
+    "area": {
+      "title_new": "New Area",
+      "title_edit": "Edit Area",
+      "step": "Area Information",
+      "step_desc": "Configure the name, color, and dimensions",
+      "name_pt": "Area Name (PT 🇵🇹)",
       "name_pt_placeholder": "E.g.: Environment, Society, Economy",
-      "name_en": "Domain Name (EN 🇬🇧)",
+      "name_en": "Area Name (EN 🇬🇧)",
       "name_en_placeholder": "E.g.: Environment, Society, Economy",
-      "color": "Domain Color",
-      "image": "Domain Image",
-      "icon": "Domain Icon",
-      "subdomains": "Subdomains (Dimensions)",
-      "subdomain_pt_placeholder": "🇵🇹 Name (PT)",
-      "subdomain_en_placeholder": "🇬🇧 Name (EN)",
-      "add_subdomain": "Add",
-      "remove_subdomain": "Remove",
-      "success_added": "Domain Added!",
-      "success_updated": "Domain Updated!",
-      "success_message": "The domain was saved successfully",
-      "confirm_update": "Are you sure you want to save the changes to this domain?",
+      "color": "Area Color",
+      "image": "Area Image",
+      "icon": "Area Icon",
+      "dimensions": "Dimensions (Dimensions)",
+      "dimension_pt_placeholder": "🇵🇹 Name (PT)",
+      "dimension_en_placeholder": "🇬🇧 Name (EN)",
+      "add_dimension": "Add",
+      "remove_dimension": "Remove",
+      "success_added": "Area Added!",
+      "success_updated": "Area Updated!",
+      "success_message": "The area was saved successfully",
+      "confirm_update": "Are you sure you want to save the changes to this area?",
       "confirm_update_title": "Confirm Changes",
       "continue": "Continue"
     },
     "dimension": {
       "title_add": "Add Dimension",
       "title_edit": "Edit Dimension",
-      "domain": "Domain",
-      "domain_placeholder": "Select a domain",
+      "area": "Area",
+      "area_placeholder": "Select a area",
       "name_pt": "Dimension Name (PT 🇵🇹)",
       "name_pt_placeholder": "E.g.: Biodiversity, Water Resources",
       "name_en": "Dimension Name (EN 🇬🇧)",
@@ -376,7 +391,16 @@
       "success_msg_single": "Congratulations, the source was added successfully",
       "success_msg_multiple": "Congratulations, {{count}} sources were added successfully",
       "exit": "Exit",
-      "add_new": "Add New Source"
+      "add_new": "Add New Source",
+      "preview_data": "Preview data",
+      "preview_title": "Data preview",
+      "preview_series_name": "Value",
+      "preview_empty": "No data points have been collected yet. Try again in a moment.",
+      "preview_load_failed": "Could not load preview data.",
+      "regenerate_wrapper": "Regenerate wrapper",
+      "regenerate_confirm_title": "Regenerate wrapper?",
+      "regenerate_confirm_body": "Only do this if the results you are previewing are wrong. The existing data for this source will be discarded and a new wrapper will be generated.",
+      "generation_failed": "Wrapper generation failed. Please try again."
     }
   },
   "features": {
@@ -397,34 +421,34 @@
       "uploading": "Uploading...",
       "error": "Error uploading file"
     },
-    "select_domain": {
-      "choose_domain": "Choose the Domain",
+    "select_area": {
+      "choose_area": "Choose the Area",
       "choose_dimension": "Choose the Dimension",
       "choose_indicator": "Choose Indicator",
       "no_indicators": "No indicators found"
     },
-    "domain_card": {
+    "area_card": {
       "view_all": "View all"
     },
     "indicator_card": {
       "no_data": "No data"
     }
   },
-  "domains": {
+  "areas": {
     "search_results_for": "Results for \"{{query}}\"",
     "all_indicators": "All Indicators",
     "indicators": "Indicators",
     "search_results_description": "We found {{count}} indicator(s) matching your search.",
     "all_indicators_description": "Explore the complete list of sustainability indicators available on the platform.",
-    "domain_description": "Here you can consult the representation of the evolution of {{name}}, built based on key indicators. Below are all available indicators for detailed analysis.",
+    "area_description": "Here you can consult the representation of the evolution of {{name}}, built based on key indicators. Below are all available indicators for detailed analysis.",
     "breadcrumb_dimensions": "Dimensions",
     "overall_performance": "Overall Performance",
     "insufficient_data": "Insufficient data",
     "stat_available_indicators": "Available Indicators",
-    "stat_subdomains": "Subdomains",
+    "stat_dimensions": "Dimensions",
     "stat_governance": "With Governance",
     "stat_active": "Active",
-    "filter_all_domains": "All Domains",
+    "filter_all_areas": "All Areas",
     "sort": "Sort",
     "sort_name": "Name",
     "sort_periodicity": "Periodicity",
@@ -433,24 +457,24 @@
     "search_placeholder": "Search...",
     "no_indicators_found": "No indicators found",
     "no_indicators_search": "We couldn't find indicators matching \"{{query}}\".",
-    "no_indicators_subdomain": "There are no indicators for {{name}}.",
-    "no_indicators_domain": "There are no indicators for {{name}}.",
+    "no_indicators_dimension": "There are no indicators for {{name}}.",
+    "no_indicators_area": "There are no indicators for {{name}}.",
     "item_name_indicators": "indicators",
     "view_grid": "Grid view",
     "view_table": "Table view",
     "table_name": "Name",
     "table_dimension": "Dimension",
-    "table_subdomain": "Subdomain",
+    "table_dimension": "Dimension",
     "table_unit": "Unit"
   },
   "indicator": {
     "export_image_error": "Failed to export image. Please try again.",
     "reference_copied": "Reference copied to clipboard!",
     "confirm_delete_source": "Are you sure you want to delete this source? This action cannot be undone.",
-    "loading_domains": "Loading domains...",
+    "loading_areas": "Loading areas...",
     "loading_indicator": "Loading indicator...",
     "not_found": "Indicator not found",
-    "domain_not_found": "Domain not found for indicator.",
+    "area_not_found": "Area not found for indicator.",
     "default_description": "Explore the data and evolution of the indicator {{name}}.",
     "last_updated": "Last updated:",
     "no_data_title": "Data not available",
@@ -477,7 +501,7 @@
     "periodicity_label": "Periodicity:",
     "governance_label": "Governance:",
     "dimension_label": "Dimension:",
-    "domain_label": "Domain:",
+    "area_label": "Area:",
     "sources_title": "Indicator Sources",
     "add_sources": "Add Sources",
     "no_sources": "No sources associated with this indicator",
@@ -497,6 +521,21 @@
     "chart_tool_reset": "Reset zoom",
     "sources_load_partial": "Failed to load {{count}} of {{total}} source(s).",
     "sources_load_failed": "Failed to load sources. The resource service may be unreachable."
+  },
+  "chart_types": {
+    "line": "Line",
+    "area": "Area",
+    "bar": "Horizontal bar",
+    "column": "Column",
+    "scatter": "Scatter",
+    "pie": "Pie",
+    "donut": "Donut",
+    "treemap": "Treemap",
+    "heatmap": "Heatmap",
+    "boxPlot": "Box plot",
+    "candlestick": "Candlestick",
+    "rangeBar": "Range bar",
+    "rangeArea": "Range area"
   },
   "footer_simple": {
     "contacts": "Contacts:",

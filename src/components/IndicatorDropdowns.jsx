@@ -1,68 +1,68 @@
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { useDomain } from "../contexts/DomainContext";
+import { useArea } from "../contexts/AreaContext";
 import indicatorService from "../services/indicatorService";
 import { useTranslation } from "react-i18next";
 import useLocalizedName from "../hooks/useLocalizedName";
 
 export default function IndicatorDropdowns({
-  currentDomain,
-  currentSubdomain,
+  currentArea,
+  currentDimension,
   currentIndicator,
   onIndicatorChange,
-  allowSubdomainClear = false,
+  allowDimensionClear = false,
 }) {
-  const [stagedDomain, setStagedDomain] = useState(null);
-  const [stagedSubdomain, setStagedSubdomain] = useState(null);
+  const [stagedArea, setStagedArea] = useState(null);
+  const [stagedDimension, setStagedDimension] = useState(null);
   const [stagedIndicator, setStagedIndicator] = useState(null);
-  const [subdomainIndicators, setSubdomainIndicators] = useState([]);
+  const [dimensionIndicators, setDimensionIndicators] = useState([]);
   const [indicatorsLoading, setIndicatorsLoading] = useState(false);
 
-  const { domains } = useDomain();
+  const { areas } = useArea();
   const { t } = useTranslation();
   const getName = useLocalizedName();
 
-  const domainRef = useRef(null);
-  const subdomainRef = useRef(null);
+  const areaRef = useRef(null);
+  const dimensionRef = useRef(null);
   const indicatorRef = useRef(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
     console.log('IndicatorDropdowns useEffect - setting staged values:', {
-      currentDomain,
-      currentSubdomain,
+      currentArea,
+      currentDimension,
       currentIndicator,
-      domainSubdomains: currentDomain?.subdomains
+      areaDimensions: currentArea?.dimensions
     });
-    setStagedDomain(currentDomain);
-    setStagedSubdomain(currentSubdomain);
+    setStagedArea(currentArea);
+    setStagedDimension(currentDimension);
     setStagedIndicator(currentIndicator);
-  }, [currentDomain, currentSubdomain, currentIndicator]);
+  }, [currentArea, currentDimension, currentIndicator]);
 
-  // Fetch indicators when domain + subdomain are selected
+  // Fetch indicators when area + dimension are selected
   useEffect(() => {
     let cancelled = false;
     const fetchIndicators = async () => {
-      const domainId = stagedDomain?.id;
-      const subdomainName = typeof stagedSubdomain === 'string'
-        ? stagedSubdomain
-        : stagedSubdomain?.name;
+      const areaId = stagedArea?.id;
+      const dimensionName = typeof stagedDimension === 'string'
+        ? stagedDimension
+        : stagedDimension?.name;
 
-      if (!domainId || !subdomainName) {
-        setSubdomainIndicators([]);
+      if (!areaId || !dimensionName) {
+        setDimensionIndicators([]);
         return;
       }
 
       setIndicatorsLoading(true);
       try {
-        const data = await indicatorService.getBySubdomain(domainId, subdomainName, 0, 50);
+        const data = await indicatorService.getByDimension(areaId, dimensionName, 0, 50);
         if (!cancelled) {
-          setSubdomainIndicators(data || []);
+          setDimensionIndicators(data || []);
         }
       } catch (err) {
-        console.error('Failed to fetch subdomain indicators:', err);
+        console.error('Failed to fetch dimension indicators:', err);
         if (!cancelled) {
-          setSubdomainIndicators([]);
+          setDimensionIndicators([]);
         }
       } finally {
         if (!cancelled) {
@@ -72,14 +72,14 @@ export default function IndicatorDropdowns({
     };
     fetchIndicators();
     return () => { cancelled = true; };
-  }, [stagedDomain?.id, stagedSubdomain]);
+  }, [stagedArea?.id, stagedDimension]);
 
   // Close all <details> if clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
-        if (domainRef.current) domainRef.current.removeAttribute("open");
-        if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
+        if (areaRef.current) areaRef.current.removeAttribute("open");
+        if (dimensionRef.current) dimensionRef.current.removeAttribute("open");
         if (indicatorRef.current) indicatorRef.current.removeAttribute("open");
       }
     };
@@ -89,26 +89,26 @@ export default function IndicatorDropdowns({
 
 
 
-  const allDomains = domains;
+  const allAreas = areas;
 
-  const handleDomainSelect = (domain) => {
-    if (stagedDomain && stagedDomain?.name === domain?.name) {
-      if (domainRef.current) domainRef.current.removeAttribute("open");
+  const handleAreaSelect = (area) => {
+    if (stagedArea && stagedArea?.name === area?.name) {
+      if (areaRef.current) areaRef.current.removeAttribute("open");
       return;
     }
-    setStagedDomain(domain);
-    setStagedSubdomain(null);
+    setStagedArea(area);
+    setStagedDimension(null);
     setStagedIndicator(null);
 
-    if (domainRef.current) domainRef.current.removeAttribute("open");
+    if (areaRef.current) areaRef.current.removeAttribute("open");
   };
 
-  const handleSubdomainSelect = (subdomain) => {
-    setStagedSubdomain(subdomain);
+  const handleDimensionSelect = (dimension) => {
+    setStagedDimension(dimension);
     // Reset indicator
     setStagedIndicator(null);
 
-    if (subdomainRef.current) subdomainRef.current.removeAttribute("open");
+    if (dimensionRef.current) dimensionRef.current.removeAttribute("open");
   };
 
   const handleIndicatorSelect = (indicator) => {
@@ -116,15 +116,15 @@ export default function IndicatorDropdowns({
     if (indicatorRef.current) indicatorRef.current.removeAttribute("open");
 
     // Create compatible objects for the callback
-    const domainForCallback = {
-      ...stagedDomain,
-      nome: stagedDomain?.nome || stagedDomain?.name,
-      name: stagedDomain?.name || stagedDomain?.nome
+    const areaForCallback = {
+      ...stagedArea,
+      nome: stagedArea?.nome || stagedArea?.name,
+      name: stagedArea?.name || stagedArea?.nome
     };
     
-    const subdomainForCallback = {
-      nome: typeof stagedSubdomain === 'string' ? stagedSubdomain : (stagedSubdomain?.nome || stagedSubdomain?.name),
-      name: typeof stagedSubdomain === 'string' ? stagedSubdomain : (stagedSubdomain?.name || stagedSubdomain?.nome)
+    const dimensionForCallback = {
+      nome: typeof stagedDimension === 'string' ? stagedDimension : (stagedDimension?.nome || stagedDimension?.name),
+      name: typeof stagedDimension === 'string' ? stagedDimension : (stagedDimension?.name || stagedDimension?.nome)
     };
     
     const indicatorForCallback = {
@@ -133,66 +133,66 @@ export default function IndicatorDropdowns({
       name: indicator?.name || indicator?.nome
     };
 
-    onIndicatorChange(domainForCallback, subdomainForCallback, indicatorForCallback);
+    onIndicatorChange(areaForCallback, dimensionForCallback, indicatorForCallback);
   };
 
-  // If the user clicks the X to clear subdomain
-  const clearSubdomain = (e) => {
+  // If the user clicks the X to clear dimension
+  const clearDimension = (e) => {
     e.stopPropagation();
-    setStagedSubdomain(null);
+    setStagedDimension(null);
     setStagedIndicator(null);
   };
 
-  // Get subdomains for the current domain
-  const getSubdomainsForDomain = (domain) => {
-    if (!domain || !domain.subdomains) {
-      console.log('No domain or subdomains:', { domain, hasSubdomains: domain?.subdomains });
+  // Get dimensions for the current area
+  const getDimensionsForArea = (area) => {
+    if (!area || !area.dimensions) {
+      console.log('No area or dimensions:', { area, hasDimensions: area?.dimensions });
       return [];
     }
-    console.log('Domain subdomains:', domain.subdomains);
-    return domain.subdomains;
+    console.log('Area dimensions:', area.dimensions);
+    return area.dimensions;
   };
 
 
   return (
     <div ref={containerRef} className="flex flex-nowrap gap-4 flex-col md:flex-row">
-      {/* Domain Dropdown */}
-      <details ref={domainRef} className="dropdown">
+      {/* Area Dropdown */}
+      <details ref={areaRef} className="dropdown">
         <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
-          <p className={`overflow-hidden text-nowrap truncate ${stagedDomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-            {getName(stagedDomain) || t('components.select_domain.choose_domain')}
+          <p className={`overflow-hidden text-nowrap truncate ${stagedArea ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+            {getName(stagedArea) || t('components.select_area.choose_area')}
           </p>
           <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
         <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
-          {allDomains.map((dom, index) => (
-            <li key={dom?.name || `domain-${index}`}>
+          {allAreas.map((dom, index) => (
+            <li key={dom?.name || `area-${index}`}>
               <a 
-                onClick={() => handleDomainSelect(dom)}
+                onClick={() => handleAreaSelect(dom)}
                 className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
               >
-                {getName(dom) || "Unnamed Domain"}
+                {getName(dom) || "Unnamed Area"}
               </a>
             </li>
           ))}
         </ul>
       </details>
 
-      {/* Subdomain Dropdown */}
-      {stagedDomain && (
-        <details ref={subdomainRef} className="dropdown">
+      {/* Dimension Dropdown */}
+      {stagedArea && (
+        <details ref={dimensionRef} className="dropdown">
           <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
             <div className="flex items-center gap-2 overflow-hidden w-full">
-              <p className={`overflow-hidden text-nowrap truncate ${stagedSubdomain ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                {getName(stagedSubdomain) || t('components.select_domain.choose_dimension')}
+              <p className={`overflow-hidden text-nowrap truncate ${stagedDimension ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                {getName(stagedDimension) || t('components.select_area.choose_dimension')}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-              {stagedSubdomain && allowSubdomainClear && (
+              {stagedDimension && allowDimensionClear && (
                 <button 
-                  onClick={clearSubdomain}
+                  onClick={clearDimension}
                   className="text-gray-400 hover:text-red-500 transition-colors p-1"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,13 +206,13 @@ export default function IndicatorDropdowns({
             </div>
           </summary>
           <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
-            {getSubdomainsForDomain(stagedDomain).map((sub, index) => (
-              <li key={sub?.name || `subdomain-${index}`}>
+            {getDimensionsForArea(stagedArea).map((sub, index) => (
+              <li key={sub?.name || `dimension-${index}`}>
                 <a 
-                  onClick={() => handleSubdomainSelect(sub)}
+                  onClick={() => handleDimensionSelect(sub)}
                   className="text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"
                 >
-                  {getName(sub) || "Unnamed Subdomain"}
+                  {getName(sub) || "Unnamed Dimension"}
                 </a>
               </li>
             ))}
@@ -221,11 +221,11 @@ export default function IndicatorDropdowns({
       )}
 
       {/* Indicator Dropdown */}
-      {stagedSubdomain && (
+      {stagedDimension && (
         <details ref={indicatorRef} className="dropdown">
           <summary className="flex items-center justify-between w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-green-500 cursor-pointer transition-colors list-none">
             <p className={`overflow-hidden text-nowrap truncate ${stagedIndicator ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-              {getName(stagedIndicator) || t('components.select_domain.choose_indicator')}
+              {getName(stagedIndicator) || t('components.select_area.choose_indicator')}
             </p>
             <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -234,8 +234,8 @@ export default function IndicatorDropdowns({
           <ul className="dropdown-content menu p-2 shadow-lg bg-white border border-gray-100 rounded-lg w-full md:w-64 z-50 mt-2">
             {indicatorsLoading ? (
               <li><span className="text-gray-500 loading loading-spinner loading-sm"></span></li>
-            ) : subdomainIndicators.length > 0 ? (
-              subdomainIndicators.map((ind) => (
+            ) : dimensionIndicators.length > 0 ? (
+              dimensionIndicators.map((ind) => (
                 <li key={ind.id}>
                   <a 
                     onClick={() => handleIndicatorSelect(ind)}
@@ -246,7 +246,7 @@ export default function IndicatorDropdowns({
                 </li>
               ))
             ) : (
-              <li><span className="text-gray-500">{t('components.select_domain.no_indicators')}</span></li>
+              <li><span className="text-gray-500">{t('components.select_area.no_indicators')}</span></li>
             )}
           </ul>
         </details>
@@ -256,9 +256,9 @@ export default function IndicatorDropdowns({
 }
 
 IndicatorDropdowns.propTypes = {
-  currentDomain: PropTypes.object,
-  currentSubdomain: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  currentArea: PropTypes.object,
+  currentDimension: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   currentIndicator: PropTypes.object,
   onIndicatorChange: PropTypes.func.isRequired,
-  allowSubdomainClear: PropTypes.bool,
+  allowDimensionClear: PropTypes.bool,
 };

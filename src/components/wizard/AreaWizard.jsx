@@ -8,85 +8,85 @@ import FormInput from '../forms/FormInput';
 import FileUpload from '../forms/FileUpload';
 import useWizard from '../../hooks/useWizard';
 import { validateRequired, hasErrors } from '../../utils/formValidation';
-import domainService from '../../services/domainService';
+import areaService from '../../services/areaService';
 import uploadService from '../../services/uploadService';
-import { useDomain } from '../../contexts/DomainContext';
+import { useArea } from '../../contexts/AreaContext';
 
 /**
- * DomainWizard - Single-step wizard for creating/editing domains
- * Fields: name, color, subdomains, image URL
+ * AreaWizard - Single-step wizard for creating/editing areas
+ * Fields: name, color, dimensions, image URL
  */
-export default function DomainWizard({ isOpen, onClose, domainId = null, onSuccess = null }) {
-  const { refreshDomains } = useDomain();
+export default function AreaWizard({ isOpen, onClose, areaId = null, onSuccess = null }) {
+  const { refreshAreas } = useArea();
   const { t } = useTranslation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [subdomainInputPt, setSubdomainInputPt] = useState('');
-  const [subdomainInputEn, setSubdomainInputEn] = useState('');
+  const [dimensionInputPt, setDimensionInputPt] = useState('');
+  const [dimensionInputEn, setDimensionInputEn] = useState('');
 
-  const steps = [t('wizard.domain.step')];
+  const steps = [t('wizard.area.step')];
 
   const initialData = {
     name: '',
     name_en: '',
     color: '#00855d',
-    subdomains: [],
+    dimensions: [],
     image: '',
     icon: ''
   };
 
   const wizard = useWizard(steps.length, initialData, handleSubmit);
 
-  // Load domain data if editing
+  // Load area data if editing
   useEffect(() => {
-    if (isOpen && domainId) {
-      loadDomain();
+    if (isOpen && areaId) {
+      loadArea();
     }
-  }, [isOpen, domainId]);
+  }, [isOpen, areaId]);
 
-  const loadDomain = async () => {
+  const loadArea = async () => {
     try {
       setLoading(true);
-      const domain = await domainService.getById(domainId);
-      if (domain) {
+      const area = await areaService.getById(areaId);
+      if (area) {
         wizard.updateMultipleFields({
-          name: domain.name || '',
-          name_en: domain.name_en || '',
-          color: domain.color || '#00855d',
-          subdomains: Array.isArray(domain.subdomains) ? domain.subdomains : [],
-          image: domain.image || '',
-          icon: domain.icon || ''
+          name: area.name || '',
+          name_en: area.name_en || '',
+          color: area.color || '#00855d',
+          dimensions: Array.isArray(area.dimensions) ? area.dimensions : [],
+          image: area.image || '',
+          icon: area.icon || ''
         });
       }
     } catch (error) {
-      console.error('Error loading domain:', error);
+      console.error('Error loading area:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddSubdomain = () => {
-    if (subdomainInputPt.trim()) {
-      const newSubdomain = { name: subdomainInputPt.trim(), name_en: subdomainInputEn.trim() };
-      const updatedSubdomains = [...wizard.formData.subdomains, newSubdomain];
-      wizard.updateFormData('subdomains', updatedSubdomains);
-      setSubdomainInputPt('');
-      setSubdomainInputEn('');
+  const handleAddDimension = () => {
+    if (dimensionInputPt.trim()) {
+      const newDimension = { name: dimensionInputPt.trim(), name_en: dimensionInputEn.trim() };
+      const updatedDimensions = [...wizard.formData.dimensions, newDimension];
+      wizard.updateFormData('dimensions', updatedDimensions);
+      setDimensionInputPt('');
+      setDimensionInputEn('');
     }
   };
 
-  const handleRemoveSubdomain = (index) => {
-    const updatedSubdomains = wizard.formData.subdomains.filter((_, i) => i !== index);
-    wizard.updateFormData('subdomains', updatedSubdomains);
+  const handleRemoveDimension = (index) => {
+    const updatedDimensions = wizard.formData.dimensions.filter((_, i) => i !== index);
+    wizard.updateFormData('dimensions', updatedDimensions);
   };
 
-  // Pressing Enter in either field (PT or EN) adds the subdomain
-  const handleSubdomainKeyPress = (e) => {
+  // Pressing Enter in either field (PT or EN) adds the dimension
+  const handleDimensionKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddSubdomain();
+      handleAddDimension();
     }
   };
 
@@ -94,7 +94,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
     const errors = {};
 
     if (stepIndex === 0) {
-      const nameError = validateRequired(wizard.formData.name, t('validation.required', { field: t('wizard.domain.name_pt') }));
+      const nameError = validateRequired(wizard.formData.name, t('validation.required', { field: t('wizard.area.name_pt') }));
       if (nameError) errors.name = nameError;
     }
 
@@ -113,28 +113,28 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
 
   async function handleSubmit(data) {
     try {
-      const domainData = {
+      const areaData = {
         name: data.name.trim(),
         name_en: data.name_en.trim() || '',
         color: data.color || '#00855d',
-        subdomains: data.subdomains || [],
+        dimensions: data.dimensions || [],
         image: data.image || '',
         icon: data.icon || ''
       };
 
-      if (domainId) {
-        await domainService.update(domainId, domainData);
+      if (areaId) {
+        await areaService.update(areaId, areaData);
       } else {
-        await domainService.create(domainData);
+        await areaService.create(areaData);
       }
 
-      // Refresh domains in context
-      await refreshDomains();
+      // Refresh areas in context
+      await refreshAreas();
 
       setShowSuccessModal(true);
     } catch (error) {
-      console.error('Error saving domain:', error);
-      setErrorMessage(error.userMessage || error.message || t('wizard.domain.error_generic', 'Ocorreu um erro ao guardar o domínio'));
+      console.error('Error saving area:', error);
+      setErrorMessage(error.userMessage || error.message || t('wizard.area.error_generic', 'Ocorreu um erro ao guardar o área'));
       setShowErrorModal(true);
     }
   }
@@ -149,8 +149,8 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
   const handleWizardClose = () => {
     if (!wizard.isSubmitting) {
       wizard.reset();
-      setSubdomainInputPt('');
-      setSubdomainInputEn('');
+      setDimensionInputPt('');
+      setDimensionInputEn('');
       onClose();
     }
   };
@@ -160,7 +160,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       <Wizard
         isOpen={isOpen && !showSuccessModal}
         onClose={handleWizardClose}
-        title={domainId ? t('wizard.domain.title_edit') : t('wizard.domain.title_new')}
+        title={areaId ? t('wizard.area.title_edit') : t('wizard.area.title_new')}
         steps={steps}
         currentStep={wizard.currentStep}
         onPrevious={wizard.previousStep}
@@ -170,33 +170,33 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
         disableNext={loading}
         showProgress={false}
       >
-        {/* Single Step: Domain Information */}
+        {/* Single Step: Area Information */}
         {wizard.currentStep === 0 && (
           <WizardStep
-            title={t('wizard.domain.step')}
-            description={t('wizard.domain.step_desc')}
+            title={t('wizard.area.step')}
+            description={t('wizard.area.step_desc')}
           >
             <FormInput
-              label={t('wizard.domain.name_pt')}
+              label={t('wizard.area.name_pt')}
               name="name"
               value={wizard.formData.name}
               onChange={(value) => wizard.updateFormData('name', value)}
-              placeholder={t('wizard.domain.name_pt_placeholder')}
+              placeholder={t('wizard.area.name_pt_placeholder')}
               required
               error={wizard.errors.name}
             />
 
             <FormInput
-              label={t('wizard.domain.name_en')}
+              label={t('wizard.area.name_en')}
               name="name_en"
               value={wizard.formData.name_en}
               onChange={(value) => wizard.updateFormData('name_en', value)}
-              placeholder={t('wizard.domain.name_en_placeholder')}
+              placeholder={t('wizard.area.name_en_placeholder')}
             />
 
             <div className="flex flex-col gap-2">
               <label className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                {t('wizard.domain.color')}
+                {t('wizard.area.color')}
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -212,66 +212,66 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
             </div>
 
             <FileUpload
-              label={t('wizard.domain.image')}
+              label={t('wizard.area.image')}
               name="image"
               value={wizard.formData.image}
               onChange={(value) => wizard.updateFormData('image', value)}
-              onUpload={uploadService.uploadDomainImage}
+              onUpload={uploadService.uploadAreaImage}
               accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
               showPreview={true}
             />
 
             <FileUpload
-              label={t('wizard.domain.icon')}
+              label={t('wizard.area.icon')}
               name="icon"
               value={wizard.formData.icon}
               onChange={(value) => wizard.updateFormData('icon', value)}
-              onUpload={uploadService.uploadDomainIcon}
+              onUpload={uploadService.uploadAreaIcon}
               accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
               showPreview={true}
             />
 
-            {/* Subdomains Management */}
+            {/* Dimensions Management */}
             <div className="flex flex-col gap-2">
               <label className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                {t('wizard.domain.subdomains')}
+                {t('wizard.area.dimensions')}
               </label>
 
-              {/* Subdomain Input */}
+              {/* Dimension Input */}
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    value={subdomainInputPt}
-                    onChange={(e) => setSubdomainInputPt(e.target.value)}
-                    onKeyPress={(e) => handleSubdomainKeyPress(e)}
-                    placeholder={t('wizard.domain.subdomain_pt_placeholder')}
+                    value={dimensionInputPt}
+                    onChange={(e) => setDimensionInputPt(e.target.value)}
+                    onKeyPress={(e) => handleDimensionKeyPress(e)}
+                    placeholder={t('wizard.area.dimension_pt_placeholder')}
                     className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 flex-1"
                   />
                   <input
                     type="text"
-                    value={subdomainInputEn}
-                    onChange={(e) => setSubdomainInputEn(e.target.value)}
-                    onKeyPress={(e) => handleSubdomainKeyPress(e)}
-                    placeholder={t('wizard.domain.subdomain_en_placeholder')}
+                    value={dimensionInputEn}
+                    onChange={(e) => setDimensionInputEn(e.target.value)}
+                    onKeyPress={(e) => handleDimensionKeyPress(e)}
+                    placeholder={t('wizard.area.dimension_en_placeholder')}
                     className="font-['Onest',sans-serif] text-sm text-black bg-[#f1f0f0] rounded-lg px-4 py-3 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 flex-1"
                   />
                   <button
                     type="button"
-                    onClick={handleAddSubdomain}
+                    onClick={handleAddDimension}
                     className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-4 py-3 rounded-lg transition-colors"
                   >
-                    {t('wizard.domain.add_subdomain')}
+                    {t('wizard.area.add_dimension')}
                   </button>
                 </div>
               </div>
 
-              {/* Subdomain List */}
-              {wizard.formData.subdomains.length > 0 && (
+              {/* Dimension List */}
+              {wizard.formData.dimensions.length > 0 && (
                 <div className="bg-[#f1f0f0] rounded-lg p-4 space-y-2">
-                  {wizard.formData.subdomains.map((subdomain, index) => {
-                    const namePt = typeof subdomain === 'string' ? subdomain : subdomain.name;
-                    const nameEn = typeof subdomain === 'string' ? '' : (subdomain.name_en || '');
+                  {wizard.formData.dimensions.map((dimension, index) => {
+                    const namePt = typeof dimension === 'string' ? dimension : dimension.name;
+                    const nameEn = typeof dimension === 'string' ? '' : (dimension.name_en || '');
                     return (
                       <div
                         key={index}
@@ -289,9 +289,9 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleRemoveSubdomain(index)}
+                          onClick={() => handleRemoveDimension(index)}
                           className="text-red-600 hover:text-red-700 transition-colors"
-                          title={t('wizard.domain.remove_subdomain')}
+                          title={t('wizard.area.remove_dimension')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -311,10 +311,10 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleFinish}
-        title={domainId ? t('wizard.domain.success_updated') : t('wizard.domain.success_added')}
-        message={t('wizard.domain.success_message')}
+        title={areaId ? t('wizard.area.success_updated') : t('wizard.area.success_added')}
+        message={t('wizard.area.success_message')}
         primaryAction={{
-          label: t('wizard.domain.continue'),
+          label: t('wizard.area.continue'),
           onClick: handleFinish
         }}
       />
@@ -323,7 +323,7 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
       <SuccessModal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
-        title={t('wizard.domain.error_title', 'Erro')}
+        title={t('wizard.area.error_title', 'Erro')}
         message={errorMessage}
         variant="error"
       />
@@ -331,9 +331,9 @@ export default function DomainWizard({ isOpen, onClose, domainId = null, onSucce
   );
 }
 
-DomainWizard.propTypes = {
+AreaWizard.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  domainId: PropTypes.string,
+  areaId: PropTypes.string,
   onSuccess: PropTypes.func
 };

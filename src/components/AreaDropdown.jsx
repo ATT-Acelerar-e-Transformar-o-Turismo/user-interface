@@ -1,36 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDomain } from '../contexts/DomainContext';
+import { useArea } from '../contexts/AreaContext';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
 
 function Dropdowns({
-  selectedDomain,
-  setSelectedDomain,
-  selectedSubdomain,
-  setSelectedSubdomain,
-  redirectOnDomainChange = true,
-  allowSubdomainClear = true,
-  allowDomainClear = false,
+  selectedArea,
+  setSelectedArea,
+  selectedDimension,
+  setSelectedDimension,
+  redirectOnAreaChange = true,
+  allowDimensionClear = true,
+  allowAreaClear = false,
 }) {
-  const { domains } = useDomain();
+  const { areas } = useArea();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const getName = useLocalizedName();
-  const [isDomainDropdownOpen, setIsDomainDropdownOpen] = useState(false);
-  const [isSubdomainDropdownOpen, setIsSubdomainDropdownOpen] = useState(false);
-  const domainRef = useRef(null);
-  const subdomainRef = useRef(null);
+  const [isAreaDropdownOpen, setIsAreaDropdownOpen] = useState(false);
+  const [isDimensionDropdownOpen, setIsDimensionDropdownOpen] = useState(false);
+  const areaRef = useRef(null);
+  const dimensionRef = useRef(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (domainRef.current && !domainRef.current.contains(event.target)) {
-        setIsDomainDropdownOpen(false);
+      if (areaRef.current && !areaRef.current.contains(event.target)) {
+        setIsAreaDropdownOpen(false);
       }
-      if (subdomainRef.current && !subdomainRef.current.contains(event.target)) {
-        setIsSubdomainDropdownOpen(false);
+      if (dimensionRef.current && !dimensionRef.current.contains(event.target)) {
+        setIsDimensionDropdownOpen(false);
       }
     };
 
@@ -38,56 +38,56 @@ function Dropdowns({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectDomain = (domain) => {
-    const domainName = domain?.name;
-    if (!domainName || selectedDomain?.name === domainName) return;
+  const handleSelectArea = (area) => {
+    const areaName = area?.name;
+    if (!areaName || selectedArea?.name === areaName) return;
 
-    if (redirectOnDomainChange) {
-      const path = `/indicators/${domainName.toLowerCase().replace(/\s+/g, '-')}`;
+    if (redirectOnAreaChange) {
+      const path = `/indicators/${areaName.toLowerCase().replace(/\s+/g, '-')}`;
       navigate(path, {
-        state: { domainId: domain?.id },
+        state: { areaId: area?.id },
       });
     }
 
-    setSelectedDomain(domain);
-    setSelectedSubdomain(null);
-    setIsDomainDropdownOpen(false);
+    setSelectedArea(area);
+    setSelectedDimension(null);
+    setIsAreaDropdownOpen(false);
   };
 
-  const handleSelectSubdomain = (subdomain) => {
-    setSelectedSubdomain(subdomain);
-    setIsSubdomainDropdownOpen(false);
+  const handleSelectDimension = (dimension) => {
+    setSelectedDimension(dimension);
+    setIsDimensionDropdownOpen(false);
   };
 
-  const clearDomain = (e) => {
+  const clearArea = (e) => {
     e.stopPropagation();
-    setSelectedDomain(null);
-    setSelectedSubdomain(null);
+    setSelectedArea(null);
+    setSelectedDimension(null);
   };
 
-  const clearSubdomain = (e) => {
+  const clearDimension = (e) => {
     e.stopPropagation();
-    setSelectedSubdomain(null);
+    setSelectedDimension(null);
   };
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-      {/* Domain Dropdown */}
-      <div ref={domainRef} className="relative">
+      {/* Area Dropdown */}
+      <div ref={areaRef} className="relative">
         <div className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] focus-within:ring-2 focus-within:ring-primary/20 transition-colors flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[200px]">
           <span
             role="button"
             tabIndex={0}
-            onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDomainDropdownOpen(!isDomainDropdownOpen); } }}
+            onClick={() => setIsAreaDropdownOpen(!isAreaDropdownOpen)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsAreaDropdownOpen(!isAreaDropdownOpen); } }}
             className="truncate cursor-pointer flex-1"
           >
-            {getName(selectedDomain) || t('components.select_domain.choose_domain')}
+            {getName(selectedArea) || t('components.select_area.choose_area')}
           </span>
           <div className="flex items-center gap-1">
-            {selectedDomain?.name && allowDomainClear && (
+            {selectedArea?.name && allowAreaClear && (
               <button
-                onClick={clearDomain}
+                onClick={clearArea}
                 className="hover:bg-black/[0.06] rounded p-0.5 transition-colors cursor-pointer"
                 title="Limpar"
               >
@@ -97,8 +97,8 @@ function Dropdowns({
               </button>
             )}
             <svg
-              className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 cursor-pointer ${isDomainDropdownOpen ? 'rotate-180' : ''}`}
-              onClick={() => setIsDomainDropdownOpen(!isDomainDropdownOpen)}
+              className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 cursor-pointer ${isAreaDropdownOpen ? 'rotate-180' : ''}`}
+              onClick={() => setIsAreaDropdownOpen(!isAreaDropdownOpen)}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -108,39 +108,39 @@ function Dropdowns({
           </div>
         </div>
 
-        {/* Domain Dropdown Menu */}
-        {isDomainDropdownOpen && (
+        {/* Area Dropdown Menu */}
+        {isAreaDropdownOpen && (
           <div className="absolute z-50 mt-2 w-full bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] max-h-60 overflow-y-auto">
-            {domains.map((domain, index) => (
+            {areas.map((area, index) => (
               <button
-                key={domain?.name || index}
-                onClick={() => handleSelectDomain(domain)}
+                key={area?.name || index}
+                onClick={() => handleSelectArea(area)}
                 className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] w-full text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
               >
-                {getName(domain) || "Unnamed Domain"}
+                {getName(area) || "Unnamed Area"}
               </button>
             ))}
           </div>
         )}
       </div>
 
-      {/* Subdomain Dropdown */}
-      {selectedDomain && (
-        <div ref={subdomainRef} className="relative">
+      {/* Dimension Dropdown */}
+      {selectedArea && (
+        <div ref={dimensionRef} className="relative">
           <div className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] focus-within:ring-2 focus-within:ring-primary/20 transition-colors flex items-center justify-between gap-2 w-full sm:w-auto sm:min-w-[200px]">
             <span
               role="button"
               tabIndex={0}
-              onClick={() => setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen); } }}
+              onClick={() => setIsDimensionDropdownOpen(!isDimensionDropdownOpen)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDimensionDropdownOpen(!isDimensionDropdownOpen); } }}
               className="truncate cursor-pointer flex-1"
             >
-              {getName(selectedSubdomain) || t('components.select_domain.choose_dimension')}
+              {getName(selectedDimension) || t('components.select_area.choose_dimension')}
             </span>
             <div className="flex items-center gap-1">
-              {selectedSubdomain?.name && allowSubdomainClear && (
+              {selectedDimension?.name && allowDimensionClear && (
                 <button
-                  onClick={clearSubdomain}
+                  onClick={clearDimension}
                   className="hover:bg-black/[0.06] rounded p-0.5 transition-colors cursor-pointer"
                   title="Limpar"
                 >
@@ -150,8 +150,8 @@ function Dropdowns({
                 </button>
               )}
               <svg
-                className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 cursor-pointer ${isSubdomainDropdownOpen ? 'rotate-180' : ''}`}
-                onClick={() => setIsSubdomainDropdownOpen(!isSubdomainDropdownOpen)}
+                className={`w-4 h-4 text-[#0a0a0a] transition-transform shrink-0 cursor-pointer ${isDimensionDropdownOpen ? 'rotate-180' : ''}`}
+                onClick={() => setIsDimensionDropdownOpen(!isDimensionDropdownOpen)}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -161,13 +161,13 @@ function Dropdowns({
             </div>
           </div>
 
-          {/* Subdomain Dropdown Menu */}
-          {isSubdomainDropdownOpen && (
+          {/* Dimension Dropdown Menu */}
+          {isDimensionDropdownOpen && (
             <div className="absolute z-50 mt-2 w-full bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] max-h-60 overflow-y-auto">
-              {(selectedDomain?.subdomains || []).map((subdom, index) => (
+              {(selectedArea?.dimensions || []).map((subdom, index) => (
                 <button
                   key={typeof subdom === 'string' ? subdom : (subdom?.name || index)}
-                  onClick={() => handleSelectSubdomain(typeof subdom === 'string' ? { name: subdom } : subdom)}
+                  onClick={() => handleSelectDimension(typeof subdom === 'string' ? { name: subdom } : subdom)}
                   className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] w-full text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
                 >
                   {getName(subdom)}
@@ -182,13 +182,13 @@ function Dropdowns({
 }
 
 Dropdowns.propTypes = {
-  selectedDomain: PropTypes.object,
-  setSelectedDomain: PropTypes.func.isRequired,
-  selectedSubdomain: PropTypes.object,
-  setSelectedSubdomain: PropTypes.func.isRequired,
-  redirectOnDomainChange: PropTypes.bool,
-  allowSubdomainClear: PropTypes.bool,
-  allowDomainClear: PropTypes.bool,
+  selectedArea: PropTypes.object,
+  setSelectedArea: PropTypes.func.isRequired,
+  selectedDimension: PropTypes.object,
+  setSelectedDimension: PropTypes.func.isRequired,
+  redirectOnAreaChange: PropTypes.bool,
+  allowDimensionClear: PropTypes.bool,
+  allowAreaClear: PropTypes.bool,
 };
 
 export default Dropdowns;
