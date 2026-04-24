@@ -195,6 +195,15 @@ export default function BlogPostForm() {
     const routePostType = isPublicationsRoute ? 'publication' : 'news-event'
     const routeBasePath = isPublicationsRoute ? '/admin/publications' : '/admin/news-events'
 
+    // Redirect base path: on create, use the route-derived one. On edit,
+    // prefer the actual post_type of the loaded/edited post so editing a
+    // publication via a legacy /admin/news-events URL still lands back on
+    // /admin/publications (where the post actually lives in the list).
+    const effectiveBasePath = () => {
+        const effectiveType = formData?.post_type || routePostType
+        return effectiveType === 'publication' ? '/admin/publications' : '/admin/news-events'
+    }
+
     const [post, setPost] = useState(null)
     const [loading, setLoading] = useState(isEditing)
     const [saving, setSaving] = useState(false)
@@ -658,7 +667,7 @@ export default function BlogPostForm() {
             setThumbnailFile(null)
 
             // Redirect to blog management
-            navigate(routeBasePath)
+            navigate(effectiveBasePath())
         } catch (err) {
             setError(err.message)
         } finally {
@@ -686,18 +695,60 @@ export default function BlogPostForm() {
         )
     }
 
+    // Save as draft: flip the in-memory status to 'draft' then run the
+    // normal submit path (which skips the publish-confirm modal when not
+    // publishing). Figma "Guardar nos rascunhos" button.
+    const handleSaveDraft = async () => {
+        setFormData(prev => ({ ...prev, status: 'draft' }))
+        // Give React a tick so executeSubmit reads the updated status.
+        await Promise.resolve()
+        await executeSubmit()
+    }
+
+    // Publish: Figma green "Publicar" button. Behaves like status=published
+    // + submit, i.e. triggers the confirm modal.
+    const handlePublishClick = () => {
+        setFormData(prev => ({ ...prev, status: 'published' }))
+        setShowPublishConfirm(true)
+    }
+
     return (
         <AdminPageTemplate>
-            <div className="min-h-screen pb-8 px-4 bg-base-100">
-                <div className="max-w-4xl mx-auto">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            {isEditing ? t('admin.blog.title_edit') : t('admin.blog.title_create')}
+            <div className="min-h-screen pb-12 pt-8 px-4 md:px-12 bg-[#f3f4f6]">
+                <div className="max-w-[1416px] mx-auto">
+                    {/* Header — Figma node 2562:12663 */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <h1 className="font-['Onest'] font-semibold text-[32px] leading-none tracking-[-0.32px] text-[#0a0a0a]">
+                            {isEditing
+                                ? t('admin.blog.title_edit')
+                                : (routePostType === 'publication'
+                                    ? t('admin.publications.new_post', { defaultValue: t('admin.blog.title_create') })
+                                    : t('admin.news_events.new_post', { defaultValue: t('admin.blog.title_create') }))}
                         </h1>
-                        <p className="text-gray-600 mt-2">
-                            {isEditing ? t('admin.blog.subtitle_edit') : t('admin.blog.subtitle_create')}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-4">
+                            <button
+                                type="button"
+                                onClick={handleSaveDraft}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                {t('admin.blog.save_draft', 'Guardar nos rascunhos')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handlePublishClick}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] font-['Onest'] font-medium text-[17px] text-white whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                {t('admin.blog.publish', 'Publicar')}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Form */}
@@ -1237,7 +1288,7 @@ export default function BlogPostForm() {
                                         const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_cancel'))
                                         if (!confirmLeave) return
                                     }
-                                    navigate(routeBasePath)
+                                    navigate(effectiveBasePath())
                                 }}
                                 className="font-['Onest'] font-medium text-sm text-[#0a0a0a] border border-[#d4d4d4] px-6 py-2 rounded-full hover:bg-black/[0.02] transition-colors cursor-pointer"
                                 disabled={saving}
