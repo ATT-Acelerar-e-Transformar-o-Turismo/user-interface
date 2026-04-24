@@ -9,7 +9,7 @@ body {
   font-family: 'Onest';
   font-style: normal;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url('/fonts/Onest-Medium.ttf') format('truetype');
 }
 
@@ -17,7 +17,7 @@ body {
   font-family: 'Onest';
   font-style: normal;
   font-weight: 700;
-  font-display: block;
+  font-display: swap;
   src: url('/fonts/Onest-Bold.ttf') format('truetype');
 }
 
