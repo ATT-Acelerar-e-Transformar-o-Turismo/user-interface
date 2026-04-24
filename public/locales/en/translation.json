@@ -147,7 +147,9 @@
     "no": "No",
     "confirm": "Confirm",
     "confirm_title": "Confirmation",
-    "success": "Success!"
+    "success": "Success!",
+    "previous": "Previous",
+    "next": "Next"
   },
   "admin": {
     "nav": {
@@ -209,24 +211,28 @@
       "confirm_delete": "Are you sure you want to delete the resource \"{{name}}\"? This action cannot be undone."
     },
     "news_events": {
-      "title": "Manage News & Events",
+      "title": "All News & Events",
       "subtitle": "Create, edit, and manage news articles and events.",
-      "new_post": "New News / Event",
+      "new_post": "New News",
       "empty_title": "No news or events yet",
       "empty_subtitle": "Start by creating your first news item or event.",
       "create_first": "Create first news / event",
       "confirm_delete": "Are you sure you want to delete this news / event?",
-      "deleted_success": "News / event deleted successfully."
+      "deleted_success": "News / event deleted successfully.",
+      "drafts": "Drafts",
+      "search_placeholder": "Search news"
     },
     "publications": {
-      "title": "Manage Publications",
+      "title": "All Publications",
       "subtitle": "Create, edit, and manage publications.",
       "new_post": "New Publication",
       "empty_title": "No publications yet",
       "empty_subtitle": "Start by creating your first publication.",
       "create_first": "Create first publication",
       "confirm_delete": "Are you sure you want to delete this publication?",
-      "deleted_success": "Publication deleted successfully."
+      "deleted_success": "Publication deleted successfully.",
+      "drafts": "Drafts",
+      "search_placeholder": "Search publications"
     },
     "blog": {
       "title": "Manage Blog",
@@ -236,6 +242,17 @@
       "empty_subtitle": "Start by creating your first blog post!",
       "status_published": "Published",
       "status_draft": "Draft",
+      "save_draft": "Save to drafts",
+      "publish": "Publish",
+      "sort_by": "Sort by",
+      "sort_newest": "Newest",
+      "sort_oldest": "Oldest",
+      "sort_title_asc": "Title A → Z",
+      "sort_title_desc": "Title Z → A",
+      "filter_all": "All",
+      "search_placeholder": "Search",
+      "page_label": "Page",
+      "page_of": "of {{total}}",
       "confirm_delete": "Are you sure you want to delete this post?",
       "delete_error": "Error deleting post: {{error}}",
       "deleted_success": "Post deleted successfully.",

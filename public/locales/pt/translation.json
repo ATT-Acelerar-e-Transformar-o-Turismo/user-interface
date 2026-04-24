@@ -147,7 +147,9 @@
     "no": "Não",
     "confirm": "Confirmar",
     "confirm_title": "Confirmação",
-    "success": "Sucesso!"
+    "success": "Sucesso!",
+    "previous": "Anterior",
+    "next": "Próximo"
   },
   "admin": {
     "nav": {
@@ -209,24 +211,28 @@
       "confirm_delete": "Tem a certeza que deseja eliminar o recurso \"{{name}}\"? Esta ação não pode ser revertida."
     },
     "news_events": {
-      "title": "Gestão de Notícias e Eventos",
+      "title": "Todas as Notícias e Eventos",
       "subtitle": "Crie, edite e gira notícias e eventos.",
-      "new_post": "Nova Notícia / Evento",
+      "new_post": "Nova Notícia",
       "empty_title": "Ainda não há notícias ou eventos",
       "empty_subtitle": "Comece por criar a primeira notícia ou evento.",
       "create_first": "Criar primeira notícia / evento",
       "confirm_delete": "Tem a certeza que quer eliminar esta notícia / evento?",
-      "deleted_success": "Notícia / evento eliminado com sucesso."
+      "deleted_success": "Notícia / evento eliminado com sucesso.",
+      "drafts": "Rascunhos",
+      "search_placeholder": "Pesquisar notícias"
     },
     "publications": {
-      "title": "Gestão de Publicações",
+      "title": "Todas as Publicações",
       "subtitle": "Crie, edite e gira publicações.",
       "new_post": "Nova Publicação",
       "empty_title": "Ainda não há publicações",
       "empty_subtitle": "Comece por criar a primeira publicação.",
       "create_first": "Criar primeira publicação",
       "confirm_delete": "Tem a certeza que quer eliminar esta publicação?",
-      "deleted_success": "Publicação eliminada com sucesso."
+      "deleted_success": "Publicação eliminada com sucesso.",
+      "drafts": "Rascunhos",
+      "search_placeholder": "Pesquisar publicações"
     },
     "blog": {
       "title": "Gerar Blog",
@@ -236,6 +242,17 @@
       "empty_subtitle": "Comece criando seu primeiro post do blog!",
       "status_published": "Publicado",
       "status_draft": "Rascunho",
+      "save_draft": "Guardar nos rascunhos",
+      "publish": "Publicar",
+      "sort_by": "Ordenar por",
+      "sort_newest": "Mais recentes",
+      "sort_oldest": "Mais antigos",
+      "sort_title_asc": "Título A → Z",
+      "sort_title_desc": "Título Z → A",
+      "filter_all": "Todas",
+      "search_placeholder": "Pesquisar",
+      "page_label": "Página",
+      "page_of": "de {{total}}",
       "confirm_delete": "Tem certeza que deseja excluir este post?",
       "delete_error": "Erro ao excluir post: {{error}}",
       "deleted_success": "Post eliminado com sucesso.",
