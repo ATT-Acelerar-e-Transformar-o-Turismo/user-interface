@@ -4,6 +4,12 @@
     "body": "This platform is still being built. We're fixing bugs and improving features. Thank you for your patience.",
     "acknowledge": "Got it"
   },
+  "coming_soon": {
+    "title": "Something new is on the way!",
+    "body": "We're still working on this page — it'll be ready to explore very soon.\nIn the meantime, take a look around at everything the platform already offers.",
+    "back": "Back",
+    "home": "Go to home"
+  },
   "nav": {
     "home": "Home",
     "about": "About",
@@ -98,15 +104,15 @@
   },
   "hero": {
     "title_prefix": "The Root",
-    "title_suffix": "Of",
-    "title_decisions": "Right",
-    "title_right": "Decisions",
+    "title_suffix": "of",
+    "title_decisions": "right",
+    "title_right": "decisions",
     "subtitle": "Your strategic guide to understanding tourism today and better planning the territory's tomorrow.",
     "cta": "View indicators"
   },
   "about": {
     "title": "About ROOTS",
-    "description": "Developed within the scope of the ATT (Accelerate and Transform Tourism) project of the Recovery and Resilience Plan, ROOTS is a tourism data monitoring platform for decision support in Barra and Costa Nova.",
+    "description": "Developed within the scope of the Business Innovation Agenda «ATT – Mobilizing Agenda to Accelerate and Transform Tourism», funded by the PRR – Recovery and Resilience Plan and by NextGenerationEU funds at the University of Aveiro, ROOTS is a tourism data monitoring platform designed to support decision-making in Ílhavo.",
     "objective_title": "Objective",
     "objective_description": "Simplify data analysis and make decision-making more informed. We transform scattered information into useful knowledge about local tourism. Official data, organized and available in a click: visualize, compare, export. If you make decisions about the territory, this platform is for you.",
     "cta": "Learn More"
@@ -466,7 +472,7 @@
   "features": {
     "title": "With Roots You Can",
     "visualize_title": "Visualize",
-    "visualize_desc": "tourism indicators from Barra and Costa Nova, updated and organized by dimensions",
+    "visualize_desc": "tourism indicators of Ílhavo, updated and organized by areas and dimensions",
     "compare_title": "Compare",
     "compare_desc": "data over time to identify trends and patterns",
     "decide_title": "Decide",

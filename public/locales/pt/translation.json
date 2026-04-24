@@ -4,6 +4,12 @@
     "body": "Esta plataforma ainda não está terminada. Estamos a corrigir erros e a melhorar funcionalidades. Obrigado pela paciência.",
     "acknowledge": "Entendi"
   },
+  "coming_soon": {
+    "title": "A preparar novidades!",
+    "body": "Ainda estamos a trabalhar nesta página, em breve estará pronta para ser explorada.\nAté lá, aproveite para descobrir tudo o que a plataforma já tem para oferecer.",
+    "back": "Voltar",
+    "home": "Ir para o início"
+  },
   "nav": {
     "home": "Início",
     "about": "Sobre",
@@ -98,15 +104,15 @@
   },
   "hero": {
     "title_prefix": "A Raíz",
-    "title_suffix": "Das",
-    "title_decisions": "Decisões",
-    "title_right": "Certas",
+    "title_suffix": "das",
+    "title_decisions": "decisões",
+    "title_right": "certas",
     "subtitle": "O seu guia estratégico para compreender o turismo hoje e planear melhor o amanhã do território.",
     "cta": "Ver indicadores"
   },
   "about": {
     "title": "Sobre a ROOTS",
-    "description": "Desenvolvida no âmbito do projeto ATT (Acelerar e Transformar o Turismo) do Plano de Recuperação e Resiliência, a ROOTS é uma plataforma de monitorização de dados turísticos para apoio à decisão na Barra e Costa Nova.",
+    "description": "Desenvolvido no âmbito da Agenda para a Inovação Empresarial «ATT – Agenda Mobilizadora Acelerar e Transformar o Turismo», financiada pelo PRR – Plano de Recuperação e Resiliência e pelos fundos NextGenerationEU na Universidade de Aveiro, o ROOTS é uma plataforma de monitorização de dados turísticos destinada ao apoio à tomada de decisões em Ílhavo.",
     "objective_title": "Objetivo",
     "objective_description": "Simplificar a análise de dados e tornar a decisão mais informada. Transformamos informação dispersa em conhecimento útil sobre turismo local. Dados oficiais, organizados e disponíveis num clique: visualize, compare, exporte. Se toma decisões sobre o território, esta plataforma é para si.",
     "cta": "Saber mais"
@@ -466,7 +472,7 @@
   "features": {
     "title": "Com a Roots Pode",
     "visualize_title": "Visualizar",
-    "visualize_desc": "indicadores turísticos da Barra e Costa Nova, atualizados e organizados por dimensões",
+    "visualize_desc": "indicadores turísticos de Ílhavo, atualizados e organizados por áreas e dimensões",
     "compare_title": "Comparar",
     "compare_desc": "dados ao longo do tempo para identificar tendências e padrões",
     "decide_title": "Decidir",
