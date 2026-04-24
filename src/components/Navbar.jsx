@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react"
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import logoRoots from '../assets/logo-roots.svg'
+import logoRootsGreen from '../assets/green-logo.svg'
 import indicatorService from '../services/indicatorService'
 import { highlightSearchTerms } from '../utils/searchUtils'
 import MobileNavbar from './MobileNavbar'
@@ -219,15 +220,23 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         }
     };
 
-    // Active/hover green pill — Figma node 388:2452
+    // Active/hover pill. Admin routes use the ROOTS green (#009368, "absinthe"
+    // from the Figma design); public routes keep the site's primary blue.
+    const isAdminContext = location.pathname.startsWith('/admin');
+    const activeBg = isAdminContext
+        ? 'bg-[#009368] text-white'
+        : 'bg-primary text-primary-content';
+    const hoverBg = isAdminContext
+        ? 'hover:bg-[#009368] hover:text-white'
+        : 'hover:bg-primary hover:text-primary-content';
     const navItemClass = (path, exact = false, forceActive = false) => {
         const isActive = forceActive || (exact
             ? location.pathname === path
             : location.pathname === path || location.pathname.startsWith(path + '/'));
         const base = 'flex items-center justify-center px-3 xl:px-6 py-4 font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap rounded-full transition-all duration-200';
         return isActive
-            ? `${base} bg-primary text-primary-content`
-            : `${base} text-[#0a0a0a] hover:bg-primary hover:text-primary-content`;
+            ? `${base} ${activeBg}`
+            : `${base} text-[#0a0a0a] ${hoverBg}`;
     };
 
     const isRootsActive = location.pathname.startsWith('/roots/');
@@ -294,9 +303,9 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                 {/* Desktop nav pill — hidden on mobile */}
                 <nav className="hidden lg:flex bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] items-center h-[72px] px-4 xl:px-9 pointer-events-auto">
 
-                    {/* Logo */}
+                    {/* Logo — admin console uses the green variant */}
                     <Link to="/" className="shrink-0 flex items-center">
-                        <img src={logoRoots} alt="ROOTS" className="h-9 w-auto" />
+                        <img src={isAdminContext ? logoRootsGreen : logoRoots} alt="ROOTS" className="h-9 w-auto" />
                     </Link>
 
                     {/* Nav Items — desktop, auto-sized and centered */}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
@@ -185,8 +185,15 @@ function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, coverPrevi
 export default function BlogPostForm() {
     const { postId } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const { t } = useTranslation()
     const isEditing = Boolean(postId)
+    // Infer the post_type / base URL from the current path. The form is
+    // mounted at /admin/news-events/* and /admin/publications/*, one per
+    // post type — no manual type selector is needed on create.
+    const isPublicationsRoute = location.pathname.startsWith('/admin/publications')
+    const routePostType = isPublicationsRoute ? 'publication' : 'news-event'
+    const routeBasePath = isPublicationsRoute ? '/admin/publications' : '/admin/news-events'
 
     const [post, setPost] = useState(null)
     const [loading, setLoading] = useState(isEditing)
@@ -226,7 +233,7 @@ export default function BlogPostForm() {
         author_id: '',
         author_photo: '',
         author_role: '',
-        post_type: 'news-event',
+        post_type: routePostType,
         publication_link: '',
         publication_link_label: '',
         publication_link_label_en: '',
@@ -256,7 +263,7 @@ export default function BlogPostForm() {
             setLoading(false)
             const empty = {
                 title: '', title_en: '', content: '', content_en: '', excerpt: '', excerpt_en: '',
-                author: '', author_id: '', author_photo: '', author_role: '', post_type: 'news-event',
+                author: '', author_id: '', author_photo: '', author_role: '', post_type: routePostType,
                 publication_link: '', publication_link_label: '', publication_link_label_en: '',
                 status: 'draft', categories: [], keywords: [], tags: []
             }
@@ -325,7 +332,7 @@ export default function BlogPostForm() {
                 author_id: postData.author_id || '',
                 author_photo: postData.author_photo || '',
                 author_role: postData.author_role || '',
-                post_type: postData.post_type || 'news-event',
+                post_type: postData.post_type || routePostType,
                 publication_link: postData.publication_link || '',
                 publication_link_label: postData.publication_link_label || '',
                 publication_link_label_en: postData.publication_link_label_en || '',
@@ -651,7 +658,7 @@ export default function BlogPostForm() {
             setThumbnailFile(null)
 
             // Redirect to blog management
-            navigate('/admin/news-events')
+            navigate(routeBasePath)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -695,31 +702,8 @@ export default function BlogPostForm() {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-8">
-                        {/* Post Type selector */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_post_type', 'Tipo de publicação')}
-                            </label>
-                            <div className="flex gap-3">
-                                {[
-                                    { value: 'news-event', label: t('admin.blog.type_news_event', 'Notícia / Evento') },
-                                    { value: 'publication', label: t('admin.blog.type_publication', 'Publicação') },
-                                ].map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, post_type: opt.value, categories: [] }))}
-                                        className={`font-['Onest'] text-sm font-medium px-5 py-2 rounded-full border transition-colors cursor-pointer ${
-                                            formData.post_type === opt.value
-                                                ? 'bg-primary text-white border-primary'
-                                                : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Post type is implied by the route: /admin/news-events
+                            vs /admin/publications — no selector needed. */}
 
                         {/* Language tabs */}
                         <div className="flex gap-1 bg-[#f3f4f6] rounded-lg p-1 w-fit">
@@ -1253,7 +1237,7 @@ export default function BlogPostForm() {
                                         const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_cancel'))
                                         if (!confirmLeave) return
                                     }
-                                    navigate('/admin/news-events')
+                                    navigate(routeBasePath)
                                 }}
                                 className="font-['Onest'] font-medium text-sm text-[#0a0a0a] border border-[#d4d4d4] px-6 py-2 rounded-full hover:bg-black/[0.02] transition-colors cursor-pointer"
                                 disabled={saving}

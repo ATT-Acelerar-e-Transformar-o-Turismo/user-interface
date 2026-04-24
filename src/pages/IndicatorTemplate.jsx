@@ -1061,13 +1061,13 @@ export default function IndicatorTemplate() {
                     </p>
                   )}
                   <div className="font-['Onest'] text-sm text-[#0a0a0a] space-y-6">
-                    <p><span className="font-semibold">{t('indicator.sources_label')}</span> {indicatorData.font || "N/A"}</p>
-                    <p><span className="font-semibold">{t('indicator.scale_label')}</span> {indicatorData.scale || "N/A"}</p>
-                    <p><span className="font-semibold">{t('indicator.units_label')}</span> {indicatorData.unit || "N/A"}</p>
-                    <p><span className="font-semibold">{t('indicator.periodicity_label')}</span> {indicatorData.periodicity || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.sources_label')}</span> {getName.field(indicatorData, 'font', 'font_en') || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.scale_label')}</span> {getName.field(indicatorData, 'scale', 'scale_en') || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.units_label')}</span> {getName.field(indicatorData, 'unit', 'unit_en') || "N/A"}</p>
+                    <p><span className="font-semibold">{t('indicator.periodicity_label')}</span> {getName.field(indicatorData, 'periodicity', 'periodicity_en') || "N/A"}</p>
                     <p><span className="font-semibold">{t('indicator.governance_label')}</span> {indicatorData?.governance ? t('common.yes') : t('common.no')}</p>
-                    <p><span className="font-semibold">{t('indicator.dimension_label')}</span> {getName(resolvedAreaObj)}</p>
-                    <p><span className="font-semibold">{t('indicator.area_label')}</span> {resolvedDimensionName || ""}</p>
+                    <p><span className="font-semibold">{t('indicator.area_label')}</span> {getName(resolvedAreaObj)}</p>
+                    <p><span className="font-semibold">{t('indicator.dimension_label')}</span> {dimensionObj ? getName(dimensionObj) : (resolvedDimensionName || "")}</p>
                   </div>
                 </div>
               )}

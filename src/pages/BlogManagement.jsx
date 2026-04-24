@@ -1,31 +1,49 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import PropTypes from 'prop-types'
 import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import SuccessModal from '../components/wizard/SuccessModal'
 import blogService from '../services/blogService'
+import { confirmAction } from '../utils/confirm'
 
-export default function BlogManagement() {
+/**
+ * Admin management list for blog posts, filtered to a single `post_type`.
+ * Mounted twice via the routes:
+ *   /admin/news-events   → postType="news-event"  (base path /admin/news-events)
+ *   /admin/publications  → postType="publication" (base path /admin/publications)
+ *
+ * The create/edit links and translation namespace are driven by `basePath`
+ * and `i18nNamespace` so each variant has its own URLs and copy.
+ */
+export default function BlogManagement({
+    postType = 'news-event',
+    basePath = '/admin/news-events',
+    i18nNamespace = 'admin.news_events',
+}) {
     const { t } = useTranslation()
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [showCreateModal, setShowCreateModal] = useState(false)
-    const [editingPost, setEditingPost] = useState(null)
     const [successMessage, setSuccessMessage] = useState(null)
 
     useEffect(() => {
         loadPosts()
-    }, [])
+    }, [postType])
 
     const loadPosts = async () => {
         try {
             setLoading(true)
             setError(null)
             const allPosts = await blogService.getAllPosts(0, 50)
-            setPosts(allPosts)
+            // Backend doesn't filter by post_type yet, so do it client-side.
+            // Treat missing post_type as "news-event" (the historical default).
+            const filtered = (allPosts || []).filter(p =>
+                (p.post_type || 'news-event') === postType
+            )
+            setPosts(filtered)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -34,14 +52,20 @@ export default function BlogManagement() {
     }
 
     const handleDeletePost = async (postId) => {
-        if (!window.confirm(t('admin.blog.confirm_delete'))) {
-            return
-        }
+        const ok = await confirmAction({
+            title: t('common.confirm_title'),
+            message: t(`${i18nNamespace}.confirm_delete`, {
+                defaultValue: t('admin.blog.confirm_delete'),
+            }),
+        })
+        if (!ok) return
 
         try {
             await blogService.deletePost(postId)
             setPosts(posts.filter(post => post.id !== postId))
-            setSuccessMessage(t('admin.blog.deleted_success'))
+            setSuccessMessage(t(`${i18nNamespace}.deleted_success`, {
+                defaultValue: t('admin.blog.deleted_success'),
+            }))
         } catch (err) {
             setError(t('admin.blog.delete_error', { error: err.message }))
         }
@@ -68,6 +92,11 @@ export default function BlogManagement() {
                 return status
         }
     }
+
+    // Published-post view URL: news/events live under /news-events/:id,
+    // publications under /publications/:id (already routed on the public side).
+    const publicViewPath = (postId) =>
+        postType === 'publication' ? `/publications/${postId}` : `/news-events/${postId}`
 
     if (loading) {
         return (
@@ -97,17 +126,17 @@ export default function BlogManagement() {
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">
-                                {t('admin.blog.title')}
+                                {t(`${i18nNamespace}.title`, { defaultValue: t('admin.blog.title') })}
                             </h1>
                             <p className="text-gray-600 mt-2">
-                                {t('admin.blog.subtitle')}
+                                {t(`${i18nNamespace}.subtitle`, { defaultValue: t('admin.blog.subtitle') })}
                             </p>
                         </div>
                         <Link
-                            to="/admin/news-events/create"
+                            to={`${basePath}/create`}
                             className="px-6 py-3 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                         >
-                            {t('admin.blog.new_post')}
+                            {t(`${i18nNamespace}.new_post`, { defaultValue: t('admin.blog.new_post') })}
                         </Link>
                     </div>
 
@@ -120,13 +149,17 @@ export default function BlogManagement() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-medium text-gray-900 mb-2">{t('admin.blog.empty_title')}</h3>
-                                <p className="text-gray-600 mb-6">{t('admin.blog.empty_subtitle')}</p>
+                                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                                    {t(`${i18nNamespace}.empty_title`, { defaultValue: t('admin.blog.empty_title') })}
+                                </h3>
+                                <p className="text-gray-600 mb-6">
+                                    {t(`${i18nNamespace}.empty_subtitle`, { defaultValue: t('admin.blog.empty_subtitle') })}
+                                </p>
                                 <Link
-                                    to="/admin/news-events/create"
+                                    to={`${basePath}/create`}
                                     className="inline-block px-6 py-2 bg-gray-900 text-white font-medium rounded-lg transition-colors hover:bg-gray-800"
                                 >
-                                    {t('admin.blog.create_first')}
+                                    {t(`${i18nNamespace}.create_first`, { defaultValue: t('admin.blog.create_first') })}
                                 </Link>
                             </div>
                         ) : (
@@ -199,14 +232,14 @@ export default function BlogManagement() {
                                                     <div className="flex space-x-2">
                                                         {post.status === 'published' && (
                                                             <Link
-                                                                to={`/news-events/${post.id}`}
+                                                                to={publicViewPath(post.id)}
                                                                 className="text-blue-600 hover:text-blue-900"
                                                             >
                                                                 {t('admin.blog.action_view')}
                                                             </Link>
                                                         )}
                                                         <Link
-                                                            to={`/admin/news-events/edit/${post.id}`}
+                                                            to={`${basePath}/edit/${post.id}`}
                                                             className="text-primary hover:text-primary/80 hover:underline"
                                                         >
                                                             {t('common.edit')}
@@ -237,4 +270,10 @@ export default function BlogManagement() {
             />
         </AdminPageTemplate>
     )
+}
+
+BlogManagement.propTypes = {
+    postType: PropTypes.oneOf(['news-event', 'publication']),
+    basePath: PropTypes.string,
+    i18nNamespace: PropTypes.string,
 }

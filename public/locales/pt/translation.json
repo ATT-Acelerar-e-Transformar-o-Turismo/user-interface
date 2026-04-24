@@ -156,6 +156,7 @@
       "dimensions": "Dimensões",
       "areas": "Áreas",
       "news_events": "Notícias e Eventos",
+      "publications": "Publicações",
       "user_management": "Gestão de Utilizadores"
     },
     "indicators": {
@@ -206,6 +207,26 @@
       "add": "Adicionar Recurso de Dados",
       "confirm_delete_title": "Eliminar recurso?",
       "confirm_delete": "Tem a certeza que deseja eliminar o recurso \"{{name}}\"? Esta ação não pode ser revertida."
+    },
+    "news_events": {
+      "title": "Gestão de Notícias e Eventos",
+      "subtitle": "Crie, edite e gira notícias e eventos.",
+      "new_post": "Nova Notícia / Evento",
+      "empty_title": "Ainda não há notícias ou eventos",
+      "empty_subtitle": "Comece por criar a primeira notícia ou evento.",
+      "create_first": "Criar primeira notícia / evento",
+      "confirm_delete": "Tem a certeza que quer eliminar esta notícia / evento?",
+      "deleted_success": "Notícia / evento eliminado com sucesso."
+    },
+    "publications": {
+      "title": "Gestão de Publicações",
+      "subtitle": "Crie, edite e gira publicações.",
+      "new_post": "Nova Publicação",
+      "empty_title": "Ainda não há publicações",
+      "empty_subtitle": "Comece por criar a primeira publicação.",
+      "create_first": "Criar primeira publicação",
+      "confirm_delete": "Tem a certeza que quer eliminar esta publicação?",
+      "deleted_success": "Publicação eliminada com sucesso."
     },
     "blog": {
       "title": "Gerar Blog",

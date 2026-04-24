@@ -83,42 +83,51 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
       const getSubName = (s) => typeof s === 'string' ? s : s.name;
       const newSubObj = { name: dimensionName.trim(), name_en: dimensionNameEn.trim() };
 
+      // Backend field names: Domain.subdomains and Indicator.subdomain /
+      // Indicator.domain. The UI-level `dimensions` / `dimension` / `area`
+      // rename is display-only; PATCH bodies must use the backend names or
+      // pydantic silently drops them (making the save appear successful
+      // while nothing actually changes).
+      const matchesEditDimension = (ind) =>
+        (ind.subdomain || ind.dimension) === editDimensionName;
+
       if (isEditing && selectedArea !== editAreaId) {
         // Moving to a different area: remove from old, add to new
         const oldArea = await areaService.getById(editAreaId);
-        const oldSubs = (oldArea.dimensions || []).filter(s => getSubName(s) !== editDimensionName);
-        await areaService.patch(editAreaId, { dimensions: oldSubs });
+        const oldSubs = (oldArea.subdomains || oldArea.dimensions || [])
+          .filter(s => getSubName(s) !== editDimensionName);
+        await areaService.patch(editAreaId, { subdomains: oldSubs });
 
         const newArea = await areaService.getById(selectedArea);
-        const newSubs = [...(newArea.dimensions || []), newSubObj];
-        await areaService.patch(selectedArea, { dimensions: newSubs });
+        const newSubs = [...(newArea.subdomains || newArea.dimensions || []), newSubObj];
+        await areaService.patch(selectedArea, { subdomains: newSubs });
 
         // Update all affected indicators: change area and dimension name
         const allIndicators = await fetchAllAreaIndicators(editAreaId);
-        const affected = allIndicators.filter(ind => ind.dimension === editDimensionName);
+        const affected = allIndicators.filter(matchesEditDimension);
         await Promise.all(affected.map(ind =>
-          indicatorService.patch(ind.id, { dimension: dimensionName.trim(), area: selectedArea })
+          indicatorService.patch(ind.id, { subdomain: dimensionName.trim(), domain: selectedArea })
         ));
       } else if (isEditing) {
         // Same area: rename
         const area = await areaService.getById(selectedArea);
-        const currentDimensions = area.dimensions || [];
+        const currentDimensions = area.subdomains || area.dimensions || [];
         const updatedDimensions = currentDimensions.map(s => getSubName(s) === editDimensionName ? newSubObj : s);
-        await areaService.patch(selectedArea, { dimensions: updatedDimensions });
+        await areaService.patch(selectedArea, { subdomains: updatedDimensions });
 
         // Update all indicators with the old dimension name
         if (dimensionName.trim() !== editDimensionName) {
           const allIndicators = await fetchAllAreaIndicators(selectedArea);
-          const affected = allIndicators.filter(ind => ind.dimension === editDimensionName);
+          const affected = allIndicators.filter(matchesEditDimension);
           await Promise.all(affected.map(ind =>
-            indicatorService.patch(ind.id, { dimension: dimensionName.trim() })
+            indicatorService.patch(ind.id, { subdomain: dimensionName.trim() })
           ));
         }
       } else {
         // Add new dimension
         const area = await areaService.getById(selectedArea);
-        const currentDimensions = area.dimensions || [];
-        await areaService.patch(selectedArea, { dimensions: [...currentDimensions, newSubObj] });
+        const currentDimensions = area.subdomains || area.dimensions || [];
+        await areaService.patch(selectedArea, { subdomains: [...currentDimensions, newSubObj] });
       }
 
       // Reset form

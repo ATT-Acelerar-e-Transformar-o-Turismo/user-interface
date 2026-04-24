@@ -12,7 +12,8 @@ import NewArea from "./pages/NewArea";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import PublicationsPage from "./pages/PublicationsPage";
-import BlogManagement from "./pages/BlogManagement";
+import NewsEventsManagement from "./pages/NewsEventsManagement";
+import PublicationsManagement from "./pages/PublicationsManagement";
 import BlogPostForm from "./pages/BlogPostForm";
 import AuthorPage from "./pages/AuthorPage";
 import UserManagement from "./pages/UserManagement";
@@ -273,7 +274,7 @@ export const routesList = [
                 <Helmet>
                     <title>News & Events - Management</title>
                 </Helmet>
-                <BlogManagement />
+                <NewsEventsManagement />
             </ProtectedRoute>
         )
     },
@@ -294,6 +295,39 @@ export const routesList = [
             <ProtectedRoute>
                 <Helmet>
                     <title>News & Events - Edit Post</title>
+                </Helmet>
+                <BlogPostForm />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/publications',
+        element: (
+            <ProtectedRoute>
+                <Helmet>
+                    <title>Publications - Management</title>
+                </Helmet>
+                <PublicationsManagement />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/publications/create',
+        element: (
+            <ProtectedRoute>
+                <Helmet>
+                    <title>Publications - Create</title>
+                </Helmet>
+                <BlogPostForm />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/publications/edit/:postId',
+        element: (
+            <ProtectedRoute>
+                <Helmet>
+                    <title>Publications - Edit</title>
                 </Helmet>
                 <BlogPostForm />
             </ProtectedRoute>

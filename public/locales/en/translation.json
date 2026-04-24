@@ -156,6 +156,7 @@
       "dimensions": "Dimensions",
       "areas": "Areas",
       "news_events": "News & Events",
+      "publications": "Publications",
       "user_management": "User Management"
     },
     "indicators": {
@@ -206,6 +207,26 @@
       "add": "Add Data Resource",
       "confirm_delete_title": "Delete resource?",
       "confirm_delete": "Are you sure you want to delete the resource \"{{name}}\"? This action cannot be undone."
+    },
+    "news_events": {
+      "title": "Manage News & Events",
+      "subtitle": "Create, edit, and manage news articles and events.",
+      "new_post": "New News / Event",
+      "empty_title": "No news or events yet",
+      "empty_subtitle": "Start by creating your first news item or event.",
+      "create_first": "Create first news / event",
+      "confirm_delete": "Are you sure you want to delete this news / event?",
+      "deleted_success": "News / event deleted successfully."
+    },
+    "publications": {
+      "title": "Manage Publications",
+      "subtitle": "Create, edit, and manage publications.",
+      "new_post": "New Publication",
+      "empty_title": "No publications yet",
+      "empty_subtitle": "Start by creating your first publication.",
+      "create_first": "Create first publication",
+      "confirm_delete": "Are you sure you want to delete this publication?",
+      "deleted_success": "Publication deleted successfully."
     },
     "blog": {
       "title": "Manage Blog",
