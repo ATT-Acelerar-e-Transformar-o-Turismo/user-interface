@@ -1,10 +1,9 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useArea } from "../contexts/AreaContext";
 import { useAuth } from "../contexts/AuthContext";
 import resourceService from "../services/resourceService";
 import PageTemplate from "./PageTemplate";
 import Carousel from "../components/Carousel";
-import IndicatorDropdowns from "../components/IndicatorDropdowns";
 import GChart from "../components/Chart";
 import ResourceWizard from "../components/wizard/ResourceWizard";
 import IndicatorWizard from "../components/wizard/IndicatorWizard";
@@ -634,16 +633,6 @@ export default function IndicatorTemplate() {
 
   const dimensionObj = resolvedAreaObj.dimensions?.find((sub) => sub.name === resolvedDimensionName);
 
-  const handleIndicatorChange = (newArea, newDimension, newIndicator) => {
-    navigate(`/indicator/${newIndicator.id}`, {
-      state: {
-        areaName: newArea.name,
-        dimensionName: typeof newDimension === 'string' ? newDimension : newDimension.name,
-        indicatorId: newIndicator.id,
-      },
-    });
-  };
-
   const images = resolvedAreaObj.AreaCarouselImages?.length > 0
     ? resolvedAreaObj.AreaCarouselImages
     : [];
@@ -753,17 +742,24 @@ export default function IndicatorTemplate() {
             </button>
           </div>
 
-          {/* Indicator navigation dropdowns */}
+          {/* Breadcrumbs */}
           {resolvedAreaObj && (
-            <div className="mb-6">
-              <IndicatorDropdowns
-                currentArea={resolvedAreaObj}
-                currentDimension={dimensionObj || { name: resolvedDimensionName }}
-                currentIndicator={indicatorData}
-                onIndicatorChange={handleIndicatorChange}
-                allowDimensionClear={false}
-              />
-            </div>
+            <nav className="mb-6 flex items-center gap-2 font-['Onest'] text-base text-[#0a0a0a]">
+              <Link to="/indicators" className="hover:underline">
+                {t('areas.breadcrumb_dimensions')}
+              </Link>
+              <span className="text-black/60">/</span>
+              <Link
+                to={`/indicators/${(resolvedAreaObj?.name || '').toLowerCase().replace(/\s+/g, '-')}`}
+                className="hover:underline"
+              >
+                {getName(resolvedAreaObj)}
+              </Link>
+              <span className="text-black/60">/</span>
+              <span className="underline underline-offset-4">
+                {getName(indicatorData)}
+              </span>
+            </nav>
           )}
 
           <div className="space-y-6">
