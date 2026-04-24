@@ -4,8 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from './Navbar';
 
 function AdminRightContent() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { logout } = useAuth();
+    const isPt = i18n.language?.startsWith('pt');
 
     return (
         <div className="hidden lg:flex items-center gap-3 shrink-0">
@@ -22,10 +23,23 @@ function AdminRightContent() {
 
             <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
 
+            {/* Language toggle — mirrors the public navbar so admins can
+                switch locale without leaving the admin console. */}
+            <button
+                type="button"
+                onClick={() => i18n.changeLanguage(isPt ? 'en' : 'pt')}
+                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
+                aria-label={isPt ? 'Switch to English' : 'Mudar para Português'}
+            >
+                {isPt ? 'PT' : 'EN'}
+            </button>
+
+            <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
+
             {/* Logout */}
             <button
                 onClick={logout}
-                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
+                className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-[#009368] transition-colors"
             >
                 {t('nav.logout')}
             </button>

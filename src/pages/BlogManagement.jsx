@@ -43,8 +43,17 @@ export default function BlogManagement({
         try {
             setLoading(true)
             setError(null)
-            const allPosts = await blogService.getAllPosts(0, 200)
-            const filtered = (allPosts || []).filter(p =>
+            // Backend caps limit at 50; paginate until a short page arrives.
+            const pageSize = 50
+            const maxPages = 20 // hard safety stop (1000 posts)
+            const collected = []
+            for (let i = 0; i < maxPages; i++) {
+                const batch = await blogService.getAllPosts(i * pageSize, pageSize)
+                if (!Array.isArray(batch) || batch.length === 0) break
+                collected.push(...batch)
+                if (batch.length < pageSize) break
+            }
+            const filtered = collected.filter(p =>
                 (p.post_type || 'news-event') === postType
             )
             setPosts(filtered)
