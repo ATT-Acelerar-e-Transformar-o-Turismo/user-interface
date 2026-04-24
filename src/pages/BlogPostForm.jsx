@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
@@ -185,8 +185,24 @@ function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, coverPrevi
 export default function BlogPostForm() {
     const { postId } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const { t } = useTranslation()
     const isEditing = Boolean(postId)
+    // Infer the post_type / base URL from the current path. The form is
+    // mounted at /admin/news-events/* and /admin/publications/*, one per
+    // post type — no manual type selector is needed on create.
+    const isPublicationsRoute = location.pathname.startsWith('/admin/publications')
+    const routePostType = isPublicationsRoute ? 'publication' : 'news-event'
+    const routeBasePath = isPublicationsRoute ? '/admin/publications' : '/admin/news-events'
+
+    // Redirect base path: on create, use the route-derived one. On edit,
+    // prefer the actual post_type of the loaded/edited post so editing a
+    // publication via a legacy /admin/news-events URL still lands back on
+    // /admin/publications (where the post actually lives in the list).
+    const effectiveBasePath = () => {
+        const effectiveType = formData?.post_type || routePostType
+        return effectiveType === 'publication' ? '/admin/publications' : '/admin/news-events'
+    }
 
     const [post, setPost] = useState(null)
     const [loading, setLoading] = useState(isEditing)
@@ -226,7 +242,7 @@ export default function BlogPostForm() {
         author_id: '',
         author_photo: '',
         author_role: '',
-        post_type: 'news-event',
+        post_type: routePostType,
         publication_link: '',
         publication_link_label: '',
         publication_link_label_en: '',
@@ -256,7 +272,7 @@ export default function BlogPostForm() {
             setLoading(false)
             const empty = {
                 title: '', title_en: '', content: '', content_en: '', excerpt: '', excerpt_en: '',
-                author: '', author_id: '', author_photo: '', author_role: '', post_type: 'news-event',
+                author: '', author_id: '', author_photo: '', author_role: '', post_type: routePostType,
                 publication_link: '', publication_link_label: '', publication_link_label_en: '',
                 status: 'draft', categories: [], keywords: [], tags: []
             }
@@ -325,7 +341,7 @@ export default function BlogPostForm() {
                 author_id: postData.author_id || '',
                 author_photo: postData.author_photo || '',
                 author_role: postData.author_role || '',
-                post_type: postData.post_type || 'news-event',
+                post_type: postData.post_type || routePostType,
                 publication_link: postData.publication_link || '',
                 publication_link_label: postData.publication_link_label || '',
                 publication_link_label_en: postData.publication_link_label_en || '',
@@ -651,7 +667,7 @@ export default function BlogPostForm() {
             setThumbnailFile(null)
 
             // Redirect to blog management
-            navigate('/admin/news-events')
+            navigate(effectiveBasePath())
         } catch (err) {
             setError(err.message)
         } finally {
@@ -679,47 +695,66 @@ export default function BlogPostForm() {
         )
     }
 
+    // Save as draft: flip the in-memory status to 'draft' then run the
+    // normal submit path (which skips the publish-confirm modal when not
+    // publishing). Figma "Guardar nos rascunhos" button.
+    const handleSaveDraft = async () => {
+        setFormData(prev => ({ ...prev, status: 'draft' }))
+        // Give React a tick so executeSubmit reads the updated status.
+        await Promise.resolve()
+        await executeSubmit()
+    }
+
+    // Publish: Figma green "Publicar" button. Behaves like status=published
+    // + submit, i.e. triggers the confirm modal.
+    const handlePublishClick = () => {
+        setFormData(prev => ({ ...prev, status: 'published' }))
+        setShowPublishConfirm(true)
+    }
+
     return (
         <AdminPageTemplate>
-            <div className="min-h-screen pb-8 px-4 bg-base-100">
-                <div className="max-w-4xl mx-auto">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            {isEditing ? t('admin.blog.title_edit') : t('admin.blog.title_create')}
+            <div className="min-h-screen pb-12 pt-8 px-4 md:px-12 bg-[#f3f4f6]">
+                <div className="max-w-[1416px] mx-auto">
+                    {/* Header — Figma node 2562:12663 */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <h1 className="font-['Onest'] font-semibold text-[32px] leading-none tracking-[-0.32px] text-[#0a0a0a]">
+                            {isEditing
+                                ? t('admin.blog.title_edit')
+                                : (routePostType === 'publication'
+                                    ? t('admin.publications.new_post', { defaultValue: t('admin.blog.title_create') })
+                                    : t('admin.news_events.new_post', { defaultValue: t('admin.blog.title_create') }))}
                         </h1>
-                        <p className="text-gray-600 mt-2">
-                            {isEditing ? t('admin.blog.subtitle_edit') : t('admin.blog.subtitle_create')}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-4">
+                            <button
+                                type="button"
+                                onClick={handleSaveDraft}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                {t('admin.blog.save_draft', 'Guardar nos rascunhos')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handlePublishClick}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] font-['Onest'] font-medium text-[17px] text-white whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                {t('admin.blog.publish', 'Publicar')}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-8">
-                        {/* Post Type selector */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_post_type', 'Tipo de publicação')}
-                            </label>
-                            <div className="flex gap-3">
-                                {[
-                                    { value: 'news-event', label: t('admin.blog.type_news_event', 'Notícia / Evento') },
-                                    { value: 'publication', label: t('admin.blog.type_publication', 'Publicação') },
-                                ].map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, post_type: opt.value, categories: [] }))}
-                                        className={`font-['Onest'] text-sm font-medium px-5 py-2 rounded-full border transition-colors cursor-pointer ${
-                                            formData.post_type === opt.value
-                                                ? 'bg-primary text-white border-primary'
-                                                : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Post type is implied by the route: /admin/news-events
+                            vs /admin/publications — no selector needed. */}
 
                         {/* Language tabs */}
                         <div className="flex gap-1 bg-[#f3f4f6] rounded-lg p-1 w-fit">
@@ -1253,7 +1288,7 @@ export default function BlogPostForm() {
                                         const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_cancel'))
                                         if (!confirmLeave) return
                                     }
-                                    navigate('/admin/news-events')
+                                    navigate(effectiveBasePath())
                                 }}
                                 className="font-['Onest'] font-medium text-sm text-[#0a0a0a] border border-[#d4d4d4] px-6 py-2 rounded-full hover:bg-black/[0.02] transition-colors cursor-pointer"
                                 disabled={saving}

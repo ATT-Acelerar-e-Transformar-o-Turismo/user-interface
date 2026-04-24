@@ -153,14 +153,16 @@ export default function DimensionsManagement() {
     try {
       // To delete a dimension, we need to update the area
       const area = await areaService.getById(dimension.areaId);
-      const dimensions = (area.dimensions || area.subdominios || [])
+      const remaining = (area.subdomains || area.dimensions || area.subdominios || [])
         .filter(sub => {
           const subName = typeof sub === 'string' ? sub : sub.name;
           return subName !== dimension.name;
         });
 
+      // Backend field is `subdomains` — using `dimensions` makes the PATCH
+      // a no-op (pydantic drops the unknown field silently).
       await areaService.patch(dimension.areaId, {
-        dimensions: dimensions
+        subdomains: remaining
       });
 
       // Reload dimensions

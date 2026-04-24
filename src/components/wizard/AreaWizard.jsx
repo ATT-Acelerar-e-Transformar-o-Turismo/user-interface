@@ -113,10 +113,14 @@ export default function AreaWizard({ isOpen, onClose, areaId = null, onSuccess =
 
   async function handleSubmit(data) {
     try {
+      // Backend expects `subdomains` (UI-level rename is display-only).
+      // Map our local `dimensions` to `subdomains` on the way out; keep
+      // `dimensions` too so older backend builds still understand it.
       const areaData = {
         name: data.name.trim(),
         name_en: data.name_en.trim() || '',
         color: data.color || '#00855d',
+        subdomains: data.dimensions || [],
         dimensions: data.dimensions || [],
         image: data.image || '',
         icon: data.icon || ''
