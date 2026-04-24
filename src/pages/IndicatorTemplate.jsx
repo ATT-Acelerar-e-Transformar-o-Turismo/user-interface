@@ -608,9 +608,13 @@ export default function IndicatorTemplate() {
   // Backend returns the top-level group as `domain` (populated Domain object
   // or bare id). UI continues to call it `area`.
   const rawArea = indicatorData.domain ?? indicatorData.area;
-  let resolvedAreaObj = rawArea
-    ? (typeof rawArea === 'object' ? rawArea : areas.find(area => area.id === rawArea))
+  const rawAreaId = rawArea
+    ? (typeof rawArea === 'object' ? (rawArea.id || rawArea._id) : rawArea)
     : null;
+  // Prefer the normalized area from AreaContext (it maps backend `icon`/`image`
+  // to `AreaIcon`/`AreaCarouselImages`); fall back to the raw embedded object.
+  let resolvedAreaObj = (rawAreaId && areas.find(area => area.id === rawAreaId))
+    || (typeof rawArea === 'object' ? rawArea : null);
 
   if (resolvedAreaObj) {
     // Backend's field is `subdomains`; UI uses `dimensions`. Normalize both
