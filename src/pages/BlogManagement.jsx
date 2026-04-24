@@ -9,6 +9,7 @@ import SuccessModal from '../components/wizard/SuccessModal'
 import blogService from '../services/blogService'
 import { PdfCardFill } from '../components/PdfPreview'
 import { confirmAction } from '../utils/confirm'
+import { ptCompare } from '../utils/sort'
 
 const DOC_RE = /\.(pdf|doc|docx|xlsx|txt|csv)$/i
 const firstDocAttachment = (post) =>
@@ -132,9 +133,9 @@ export default function BlogManagement({
         list.sort((a, b) => {
             switch (sortBy) {
                 case 'title_asc':
-                    return (a.title || '').localeCompare(b.title || '')
+                    return ptCompare(a.title, b.title)
                 case 'title_desc':
-                    return (b.title || '').localeCompare(a.title || '')
+                    return ptCompare(b.title, a.title)
                 case 'created_asc':
                     return new Date(a.created_at) - new Date(b.created_at)
                 case 'created_desc':

@@ -722,12 +722,8 @@ export default function BlogPostForm() {
                         return uploadedAttachments[item.file.name] ?? null
                     })
                     .filter(Boolean)
-                console.log('[BlogPostForm] orderedDocs order ->', orderedDocs.map(i => i.kind === 'existing' ? i.att.original_filename || i.att.filename : i.file.name).join(' | '))
-                console.log('[BlogPostForm] finalOrder order ->', finalOrder.map(a => a.original_filename || a.filename).join(' | '))
-                console.log('[BlogPostForm] savedPost.id ->', savedPost?.id)
                 if (finalOrder.length > 0) {
-                    const resp = await blogService.updateAttachmentsOrder(savedPost.id, finalOrder)
-                    console.log('[BlogPostForm] server returned order ->', resp?.attachments?.map(a => a.original_filename || a.filename).join(' | '))
+                    await blogService.updateAttachmentsOrder(savedPost.id, finalOrder)
                 }
             }
 

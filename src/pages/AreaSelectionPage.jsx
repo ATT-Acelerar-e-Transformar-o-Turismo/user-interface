@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AreaCard from '../components/AreaCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -6,11 +7,33 @@ import PageTemplate from './PageTemplate';
 import { useArea } from '../contexts/AreaContext';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
+import { indicatorService } from '../services/indicatorService';
 
 export default function AreaSelectionPage() {
   const { t } = useTranslation();
   const getName = useLocalizedName();
   const { areas, loading, error } = useArea();
+  const [indicatorsByArea, setIndicatorsByArea] = useState({});
+
+  useEffect(() => {
+    if (!areas?.length) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        areas.map(async (area) => {
+          if (!area?.id) return [null, []];
+          try {
+            const list = await indicatorService.getByArea(area.id, 0, 12);
+            return [area.id, Array.isArray(list) ? list : []];
+          } catch {
+            return [area.id, []];
+          }
+        })
+      );
+      if (!cancelled) setIndicatorsByArea(Object.fromEntries(entries.filter(([k]) => k)));
+    })();
+    return () => { cancelled = true; };
+  }, [areas]);
 
   return (
     <PageTemplate showSearchBox={true}>
@@ -53,7 +76,7 @@ export default function AreaSelectionPage() {
                   page={`/indicators/${area?.name?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}`}
                   color={area?.AreaColor || area?.color}
                   icon={area?.AreaIcon}
-                  indicators={area?.dimensions?.map(s => getName(s)) || []}
+                  indicators={indicatorsByArea[area?.id] || []}
                   shadowColor={area?.AreaColor || area?.color}
                 />
               ))}

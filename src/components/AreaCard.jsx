@@ -1,7 +1,12 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import useLocalizedName from '../hooks/useLocalizedName';
 import arrowRight from '../assets/images/arrow-right.svg';
+
+const PAGE_SIZE = 4;
+const MAX_DOTS = 3;
 
 export default function AreaCard({
   title,
@@ -15,8 +20,20 @@ export default function AreaCard({
   ...props
 }) {
   const { t } = useTranslation();
+  const getName = useLocalizedName();
   const navigate = useNavigate();
   const effectiveShadowColor = shadowColor || color;
+
+  const totalPages = Math.min(MAX_DOTS, Math.max(1, Math.ceil(indicators.length / PAGE_SIZE)));
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageStart = currentPage * PAGE_SIZE;
+  const visible = indicators.slice(pageStart, pageStart + PAGE_SIZE);
+
+  useEffect(() => {
+    if (totalPages <= 1) return;
+    const id = setInterval(() => setCurrentPage(p => (p + 1) % totalPages), 5000);
+    return () => clearInterval(id);
+  }, [totalPages, currentPage]);
 
   const handleClick = () => {
     if (page) {
@@ -56,21 +73,20 @@ export default function AreaCard({
           </h3>
         </div>
 
-        {/* Indicators (dimension names) List */}
+        {/* Indicators List */}
         <ul className="w-full flex flex-col gap-2 sm:gap-6">
-          {indicators.slice(0, 4).map((ind, i) => {
-            const name = typeof ind === 'string' ? ind : ind.name;
+          {visible.map((ind, i) => {
+            const name = typeof ind === 'string' ? ind : getName(ind) || ind.name;
+            const id = typeof ind === 'object' ? ind.id : null;
             return (
               <li
-                key={i}
+                key={id || `${currentPage}-${i}`}
                 className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-primary transition-colors"
                 style={{ fontSize: 'clamp(0.75rem, 6cqi, 1.5rem)' }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (page) {
-                    navigate(`${page}?dimension=${encodeURIComponent(name)}`, {
-                      state: { areaId, dimension: name }
-                    });
+                  if (id) {
+                    navigate(`/indicator/${id}`);
                   }
                 }}
               >
@@ -83,9 +99,15 @@ export default function AreaCard({
         {/* Bottom row: page dots + button */}
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-black" />
-            <div className="w-2 h-2 rounded-full bg-black opacity-30" />
-            <div className="w-2 h-2 rounded-full bg-black opacity-30" />
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setCurrentPage(i); }}
+                aria-label={`Page ${i + 1}`}
+                className={`w-2 h-2 rounded-full bg-black cursor-pointer transition-opacity ${i === currentPage ? 'opacity-100' : 'opacity-30 hover:opacity-60'}`}
+              />
+            ))}
           </div>
           <button className="bg-base-100 text-primary px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
             <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>{t('components.area_card.view_all')}</span>
@@ -113,10 +135,16 @@ export default function AreaCard({
 
 AreaCard.propTypes = {
     title: PropTypes.string.isRequired,
+    areaId: PropTypes.string,
     page: PropTypes.string,
     color: PropTypes.string,
     icon: PropTypes.string,
-    indicators: PropTypes.arrayOf(PropTypes.string),
+    indicators: PropTypes.arrayOf(
+        PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.shape({ id: PropTypes.string, name: PropTypes.string, name_en: PropTypes.string }),
+        ])
+    ),
     shadowColor: PropTypes.string,
     className: PropTypes.string,
 };

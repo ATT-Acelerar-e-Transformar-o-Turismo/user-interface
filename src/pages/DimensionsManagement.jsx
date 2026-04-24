@@ -12,6 +12,7 @@ import areaService from '../services/areaService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
 import { confirmAction } from '../utils/confirm';
+import { ptCompare } from '../utils/sort';
 
 export default function DimensionsManagement() {
   const { t } = useTranslation();
@@ -56,8 +57,8 @@ export default function DimensionsManagement() {
       setLoading(true);
       setError(null);
 
-      // Fetch all areas (which contain dimensions)
-      const areas = await areaService.getAll();
+      // Fetch all areas (admin view includes hidden)
+      const areas = await areaService.getAll(true);
 
       // Extract dimensions from areas and count indicators
       const dimensionsListPromises = [];
@@ -73,7 +74,7 @@ export default function DimensionsManagement() {
           const dimensionPromise = (async () => {
             let indicatorCount = 0;
             try {
-              indicatorCount = await indicatorService.getCountByDimension(area.id, dimensionName);
+              indicatorCount = await indicatorService.getCountByDimension(area.id, dimensionName, null, true);
             } catch (err) {
               console.warn(`Failed to get indicator count for dimension ${dimensionName}:`, err);
             }
@@ -87,6 +88,7 @@ export default function DimensionsManagement() {
               areaName: area.name,
               areaName_en: area.name_en || '',
               areaColor: area.color,
+              hidden: typeof dimension === 'object' ? !!dimension.hidden : false,
               indicatorCount: indicatorCount
             };
           })();
@@ -114,7 +116,7 @@ export default function DimensionsManagement() {
         let comparison = 0;
 
         if (sortBy === 'name') {
-          comparison = a.name.localeCompare(b.name);
+          comparison = ptCompare(a.name, b.name);
         } else if (sortBy === 'indicatorCount') {
           comparison = a.indicatorCount - b.indicatorCount;
         }
@@ -141,6 +143,24 @@ export default function DimensionsManagement() {
   const handleEdit = (dimension) => {
     setEditingDimension(dimension);
     setIsEditModalOpen(true);
+  };
+
+  const handleToggleHidden = async (dimension) => {
+    try {
+      const area = await areaService.getById(dimension.areaId);
+      const current = area.subdomains || area.dimensions || area.subdominios || [];
+      const next = current.map(sub => {
+        const subObj = typeof sub === 'string' ? { name: sub } : sub;
+        if (subObj.name === dimension.name) {
+          return { ...subObj, hidden: !subObj.hidden };
+        }
+        return subObj;
+      });
+      await areaService.patch(dimension.areaId, { subdomains: next });
+      loadDimensions();
+    } catch (err) {
+      setError(err.message || t('admin.dimensions.toggle_error'));
+    }
   };
 
   const handleDelete = async (dimension) => {
@@ -268,7 +288,7 @@ export default function DimensionsManagement() {
                   dimensions.map((dimension) => (
                     <div
                       key={dimension.id}
-                      className="bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_2fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors"
+                      className={`bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_2fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors ${dimension.hidden ? 'opacity-50' : ''}`}
                     >
                       {/* Name */}
                       <div className="flex items-center gap-3">
@@ -301,6 +321,22 @@ export default function DimensionsManagement() {
 
                       {/* Actions */}
                       <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleToggleHidden(dimension)}
+                          className="p-2 hover:bg-gray-400 rounded transition-colors"
+                          title={dimension.hidden ? t('admin.dimensions.show', 'Mostrar') : t('admin.dimensions.hide', 'Esconder')}
+                        >
+                          <svg className={`w-4 h-4 ${dimension.hidden ? 'text-gray-400' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {dimension.hidden ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                            ) : (
+                              <>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </>
+                            )}
+                          </svg>
+                        </button>
                         <button
                           onClick={() => handleEdit(dimension)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"

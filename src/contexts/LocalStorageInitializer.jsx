@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useArea } from './AreaContext';
+import { ptCompare } from '../utils/sort';
 
 export function LocalStorageInitializer() {
   const { areas } = useArea();
@@ -94,8 +95,8 @@ export function LocalStorageInitializer() {
         });
       }
 
-      indicators.sort((a, b) => a.name.localeCompare(b.name));
-      resources.sort((a, b) => a.name.localeCompare(b.name));
+      indicators.sort((a, b) => ptCompare(a.name, b.name));
+      resources.sort((a, b) => ptCompare(a.name, b.name));
 
       if (!localStorage.getItem('indicators')) {
         localStorage.setItem('indicators', JSON.stringify(indicators));

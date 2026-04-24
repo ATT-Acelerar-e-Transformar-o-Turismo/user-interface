@@ -14,8 +14,11 @@ const normalizeArea = (area) => {
 };
 
 export const areaService = {
-  async getAll() {
-    const response = await apiClient.get(API_ENDPOINTS.AREAS.BASE);
+  async getAll(includeHidden = false) {
+    const url = includeHidden
+      ? `${API_ENDPOINTS.AREAS.BASE}?include_hidden=true`
+      : API_ENDPOINTS.AREAS.BASE;
+    const response = await apiClient.get(url);
     const data = response.data;
     return Array.isArray(data) ? data.map(normalizeArea) : data;
   },

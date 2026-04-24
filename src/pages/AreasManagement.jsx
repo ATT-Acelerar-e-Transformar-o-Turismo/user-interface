@@ -12,6 +12,7 @@ import areaService from '../services/areaService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
 import { confirmAction } from '../utils/confirm';
+import { ptCompare } from '../utils/sort';
 
 export default function AreasManagement() {
   const { t } = useTranslation();
@@ -55,17 +56,17 @@ export default function AreasManagement() {
       setLoading(true);
       setError(null);
 
-      // Fetch all areas
-      const areasData = await areaService.getAll();
+      // Fetch all areas (admin view includes hidden)
+      const areasData = await areaService.getAll(true);
 
       // Enhance areas with indicator counts and dimension counts
       const enhancedAreasPromises = areasData.map(async (area) => {
         const dimensionCount = (area.dimensions || area.subdominios || []).length;
 
-        // Use the count endpoint for efficiency
+        // Admin view: include hidden indicators in the total
         let indicatorCount = 0;
         try {
-          indicatorCount = await indicatorService.getCountByArea(area.id);
+          indicatorCount = await indicatorService.getCountByArea(area.id, null, true);
         } catch (err) {
           console.warn(`Failed to get indicator count for area ${area.id}:`, err);
         }
@@ -94,7 +95,7 @@ export default function AreasManagement() {
         let comparison = 0;
 
         if (sortBy === 'name') {
-          comparison = a.name.localeCompare(b.name);
+          comparison = ptCompare(a.name, b.name);
         } else if (sortBy === 'indicatorCount') {
           comparison = a.indicatorCount - b.indicatorCount;
         } else if (sortBy === 'dimensionCount') {
@@ -123,6 +124,15 @@ export default function AreasManagement() {
   const handleEdit = (area) => {
     setEditingAreaId(area.id);
     setIsAreaWizardOpen(true);
+  };
+
+  const handleToggleHidden = async (area) => {
+    try {
+      await areaService.patch(area.id, { hidden: !area.hidden });
+      loadAreas();
+    } catch (err) {
+      setError(err.message || t('admin.areas.toggle_error'));
+    }
   };
 
   const handleDelete = async (area) => {
@@ -250,7 +260,7 @@ export default function AreasManagement() {
                   areas.map((area) => (
                     <div
                       key={area.id}
-                      className="bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_1fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors"
+                      className={`bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_1fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors ${area.hidden ? 'opacity-50' : ''}`}
                     >
                       {/* Name with Color Badge */}
                       <div className="flex items-center gap-3">
@@ -287,6 +297,22 @@ export default function AreasManagement() {
 
                       {/* Actions */}
                       <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleToggleHidden(area)}
+                          className="p-2 hover:bg-gray-400 rounded transition-colors"
+                          title={area.hidden ? t('admin.areas.show', 'Mostrar') : t('admin.areas.hide', 'Esconder')}
+                        >
+                          <svg className={`w-4 h-4 ${area.hidden ? 'text-gray-400' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {area.hidden ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                            ) : (
+                              <>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </>
+                            )}
+                          </svg>
+                        </button>
                         <button
                           onClick={() => handleEdit(area)}
                           className="p-2 hover:bg-gray-400 rounded transition-colors"
