@@ -194,7 +194,7 @@ export default function AreasManagement() {
               <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
                 <button
                   onClick={() => handleSort('name')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-primary flex items-center gap-1"
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-[#009368] flex items-center gap-1"
                 >
                   {t('admin.areas.col_name')}
                   {sortBy === 'name' && (
@@ -209,7 +209,7 @@ export default function AreasManagement() {
                 </button>
                 <button
                   onClick={() => handleSort('dimensionCount')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#009368] flex items-center justify-center gap-1"
                 >
                   {t('admin.areas.col_dimensions')}
                   {sortBy === 'dimensionCount' && (
@@ -224,7 +224,7 @@ export default function AreasManagement() {
                 </button>
                 <button
                   onClick={() => handleSort('indicatorCount')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-primary flex items-center justify-center gap-1"
+                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#009368] flex items-center justify-center gap-1"
                 >
                   {t('admin.areas.col_indicators')}
                   {sortBy === 'indicatorCount' && (

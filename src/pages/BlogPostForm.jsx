@@ -7,6 +7,7 @@ import ErrorDisplay from '../components/ErrorDisplay'
 import RichTextEditor from '../components/RichTextEditor'
 import ConfirmModal from '../components/ConfirmModal'
 import blogService from '../services/blogService'
+import { PdfCardFill } from '../components/PdfPreview'
 import authorService from '../services/authorService'
 import categoryService from '../services/categoryService'
 import { useTranslation } from 'react-i18next'
@@ -23,7 +24,7 @@ function AuthorPhotoDropzone({ photoPreview, onDrop, label, aspectClass }) {
         <div
             {...getRootProps()}
             className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 cursor-pointer transition-colors ${
-                isDragActive ? 'border-primary bg-primary/5' : 'border-[#d4d4d4] hover:border-primary/50'
+                isDragActive ? 'border-[#009368] bg-[#009368]/10' : 'border-[#d4d4d4] hover:border-[#009368]/50'
             }`}
         >
             <input {...getInputProps()} />
@@ -67,7 +68,7 @@ function ThumbnailDropzone({ preview, onDrop, onRemove }) {
             <div
                 {...getRootProps()}
                 className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl overflow-hidden cursor-pointer transition-colors ${
-                    isDragActive ? 'border-primary bg-primary/5' : 'border-[#d4d4d4] hover:border-primary/50'
+                    isDragActive ? 'border-[#009368] bg-[#009368]/10' : 'border-[#d4d4d4] hover:border-[#009368]/50'
                 } ${preview ? 'h-48' : 'h-40'}`}
             >
                 <input {...getInputProps()} />
@@ -98,7 +99,7 @@ function ThumbnailDropzone({ preview, onDrop, onRemove }) {
 }
 
 function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, coverPreview, onCoverDrop, onSave, onCancel, t }) {
-    const inputCls = "w-full font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+    const inputCls = "w-full font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
     const labelCls = "block font-['Onest'] text-xs font-medium text-[#737373] mb-1"
     return (
         <div className="bg-[#f3f4f6] border border-[#e5e5e5] rounded-2xl p-6 space-y-5">
@@ -166,7 +167,7 @@ function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, coverPrevi
                 <button
                     type="button"
                     onClick={onSave}
-                    className="font-['Onest'] font-medium text-sm text-white bg-primary px-5 py-2 rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+                    className="font-['Onest'] font-medium text-sm text-white bg-[#009368] px-5 py-2 rounded-full hover:opacity-90 transition-opacity cursor-pointer"
                 >
                     {t('admin.blog.save_author', 'Guardar autor')}
                 </button>
@@ -195,6 +196,11 @@ export default function BlogPostForm() {
     const routePostType = isPublicationsRoute ? 'publication' : 'news-event'
     const routeBasePath = isPublicationsRoute ? '/admin/publications' : '/admin/news-events'
 
+    // Hidden file-input refs so the header "Anexar" / "Imagem de capa"
+    // buttons from the Figma design can trigger the existing upload flows.
+    const headerThumbnailInputRef = useRef(null)
+    const headerAttachmentInputRef = useRef(null)
+
     // Redirect base path: on create, use the route-derived one. On edit,
     // prefer the actual post_type of the loaded/edited post so editing a
     // publication via a legacy /admin/news-events URL still lands back on
@@ -217,6 +223,8 @@ export default function BlogPostForm() {
     const authorDropdownRef = useRef(null)
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
     const statusDropdownRef = useRef(null)
+    const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false)
+    const categoryDropdownRef = useRef(null)
     // Author form (create or edit)
     const [authorFormMode, setAuthorFormMode] = useState(null) // null | 'create' | 'edit'
     const [authorFormData, setAuthorFormData] = useState({ name: '', email: '', role: '', linkedin: '', instagram: '', facebook: '', github: '', orcid: '' })
@@ -260,6 +268,44 @@ export default function BlogPostForm() {
     const [thumbnailPreview, setThumbnailPreview] = useState(null)
     const [attachmentFiles, setAttachmentFiles] = useState([])
     const [existingAttachments, setExistingAttachments] = useState([])
+
+    // Unified ordered doc list for the publication document cards.
+    // Each item: { id, kind: 'existing'|'new', att?, file?, url? }
+    const [orderedDocs, setOrderedDocs] = useState([])
+    const dragDocIdxRef = useRef(null)
+    const DOC_RE_STATE = /\.(pdf|doc|docx|xlsx|txt|csv)$/i
+    const PDF_RE_STATE = /\.pdf$/i
+
+    useEffect(() => {
+        setOrderedDocs(prev => {
+            const existingDocs = existingAttachments.filter(a => DOC_RE_STATE.test(a.filename || a.original_filename || ''))
+            const newDocFiles = attachmentFiles.filter(f => DOC_RE_STATE.test(f.name))
+            const existingIds = new Set(existingDocs.map(a => `e:${a.filename}`))
+            const newIds = new Set(newDocFiles.map(f => `n:${f.name}`))
+            // Remove deleted items, revoking object URLs for removed new-file items
+            const kept = prev.filter(item => {
+                if (item.kind === 'new' && !newIds.has(item.id)) {
+                    if (item.url) URL.revokeObjectURL(item.url)
+                    return false
+                }
+                return item.kind === 'existing' ? existingIds.has(item.id) : true
+            })
+            const keptIds = new Set(kept.map(i => i.id))
+            const toAdd = []
+            existingDocs.forEach(att => {
+                const id = `e:${att.filename}`
+                if (!keptIds.has(id)) toAdd.push({ id, kind: 'existing', att })
+            })
+            newDocFiles.forEach(f => {
+                const id = `n:${f.name}`
+                if (!keptIds.has(id)) {
+                    const url = PDF_RE_STATE.test(f.name) ? URL.createObjectURL(f) : null
+                    toAdd.push({ id, kind: 'new', file: f, url })
+                }
+            })
+            return [...kept, ...toAdd]
+        })
+    }, [existingAttachments, attachmentFiles])
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
     const [initialFormData, setInitialFormData] = useState(null)
 
@@ -440,6 +486,7 @@ export default function BlogPostForm() {
         const handler = (e) => {
             if (authorDropdownRef.current && !authorDropdownRef.current.contains(e.target)) setAuthorDropdownOpen(false)
             if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) setStatusDropdownOpen(false)
+            if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target)) setCategoryDropdownOpen(false)
         }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
@@ -627,7 +674,7 @@ export default function BlogPostForm() {
             setError(null)
 
             // Validate required fields
-            if (!formData.title.trim() || !formData.content.trim() || !formData.author.trim()) {
+            if (!formData.title.trim() || (routePostType !== 'publication' && !formData.content.trim()) || !formData.author.trim()) {
                 throw new Error(t('admin.blog.validation_required_fields'))
             }
 
@@ -655,9 +702,33 @@ export default function BlogPostForm() {
                 await blogService.uploadThumbnail(savedPost.id, thumbnailFile)
             }
 
-            // Upload attachments
+            // Upload new attachments and collect the returned attachment metadata
+            const uploadedAttachments = {}
             for (const file of attachmentFiles) {
-                await blogService.uploadAttachment(savedPost.id, file)
+                const result = await blogService.uploadAttachment(savedPost.id, file)
+                // result.attachment has { filename, original_filename, url, size, ... }
+                if (result?.attachment) {
+                    uploadedAttachments[file.name] = result.attachment
+                }
+            }
+
+            // If this is a publication, persist the drag-reordered attachment order.
+            // Build the final ordered list from orderedDocs: existing items keep their
+            // saved metadata; new items use the just-uploaded server metadata.
+            if (routePostType === 'publication' && orderedDocs.length > 0) {
+                const finalOrder = orderedDocs
+                    .map(item => {
+                        if (item.kind === 'existing') return item.att
+                        return uploadedAttachments[item.file.name] ?? null
+                    })
+                    .filter(Boolean)
+                console.log('[BlogPostForm] orderedDocs order ->', orderedDocs.map(i => i.kind === 'existing' ? i.att.original_filename || i.att.filename : i.file.name).join(' | '))
+                console.log('[BlogPostForm] finalOrder order ->', finalOrder.map(a => a.original_filename || a.filename).join(' | '))
+                console.log('[BlogPostForm] savedPost.id ->', savedPost?.id)
+                if (finalOrder.length > 0) {
+                    const resp = await blogService.updateAttachmentsOrder(savedPost.id, finalOrder)
+                    console.log('[BlogPostForm] server returned order ->', resp?.attachments?.map(a => a.original_filename || a.filename).join(' | '))
+                }
             }
 
             // Clear unsaved changes warning since the post was saved successfully
@@ -739,6 +810,45 @@ export default function BlogPostForm() {
                             </button>
                             <button
                                 type="button"
+                                onClick={() => headerAttachmentInputRef.current?.click()}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 10-5.656-5.656L4.828 12.343a6 6 0 108.486 8.486L20.5 13.5" />
+                                </svg>
+                                {t('admin.blog.attach', 'Anexar')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => headerThumbnailInputRef.current?.click()}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {t('admin.blog.cover_image', 'Imagem de capa')}
+                            </button>
+                            {/* Hidden inputs — feed the existing handlers so the
+                                thumbnail preview + attachment list sections below
+                                pick up the selected files. */}
+                            <input
+                                ref={headerThumbnailInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleThumbnailChange}
+                            />
+                            <input
+                                ref={headerAttachmentInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleAttachmentChange}
+                            />
+                            <button
+                                type="button"
                                 onClick={handlePublishClick}
                                 disabled={saving}
                                 className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] font-['Onest'] font-medium text-[17px] text-white whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -785,16 +895,136 @@ export default function BlogPostForm() {
                                 value={activeLang === 'pt' ? formData.title : formData.title_en}
                                 onChange={handleInputChange}
                                 required={activeLang === 'pt'}
-                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                                 placeholder={t('admin.blog.placeholder_title')}
                             />
                         </div>
 
-                        {/* Author and Status */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Estado | Categoria | Autor — 3-column row */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Estado */}
                             <div>
                                 <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                    {t('admin.blog.field_author')}
+                                    {t('admin.blog.col_status')} <span className="text-red-500">*</span>
+                                </label>
+                                <div ref={statusDropdownRef} className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                                        className="w-full font-['Onest'] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-between gap-2 cursor-pointer"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <span className={`w-2 h-2 rounded-full ${formData.status === 'published' ? 'bg-green-500' : 'bg-amber-400'}`} />
+                                            {formData.status === 'published' ? t('admin.blog.status_published') : t('admin.blog.status_draft')}
+                                        </span>
+                                        <svg className={`w-4 h-4 text-[#0a0a0a] shrink-0 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    {statusDropdownOpen && (
+                                        <div className="absolute z-50 mt-2 w-full bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden">
+                                            {[
+                                                { value: 'draft', label: t('admin.blog.status_draft'), color: 'bg-amber-400' },
+                                                { value: 'published', label: t('admin.blog.status_published'), color: 'bg-green-500' },
+                                            ].map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => { setFormData(prev => ({ ...prev, status: opt.value })); setStatusDropdownOpen(false) }}
+                                                    className={`w-full font-['Onest'] text-sm text-left px-4 py-2.5 flex items-center gap-2 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl cursor-pointer ${formData.status === opt.value ? 'text-[#009368] font-medium' : 'text-[#0a0a0a]'}`}
+                                                >
+                                                    <span className={`w-2 h-2 rounded-full ${opt.color}`} />
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Categoria */}
+                            {(() => {
+                                const filtered = allCategories.filter(c => c.type === formData.post_type)
+                                const selectedNames = filtered
+                                    .filter(c => formData.categories.includes(c.slug))
+                                    .map(c => c.name_pt)
+                                return (
+                                    <div>
+                                        <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                            {t('admin.blog.field_category', 'Categoria')} <span className="text-red-500">*</span>
+                                        </label>
+                                        <div ref={categoryDropdownRef} className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                                                className="w-full font-['Onest'] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-between gap-2 cursor-pointer"
+                                            >
+                                                <span className="truncate text-left">
+                                                    {selectedNames.length > 0
+                                                        ? selectedNames.join(', ')
+                                                        : t('admin.blog.placeholder_category', 'Selecionar')}
+                                                </span>
+                                                <svg className={`w-4 h-4 text-[#0a0a0a] shrink-0 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                            {categoryDropdownOpen && (
+                                                <div className="absolute z-50 mt-2 w-full bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden min-w-[220px]">
+                                                    {filtered.length === 0 ? (
+                                                        <p className="font-['Onest'] text-sm text-[#737373] px-4 py-3">
+                                                            {t('admin.blog.no_categories', 'Sem categorias')}
+                                                        </p>
+                                                    ) : (
+                                                        filtered.map(cat => {
+                                                            const isSelected = formData.categories.includes(cat.slug)
+                                                            return (
+                                                                <div key={cat.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl group">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => toggleCategory(cat.slug)}
+                                                                        className={`flex items-center gap-2 flex-1 min-w-0 text-left cursor-pointer font-['Onest'] text-sm ${isSelected ? 'text-[#009368] font-medium' : 'text-[#0a0a0a]'}`}
+                                                                    >
+                                                                        <span className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#009368] border-[#009368]' : 'border-[#d4d4d4]'}`}>
+                                                                            {isSelected && (
+                                                                                <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </span>
+                                                                        {cat.name_pt}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => { e.stopPropagation(); setCategoryDropdownOpen(false); setCatEdit(cat); setCatForm({ name_pt: cat.name_pt, name_en: cat.name_en }) }}
+                                                                        className="p-1 opacity-0 group-hover:opacity-100 hover:bg-black/[0.06] rounded transition-all cursor-pointer shrink-0"
+                                                                        title={t('common.edit', 'Editar')}
+                                                                    >
+                                                                        <svg className="w-3.5 h-3.5 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setCategoryDropdownOpen(false); setCatEdit({}); setCatForm({ name_pt: '', name_en: '' }) }}
+                                                        className="w-full font-['Onest'] text-sm text-[#009368] font-medium text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors rounded-b-2xl cursor-pointer border-t border-[#f3f4f6]"
+                                                    >
+                                                        + {t('admin.blog.add_category', 'Adicionar categoria')}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )
+                            })()}
+
+                            {/* Autor */}
+                            <div>
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                    {t('admin.blog.field_author')} <span className="text-red-500">*</span>
                                 </label>
                                 <div ref={authorDropdownRef} className="relative">
                                     <button
@@ -803,7 +1033,7 @@ export default function BlogPostForm() {
                                         className="w-full font-['Onest'] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-between gap-2 cursor-pointer"
                                     >
                                         <span className="truncate">
-                                            {formData.author || t('admin.blog.placeholder_author')}
+                                            {formData.author || t('admin.blog.placeholder_author', 'Selecionar')}
                                         </span>
                                         <svg className={`w-4 h-4 text-[#0a0a0a] shrink-0 transition-transform ${authorDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -816,12 +1046,12 @@ export default function BlogPostForm() {
                                                     <button
                                                         type="button"
                                                         onClick={() => handleSelectAuthor(a)}
-                                                        className={`flex items-center gap-3 flex-1 min-w-0 cursor-pointer ${selectedAuthorId === a.id ? 'text-primary font-medium' : 'text-[#0a0a0a]'}`}
+                                                        className={`flex items-center gap-3 flex-1 min-w-0 cursor-pointer ${selectedAuthorId === a.id ? 'text-[#009368] font-medium' : 'text-[#0a0a0a]'}`}
                                                     >
                                                         {a.photo_url ? (
                                                             <img src={blogService.getFileUrl(a.photo_url)} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
                                                         ) : (
-                                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-[color:var(--color-primary-hover)] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#009368] to-[#007d57] flex items-center justify-center text-white text-xs font-bold shrink-0">
                                                                 {(a.name || 'A')[0].toUpperCase()}
                                                             </div>
                                                         )}
@@ -854,7 +1084,7 @@ export default function BlogPostForm() {
                                             <button
                                                 type="button"
                                                 onClick={() => openAuthorForm('create')}
-                                                className="w-full font-['Onest'] text-sm text-primary font-medium text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors rounded-b-2xl cursor-pointer"
+                                                className="w-full font-['Onest'] text-sm text-[#009368] font-medium text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors rounded-b-2xl cursor-pointer"
                                             >
                                                 + {t('admin.blog.create_author', 'Criar novo autor')}
                                             </button>
@@ -862,44 +1092,68 @@ export default function BlogPostForm() {
                                     )}
                                 </div>
                             </div>
-                            <div>
-                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                    {t('admin.blog.col_status')}
-                                </label>
-                                <div ref={statusDropdownRef} className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                                        className="w-full font-['Onest'] text-sm text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-full h-10 px-4 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-between gap-2 cursor-pointer"
-                                    >
-                                        <span className="flex items-center gap-2">
-                                            <span className={`w-2 h-2 rounded-full ${formData.status === 'published' ? 'bg-green-500' : 'bg-amber-400'}`} />
-                                            {formData.status === 'published' ? t('admin.blog.status_published') : t('admin.blog.status_draft')}
-                                        </span>
-                                        <svg className={`w-4 h-4 text-[#0a0a0a] shrink-0 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                    {statusDropdownOpen && (
-                                        <div className="absolute z-50 mt-2 w-full bg-[#fffefc] rounded-2xl shadow-lg border border-[#e5e5e5] overflow-hidden">
-                                            {[
-                                                { value: 'draft', label: t('admin.blog.status_draft'), color: 'bg-amber-400' },
-                                                { value: 'published', label: t('admin.blog.status_published'), color: 'bg-green-500' },
-                                            ].map(opt => (
-                                                <button
-                                                    key={opt.value}
-                                                    type="button"
-                                                    onClick={() => { setFormData(prev => ({ ...prev, status: opt.value })); setStatusDropdownOpen(false) }}
-                                                    className={`w-full font-['Onest'] text-sm text-left px-4 py-2.5 flex items-center gap-2 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl cursor-pointer ${formData.status === opt.value ? 'text-primary font-medium' : 'text-[#0a0a0a]'}`}
-                                                >
-                                                    <span className={`w-2 h-2 rounded-full ${opt.color}`} />
-                                                    {opt.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                        </div>
+
+                        {/* Inline category add/edit form — shown when catEdit is open */}
+                        {catEdit !== null && (
+                            <div className="flex flex-wrap items-end gap-2 bg-[#f3f4f6] rounded-xl p-3">
+                                <div className="flex-1 min-w-[120px]">
+                                    <label className="block font-['Onest'] text-xs text-[#737373] mb-1">PT</label>
+                                    <input type="text" value={catForm.name_pt} onChange={e => setCatForm(p => ({ ...p, name_pt: e.target.value }))}
+                                        className="w-full font-['Onest'] text-sm bg-white border border-[#e5e5e5] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#009368]/30" placeholder="Nome PT" />
                                 </div>
+                                <div className="flex-1 min-w-[120px]">
+                                    <label className="block font-['Onest'] text-xs text-[#737373] mb-1">EN</label>
+                                    <input type="text" value={catForm.name_en} onChange={e => setCatForm(p => ({ ...p, name_en: e.target.value }))}
+                                        className="w-full font-['Onest'] text-sm bg-white border border-[#e5e5e5] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#009368]/30" placeholder="Name EN" />
+                                </div>
+                                <button type="button" onClick={handleSaveCategory}
+                                    className="font-['Onest'] text-xs font-medium bg-[#009368] text-white px-3 py-1.5 rounded-lg hover:bg-[#007d57] cursor-pointer">
+                                    {catEdit?.id ? t('common.save', 'Guardar') : t('admin.categories.add', 'Adicionar')}
+                                </button>
+                                {catEdit?.id && (
+                                    <button type="button" onClick={handleDeleteCategory}
+                                        className="font-['Onest'] text-xs font-medium text-red-500 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 cursor-pointer">
+                                        {t('common.delete', 'Eliminar')}
+                                    </button>
+                                )}
+                                <button type="button" onClick={() => { setCatEdit(null); setCatForm({ name_pt: '', name_en: '' }) }}
+                                    className="font-['Onest'] text-xs text-[#737373] px-3 py-1.5 cursor-pointer">
+                                    {t('common.cancel', 'Cancelar')}
+                                </button>
                             </div>
+                        )}
+
+                        {/* Keywords */}
+                        <div>
+                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                {t('admin.blog.field_keywords', 'Keywords')}
+                            </label>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {formData.keywords.map((kw, index) => (
+                                    <span
+                                        key={index}
+                                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-[#009368]/10 text-[#009368]"
+                                    >
+                                        {kw}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveKeyword(kw)}
+                                            className="ml-2 text-xs text-[#737373] hover:text-[#0a0a0a]"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                            <input
+                                type="text"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(e.target.value)}
+                                onKeyDown={handleAddKeyword}
+                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
+                                placeholder={t('admin.blog.placeholder_keywords', 'Adicionar keyword e pressionar Enter')}
+                            />
                         </div>
 
                         {/* Author create/edit form */}
@@ -928,7 +1182,7 @@ export default function BlogPostForm() {
                                     name="publication_link"
                                     value={formData.publication_link}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                                     placeholder="https://..."
                                 />
                             </div>
@@ -941,7 +1195,7 @@ export default function BlogPostForm() {
                                     name="publication_link_label"
                                     value={formData.publication_link_label}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                                     placeholder={t('admin.blog.placeholder_link_label', 'Nome do documento')}
                                 />
                             </div>
@@ -958,276 +1212,182 @@ export default function BlogPostForm() {
                                     name="publication_link_label_en"
                                     value={formData.publication_link_label_en}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                                     placeholder="Document name (EN)"
                                 />
                             </div>
                         )}
 
-                        {/* Excerpt */}
+                        {/* Excerpt — mandatory for publications, optional for news-events */}
                         <div>
                             <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
                                 {t('admin.blog.field_excerpt')} {activeLang === 'en' ? '(EN)' : '(PT)'}
+                                {routePostType === 'publication' && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <textarea
                                 name={activeLang === 'pt' ? 'excerpt' : 'excerpt_en'}
                                 value={activeLang === 'pt' ? formData.excerpt : formData.excerpt_en}
                                 onChange={handleInputChange}
+                                required={routePostType === 'publication' && activeLang === 'pt'}
                                 rows={3}
-                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                                 placeholder={t('admin.blog.placeholder_excerpt')}
                             />
                         </div>
 
-                        {/* Content */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_content')} {activeLang === 'en' ? '(EN)' : '(PT)'}
-                            </label>
-                            {activeLang === 'pt' ? (
-                                <RichTextEditor
-                                    key="content-pt"
-                                    value={formData.content}
-                                    onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
-                                    placeholder={t('admin.blog.placeholder_content')}
-                                />
-                            ) : (
-                                <RichTextEditor
-                                    key="content-en"
-                                    value={formData.content_en}
-                                    onChange={(val) => setFormData(prev => ({ ...prev, content_en: val }))}
-                                    placeholder="Write the content in English..."
-                                />
-                            )}
-                            <div className="text-sm text-gray-500 mt-2">
-                                <p className="mb-1">{t('admin.blog.markdown_help_intro')}</p>
-                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                    <div>
-                                        <strong>{t('admin.blog.markdown_formatting')}:</strong> **negrito**, *itálico*, ~~riscado~~
-                                    </div>
-                                    <div>
-                                        <strong>{t('admin.blog.markdown_headings')}:</strong> # H1, ## H2, ### H3
-                                    </div>
-                                    <div>
-                                        <strong>{t('admin.blog.markdown_lists')}:</strong> - item, 1. numerada
-                                    </div>
-                                    <div>
-                                        <strong>{t('admin.blog.markdown_quote')}:</strong> &gt; texto da citação
+                        {/* Content — news-events only */}
+                        {routePostType !== 'publication' && (
+                            <div>
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                    {t('admin.blog.field_content')} {activeLang === 'en' ? '(EN)' : '(PT)'}
+                                </label>
+                                {activeLang === 'pt' ? (
+                                    <RichTextEditor
+                                        key="content-pt"
+                                        value={formData.content}
+                                        onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
+                                        placeholder={t('admin.blog.placeholder_content')}
+                                    />
+                                ) : (
+                                    <RichTextEditor
+                                        key="content-en"
+                                        value={formData.content_en}
+                                        onChange={(val) => setFormData(prev => ({ ...prev, content_en: val }))}
+                                        placeholder="Write the content in English..."
+                                    />
+                                )}
+                                <div className="text-sm text-gray-500 mt-2">
+                                    <p className="mb-1">{t('admin.blog.markdown_help_intro')}</p>
+                                    <div className="grid grid-cols-2 gap-4 text-xs">
+                                        <div>
+                                            <strong>{t('admin.blog.markdown_formatting')}:</strong> **negrito**, *itálico*, ~~riscado~~
+                                        </div>
+                                        <div>
+                                            <strong>{t('admin.blog.markdown_headings')}:</strong> # H1, ## H2, ### H3
+                                        </div>
+                                        <div>
+                                            <strong>{t('admin.blog.markdown_lists')}:</strong> - item, 1. numerada
+                                        </div>
+                                        <div>
+                                            <strong>{t('admin.blog.markdown_quote')}:</strong> &gt; texto da citação
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Categories (dynamic, filtered by post_type) — inline management */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_category', 'Categorias')}
-                            </label>
-                            {(() => {
-                                const filtered = allCategories.filter(c => c.type === formData.post_type)
-                                return (
-                                    <div className="flex flex-col gap-3">
-                                        {filtered.length > 0 && (
-                                            <div className="flex flex-wrap gap-2">
-                                                {filtered.map(cat => {
-                                                    const isSelected = formData.categories.includes(cat.slug)
-                                                    return (
-                                                        <div key={cat.id} className="group relative inline-flex">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => toggleCategory(cat.slug)}
-                                                                className={`font-['Onest'] text-sm font-medium pl-4 pr-8 py-1.5 rounded-full border transition-colors cursor-pointer ${
-                                                                    isSelected
-                                                                        ? 'bg-primary text-white border-primary'
-                                                                        : 'bg-[#fffefc] text-[#0a0a0a] border-[#e5e5e5] hover:border-primary/50'
-                                                                }`}
-                                                                title={`${cat.name_pt} / ${cat.name_en}`}
-                                                            >
-                                                                {cat.name_pt}
-                                                            </button>
-                                                            {/* Edit / Delete on hover */}
-                                                            <div className="absolute right-0 top-0 bottom-0 flex items-center pr-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => { e.stopPropagation(); setCatEdit(cat); setCatForm({ name_pt: cat.name_pt, name_en: cat.name_en }) }}
-                                                                    className="w-5 h-5 rounded-full bg-white/80 border border-[#e5e5e5] flex items-center justify-center hover:bg-white cursor-pointer"
-                                                                    title={t('common.edit', 'Editar')}
-                                                                >
-                                                                    <svg className="w-2.5 h-2.5 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
-
-                                        {/* Inline category add/edit form */}
-                                        {catEdit !== null ? (
-                                            <div className="flex flex-wrap items-end gap-2 bg-[#f3f4f6] rounded-xl p-3">
-                                                <div className="flex-1 min-w-[120px]">
-                                                    <label className="block font-['Onest'] text-xs text-[#737373] mb-1">PT</label>
-                                                    <input type="text" value={catForm.name_pt} onChange={e => setCatForm(p => ({ ...p, name_pt: e.target.value }))}
-                                                        className="w-full font-['Onest'] text-sm bg-white border border-[#e5e5e5] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Nome PT" />
-                                                </div>
-                                                <div className="flex-1 min-w-[120px]">
-                                                    <label className="block font-['Onest'] text-xs text-[#737373] mb-1">EN</label>
-                                                    <input type="text" value={catForm.name_en} onChange={e => setCatForm(p => ({ ...p, name_en: e.target.value }))}
-                                                        className="w-full font-['Onest'] text-sm bg-white border border-[#e5e5e5] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Name EN" />
-                                                </div>
-                                                <button type="button" onClick={handleSaveCategory}
-                                                    className="font-['Onest'] text-xs font-medium bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-[color:var(--color-primary-hover)] cursor-pointer">
-                                                    {catEdit?.id ? t('common.save', 'Guardar') : t('admin.categories.add', 'Adicionar')}
-                                                </button>
-                                                {catEdit?.id && (
-                                                    <button type="button" onClick={handleDeleteCategory}
-                                                        className="font-['Onest'] text-xs font-medium text-red-500 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 cursor-pointer">
-                                                        {t('common.delete', 'Eliminar')}
-                                                    </button>
-                                                )}
-                                                <button type="button" onClick={() => { setCatEdit(null); setCatForm({ name_pt: '', name_en: '' }) }}
-                                                    className="font-['Onest'] text-xs text-[#737373] px-3 py-1.5 cursor-pointer">
-                                                    {t('common.cancel', 'Cancelar')}
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button type="button" onClick={() => setCatEdit({})}
-                                                className="font-['Onest'] text-sm text-primary font-medium cursor-pointer w-fit hover:underline">
-                                                + {t('admin.blog.add_category', 'Adicionar categoria')}
-                                            </button>
-                                        )}
-                                    </div>
-                                )
-                            })()}
-                        </div>
-
-                        {/* Keywords (free-form) */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {t('admin.blog.field_keywords', 'Keywords')}
-                            </label>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {formData.keywords.map((kw, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-base-200 text-primary"
-                                    >
-                                        {kw}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveKeyword(kw)}
-                                            className="ml-2 text-xs"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                ))}
-                            </div>
-                            <input
-                                type="text"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={handleAddKeyword}
-                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                placeholder={t('admin.blog.placeholder_keywords', 'Adicionar keyword e pressionar Enter')}
-                            />
-                        </div>
-
-                        {/* Document (mandatory for publications) */}
-                        {formData.post_type === 'publication' && (
+                        {/* Document (mandatory for publications) — only shown when docs exist */}
+                        {routePostType === 'publication' && orderedDocs.length > 0 && (
                             <div>
-                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-3">
                                     {t('admin.blog.field_document', 'Documento')} <span className="text-red-500">*</span>
                                 </label>
 
-                                {/* Existing document attachments */}
-                                {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || '')).length > 0 && (
-                                    <div className="mb-3 space-y-2">
-                                        {existingAttachments.filter(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || '')).map((att, i) => (
-                                            <div key={i} className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-lg">
-                                                <div className="flex items-center gap-3">
-                                                    <svg className="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                    <span className="font-['Onest'] text-sm font-medium">{att.original_filename || att.filename}</span>
-                                                </div>
-                                                <button type="button" onClick={() => removeExistingAttachment(att.filename)}
-                                                    className="font-['Onest'] text-xs text-red-500 hover:text-red-700 cursor-pointer">{t('common.remove')}</button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* New document files */}
-                                {attachmentFiles.filter(f => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(f.name)).length > 0 && (
-                                    <div className="mb-3 space-y-2">
-                                        {attachmentFiles.map((file, index) => (
-                                            /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(file.name) && (
-                                                <div key={index} className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-lg">
-                                                    <div className="flex items-center gap-3">
-                                                        <svg className="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                {/* Draggable document cards */}
+                                <div className="mb-3 flex flex-wrap gap-4">
+                                        {orderedDocs.map((item, idx) => {
+                                            const isPdf = item.kind === 'existing'
+                                                ? PDF_RE_STATE.test(item.att.filename || item.att.original_filename || '')
+                                                : PDF_RE_STATE.test(item.file.name)
+                                            const fileUrl = item.kind === 'existing'
+                                                ? blogService.getFileUrl(item.att.url || `/attachments/${item.att.filename}`)
+                                                : item.url
+                                            const name = item.kind === 'existing'
+                                                ? (item.att.original_filename || item.att.filename)
+                                                : item.file.name
+                                            const handleRemove = item.kind === 'existing'
+                                                ? () => removeExistingAttachment(item.att.filename)
+                                                : () => removeAttachment(attachmentFiles.indexOf(item.file))
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    draggable
+                                                    onDragStart={() => { dragDocIdxRef.current = idx }}
+                                                    onDragOver={e => e.preventDefault()}
+                                                    onDrop={() => {
+                                                        const from = dragDocIdxRef.current
+                                                        if (from === null || from === idx) return
+                                                        setOrderedDocs(prev => {
+                                                            const next = [...prev]
+                                                            const [moved] = next.splice(from, 1)
+                                                            next.splice(idx, 0, moved)
+                                                            return next
+                                                        })
+                                                        dragDocIdxRef.current = null
+                                                    }}
+                                                    onDragEnd={() => { dragDocIdxRef.current = null }}
+                                                    className="w-[180px] bg-white rounded-2xl shadow-sm border border-[#e5e5e5] overflow-hidden flex flex-col cursor-grab active:cursor-grabbing select-none"
+                                                >
+                                                    {/* Drag handle bar */}
+                                                    <div className="flex items-center justify-center py-1.5 bg-[#f9f9f9] border-b border-[#f0f0f0]">
+                                                        <svg className="w-4 h-4 text-[#c0c0c0]" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M7 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm6 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 10a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm6 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm6 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
                                                         </svg>
-                                                        <span className="font-['Onest'] text-sm font-medium">{file.name}</span>
                                                     </div>
-                                                    <button type="button" onClick={() => removeAttachment(index)}
-                                                        className="font-['Onest'] text-xs text-red-500 hover:text-red-700 cursor-pointer">{t('common.remove')}</button>
+                                                    <div className="h-[130px] bg-gray-100 overflow-hidden shrink-0">
+                                                        {isPdf && fileUrl
+                                                            ? <PdfCardFill url={fileUrl} />
+                                                            : <div className="w-full h-full flex items-center justify-center">
+                                                                <svg className="w-10 h-10 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                              </div>
+                                                        }
+                                                    </div>
+                                                    <div className="p-3 flex flex-col gap-2 flex-1">
+                                                        <p className="font-['Onest'] text-xs font-medium text-[#0a0a0a] line-clamp-2 leading-snug">{name}</p>
+                                                        <button type="button" onClick={handleRemove}
+                                                            className="font-['Onest'] text-xs text-red-500 hover:text-red-700 cursor-pointer mt-auto text-left">
+                                                            {t('common.remove')}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )
-                                        ))}
-                                    </div>
-                                )}
+                                        })}
+                                </div>
 
-                                <input
-                                    type="file"
-                                    accept=".pdf,.doc,.docx,.xlsx,.txt,.csv"
-                                    onChange={handleAttachmentChange}
-                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
                                 <p className="font-['Onest'] text-xs text-[#737373] mt-1">
-                                    {t('admin.blog.publication_doc_hint', 'A primeira página do documento será usada como capa. Formatos: PDF, DOC, DOCX, XLSX.')}
+                                    {t('admin.blog.drag_to_reorder', 'Arraste os documentos para alterar a ordem.')}
                                 </p>
                             </div>
                         )}
 
-                        {/* Thumbnail (optional for publications, shown for news-events) */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {formData.post_type === 'publication'
-                                    ? t('admin.blog.field_thumbnail_optional', 'Imagem de capa (opcional — substitui a pré-visualização do documento)')
-                                    : t('admin.blog.field_thumbnail')}
-                            </label>
-                            <ThumbnailDropzone
-                                preview={thumbnailPreview}
-                                onDrop={(files) => {
-                                    const file = files[0]
-                                    if (file) {
-                                        setThumbnailFile(file)
-                                        setThumbnailPreview(URL.createObjectURL(file))
-                                    }
-                                }}
-                                onRemove={() => { setThumbnailFile(null); setThumbnailPreview(null) }}
-                            />
-                        </div>
+                        {/* Thumbnail — always shown for news-events; for publications only when one is set */}
+                        {(routePostType !== 'publication' || thumbnailPreview) && (
+                            <div>
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                    {routePostType === 'publication'
+                                        ? t('admin.blog.field_thumbnail_optional')
+                                        : t('admin.blog.field_thumbnail')}
+                                </label>
+                                {thumbnailPreview ? (
+                                    <div className="flex flex-col gap-3">
+                                        <div className="relative h-48 rounded-2xl overflow-hidden border border-[#e5e5e5]">
+                                            <img src={thumbnailPreview} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setThumbnailFile(null); setThumbnailPreview(null) }}
+                                            className="font-['Onest'] text-xs text-red-500 hover:text-red-700 transition-colors cursor-pointer self-start"
+                                        >
+                                            {t('common.remove')}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <p className="font-['Onest'] text-xs text-[#737373]">
+                                        {t('admin.blog.use_header_cover')}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
-                        {/* Additional Attachments (for news-events, or extra files for publications) */}
-                        <div>
-                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                {formData.post_type === 'publication'
-                                    ? t('admin.blog.field_extra_attachments', 'Anexos adicionais')
-                                    : t('admin.blog.field_attachments')}
-                            </label>
-
-                            {/* Existing attachments (for news: all, for publications: non-doc) */}
-                            {(() => {
-                                const shown = formData.post_type === 'publication'
-                                    ? existingAttachments.filter(a => !/\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || ''))
-                                    : existingAttachments
-                                return shown.length > 0 && (
+                        {/* Additional Attachments — news-events only */}
+                        {routePostType !== 'publication' && (
+                            <div>
+                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                    {t('admin.blog.field_attachments')}
+                                </label>
+                                {existingAttachments.length > 0 && (
                                     <div className="mb-3 space-y-2">
-                                        {shown.map((att, i) => (
+                                        {existingAttachments.map((att, i) => (
                                             <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                                                 <span className="text-sm">{att.original_filename || att.filename}</span>
                                                 <button type="button" onClick={() => removeExistingAttachment(att.filename)}
@@ -1235,42 +1395,23 @@ export default function BlogPostForm() {
                                             </div>
                                         ))}
                                     </div>
-                                )
-                            })()}
-
-                            {/* New attachment files */}
-                            {(() => {
-                                const shown = formData.post_type === 'publication'
-                                    ? attachmentFiles.filter((f, i) => !/\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(f.name))
-                                    : attachmentFiles
-                                return shown.length > 0 && (
+                                )}
+                                {attachmentFiles.length > 0 && (
                                     <div className="mb-3 space-y-2">
-                                        {attachmentFiles.map((file, index) => {
-                                            const isDoc = /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(file.name)
-                                            if (formData.post_type === 'publication' && isDoc) return null
-                                            return (
-                                                <div key={index} className="flex items-center justify-between p-2 bg-[#f3f4f6] rounded-lg">
-                                                    <span className="text-sm">{file.name}</span>
-                                                    <button type="button" onClick={() => removeAttachment(index)}
-                                                        className="text-red-600 hover:text-red-800 text-sm">{t('common.remove')}</button>
-                                                </div>
-                                            )
-                                        })}
+                                        {attachmentFiles.map((file, index) => (
+                                            <div key={index} className="flex items-center justify-between p-2 bg-[#f3f4f6] rounded-lg">
+                                                <span className="text-sm">{file.name}</span>
+                                                <button type="button" onClick={() => removeAttachment(index)}
+                                                    className="text-red-600 hover:text-red-800 text-sm">{t('common.remove')}</button>
+                                            </div>
+                                        ))}
                                     </div>
-                                )
-                            })()}
-
-                            <input
-                                type="file"
-                                multiple
-                                accept=".pdf,.doc,.docx,.xlsx,.txt,.csv,image/*"
-                                onChange={handleAttachmentChange}
-                                className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            />
-                            <p className="text-sm text-gray-500 mt-1">
-                                {t('admin.blog.accepted_formats')}
-                            </p>
-                        </div>
+                                )}
+                                <p className="font-['Onest'] text-xs text-[#737373]">
+                                    {t('admin.blog.use_header_attach', 'Use the "Anexar" button at the top to add files.')}
+                                </p>
+                            </div>
+                        )}
 
                         {/* Error Display */}
                         {error && (
@@ -1298,7 +1439,7 @@ export default function BlogPostForm() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="font-['Onest'] font-medium text-sm text-white bg-primary px-6 py-2 rounded-full transition-opacity disabled:opacity-50 hover:opacity-90 cursor-pointer"
+                                className="font-['Onest'] font-medium text-sm text-white bg-[#009368] px-6 py-2 rounded-full transition-opacity disabled:opacity-50 hover:opacity-90 cursor-pointer"
                             >
                                 {saving ? t('admin.blog.saving') : (isEditing ? t('admin.blog.update') : t('admin.blog.create'))}
                             </button>
@@ -1338,7 +1479,7 @@ export default function BlogPostForm() {
                                 <div className="max-h-40 overflow-y-auto space-y-1 bg-[#f3f4f6] rounded-lg p-3">
                                     {deleteAuthorPosts.map(p => (
                                         <div key={p.id} className="flex items-center gap-2">
-                                            <span className="font-['Onest'] text-xs text-primary bg-[#fffefc] rounded px-1.5 py-0.5">
+                                            <span className="font-['Onest'] text-xs text-[#009368] bg-[#fffefc] rounded px-1.5 py-0.5">
                                                 {p.tags?.[0] || 'Post'}
                                             </span>
                                             <span className="font-['Onest'] text-sm text-[#0a0a0a] truncate">{p.title}</span>
