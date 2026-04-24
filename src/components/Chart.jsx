@@ -49,7 +49,7 @@ if (typeof window !== 'undefined' && !window.__apexUnhandledGuardInstalled) {
     });
 }
 
-const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, minimalAxis = false, disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
+const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, minimalAxis = false, activeTool = 'pan', disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
     const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -284,7 +284,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         pan: allowUserInteraction && !needsDateConversion,
                         reset: allowUserInteraction
                     },
-                    autoSelected: allowUserInteraction && !needsDateConversion ? 'zoom' : undefined
+                    autoSelected: allowUserInteraction && !needsDateConversion ? activeTool : undefined
                 },
                 events: {
                     beforeMount: function (chart) {
@@ -317,6 +317,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     },
                     scrolled: function(chartContext, { xaxis }) {
                         if (onViewportChangeRef.current && xaxis) {
+                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                        }
+                    },
+                    selection: function(chartContext, { xaxis }) {
+                        if (onViewportChangeRef.current && xaxis && xaxis.min != null && xaxis.max != null && xaxis.min < xaxis.max) {
                             onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
                         }
                     }
@@ -556,7 +561,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, xaxisRange])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, activeTool, xaxisRange])
 
     return <div ref={chartContainerRef} className="w-full h-full" />
 })
@@ -598,6 +603,7 @@ GChart.propTypes = {
     allowUserInteraction: PropTypes.bool,
     compact: PropTypes.bool,
     minimalAxis: PropTypes.bool,
+    activeTool: PropTypes.oneOf(['zoom', 'pan', 'selection']),
     disableAnimations: PropTypes.bool,
     onViewportChange: PropTypes.func,
     xaxisRange: PropTypes.shape({

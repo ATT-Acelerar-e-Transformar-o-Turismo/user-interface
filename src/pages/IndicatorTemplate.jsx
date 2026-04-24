@@ -104,7 +104,6 @@ export default function IndicatorTemplate() {
   };
 
   const chartToolModes = [
-    { value: 'zoom', label: t('indicator.chart_tool_zoom'), icon: modeIcons.zoom },
     { value: 'pan', label: t('indicator.chart_tool_pan'), icon: modeIcons.pan },
     { value: 'selection', label: t('indicator.chart_tool_selection'), icon: modeIcons.selection },
   ];
@@ -113,7 +112,7 @@ export default function IndicatorTemplate() {
   const zoomOutIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
   const resetIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 
-  const [activeChartTool, setActiveChartTool] = useState('zoom');
+  const [activeChartTool, setActiveChartTool] = useState('pan');
   const [toolDropdownOpen, setToolDropdownOpen] = useState(false);
   const toolDropdownRef = useRef(null);
 
@@ -383,32 +382,6 @@ export default function IndicatorTemplate() {
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Watermarks (drawn before the chart so they sit behind the data).
-      // Offsets are percentages of the canvas so they land inside the plot
-      // area (away from axis labels and the legend at the bottom).
-      const brandBlue = '#084D92';
-
-      // Top-left: indicator name
-      const indicatorName = getName(indicatorData) || indicatorData?.name || '';
-      if (indicatorName) {
-        ctx.save();
-        ctx.globalAlpha = 0.08;
-        ctx.fillStyle = brandBlue;
-        const fontSize = Math.round(28 * scale);
-        ctx.font = `700 ${fontSize}px Onest, sans-serif`;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        const left = Math.round(canvas.width * 0.09);
-        const top = Math.round(canvas.height * 0.08);
-        const maxWidth = canvas.width - left - Math.round(canvas.width * 0.05);
-        let text = indicatorName;
-        while (ctx.measureText(text).width > maxWidth && text.length > 1) {
-          text = text.slice(0, -2) + '…';
-        }
-        ctx.fillText(text, left, top);
-        ctx.restore();
-      }
 
       // Bottom-right: ROOTS logo
       try {
@@ -802,7 +775,7 @@ export default function IndicatorTemplate() {
                         className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
                         title={t('indicator.chart_tools')}
                       >
-                        {chartSupportsTools ? (modeIcons[activeChartTool] || modeIcons.zoom) : zoomInIcon}
+                        {chartSupportsTools ? (modeIcons[activeChartTool === 'zoom' ? 'pan' : activeChartTool] || modeIcons.pan) : zoomInIcon}
                         <svg className={`w-3.5 h-3.5 text-[#0a0a0a] shrink-0 transition-transform ${toolDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -903,6 +876,7 @@ export default function IndicatorTemplate() {
                       themeMode="light"
                       disableAnimations={!isInitialLoad}
                       onViewportChange={handleViewportChange}
+                      activeTool={activeChartTool}
                       xaxisRange={viewport.min != null && viewport.max != null ? viewport : null}
                     />
                   </div>
