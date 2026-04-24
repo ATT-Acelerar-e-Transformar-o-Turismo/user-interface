@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 const imgRectangle65 = "/assets/figma/hero-rect-1.png";
 const imgRectangle66 = "/assets/figma/hero-rect-2.png";
 const imgRectangle69 = "/assets/figma/hero-rect-3.png";
-const imgArrowDown = "/assets/figma/arrow-down.svg";
 
 export default function HeroSection() {
   const { t } = useTranslation();
@@ -66,8 +65,10 @@ export default function HeroSection() {
               onClick={() => navigate('/indicators')}
               className="bg-primary text-[#fafafa] flex items-center gap-3 px-6 py-3 sm:px-8 sm:py-4 rounded-full hover:bg-[color:var(--color-primary-hover)] transition-all shadow-md"
             >
-              <img src={imgArrowDown} alt="" className="w-5 h-5 sm:w-6 sm:h-6 hidden sm:block" />
               <span className="font-['Onest'] font-medium text-[18px] sm:text-[24px]">{t('hero.cta')}</span>
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>
