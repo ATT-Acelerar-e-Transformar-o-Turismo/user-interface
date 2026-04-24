@@ -32,7 +32,8 @@
     "title": "Get to know our tourism numbers",
     "subtitle": "Choose a dimension to understand how the territory is transforming",
     "no_areas": "No areas available at the moment.",
-    "view_all_indicators": "View all indicators",
+    "view_all_indicators": "Show all indicators",
+    "hide_all_indicators": "Hide all indicators",
     "error_loading_areas": "Error loading areas: {{error}}"
   },
   "auth": {

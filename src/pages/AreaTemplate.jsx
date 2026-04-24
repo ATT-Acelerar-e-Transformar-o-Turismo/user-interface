@@ -13,8 +13,9 @@ import { highlightSearchTerms } from "../utils/searchUtils";
 import useLocalizedName from "../hooks/useLocalizedName";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
+import PropTypes from "prop-types";
 
-export default function AreaTemplate() {
+export default function AreaTemplate({ embedded = false }) {
   const location = useLocation();
   const { areaPath } = useParams();
   const { areaId: stateAreaId, areaName } = location.state || {};
@@ -42,8 +43,8 @@ export default function AreaTemplate() {
       .join(" ");
   };
   
-  const inferredAreaName = areaName || (location.pathname === '/all-indicators' ? '' : pathToAreaName(areaPath || location.pathname));
-  const isAllIndicatorsMode = !inferredAreaName && !isSearchMode;
+  const inferredAreaName = embedded ? '' : (areaName || (location.pathname === '/all-indicators' ? '' : pathToAreaName(areaPath || location.pathname)));
+  const isAllIndicatorsMode = embedded || (!inferredAreaName && !isSearchMode);
 
   // Debug logging
   console.log("AreaTemplate Debug:", {
@@ -289,12 +290,13 @@ export default function AreaTemplate() {
   const handleSearchSubmit = useCallback((e) => {
     e.preventDefault();
     const trimmed = searchInput.trim();
+    const basePath = '/indicators';
     if (trimmed) {
-      navigateTo(`/all-indicators?q=${encodeURIComponent(trimmed)}`);
+      navigateTo(`${basePath}?q=${encodeURIComponent(trimmed)}`);
     } else if (isSearchMode) {
-      navigateTo('/all-indicators');
+      navigateTo(basePath);
     }
-  }, [searchInput, isSearchMode, navigateTo]);
+  }, [searchInput, isSearchMode, navigateTo, embedded]);
 
   const areaColor = selectedAreaObj?.AreaColor || selectedAreaObj?.color || '#C3F25E';
   const areaIcon = selectedAreaObj?.AreaIcon;
@@ -307,9 +309,8 @@ export default function AreaTemplate() {
       ? t('areas.all_indicators_description')
       : t('areas.area_description', { name: (selectedAreaObj?.name || inferredAreaName || '').toLowerCase() });
 
-  return (
-    <PageTemplate fullBleed>
-      <div className="min-h-screen bg-[#f3f4f6] overflow-x-hidden">
+  const body = (
+      <div className={`${embedded ? '' : 'min-h-screen bg-[#f3f4f6]'} overflow-x-hidden`}>
         {/* Hero banner — tall image + area-colored wave + icon */}
         {!isSearchMode && !isAllIndicatorsMode && images.length > 0 && (
           <div className="relative w-full">
@@ -384,7 +385,7 @@ export default function AreaTemplate() {
           </div>
         )}
 
-        <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-20" style={(!isSearchMode && !isAllIndicatorsMode && images.length > 0) ? undefined : { paddingTop: 'calc(var(--navbar-height) + 6rem)' }}>
+        <div className={embedded ? "w-full" : "max-w-[1512px] mx-auto px-4 sm:px-12 pb-20"} style={embedded ? undefined : ((!isSearchMode && !isAllIndicatorsMode && images.length > 0) ? undefined : { paddingTop: 'calc(var(--navbar-height) + 6rem)' })}>
           {/* Back button + breadcrumbs */}
           {!isSearchMode && !isAllIndicatorsMode && (
             <div className="flex flex-col gap-4 mb-6 pt-8">
@@ -406,14 +407,16 @@ export default function AreaTemplate() {
           )}
 
           {/* Title + description */}
-          <div className="flex flex-col gap-2 sm:gap-4 mb-8 sm:mb-16">
-            <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
-              {displayName}
-            </h1>
-            <p className="font-['Onest'] font-medium text-sm sm:text-lg leading-normal text-[#0a0a0a] max-w-4xl">
-              {displayDescription}
-            </p>
-          </div>
+          {!embedded && (
+            <div className="flex flex-col gap-2 sm:gap-4 mb-8 sm:mb-16">
+              <h1 className="font-['Onest'] font-semibold text-3xl sm:text-5xl leading-none text-[#0a0a0a] tracking-tight">
+                {displayName}
+              </h1>
+              <p className="font-['Onest'] font-medium text-sm sm:text-lg leading-normal text-[#0a0a0a] max-w-4xl">
+                {displayDescription}
+              </p>
+            </div>
+          )}
 
           {/* Stats dashboard — commented out for now
           {!isSearchMode && !isAllIndicatorsMode && (
@@ -726,6 +729,10 @@ export default function AreaTemplate() {
           </div>
         </div>
       </div>
-    </PageTemplate>
   );
+  return embedded ? body : <PageTemplate fullBleed>{body}</PageTemplate>;
 }
+
+AreaTemplate.propTypes = {
+  embedded: PropTypes.bool,
+};

@@ -1,19 +1,37 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import AreaCard from '../components/AreaCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import PageTemplate from './PageTemplate';
+import AreaTemplate from './AreaTemplate';
 import { useArea } from '../contexts/AreaContext';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
 import { indicatorService } from '../services/indicatorService';
+import { useSearchParams } from 'react-router-dom';
 
 export default function AreaSelectionPage() {
   const { t } = useTranslation();
   const getName = useLocalizedName();
   const { areas, loading, error } = useArea();
   const [indicatorsByArea, setIndicatorsByArea] = useState({});
+  const [searchParams] = useSearchParams();
+  const [showAll, setShowAll] = useState(() => Boolean(searchParams.get('q')));
+  const allSectionRef = useRef(null);
+
+  const handleShowAll = () => {
+    setShowAll(true);
+    setTimeout(() => {
+      allSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
+  const handleHideAll = () => {
+    setShowAll(false);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  };
 
   useEffect(() => {
     if (!areas?.length) return;
@@ -83,15 +101,38 @@ export default function AreaSelectionPage() {
             </div>
           )}
 
-          {/* "Ver todos os indicadores" button */}
-          <div className="flex justify-center mt-8 sm:mt-16">
-            <Link
-              to="/all-indicators"
-              className="font-['Onest'] font-medium text-lg text-[#0a0a0a] border border-[#d4d4d4] rounded-full px-6 py-2 hover:bg-white/60 transition-colors shadow-sm"
-            >
-              {t('home.view_all_indicators')}
-            </Link>
-          </div>
+          {!showAll && (
+            <div className="flex justify-center mt-8 sm:mt-16">
+              <button
+                type="button"
+                onClick={handleShowAll}
+                className="font-['Onest'] font-medium text-xl text-[#0a0a0a] bg-white/60 border border-[#d4d4d4] rounded-full px-8 py-3 shadow-sm hover:bg-white transition-colors cursor-pointer flex items-center gap-2.5 tracking-[0.1px]"
+              >
+                <span>{t('home.view_all_indicators')}</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {showAll && (
+            <div ref={allSectionRef} className="mt-12 sm:mt-20">
+              <AreaTemplate embedded />
+              <div className="flex justify-center mt-8 sm:mt-16">
+                <button
+                  type="button"
+                  onClick={handleHideAll}
+                  className="font-['Onest'] font-medium text-xl text-[#0a0a0a] bg-white/60 border border-[#d4d4d4] rounded-full px-8 py-3 shadow-sm hover:bg-white transition-colors cursor-pointer flex items-center gap-2.5 tracking-[0.1px]"
+                >
+                  <span>{t('home.hide_all_indicators')}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </PageTemplate>

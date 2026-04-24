@@ -70,17 +70,6 @@ export const routesList = [
         )
     },
     {
-        path: '/all-indicators',
-        element: (
-            <>
-                <Helmet>
-                    <title>ROOTS - Todos os Indicadores</title>
-                </Helmet>
-                <AreaTemplate />
-            </>
-        )
-    },
-    {
         path: '/indicators/:areaPath',
         element: (
             <>

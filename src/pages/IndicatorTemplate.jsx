@@ -288,7 +288,7 @@ export default function IndicatorTemplate() {
             setFetchParams(prev => ({
                 ...prev,
                 startDate: null, // Allow fetching older data without lower bound
-                endDate: earliestDataTime.toISOString(),
+                endDate: new Date(earliestDataTime).toISOString(),
                 limit: 100
             }));
         }

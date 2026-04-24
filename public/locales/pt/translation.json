@@ -32,7 +32,8 @@
     "title": "Conheça os Números do nosso Turismo",
     "subtitle": "Escolha uma dimensão para entender como o território se está a transformar.",
     "no_areas": "Nenhum área disponível no momento.",
-    "view_all_indicators": "Ver todos os indicadores",
+    "view_all_indicators": "Mostrar todos os indicadores",
+    "hide_all_indicators": "Esconder todos os indicadores",
     "error_loading_areas": "Erro ao carregar áreas: {{error}}"
   },
   "auth": {
