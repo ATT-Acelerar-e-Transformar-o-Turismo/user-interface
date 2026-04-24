@@ -60,7 +60,7 @@ export default function MobileNavbar() {
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
                 className={cn(
                     'absolute top-0 left-0 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 pt-1 overflow-hidden',
-                    isOpen ? 'rounded-2xl pb-3.5 min-w-[240px]' : 'rounded-full pb-1'
+                    isOpen ? 'rounded-2xl pb-3.5' : 'rounded-full pb-1'
                 )}
             >
                 {/* Header: logo + menu/close button */}
