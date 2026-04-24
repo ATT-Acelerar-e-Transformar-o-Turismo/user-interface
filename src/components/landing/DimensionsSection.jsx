@@ -34,7 +34,7 @@ export default function DimensionsSection() {
   return (
     <div className="relative w-full py-16 lg:py-32">
       <div className="max-w-[1512px] mx-auto px-4 lg:px-12">
-        <div className="text-left lg:text-center mb-10 lg:mb-24" data-aos="fade-down">
+        <div className="text-center mb-10 lg:mb-24" data-aos="fade-down">
             <h2 className="font-['Onest'] font-semibold text-[32px] lg:text-[48px] text-[#0a0a0a] mb-2 lg:mb-4">
             {t('home.title')}
             </h2>

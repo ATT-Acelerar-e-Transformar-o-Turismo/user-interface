@@ -65,24 +65,22 @@ export default function AreaCard({
       </div>
 
       {/* Card Content */}
-      <div className="absolute left-0 top-0 sm:top-[1%] w-full sm:w-[98.7%] h-full sm:h-[99%] flex flex-col items-end justify-between px-[6%] py-[6%]">
+      <div className="absolute left-0 top-0 sm:top-[1%] w-full sm:w-[98.7%] h-full sm:h-[99%] flex flex-col justify-between px-[6%] pt-[7%] pb-[12%]">
         {/* Title */}
-        <div className="w-full">
-          <h3 className="font-['Onest'] font-semibold leading-none text-black tracking-[-0.32px] break-words" style={{ fontSize: 'clamp(1.25rem, 8cqi, 2rem)' }}>
-            {title}
-          </h3>
-        </div>
+        <h3 className="font-['Onest'] font-semibold leading-[1.2] text-black tracking-[-0.32px] break-words w-full" style={{ fontSize: 'clamp(1.25rem, 8cqi, 2rem)' }}>
+          {title}
+        </h3>
 
-        {/* Indicators List */}
-        <ul className="w-full flex flex-col gap-2 sm:gap-6">
+        {/* Indicators List — vertically centered between title and bottom row */}
+        <ul className="w-full flex flex-col flex-1 justify-center gap-4 sm:gap-9 md:gap-10">
           {visible.map((ind, i) => {
             const name = typeof ind === 'string' ? ind : getName(ind) || ind.name;
             const id = typeof ind === 'object' ? ind.id : null;
             return (
               <li
                 key={id || `${currentPage}-${i}`}
-                className="font-['Onest'] font-normal leading-[1.5] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-primary transition-colors"
-                style={{ fontSize: 'clamp(0.75rem, 6cqi, 1.5rem)' }}
+                className="font-['Onest'] font-medium leading-[1.33] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-primary transition-colors"
+                style={{ fontSize: 'clamp(0.95rem, 5cqi, 1.25rem)' }}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (id) {
@@ -109,9 +107,9 @@ export default function AreaCard({
               />
             ))}
           </div>
-          <button className="bg-base-100 text-primary px-[5%] py-[2%] rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
-            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 6.5cqi, 1.6rem)' }}>{t('components.area_card.view_all')}</span>
-            <img src={arrowRight} alt="" className="w-5 h-5" />
+          <button className="bg-base-100 text-primary px-4 py-1.5 rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
+            <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 5cqi, 1.125rem)' }}>{t('components.area_card.view_all')}</span>
+            <img src={arrowRight} alt="" className="w-4 h-4" />
           </button>
         </div>
       </div>
