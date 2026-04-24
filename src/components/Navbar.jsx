@@ -7,9 +7,9 @@ import logoRootsGreen from '../assets/green-logo.svg'
 import indicatorService from '../services/indicatorService'
 import { highlightSearchTerms } from '../utils/searchUtils'
 import MobileNavbar from './MobileNavbar'
+import Weather from './Weather'
 import { useAuth } from '../contexts/AuthContext'
-
-const imgUserIcon = "/assets/figma/user-icon.svg";
+import { LuLock } from 'react-icons/lu'
 
 export default function Navbar({ navItems = null, rightContent = null, showSearchBox = false }) {
     const { t, i18n } = useTranslation();
@@ -244,7 +244,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     // Default public nav items (includes admin link when appropriate)
     const defaultItems = [
         { label: 'ROOTS', path: '/', exact: true },
-        { label: t('nav.areas'), path: '/indicators' },
+        { label: t('nav.indicators'), path: '/indicators' },
         { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
@@ -252,32 +252,34 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
 
     const items = navItems ?? defaultItems;
 
-    // Default right section: login/logout + language toggle
+    // Default right section: weather (Ílhavo) + language + lock (admin)
+    const handleLockClick = () => {
+        if (isAuthenticated) {
+            if (user?.role === 'admin') navigate('/admin');
+            else logout();
+        } else {
+            login();
+        }
+    };
     const defaultRight = (
-        <div className="hidden lg:flex items-center gap-3 xl:gap-5 shrink-0">
-            {isAuthenticated ? (
-                <button
-                    onClick={logout}
-                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
-                >
-                    <img src={imgUserIcon} alt="" className="w-4 h-4" />
-                    <span>{t('nav.logout')}</span>
-                </button>
-            ) : (
-                <button
-                    onClick={login}
-                    className="flex items-center gap-2 font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
-                >
-                    <img src={imgUserIcon} alt="" className="w-4 h-4" />
-                    <span>{t('nav.login')}</span>
-                </button>
-            )}
+        <div className="hidden lg:flex items-center gap-3 xl:gap-4 shrink-0">
+            <Weather />
             <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
             <button
                 onClick={() => i18n.changeLanguage(i18n.language?.startsWith('pt') ? 'en' : 'pt')}
                 className="font-medium text-[17px] text-[#0a0a0a] tracking-[-0.2px] leading-none whitespace-nowrap hover:text-primary transition-colors"
             >
                 {i18n.language?.startsWith('pt') ? 'PT' : 'EN'}
+            </button>
+            <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
+            <button
+                type="button"
+                onClick={handleLockClick}
+                aria-label={isAuthenticated ? (user?.role === 'admin' ? t('nav.admin') : t('nav.logout')) : t('nav.login')}
+                title={isAuthenticated ? (user?.role === 'admin' ? t('nav.admin') : t('nav.logout')) : t('nav.login')}
+                className="flex items-center justify-center w-6 h-6 text-[#0a0a0a] hover:text-primary transition-colors cursor-pointer"
+            >
+                <LuLock className="w-5 h-5" strokeWidth={1.75} aria-hidden="true" />
             </button>
         </div>
     );
@@ -286,7 +288,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     const defaultMobileItems = [
         { label: t('nav.home'), path: '/' },
         { label: 'ROOTS', path: '/roots', isRoots: true },
-        { label: t('nav.areas'), path: '/indicators' },
+        { label: t('nav.indicators'), path: '/indicators' },
         { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
         ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
@@ -310,57 +312,11 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
 
                     {/* Nav Items — desktop, auto-sized and centered */}
                     <div className="flex mx-auto items-center h-full gap-1 xl:gap-4">
-                        {items.map(item => {
-                            if (item.label === 'ROOTS') {
-                                return (
-                                    <div
-                                        key={item.path}
-                                        ref={rootsDropdownRef}
-                                        className="relative"
-                                        onMouseEnter={() => {
-                                            clearTimeout(rootsTimeoutRef.current);
-                                            setIsRootsOpen(true);
-                                        }}
-                                        onMouseLeave={() => {
-                                            rootsTimeoutRef.current = setTimeout(() => setIsRootsOpen(false), 200);
-                                        }}
-                                    >
-                                        <Link
-                                            to={item.path}
-                                            className={navItemClass(item.path, item.exact, isRootsActive || isRootsOpen)}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                setIsRootsOpen(prev => !prev);
-                                            }}
-                                        >
-                                            {item.label}
-                                        </Link>
-                                        {isRootsOpen && (
-                                            <div className="absolute top-full left-0 mt-2 bg-[#fffefc] rounded-[18px] p-4 flex flex-col gap-2 shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] min-w-[260px] z-50">
-                                                {rootsSubItems.map(sub => (
-                                                    <Link
-                                                        key={sub.path}
-                                                        to={sub.path}
-                                                        className={`flex items-center p-2 rounded-lg font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap transition-colors ${
-                                                            location.pathname === sub.path
-                                                                ? 'text-primary'
-                                                                : 'text-[#0a0a0a] hover:text-primary'
-                                                        }`}
-                                                    >
-                                                        {sub.label}
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            }
-                            return (
-                                <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
-                                    {item.label}
-                                </Link>
-                            );
-                        })}
+                        {items.map(item => (
+                            <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
+                                {item.label}
+                            </Link>
+                        ))}
                     </div>
 
                     {/* Right section */}
