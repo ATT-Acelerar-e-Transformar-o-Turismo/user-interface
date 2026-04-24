@@ -107,6 +107,11 @@ class BlogService {
         }
     }
 
+    async updateAttachmentsOrder(postId, attachments) {
+        const response = await this.api.put(API_ENDPOINTS.BLOG.ADMIN_POST_BY_ID(postId), { attachments });
+        return response.data;
+    }
+
     async removeAttachment(postId, filename) {
         try {
             await this.api.delete(API_ENDPOINTS.BLOG.ATTACHMENT_BY_NAME(postId, filename));

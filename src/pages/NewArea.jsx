@@ -132,7 +132,7 @@ export default function NewArea() {
                                 onChange={(e) => setName(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-[#009368] focus:border-[#009368] block w-full p-2.5"
                             />
                         </div>
 
@@ -144,7 +144,7 @@ export default function NewArea() {
                                 value={color}
                                 onChange={(e) => setColor(e.target.value)}
                                 disabled={loading}
-                                className="p-2 text-neutral border border-base-300 rounded-lg bg-base-100 focus:ring-primary focus:border-primary"
+                                className="p-2 text-neutral border border-base-300 rounded-lg bg-base-100 focus:ring-[#009368] focus:border-[#009368]"
                             />
                         </div>
 
@@ -161,7 +161,7 @@ export default function NewArea() {
                                 />
                                 <button 
                                     type="button" 
-                                    className="btn btn-primary text-white"
+                                    className="btn bg-[#009368] hover:bg-[#007d57] text-white border-none"
                                     onClick={handleAddDimension}
                                     disabled={loading || !dimensionInput.trim()}
                                 >
@@ -179,7 +179,7 @@ export default function NewArea() {
                                 onChange={(e) => setImage(e.target.value)}
                                 disabled={loading}
                                 placeholder="Enter image URL"
-                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-[#009368] focus:border-[#009368] block w-full p-2.5"
                                 />
                         </div>
 
@@ -192,7 +192,7 @@ export default function NewArea() {
                                 onChange={(e) => setIcon(e.target.value)}
                                 disabled={loading}
                                 placeholder="Enter icon URL"
-                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+                                className="bg-base-100 border border-base-300 text-neutral text-sm rounded-lg focus:ring-[#009368] focus:border-[#009368] block w-full p-2.5"
                                 />
                         </div>
 
@@ -208,7 +208,7 @@ export default function NewArea() {
                             <button 
                                 type="submit" 
                                 disabled={loading || !name.trim()}
-                                className="btn btn-primary"
+                                className="btn bg-[#009368] hover:bg-[#007d57] text-white border-none"
                             >
                                 {loading ? (
                                     <>

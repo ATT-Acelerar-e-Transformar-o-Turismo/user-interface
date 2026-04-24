@@ -236,7 +236,7 @@ export default function IndicatorsManagement() {
       return (
         <button
           onClick={() => navigate(`/admin/resources-management/${row.id}`)}
-          className="text-primary hover:underline cursor-pointer text-left w-full"
+          className="text-[#009368] hover:underline cursor-pointer text-left w-full"
         >
           {value}
         </button>
@@ -285,7 +285,7 @@ export default function IndicatorsManagement() {
   };
 
   const actions = [
-    { label: 'Edit', className: 'btn-primary', onClick: handleEdit },
+    { label: 'Edit', className: 'bg-[#009368] hover:bg-[#007d57] text-white border-none', onClick: handleEdit },
     { label: 'Delete', className: 'btn-secondary', onClick: handleDelete }
   ];
 

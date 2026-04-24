@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     THUMBNAIL: (postId) => `/api/blog/admin/posts/${postId}/thumbnail`,
     ATTACHMENTS: (postId) => `/api/blog/admin/posts/${postId}/attachments`,
     ATTACHMENT_BY_NAME: (postId, filename) => `/api/blog/admin/posts/${postId}/attachments/${filename}`,
+    ATTACHMENTS_ORDER: (postId) => `/api/blog/admin/posts/${postId}/attachments/order`,
     UPLOAD_THUMBNAIL: '/api/blog/admin/upload/thumbnail',
     UPLOAD_ATTACHMENT: '/api/blog/admin/upload/attachment',
   },

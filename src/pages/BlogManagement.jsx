@@ -7,7 +7,39 @@ import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
 import SuccessModal from '../components/wizard/SuccessModal'
 import blogService from '../services/blogService'
+import { PdfCardFill } from '../components/PdfPreview'
 import { confirmAction } from '../utils/confirm'
+
+const DOC_RE = /\.(pdf|doc|docx|xlsx|txt|csv)$/i
+const firstDocAttachment = (post) =>
+    Array.isArray(post?.attachments)
+        ? post.attachments.find(a => DOC_RE.test(a?.filename || a?.original_filename || a?.url || ''))
+        : null
+
+function PostThumb({ post }) {
+    const thumb = post.thumbnail_url ? blogService.getFileUrl(post.thumbnail_url) : null
+    const doc = firstDocAttachment(post)
+    const docUrl = doc ? blogService.getFileUrl(doc.url || `/attachments/${doc.filename}`) : null
+    const isPdf = doc && /\.pdf$/i.test(doc.filename || doc.url || '')
+
+    return (
+        <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#f3f4f6] border border-[#e5e5e5] shrink-0 flex items-center justify-center">
+            {thumb ? (
+                <img src={thumb} alt="" className="w-full h-full object-cover" />
+            ) : isPdf && docUrl ? (
+                <PdfCardFill url={docUrl} />
+            ) : doc ? (
+                <svg className="w-6 h-6 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            ) : (
+                <svg className="w-6 h-6 text-[#d4d4d4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            )}
+        </div>
+    )
+}
 
 const PAGE_SIZE = 10
 
@@ -250,8 +282,9 @@ export default function BlogManagement({
                                         {pagePosts.map(post => (
                                             <tr key={post.id} className="align-middle">
                                                 <td className="py-3 pr-6 font-['Onest'] font-medium text-[18px] text-[#0a0a0a]">
-                                                    <Link to={`${basePath}/edit/${post.id}`} className="hover:underline">
-                                                        {post.title}
+                                                    <Link to={`${basePath}/edit/${post.id}`} className="flex items-center gap-3 hover:underline">
+                                                        <PostThumb post={post} />
+                                                        <span>{post.title}</span>
                                                     </Link>
                                                 </td>
                                                 <td className="py-3 px-4 font-['Onest'] font-medium text-[18px] text-[#0a0a0a] text-center">
