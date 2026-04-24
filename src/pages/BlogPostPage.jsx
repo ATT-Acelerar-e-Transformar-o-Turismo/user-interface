@@ -622,7 +622,7 @@ export default function BlogPostPage() {
                             {t('common.back')}
                         </button>
                         <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
-                            <Link to={backPath} className="hover:underline text-[#737373]">{t('blog.header_title')}</Link>
+                            <Link to={backPath} className="hover:underline text-[#737373]">{isPublication ? t('nav.publications') : t('blog.header_title')}</Link>
                             <span className="text-gray-400">/</span>
                             <span className="line-clamp-1">{post.title}</span>
                         </nav>
@@ -701,11 +701,13 @@ export default function BlogPostPage() {
                                 </div>
                             )}
 
-                            {/* Article body */}
-                            <article className="blog-content font-['Onest'] text-[#0a0a0a]">
-                                {parse(post.content, parseOptions)}
-                                <style dangerouslySetInnerHTML={{ __html: articleStyles }} />
-                            </article>
+                            {/* Article body — hidden for publications (PDF preview is the content) */}
+                            {!isPublication && (
+                                <article className="blog-content font-['Onest'] text-[#0a0a0a]">
+                                    {parse(post.content, parseOptions)}
+                                    <style dangerouslySetInnerHTML={{ __html: articleStyles }} />
+                                </article>
+                            )}
 
                             {/* Attachments — exclude primary doc (already shown as PDF preview) */}
                             {post.attachments?.filter(a => a !== primaryDoc).length > 0 && (

@@ -1361,7 +1361,19 @@ export default function BlogPostForm() {
                                         </div>
                                         <button
                                             type="button"
-                                            onClick={() => { setThumbnailFile(null); setThumbnailPreview(null) }}
+                                            onClick={async () => {
+                                                const hadSavedThumbnail = Boolean(post?.thumbnail_url);
+                                                setThumbnailFile(null);
+                                                setThumbnailPreview(null);
+                                                if (isEditing && postId && hadSavedThumbnail) {
+                                                    try {
+                                                        await blogService.deleteThumbnail(postId);
+                                                        setPost(prev => prev ? { ...prev, thumbnail_url: '' } : prev);
+                                                    } catch (err) {
+                                                        setError(err.message);
+                                                    }
+                                                }
+                                            }}
                                             className="font-['Onest'] text-xs text-red-500 hover:text-red-700 transition-colors cursor-pointer self-start"
                                         >
                                             {t('common.remove')}

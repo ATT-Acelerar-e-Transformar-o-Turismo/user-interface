@@ -1,13 +1,35 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import AreaCard from '../AreaCard';
 import { useArea } from '../../contexts/AreaContext';
 import useLocalizedName from '../../hooks/useLocalizedName';
 import { useTranslation } from 'react-i18next';
+import { indicatorService } from '../../services/indicatorService';
 
 export default function DimensionsSection() {
   const { areas, loading, error } = useArea();
   const getName = useLocalizedName();
   const { t } = useTranslation();
+  const [indicatorsByArea, setIndicatorsByArea] = useState({});
+
+  useEffect(() => {
+    if (!areas?.length) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        areas.map(async (area) => {
+          if (!area?.id) return [null, []];
+          try {
+            const list = await indicatorService.getByArea(area.id, 0, 12);
+            return [area.id, Array.isArray(list) ? list : []];
+          } catch {
+            return [area.id, []];
+          }
+        })
+      );
+      if (!cancelled) setIndicatorsByArea(Object.fromEntries(entries.filter(([k]) => k)));
+    })();
+    return () => { cancelled = true; };
+  }, [areas]);
 
   return (
     <div className="relative w-full py-16 lg:py-32">
@@ -34,19 +56,21 @@ export default function DimensionsSection() {
         )}
 
         {!loading && !error && (
-          <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:justify-center gap-8 lg:gap-[120px]">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8 lg:gap-12">
             {areas.map((area, index) => (
-              <AreaCard
-                key={area.id}
-                title={getName(area)}
-                color={area.AreaColor}
-                indicators={area.dimensions?.map(sub => getName(sub)) || []}
-                icon={area.AreaIcon}
-                shadowColor={area.AreaColor}
-                page={`/indicators/${area.name.toLowerCase()}`}
-                data-aos="fade-up"
-                data-aos-delay={100 + (index * 150)}
-              />
+              <div key={area.id} className="w-full max-w-[392px] mx-auto sm:mx-0 sm:w-[392px]">
+                <AreaCard
+                  title={getName(area)}
+                  areaId={area?.id}
+                  color={area.AreaColor}
+                  indicators={indicatorsByArea[area?.id] || []}
+                  icon={area.AreaIcon}
+                  shadowColor={area.AreaColor}
+                  page={`/indicators/${area.name.toLowerCase()}`}
+                  data-aos="fade-up"
+                  data-aos-delay={100 + (index * 150)}
+                />
+              </div>
             ))}
           </div>
         )}

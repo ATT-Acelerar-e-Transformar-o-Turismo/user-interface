@@ -24,7 +24,7 @@ export default function AreaCard({
   const navigate = useNavigate();
   const effectiveShadowColor = shadowColor || color;
 
-  const totalPages = Math.min(MAX_DOTS, Math.max(1, Math.ceil(indicators.length / PAGE_SIZE)));
+  const totalPages = Math.min(MAX_DOTS, Math.ceil(indicators.length / PAGE_SIZE));
   const [currentPage, setCurrentPage] = useState(0);
   const pageStart = currentPage * PAGE_SIZE;
   const visible = indicators.slice(pageStart, pageStart + PAGE_SIZE);

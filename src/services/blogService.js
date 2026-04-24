@@ -95,6 +95,15 @@ class BlogService {
         }
     }
 
+    async deleteThumbnail(postId) {
+        try {
+            await this.api.delete(API_ENDPOINTS.BLOG.THUMBNAIL(postId));
+            return true;
+        } catch (error) {
+            throw new Error('Failed to remove thumbnail');
+        }
+    }
+
     async uploadAttachment(postId, file) {
         try {
             const formData = new FormData();
