@@ -7,8 +7,8 @@ export default function ComingSoon() {
   const navigate = useNavigate();
 
   return (
-    <PageTemplate>
-      <div className="min-h-[calc(100vh-var(--navbar-height))] flex items-center justify-center px-6 py-16 sm:py-24">
+    <PageTemplate fullBleed>
+      <div className="min-h-screen flex items-center justify-center px-6 pt-[calc(var(--navbar-height)+2rem)] pb-16">
         <div className="flex flex-col items-center gap-10 max-w-[1003px] w-full">
           <img
             src="/farol.svg"
