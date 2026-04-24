@@ -101,7 +101,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
 
     return (
         <div
-            className={`bg-base-100 rounded-2xl shadow-sm border border-base-300 transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full cursor-pointer relative ${hidden ? 'opacity-50' : ''}`}
+            className={`bg-base-100 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full cursor-pointer relative flex flex-col gap-6 p-8 ${hidden ? 'opacity-50' : ''}`}
             onClick={handleClick}
         >
             <style>{`
@@ -114,66 +114,57 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
                     position: absolute;
                     pointer-events: none;
                     animation: floatUpHeart 1s ease-out forwards;
-                    color: #ef4444; /* Tailwind red-500 */
+                    color: #ef4444;
                     z-index: 50;
                 }
             `}</style>
-            <div className="pt-3 px-3">
-                <div className="flex justify-between items-start">
-                    <div className="flex-1">
+            <div className="absolute top-3 right-3 flex items-center gap-1 z-10">
+                {isAdmin && onToggleHidden && (
+                    <button
+                        className="p-2 hover:bg-base-200 rounded-lg transition-colors"
+                        onClick={(e) => { e.stopPropagation(); onToggleHidden(e); }}
+                        title={hidden ? t('admin.indicators.show') : t('admin.indicators.hide')}
+                    >
+                        <FontAwesomeIcon
+                            icon={hidden ? faEyeSlash : faEye}
+                            className={`text-lg ${hidden ? 'text-base-content/40' : 'text-base-content/60 hover:text-base-content'}`}
+                        />
+                    </button>
+                )}
+                <button
+                    className="p-2 hover:bg-base-200 rounded-lg transition-colors relative"
+                    onClick={toggleFavorite}
+                >
+                    <FontAwesomeIcon
+                        icon={isFavorite ? faSolidHeart : faRegularHeart}
+                        className={`text-lg transform transition-transform duration-100 ${isFavorite ? 'text-error' : 'text-base-content/60 hover:text-error'} ${isAnimating ? 'scale-125' : ''}`}
+                    />
+                    {hearts.map(heart => (
                         <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: areaColor }}
-                        ></div>
-                    </div>
-                    <div className="relative flex items-center gap-1">
-                        {isAdmin && onToggleHidden && (
-                            <button
-                                className="p-2 hover:bg-base-200 rounded-lg transition-colors relative z-10"
-                                onClick={(e) => { e.stopPropagation(); onToggleHidden(e); }}
-                                title={hidden ? t('admin.indicators.show') : t('admin.indicators.hide')}
-                            >
-                                <FontAwesomeIcon
-                                    icon={hidden ? faEyeSlash : faEye}
-                                    className={`text-lg ${hidden ? 'text-base-content/40' : 'text-base-content/60 hover:text-base-content'}`}
-                                />
-                            </button>
-                        )}
-                        <button
-                            className="p-2 hover:bg-base-200 rounded-lg transition-colors relative z-10"
-                            onClick={toggleFavorite}
+                            key={heart.id}
+                            className="floating-heart"
+                            style={heart.style}
+                            onAnimationEnd={() => removeHeart(heart.id)}
                         >
-                            <FontAwesomeIcon
-                                icon={isFavorite ? faSolidHeart : faRegularHeart}
-                                className={`text-lg transform transition-transform duration-100 ${isFavorite ? 'text-error' : 'text-base-content/60 hover:text-error'} ${isAnimating ? 'scale-125' : ''}`}
-                            />
-                        </button>
-                        {hearts.map(heart => (
-                            <div
-                                key={heart.id}
-                                className="floating-heart"
-                                style={heart.style}
-                                onAnimationEnd={() => removeHeart(heart.id)}
-                            >
-                                <FontAwesomeIcon icon={faSolidHeart} />
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                            <FontAwesomeIcon icon={faSolidHeart} />
+                        </div>
+                    ))}
+                </button>
             </div>
-            <div className="px-2 pb-2">
+
+            <div className="flex flex-col gap-4 w-full">
                 {dataLoading ? (
-                    <div className="flex items-center justify-center h-52 bg-base-200 rounded-lg mx-2">
+                    <div className="flex items-center justify-center h-[220px]">
                         <div className="loading loading-spinner loading-md text-primary"></div>
                     </div>
                 ) : chartData?.series?.[0]?.data?.length > 0 ? (
-                    <div className="h-52 mx-2">
+                    <div className="h-[220px] w-full">
                         <Chart
                             chartId={`preview-${IndicatorId}`}
                             chartType={defaultChartType || 'line'}
                             xaxisType="datetime"
                             series={chartData.series}
-                            height={208}
+                            height={220}
                             showLegend={false}
                             showToolbar={false}
                             showTooltip={false}
@@ -182,31 +173,34 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
                         />
                     </div>
                 ) : (
-                    <div className="flex items-center justify-center h-52 bg-base-200 rounded-lg mx-2">
+                    <div className="flex items-center justify-center h-[220px] bg-base-200 rounded-lg">
                         <div className="text-center text-base-content/60">
                             <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 00-2-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                             <div className="text-xs">{t('components.indicator_card.no_data')}</div>
                         </div>
                     </div>
                 )}
             </div>
-            <div className="px-6 pb-6">
-                <h3 className="text-lg font-semibold text-base-content mb-3 font-['Onest',sans-serif] line-clamp-2">
-                    {indicatorData?.name || IndicatorTitle} {unit && <span className="text-sm text-base-content/70">({unit})</span>}
+
+            <div className="flex flex-col gap-2 w-full">
+                <h3 className="font-['Onest'] font-semibold text-[20px] text-[#0a0a0a] tracking-[-0.4px] leading-[1.09] line-clamp-3">
+                    {indicatorData?.name || IndicatorTitle}
                 </h3>
-                {localizedDescription && (
-                  <p className="text-sm text-base-content/70 mb-3 line-clamp-2">
-                    {localizedDescription}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-2 text-sm text-base-content/70">
-                    {area && (
-                        <span className="px-2 py-1 bg-base-200 rounded-md">{area}</span>
+                <div className="flex items-center justify-between w-full">
+                    {unit && (
+                        <span className="font-['Onest'] text-sm text-[#0a0a0a] tracking-[0.07px] leading-[21px]">
+                            ({unit})
+                        </span>
                     )}
-                    {dimension && (
-                        <span className="px-2 py-1 bg-base-200 rounded-md">{dimension}</span>
+                    {area && (
+                        <span
+                            className="px-2 py-[3px] min-h-6 rounded-full flex items-center justify-center font-['Onest'] font-medium text-xs text-white tracking-[0.18px] leading-4"
+                            style={{ backgroundColor: areaColor }}
+                        >
+                            {area}
+                        </span>
                     )}
                 </div>
             </div>

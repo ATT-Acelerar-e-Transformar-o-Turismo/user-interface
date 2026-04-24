@@ -49,7 +49,7 @@ if (typeof window !== 'undefined' && !window.__apexUnhandledGuardInstalled) {
     });
 }
 
-const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
+const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, minimalAxis = false, disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
     const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -97,17 +97,48 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     const hasArrayY = firstPoint && Array.isArray(firstPoint.y);
     const shapeMismatch = shapeSpecificTypes.includes(chartType) && !hasArrayY;
 
+    const detectGranularity = (xs) => {
+        const dates = (xs || []).map(v => new Date(v)).filter(d => !isNaN(d));
+        if (!dates.length) return 'day';
+        const allYearStart = dates.every(d => d.getUTCMonth() === 0 && d.getUTCDate() === 1 && d.getUTCHours() === 0 && d.getUTCMinutes() === 0);
+        if (allYearStart) return 'year';
+        const allMonthStart = dates.every(d => d.getUTCDate() === 1 && d.getUTCHours() === 0 && d.getUTCMinutes() === 0);
+        if (allMonthStart) return 'month';
+        return 'day';
+    }
+
+    const dateGranularity = (xaxisType === 'datetime')
+        ? detectGranularity((series || []).flatMap(s => (s.data || []).map(d => d.x)))
+        : 'day';
+
+    const formatDate = (value) => {
+        const d = new Date(value);
+        if (isNaN(d)) return value;
+        if (dateGranularity === 'year') return String(d.getUTCFullYear());
+        if (dateGranularity === 'month') {
+            return d.toLocaleDateString('pt-PT', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+        }
+        return d.toLocaleDateString('pt-PT', { timeZone: 'UTC' });
+    }
+
     const formatValue = (value) => {
         if (needsDateConversion) {
             return value;
         }
         if (xaxisType === 'datetime') {
-            return new Date(value).toLocaleDateString('pt-PT')
+            return formatDate(value);
         } else if (typeof value === 'number') {
             return value.toFixed(2)
         } else {
             return value
         }
+    }
+
+    const formatYValue = (value) => {
+        if (typeof value !== 'number' || !isFinite(value)) return value;
+        const abs = Math.abs(value);
+        const decimals = abs >= 100 ? 0 : abs >= 10 ? 1 : abs >= 1 ? 2 : 3;
+        return value.toLocaleString('pt-PT', { maximumFractionDigits: decimals, minimumFractionDigits: 0 });
     }
 
     useEffect(() => {
@@ -194,7 +225,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     return {
                         ...s,
                         data: sortedData.map(d => ({
-                            x: new Date(d.x).toLocaleDateString('pt-PT'),
+                            x: formatDate(d.x),
                             y: d.y
                         }))
                     };
@@ -346,19 +377,20 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 min: xaxisMin,
                 max: xaxisMax,
                 labels: {
+                    show: !minimalAxis,
                     style: {
-                        colors: '#000000',
-                        fontSize: compact ? '8px' : '12px',
+                        colors: '#737373',
+                        fontSize: compact ? '11px' : '12px',
                         fontFamily: 'Onest, sans-serif'
                     },
                     formatter: formatValue
                 },
                 axisBorder: {
-                    show: !compact,
+                    show: !compact && !minimalAxis,
                     color: '#000000'
                 },
                 axisTicks: {
-                    show: !compact,
+                    show: !compact && !minimalAxis,
                     color: '#000000'
                 },
                 tooltip: {
@@ -366,20 +398,40 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 }
             },
             yaxis: {
+                forceNiceScale: true,
+                min: log ? undefined : (() => {
+                    const ys = (_series || []).flatMap(s => (s.data || []).map(d => parseFloat(d.y))).filter(v => isFinite(v));
+                    if (!ys.length) return undefined;
+                    return Math.min(...ys) >= 0 ? 0 : undefined;
+                })(),
+                max: log ? undefined : (() => {
+                    const ys = (_series || []).flatMap(s => (s.data || []).map(d => parseFloat(d.y))).filter(v => isFinite(v));
+                    if (!ys.length) return undefined;
+                    const dataMax = Math.max(...ys);
+                    if (dataMax <= 0) return undefined;
+                    const padded = dataMax * 1.1;
+                    const mag = Math.pow(10, Math.floor(Math.log10(padded)));
+                    const normalized = padded / mag;
+                    const niceSteps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+                    const niceStep = niceSteps.find(s => s >= normalized) || 10;
+                    return niceStep * mag;
+                })(),
                 labels: {
+                    show: !minimalAxis,
                     style: {
                         colors: '#000000',
                         fontSize: compact ? '8px' : '12px',
                         fontFamily: 'Onest, sans-serif'
                     },
-                    offsetX: compact ? -15 : 0 // Shift labels left in compact mode
+                    offsetX: compact ? -8 : 0,
+                    formatter: formatYValue
                 },
                 axisBorder: {
-                    show: !compact,
+                    show: !compact && !minimalAxis,
                     color: '#000000'
                 },
                 axisTicks: {
-                    show: !compact,
+                    show: !compact && !minimalAxis,
                     color: '#000000'
                 },
                 logarithmic: !!log,
@@ -504,7 +556,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current.destroy()
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, xaxisRange])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, xaxisRange])
 
     return <div ref={chartContainerRef} className="w-full h-full" />
 })
@@ -545,6 +597,7 @@ GChart.propTypes = {
     showTooltip: PropTypes.bool,
     allowUserInteraction: PropTypes.bool,
     compact: PropTypes.bool,
+    minimalAxis: PropTypes.bool,
     disableAnimations: PropTypes.bool,
     onViewportChange: PropTypes.func,
     xaxisRange: PropTypes.shape({

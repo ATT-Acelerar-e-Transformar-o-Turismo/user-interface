@@ -1056,7 +1056,7 @@ export default function IndicatorTemplate() {
                     </button>
                   )}
                   {indicatorData.description && (
-                    <p className="font-['Onest'] text-sm text-[#0a0a0a] leading-relaxed">
+                    <p className="font-['Onest'] text-sm text-[#0a0a0a] leading-relaxed whitespace-pre-line">
                       {getName.field(indicatorData, 'description', 'description_en')}
                     </p>
                   )}
