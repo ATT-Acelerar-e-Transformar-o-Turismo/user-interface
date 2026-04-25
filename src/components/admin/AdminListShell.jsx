@@ -178,28 +178,27 @@ export function AdminSelectDropdown({ placeholder, options, value, onChange, dis
   const active = options.find(o => o.value === value);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative inline-flex items-center">
       <button
         type="button"
         disabled={disabled}
         onClick={() => setOpen(v => !v)}
-        className={`${PILL_BASE} ${active ? 'text-[#0a0a0a]' : 'text-[#0a0a0a]'}`}
+        className={`${PILL_BASE} ${allowClear && active ? 'pr-10' : ''}`}
       >
         <LuChevronDown className="w-4 h-4" strokeWidth={1.75} />
         <span className="truncate max-w-[200px]">{active ? active.label : placeholder}</span>
-        {allowClear && active && (
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => { e.stopPropagation(); onChange(null); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onChange(null); } }}
-            className="ml-1 text-[#737373] hover:text-[#0a0a0a]"
-            aria-label="clear"
-          >
-            <LuX className="w-3.5 h-3.5" strokeWidth={2} />
-          </span>
-        )}
       </button>
+      {allowClear && active && (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={(e) => { e.stopPropagation(); onChange(null); }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#0a0a0a] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          aria-label="Clear"
+        >
+          <LuX className="w-3.5 h-3.5" strokeWidth={2} />
+        </button>
+      )}
       {open && (
         <div className="absolute left-0 top-full mt-2 z-50 min-w-[220px] max-h-[320px] overflow-y-auto bg-[#fffefc] border border-[#e5e5e5] rounded-2xl shadow-lg">
           {options.length === 0 ? (

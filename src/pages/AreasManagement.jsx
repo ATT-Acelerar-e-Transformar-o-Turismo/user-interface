@@ -276,19 +276,22 @@ export default function AreasManagement() {
               <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
                 {t('admin.areas.col_options')}
               </h2>
-              {areas.map(a => (
-                <div key={`act-${a.id}`} className="flex items-center gap-4">
-                  <button type="button" onClick={() => handleToggleHidden(a)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" title={a.hidden ? t('admin.areas.show', 'Mostrar') : t('admin.areas.hide', 'Esconder')}>
-                    {a.hidden ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} /> : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
-                  </button>
-                  <button type="button" onClick={() => handleEdit(a)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" title={t('common.edit')}>
-                    <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
-                  </button>
-                  <button type="button" onClick={() => handleDelete(a)} className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer" title={t('common.delete')}>
-                    <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
-                  </button>
-                </div>
-              ))}
+              {areas.map(a => {
+                const showLabel = a.hidden ? t('admin.areas.show', 'Mostrar') : t('admin.areas.hide', 'Esconder');
+                return (
+                  <div key={`act-${a.id}`} className="flex items-center gap-4">
+                    <button type="button" onClick={() => handleToggleHidden(a)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" title={showLabel} aria-label={showLabel} aria-pressed={!a.hidden}>
+                      {a.hidden ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} /> : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
+                    </button>
+                    <button type="button" onClick={() => handleEdit(a)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" title={t('common.edit')} aria-label={t('common.edit')}>
+                      <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                    <button type="button" onClick={() => handleDelete(a)} className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer" title={t('common.delete')} aria-label={t('common.delete')}>
+                      <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </AdminCard>

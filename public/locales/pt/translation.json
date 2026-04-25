@@ -201,7 +201,9 @@
       "confirm_delete": "Tem certeza que deseja eliminar o área \"{{name}}\"?",
       "load_error": "Falha ao carregar áreas",
       "delete_error": "Falha ao eliminar área",
-      "deleted_success": "Área \"{{name}}\" eliminado com sucesso."
+      "deleted_success": "Área \"{{name}}\" eliminado com sucesso.",
+      "hide": "Ocultar",
+      "show": "Mostrar"
     },
     "dimensions": {
       "title": "Dimensões",
@@ -214,7 +216,9 @@
       "total": "Total: {{count}} dimensões",
       "confirm_delete": "Tem certeza que deseja eliminar a dimensão \"{{name}}\"?",
       "delete_error": "Falha ao eliminar dimensão",
-      "deleted_success": "Dimensão \"{{name}}\" eliminada com sucesso."
+      "deleted_success": "Dimensão \"{{name}}\" eliminada com sucesso.",
+      "hide": "Ocultar",
+      "show": "Mostrar"
     },
     "resources": {
       "add": "Adicionar Recurso de Dados",

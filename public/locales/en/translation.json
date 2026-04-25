@@ -201,7 +201,9 @@
       "confirm_delete": "Are you sure you want to delete the area \"{{name}}\"?",
       "load_error": "Failed to load areas",
       "delete_error": "Failed to delete area",
-      "deleted_success": "Area \"{{name}}\" deleted successfully."
+      "deleted_success": "Area \"{{name}}\" deleted successfully.",
+      "hide": "Hide",
+      "show": "Show"
     },
     "dimensions": {
       "title": "Dimensions",
@@ -214,7 +216,9 @@
       "total": "Total: {{count}} dimensions",
       "confirm_delete": "Are you sure you want to delete the dimension \"{{name}}\"?",
       "delete_error": "Failed to delete dimension",
-      "deleted_success": "Dimension \"{{name}}\" deleted successfully."
+      "deleted_success": "Dimension \"{{name}}\" deleted successfully.",
+      "hide": "Hide",
+      "show": "Show"
     },
     "resources": {
       "add": "Add Data Resource",

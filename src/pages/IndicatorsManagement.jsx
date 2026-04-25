@@ -31,6 +31,8 @@ import {
   LuCircleX,
   LuSquarePen,
   LuTrash2,
+  LuEye,
+  LuEyeOff,
 } from 'react-icons/lu';
 
 export default function IndicatorsManagement() {
@@ -170,6 +172,15 @@ export default function IndicatorsManagement() {
     }
   };
 
+  const handleToggleHidden = async (id, currentHidden) => {
+    try {
+      await indicatorService.patch(id, { hidden: !currentHidden });
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to toggle visibility');
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       if (selectedOption === 'indicators') {
@@ -210,7 +221,8 @@ export default function IndicatorsManagement() {
         return {
           ...indicator,
           name: getName(indicator),
-          area: getName(areaInfo) || indicator.subdomain || indicator.dimension || 'Unknown Area',
+          area: getName(areaInfo) || 'Unknown Area',
+          dimension: indicator.subdomain || indicator.dimension || '',
           color: areaInfo?.color || '#CCCCCC'
         };
       })
@@ -353,7 +365,7 @@ export default function IndicatorsManagement() {
                   className="font-['Onest'] font-medium text-[18px] leading-6 truncate max-w-full"
                   style={{ color: ind.color || '#0a0a0a' }}
                 >
-                  {ind.area}
+                  {ind.dimension || ind.area}
                 </span>
               ))}
             </div>
@@ -379,34 +391,47 @@ export default function IndicatorsManagement() {
               <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
                 {t('admin.indicators.col_options')}
               </h2>
-              {tableContent.map(ind => (
-                <div key={`act-${ind.id}`} className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(ind.id)}
-                    className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
-                    title={t('common.edit')}
-                    aria-label={t('common.edit')}
-                  >
-                    <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const ok = await confirmAction({
-                        title: t('common.confirm_title'),
-                        message: t('admin.indicators.confirm_delete', { name: ind.name }),
-                      });
-                      if (ok) handleDelete(ind.id);
-                    }}
-                    className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer"
-                    title={t('common.delete')}
-                    aria-label={t('common.delete')}
-                  >
-                    <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
-                  </button>
-                </div>
-              ))}
+              {tableContent.map(ind => {
+                const showLabel = ind.hidden ? t('admin.indicators.show', 'Mostrar') : t('admin.indicators.hide', 'Esconder');
+                return (
+                  <div key={`act-${ind.id}`} className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleHidden(ind.id, ind.hidden)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={showLabel}
+                      aria-label={showLabel}
+                      aria-pressed={!ind.hidden}
+                    >
+                      {ind.hidden ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} /> : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(ind.id)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={t('common.edit')}
+                      aria-label={t('common.edit')}
+                    >
+                      <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const ok = await confirmAction({
+                          title: t('common.confirm_title'),
+                          message: t('admin.indicators.confirm_delete', { name: ind.name }),
+                        });
+                        if (ok) handleDelete(ind.id);
+                      }}
+                      className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer"
+                      title={t('common.delete')}
+                      aria-label={t('common.delete')}
+                    >
+                      <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </AdminCard>

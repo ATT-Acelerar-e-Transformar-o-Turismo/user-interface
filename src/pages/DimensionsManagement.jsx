@@ -324,36 +324,43 @@ export default function DimensionsManagement() {
               <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
                 {t('admin.dimensions.col_options')}
               </h2>
-              {dimensions.map(dim => (
-                <div key={`act-${dim.id}`} className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleHidden(dim)}
-                    className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
-                    title={dim.hidden ? t('admin.dimensions.show', 'Mostrar') : t('admin.dimensions.hide', 'Esconder')}
-                  >
-                    {dim.hidden
-                      ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} />
-                      : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(dim)}
-                    className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
-                    title={t('common.edit')}
-                  >
-                    <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(dim)}
-                    className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer"
-                    title={t('common.delete')}
-                  >
-                    <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
-                  </button>
-                </div>
-              ))}
+              {dimensions.map(dim => {
+                const showLabel = dim.hidden ? t('admin.dimensions.show', 'Mostrar') : t('admin.dimensions.hide', 'Esconder');
+                return (
+                  <div key={`act-${dim.id}`} className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleHidden(dim)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={showLabel}
+                      aria-label={showLabel}
+                      aria-pressed={!dim.hidden}
+                    >
+                      {dim.hidden
+                        ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} />
+                        : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(dim)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={t('common.edit')}
+                      aria-label={t('common.edit')}
+                    >
+                      <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(dim)}
+                      className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer"
+                      title={t('common.delete')}
+                      aria-label={t('common.delete')}
+                    >
+                      <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </AdminCard>
