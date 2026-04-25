@@ -247,7 +247,6 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         { label: t('nav.indicators'), path: '/indicators' },
         { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
-        ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
     ];
 
     const items = navItems ?? defaultItems;
@@ -255,7 +254,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     // Default right section: weather (Ílhavo) + language + lock (admin)
     const handleLockClick = () => {
         if (isAuthenticated) {
-            if (user?.role === 'admin') navigate('/admin');
+            if (user?.role === 'admin') navigate('/admin/indicators-management');
             else logout();
         } else {
             login();
@@ -291,7 +290,6 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         { label: t('nav.indicators'), path: '/indicators' },
         { label: t('nav.publications', 'Publicações'), path: '/publications' },
         { label: t('nav.blog'), path: '/news-events' },
-        ...(isAuthenticated && user?.role === 'admin' ? [{ label: t('nav.admin'), path: '/admin' }] : []),
     ];
 
     const mobileItems = navItems

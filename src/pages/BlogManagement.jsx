@@ -10,6 +10,7 @@ import blogService from '../services/blogService'
 import { PdfCardFill } from '../components/PdfPreview'
 import { confirmAction } from '../utils/confirm'
 import { ptCompare } from '../utils/sort'
+import { AdminSortDropdown, AdminSelectDropdown } from '../components/admin/AdminListShell'
 
 const DOC_RE = /\.(pdf|doc|docx|xlsx|txt|csv)$/i
 const firstDocAttachment = (post) =>
@@ -63,7 +64,8 @@ export default function BlogManagement({
     const [successMessage, setSuccessMessage] = useState(null)
 
     const [searchQuery, setSearchQuery] = useState('')
-    const [sortBy, setSortBy] = useState('created_desc')
+    const [sortBy, setSortBy] = useState('created')
+    const [sortOrder, setSortOrder] = useState('desc')
     const [statusFilter, setStatusFilter] = useState('all') // all | published | draft
     const [showDraftsOnly, setShowDraftsOnly] = useState(false)
     const [page, setPage] = useState(1)
@@ -131,20 +133,13 @@ export default function BlogManagement({
             )
         }
         list.sort((a, b) => {
-            switch (sortBy) {
-                case 'title_asc':
-                    return ptCompare(a.title, b.title)
-                case 'title_desc':
-                    return ptCompare(b.title, a.title)
-                case 'created_asc':
-                    return new Date(a.created_at) - new Date(b.created_at)
-                case 'created_desc':
-                default:
-                    return new Date(b.created_at) - new Date(a.created_at)
-            }
+            const dir = sortOrder === 'asc' ? 1 : -1;
+            if (sortBy === 'title') return dir * ptCompare(a.title, b.title);
+            // default: created
+            return dir * (new Date(a.created_at) - new Date(b.created_at));
         })
         return list
-    }, [posts, searchQuery, sortBy, statusFilter, showDraftsOnly])
+    }, [posts, searchQuery, sortBy, sortOrder, statusFilter, showDraftsOnly])
 
     const totalPages = Math.max(1, Math.ceil(visiblePosts.length / PAGE_SIZE))
     const pagePosts = visiblePosts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -220,34 +215,25 @@ export default function BlogManagement({
                     {/* Filter / sort / search bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className={`${pillOutline} pr-9 appearance-none`}
-                                    aria-label={t('admin.blog.sort_by', 'Ordenar por')}
-                                >
-                                    <option value="created_desc">{t('admin.blog.sort_newest', 'Mais recentes')}</option>
-                                    <option value="created_asc">{t('admin.blog.sort_oldest', 'Mais antigos')}</option>
-                                    <option value="title_asc">{t('admin.blog.sort_title_asc', 'Título A→Z')}</option>
-                                    <option value="title_desc">{t('admin.blog.sort_title_desc', 'Título Z→A')}</option>
-                                </select>
-                                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                            </div>
-                            <div className="relative">
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className={`${pillOutline} pr-9 appearance-none`}
-                                    aria-label={t('admin.blog.col_status', 'Estado')}
-                                    disabled={showDraftsOnly}
-                                >
-                                    <option value="all">{t('admin.blog.filter_all', 'Todas')}</option>
-                                    <option value="published">{t('admin.blog.status_published')}</option>
-                                    <option value="draft">{t('admin.blog.status_draft')}</option>
-                                </select>
-                                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                            </div>
+                            <AdminSortDropdown
+                                sortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onChange={(nextBy, nextOrder) => { setSortBy(nextBy); setSortOrder(nextOrder); setPage(1); }}
+                                options={[
+                                    { value: 'created', label: t('admin.blog.col_date', 'Data') },
+                                    { value: 'title', label: t('admin.blog.col_title', 'Título') },
+                                ]}
+                            />
+                            <AdminSelectDropdown
+                                placeholder={t('admin.blog.col_status', 'Estado')}
+                                value={statusFilter === 'all' ? null : statusFilter}
+                                disabled={showDraftsOnly}
+                                onChange={(v) => { setStatusFilter(v || 'all'); setPage(1); }}
+                                options={[
+                                    { value: 'published', label: t('admin.blog.status_published') },
+                                    { value: 'draft', label: t('admin.blog.status_draft') },
+                                ]}
+                            />
                         </div>
                         <div className="relative w-full sm:w-[388px]">
                             <input

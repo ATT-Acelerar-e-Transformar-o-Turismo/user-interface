@@ -156,7 +156,9 @@
     "confirm_title": "Confirmação",
     "success": "Sucesso!",
     "previous": "Anterior",
-    "next": "Próximo"
+    "next": "Próximo",
+    "page": "Página",
+    "page_of": "de"
   },
   "admin": {
     "nav": {
@@ -176,8 +178,10 @@
       "col_governance": "Governança",
       "col_options": "Opções",
       "empty": "Ainda não existem indicadores",
-      "add": "Adicionar\nIndicador",
-      "view_drafts": "Ver\nRascunhos",
+      "add": "Adicionar indicador",
+      "view_drafts": "Rascunhos",
+      "sort_by": "Ordenar por",
+      "search_placeholder": "Pesquisar indicadores",
       "drafts_wip": "Ver Rascunhos - Funcionalidade em desenvolvimento",
       "total": "Total: {{count}} indicadores",
       "confirm_delete": "Tem certeza que deseja eliminar o indicador \"{{name}}\"?",
