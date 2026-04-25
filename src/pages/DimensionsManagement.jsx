@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AdminPageTemplate from './AdminPageTemplate';
-import ActionCard from '../components/ActionCard';
-import Pagination from '../components/Pagination';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import AddDimensionModal from '../components/wizard/AddDimensionModal';
@@ -13,6 +11,22 @@ import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
 import { confirmAction } from '../utils/confirm';
 import { ptCompare } from '../utils/sort';
+import AdminListShell, {
+  AdminPageHeader,
+  AdminFilterBar,
+  AdminCard,
+  AdminPagination,
+  AdminPrimaryButton,
+  AdminSearchInput,
+  AdminSortDropdown,
+} from '../components/admin/AdminListShell';
+import {
+  LuPlus,
+  LuSquarePen,
+  LuTrash2,
+  LuEye,
+  LuEyeOff,
+} from 'react-icons/lu';
 
 export default function DimensionsManagement() {
   const { t } = useTranslation();
@@ -198,16 +212,6 @@ export default function DimensionsManagement() {
     setCurrentPage(newPage);
   };
 
-  const handleSort = (column) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
-    setCurrentPage(0);
-  };
-
   const handleSearch = (query) => {
     setSearchQuery(query);
     setCurrentPage(0);
@@ -231,175 +235,145 @@ export default function DimensionsManagement() {
 
   return (
     <AdminPageTemplate>
+      <AdminListShell>
+        <AdminPageHeader
+          title={t('admin.dimensions.title')}
+          actions={
+            <AdminPrimaryButton icon={LuPlus} onClick={() => setIsAddModalOpen(true)}>
+              {t('admin.dimensions.add')}
+            </AdminPrimaryButton>
+          }
+        />
 
-      <div className="relative px-6 py-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
-            {/* Left Column - Dimensions Table */}
-            <div className="bg-[#f1f0f0] rounded-[23px] p-8">
-              <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                {t('admin.dimensions.title')}
-              </h1>
+        <AdminFilterBar
+          search={
+            <AdminSearchInput
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder={t('admin.dimensions.search_placeholder', t('admin.indicators.search_placeholder', 'Pesquisar'))}
+            />
+          }
+        >
+          <AdminSortDropdown
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onChange={(nextBy, nextOrder) => {
+              setSortBy(nextBy);
+              setSortOrder(nextOrder);
+              setCurrentPage(0);
+            }}
+            options={[
+              { value: 'name', label: t('admin.dimensions.col_name') },
+              { value: 'indicatorCount', label: t('admin.dimensions.col_indicators') },
+            ]}
+          />
+        </AdminFilterBar>
 
-              {/* Table Header */}
-              <div className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 mb-4">
-                <button
-                  onClick={() => handleSort('name')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-left hover:text-[#009368] flex items-center gap-1"
-                >
-                  {t('admin.dimensions.col_name')}
-                  {sortBy === 'name' && (
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {sortOrder === 'asc' ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      )}
-                    </svg>
-                  )}
-                </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.dimensions.col_area')}</p>
-                <button
-                  onClick={() => handleSort('indicatorCount')}
-                  className="font-['Onest',sans-serif] font-medium text-sm text-black text-center hover:text-[#009368] flex items-center justify-center gap-1"
-                >
-                  {t('admin.dimensions.col_indicators')}
-                  {sortBy === 'indicatorCount' && (
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {sortOrder === 'asc' ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      )}
-                    </svg>
-                  )}
-                </button>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.dimensions.col_options')}</p>
-              </div>
-
-              {/* Table Rows */}
-              <div className="space-y-3">
-                {dimensions.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    {t('admin.dimensions.empty')}
-                  </div>
-                ) : (
-                  dimensions.map((dimension) => (
-                    <div
-                      key={dimension.id}
-                      className={`bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_2fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors ${dimension.hidden ? 'opacity-50' : ''}`}
-                    >
-                      {/* Name */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                          </svg>
-                        </div>
-                        <span className="font-['Onest',sans-serif] font-normal text-sm text-black">
-                          {getName(dimension)}
-                        </span>
-                      </div>
-
-                      {/* Area Badge */}
-                      <div className="flex justify-center">
-                        <span
-                          className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
-                          style={{ borderColor: dimension.areaColor || '#CCCCCC' }}
-                        >
-                          {getName({ name: dimension.areaName, name_en: dimension.areaName_en })}
-                        </span>
-                      </div>
-
-                      {/* Indicator Count */}
-                      <div className="flex justify-center">
-                        <span className="font-['Onest',sans-serif] font-medium text-sm text-black">
-                          {dimension.indicatorCount}
-                        </span>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleToggleHidden(dimension)}
-                          className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title={dimension.hidden ? t('admin.dimensions.show', 'Mostrar') : t('admin.dimensions.hide', 'Esconder')}
-                        >
-                          <svg className={`w-4 h-4 ${dimension.hidden ? 'text-gray-400' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {dimension.hidden ? (
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                            ) : (
-                              <>
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </>
-                            )}
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleEdit(dimension)}
-                          className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title={t('common.edit')}
-                        >
-                          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(dimension)}
-                          className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title={t('common.delete')}
-                        >
-                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Pagination */}
-              {dimensions.length > 0 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalItems={totalItems}
-                    pageSize={pageSize}
-                    hasNextPage={currentPage * pageSize + dimensions.length < totalItems}
-                    onPageChange={handlePageChange}
-                    loading={loading}
-                    showItemCount={true}
-                    itemName={t('admin.dimensions.title').toLowerCase()}
-                  />
-                </div>
+        <AdminCard>
+          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_160px_160px] gap-6 items-start">
+            {/* Nome */}
+            <div className="flex flex-col gap-4">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.dimensions.col_name')}
+              </h2>
+              {dimensions.length === 0 ? (
+                <div className="py-8 text-[#737373] font-['Onest']">{t('admin.dimensions.empty')}</div>
+              ) : (
+                dimensions.map(dim => (
+                  <span
+                    key={`name-${dim.id}`}
+                    className={`font-['Onest'] font-medium text-[18px] leading-6 text-[#0a0a0a] truncate ${dim.hidden ? 'opacity-50' : ''}`}
+                    title={getName(dim)}
+                  >
+                    {getName(dim)}
+                  </span>
+                ))
               )}
             </div>
 
-            {/* Right Column - Action Cards */}
-            <div className="flex flex-col gap-6">
-              <ActionCard
-                icon={
-                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                }
-                title={t('admin.dimensions.add')}
-                onClick={() => setIsAddModalOpen(true)}
-                className="w-[210px]"
-              />
+            {/* Área */}
+            <div className="flex flex-col gap-4">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.dimensions.col_area')}
+              </h2>
+              {dimensions.map(dim => (
+                <span
+                  key={`area-${dim.id}`}
+                  className="font-['Onest'] font-medium text-[18px] leading-6 truncate"
+                  style={{ color: dim.areaColor || '#0a0a0a' }}
+                >
+                  {getName({ name: dim.areaName, name_en: dim.areaName_en })}
+                </span>
+              ))}
+            </div>
 
-              <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  {t('admin.dimensions.total', { count: totalItems })}
-                </p>
-              </div>
+            {/* Indicadores */}
+            <div className="flex flex-col gap-4 items-center">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.dimensions.col_indicators')}
+              </h2>
+              {dimensions.map(dim => (
+                <span key={`count-${dim.id}`} className="font-['Onest'] font-medium text-[18px] leading-6 text-[#0a0a0a]">
+                  {dim.indicatorCount}
+                </span>
+              ))}
+            </div>
+
+            {/* Opções */}
+            <div className="flex flex-col gap-4 items-center">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.dimensions.col_options')}
+              </h2>
+              {dimensions.map(dim => {
+                const showLabel = dim.hidden ? t('admin.dimensions.show', 'Mostrar') : t('admin.dimensions.hide', 'Esconder');
+                return (
+                  <div key={`act-${dim.id}`} className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleHidden(dim)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={showLabel}
+                      aria-label={showLabel}
+                      aria-pressed={!dim.hidden}
+                    >
+                      {dim.hidden
+                        ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} />
+                        : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(dim)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={t('common.edit')}
+                      aria-label={t('common.edit')}
+                    >
+                      <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(dim)}
+                      className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer"
+                      title={t('common.delete')}
+                      aria-label={t('common.delete')}
+                    >
+                      <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </div>
+        </AdminCard>
+
+        {dimensions.length > 0 && (
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={Math.max(1, Math.ceil((totalItems || 0) / pageSize))}
+            hasNextPage={currentPage * pageSize + dimensions.length < totalItems}
+            onPageChange={handlePageChange}
+          />
+        )}
+      </AdminListShell>
 
       {/* Add Dimension Modal */}
       <AddDimensionModal

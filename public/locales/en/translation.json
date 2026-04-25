@@ -156,7 +156,9 @@
     "confirm_title": "Confirmation",
     "success": "Success!",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "page": "Page",
+    "page_of": "of"
   },
   "admin": {
     "nav": {
@@ -176,8 +178,10 @@
       "col_governance": "Governance",
       "col_options": "Options",
       "empty": "No indicators yet",
-      "add": "Add\nIndicator",
-      "view_drafts": "View\nDrafts",
+      "add": "Add indicator",
+      "view_drafts": "Drafts",
+      "sort_by": "Sort by",
+      "search_placeholder": "Search indicators",
       "drafts_wip": "View Drafts - Feature under development",
       "total": "Total: {{count}} indicators",
       "confirm_delete": "Are you sure you want to delete the indicator \"{{name}}\"?",
@@ -197,7 +201,9 @@
       "confirm_delete": "Are you sure you want to delete the area \"{{name}}\"?",
       "load_error": "Failed to load areas",
       "delete_error": "Failed to delete area",
-      "deleted_success": "Area \"{{name}}\" deleted successfully."
+      "deleted_success": "Area \"{{name}}\" deleted successfully.",
+      "hide": "Hide",
+      "show": "Show"
     },
     "dimensions": {
       "title": "Dimensions",
@@ -210,7 +216,9 @@
       "total": "Total: {{count}} dimensions",
       "confirm_delete": "Are you sure you want to delete the dimension \"{{name}}\"?",
       "delete_error": "Failed to delete dimension",
-      "deleted_success": "Dimension \"{{name}}\" deleted successfully."
+      "deleted_success": "Dimension \"{{name}}\" deleted successfully.",
+      "hide": "Hide",
+      "show": "Show"
     },
     "resources": {
       "add": "Add Data Resource",

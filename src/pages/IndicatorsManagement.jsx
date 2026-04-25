@@ -3,18 +3,37 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
 
-import Pagination from '../components/Pagination';
 import indicatorService from '../services/indicatorService';
 import areaService from '../services/areaService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
-import ActionCard from '../components/ActionCard';
 import { confirmAction } from '../utils/confirm';
 import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorWizard from '../components/wizard/IndicatorWizard';
 import AreaWizard from '../components/wizard/AreaWizard';
 import SuccessModal from '../components/wizard/SuccessModal';
 import { showInfo } from '../utils/toast';
+import AdminListShell, {
+  AdminPageHeader,
+  AdminFilterBar,
+  AdminCard,
+  AdminPagination,
+  AdminPillButton,
+  AdminPrimaryButton,
+  AdminSearchInput,
+  AdminSortDropdown,
+  AdminSelectDropdown,
+} from '../components/admin/AdminListShell';
+import {
+  LuFileText,
+  LuPlus,
+  LuCircleCheck,
+  LuCircleX,
+  LuSquarePen,
+  LuTrash2,
+  LuEye,
+  LuEyeOff,
+} from 'react-icons/lu';
 
 export default function IndicatorsManagement() {
   const { t } = useTranslation();
@@ -56,7 +75,9 @@ export default function IndicatorsManagement() {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [governanceFilter, setGovernanceFilter] = useState(null);
-  
+  const [areaFilter, setAreaFilter] = useState(null);
+  const [dimensionFilter, setDimensionFilter] = useState(null);
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -74,7 +95,7 @@ export default function IndicatorsManagement() {
 
   useEffect(() => {
     loadData();
-  }, [selectedOption, currentPage, pageSize, sortBy, sortOrder, governanceFilter, searchQuery, isSearchMode]);
+  }, [selectedOption, currentPage, pageSize, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, searchQuery, isSearchMode]);
 
   const loadData = async () => {
     try {
@@ -85,12 +106,28 @@ export default function IndicatorsManagement() {
         const skip = currentPage * pageSize;
         
         if (isSearchMode && searchQuery.trim()) {
-          const searchResults = await indicatorService.search(searchQuery, pageSize, skip, undefined, undefined, null, null, null, true);
+          const searchResults = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, true);
           setIndicators(searchResults || []);
 
           const hasMore = searchResults && searchResults.length === pageSize;
           setHasNextPage(hasMore);
           setTotalItems(hasMore ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + (searchResults?.length || 0));
+        } else if (areaFilter && dimensionFilter) {
+          const [indicatorsData, totalCount] = await Promise.all([
+            indicatorService.getByDimension(areaFilter, dimensionFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, true),
+            indicatorService.getCountByDimension(areaFilter, dimensionFilter, governanceFilter, true),
+          ]);
+          setIndicators(indicatorsData || []);
+          setTotalItems(totalCount || 0);
+          setHasNextPage(skip + pageSize < (totalCount || 0));
+        } else if (areaFilter) {
+          const [indicatorsData, totalCount] = await Promise.all([
+            indicatorService.getByArea(areaFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, true),
+            indicatorService.getCountByArea(areaFilter, governanceFilter, true),
+          ]);
+          setIndicators(indicatorsData || []);
+          setTotalItems(totalCount || 0);
+          setHasNextPage(skip + pageSize < (totalCount || 0));
         } else {
           const [indicatorsData, totalCount] = await Promise.all([
             indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter, true),
@@ -104,7 +141,7 @@ export default function IndicatorsManagement() {
           setHasNextPage(hasMore);
         }
 
-        const areasData = await areaService.getAll();
+        const areasData = await areaService.getAll(true);
         setAreas(areasData || []);
       } else {
         const areasData = await areaService.getAll();
@@ -167,13 +204,6 @@ export default function IndicatorsManagement() {
     }
   };
 
-  const handleOptionChange = (option) => {
-    setSelectedOption(option);
-    setCurrentPage(0);
-    setHasNextPage(false);
-    setTotalItems(0);
-  };
-
   const tableContent = selectedOption === 'indicators'
       ? indicators.map(indicator => {
         // Backend field is `domain` (either a populated Domain object or an id).
@@ -191,7 +221,8 @@ export default function IndicatorsManagement() {
         return {
           ...indicator,
           name: getName(indicator),
-          area: getName(areaInfo) || indicator.subdomain || indicator.dimension || 'Unknown Area',
+          area: getName(areaInfo) || 'Unknown Area',
+          dimension: indicator.subdomain || indicator.dimension || '',
           color: areaInfo?.color || '#CCCCCC'
         };
       })
@@ -200,94 +231,10 @@ export default function IndicatorsManagement() {
           name: getName(area)
         }));
 
-  const sortableColumns = ['name', 'periodicity', 'favourites'];
-  
-  const visibleColumns =
-    selectedOption === 'indicators'
-      ? ['name', 'periodicity', 'area', 'favourites', 'governance']
-      : ['name', 'color'];
-
-  const enhancedColumns = selectedOption === 'indicators'
-    ? visibleColumns.map(column => ({
-        key: column,
-        label: column.charAt(0).toUpperCase() + column.slice(1),
-        sortable: sortableColumns.includes(column),
-        sorted: sortBy === column,
-        sortOrder: sortBy === column ? sortOrder : null
-      }))
-    : visibleColumns.map(column => ({
-        key: column,
-        label: column.charAt(0).toUpperCase() + column.slice(1),
-        sortable: false
-      }));
-
-  const renderCellContent = (column, value, row) => {
-    if (selectedOption === 'areas' && column === 'color') {
-      return <span style={{ backgroundColor: row.color || '#CCCCCC' }} className="inline-block w-4 h-4 rounded-full"></span>;
-    }
-    if (selectedOption === 'indicators' && column === 'area') {
-      return (
-        <span style={{ borderColor: row.color }} className="inline-block px-2 py-1 rounded-full border-2 w-full text-center">
-          {value}
-        </span>
-      );
-    }
-    if (selectedOption === 'indicators' && column === 'name') {
-      return (
-        <button
-          onClick={() => navigate(`/admin/resources-management/${row.id}`)}
-          className="text-[#009368] hover:underline cursor-pointer text-left w-full"
-        >
-          {value}
-        </button>
-      );
-    }
-    if (selectedOption === 'areas' && column === 'name') {
-      return row.name;
-    }
-    if (column === 'governance') {
-      return value ? <i className="fas fa-check-circle text-green-500"></i> : <i className="fas fa-times-circle text-red-500"></i>;
-    }
-    if (column === 'favourites') {
-      return (
-        <div className="flex items-center gap-1">
-          <i className={value > 0 ? "fas fa-star text-yellow-500" : "far fa-star text-gray-400"}></i>
-          <span>{value || 0}</span>
-        </div>
-      );
-    }
-    return value;
-  };
-
-  const handleSort = (column) => {
-    if (selectedOption !== 'indicators') return;
-
-
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
-    setCurrentPage(0);
-  };
-
   const handleGovernanceFilter = (value) => {
     setGovernanceFilter(value);
     setCurrentPage(0);
   };
-
-  const clearSearch = () => {
-    setSearchQuery('');
-    setIsSearchMode(false);
-    setCurrentPage(0);
-    setSearchParams({});
-  };
-
-  const actions = [
-    { label: 'Edit', className: 'bg-[#009368] hover:bg-[#007d57] text-white border-none', onClick: handleEdit },
-    { label: 'Delete', className: 'btn-secondary', onClick: handleDelete }
-  ];
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -312,180 +259,192 @@ export default function IndicatorsManagement() {
   return (
     <AdminPageTemplate>
 
-      {/* Main Content Area */}
-      <div className="relative px-6 py-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Grid Layout: Left = Table, Right = Action Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
-            {/* Left Column - Indicators Table */}
-            <div className="bg-[#f1f0f0] rounded-[23px] p-8">
-              {/* Title */}
-              <h1 className="font-['Onest',sans-serif] font-semibold text-4xl text-black mb-6">
-                {t('admin.indicators.title')}
-              </h1>
+      <AdminListShell>
+        <AdminPageHeader
+          title={t('admin.indicators.title')}
+          actions={<>
+            <AdminPillButton icon={LuFileText} onClick={() => showInfo(t('admin.indicators.drafts_wip'))}>
+              {t('admin.indicators.view_drafts')}
+            </AdminPillButton>
+            <AdminPrimaryButton icon={LuPlus} onClick={() => { setEditingIndicatorId(null); setIsWizardOpen(true); }}>
+              {t('admin.indicators.add')}
+            </AdminPrimaryButton>
+          </>}
+        />
 
-              {/* Table Header Row */}
-              <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 mb-4">
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black">{t('admin.indicators.col_name')}</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_area')}</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">{t('admin.indicators.col_governance')}</p>
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-right">{t('admin.indicators.col_options')}</p>
-              </div>
+        <AdminFilterBar
+          search={
+            <AdminSearchInput
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsSearchMode(e.target.value.trim().length > 0);
+                setCurrentPage(0);
+              }}
+              placeholder={t('admin.indicators.search_placeholder', 'Pesquisar indicadores')}
+            />
+          }
+        >
+          <AdminSortDropdown
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onChange={(nextBy, nextOrder) => {
+              setSortBy(nextBy);
+              setSortOrder(nextOrder);
+              setCurrentPage(0);
+            }}
+            options={[
+              { value: 'name', label: t('areas.sort_name', 'Nome') },
+              { value: 'periodicity', label: t('areas.sort_periodicity', 'Periodicidade') },
+              { value: 'favourites', label: t('areas.sort_favorites', 'Favoritos') },
+            ]}
+          />
+          <AdminSelectDropdown
+            placeholder={t('admin.indicators.col_area')}
+            value={areaFilter}
+            onChange={(v) => { setAreaFilter(v); setDimensionFilter(null); setCurrentPage(0); }}
+            options={areas.map(a => ({ value: a.id, label: getName(a) || a.name || '—' }))}
+          />
+          <AdminSelectDropdown
+            placeholder={t('admin.indicators.col_dimension', 'Dimensão')}
+            value={dimensionFilter}
+            disabled={!areaFilter}
+            onChange={(v) => { setDimensionFilter(v); setCurrentPage(0); }}
+            options={(() => {
+              const a = areas.find(x => x.id === areaFilter);
+              const subs = a?.dimensions || a?.subdomains || a?.subdominios || [];
+              return subs.map(s => {
+                const name = typeof s === 'string' ? s : s.name;
+                return { value: name, label: name };
+              });
+            })()}
+          />
+          <label className="inline-flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              className="w-[18px] h-[18px] rounded border-[#d4d4d4] accent-[#009368]"
+              checked={governanceFilter === true}
+              onChange={(e) => handleGovernanceFilter(e.target.checked ? true : null)}
+            />
+            <span className="font-['Onest'] text-[17px] text-[#0a0a0a]">{t('admin.indicators.col_governance')}</span>
+          </label>
+        </AdminFilterBar>
 
-              {/* Table Rows */}
-              <div className="space-y-3">
-                {tableContent.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    {t('admin.indicators.empty')}
-                  </div>
-                ) : (
-                  tableContent.map((indicator) => (
-                    <div
-                      key={indicator.id}
-                      className={`bg-[#d9d9d9] rounded-lg p-4 grid grid-cols-[2fr_1fr_1fr_auto] gap-4 items-center hover:bg-gray-300 transition-colors ${indicator.hidden ? 'opacity-50' : ''}`}
-                    >
-                      {/* Indicator Name with Icon */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <button
-                          onClick={() => navigate(`/admin/resources-management/${indicator.id}`)}
-                          className="font-['Onest',sans-serif] font-normal text-sm text-black hover:underline text-left"
-                        >
-                          {indicator.name}
-                        </button>
-                      </div>
-
-                      {/* Area Badge */}
-                      <div className="flex justify-center">
-                        <span
-                          className="inline-block px-3 py-1 rounded-full bg-white border-2 text-xs font-medium text-center"
-                          style={{ borderColor: indicator.color || '#CCCCCC' }}
-                        >
-                          {indicator.area}
-                        </span>
-                      </div>
-
-                      {/* Governance Icon */}
-                      <div className="flex justify-center">
-                        {indicator.governance ? (
-                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleToggleHidden(indicator.id, indicator.hidden)}
-                          className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title={indicator.hidden ? t('admin.indicators.show') : t('admin.indicators.hide')}
-                        >
-                          <svg className={`w-4 h-4 ${indicator.hidden ? 'text-gray-400' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {indicator.hidden ? (
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                            ) : (
-                              <>
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </>
-                            )}
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleEdit(indicator.id)}
-                          className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title={t('common.edit')}
-                        >
-                          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={async () => {
-                            const ok = await confirmAction({
-                              title: t('common.confirm_title'),
-                              message: t('admin.indicators.confirm_delete', { name: indicator.name }),
-                            });
-                            if (ok) handleDelete(indicator.id);
-                          }}
-                          className="p-2 hover:bg-gray-400 rounded transition-colors"
-                          title={t('common.delete')}
-                        >
-                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Pagination */}
-              {selectedOption === 'indicators' && tableContent.length > 0 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalItems={totalItems}
-                    pageSize={pageSize}
-                    hasNextPage={hasNextPage}
-                    onPageChange={handlePageChange}
-                    loading={loading}
-                    showItemCount={true}
-                    itemName={t('admin.indicators.title').toLowerCase()}
-                  />
-                </div>
+        <AdminCard>
+          <div className="grid grid-cols-[minmax(0,2fr)_160px_160px_160px] gap-6 items-start">
+            {/* Column: Nome */}
+            <div className="flex flex-col gap-4">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.indicators.col_name')}
+              </h2>
+              {tableContent.length === 0 ? (
+                <div className="py-8 text-[#737373] font-['Onest']">{t('admin.indicators.empty')}</div>
+              ) : (
+                tableContent.map(ind => (
+                  <button
+                    key={`name-${ind.id}`}
+                    type="button"
+                    onClick={() => navigate(`/admin/resources-management/${ind.id}`)}
+                    className={`font-['Onest'] font-medium text-[18px] leading-6 text-[#0a0a0a] text-left hover:text-[#009368] transition-colors cursor-pointer truncate ${ind.hidden ? 'opacity-50' : ''}`}
+                    title={ind.name}
+                  >
+                    {ind.name}
+                  </button>
+                ))
               )}
             </div>
 
-            {/* Right Column - Action Cards */}
-            <div className="flex flex-col gap-6">
-              {/* Add Indicator Card */}
-              <ActionCard
-                icon={
-                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                }
-                title={t('admin.indicators.add')}
-                onClick={() => {
-                  setEditingIndicatorId(null);
-                  setIsWizardOpen(true);
-                }}
-                className="w-[210px]"
-              />
+            {/* Column: Dimensão */}
+            <div className="flex flex-col gap-4 items-center text-center">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.indicators.col_dimension', 'Dimensão')}
+              </h2>
+              {tableContent.map(ind => (
+                <span
+                  key={`dim-${ind.id}`}
+                  className="font-['Onest'] font-medium text-[18px] leading-6 truncate max-w-full"
+                  style={{ color: ind.color || '#0a0a0a' }}
+                >
+                  {ind.dimension || ind.area}
+                </span>
+              ))}
+            </div>
 
-              {/* View Drafts Card */}
-              <ActionCard
-                icon={
-                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                }
-                title={t('admin.indicators.view_drafts')}
-                onClick={() => showInfo(t('admin.indicators.drafts_wip'))}
-                className="w-[210px]"
-              />
+            {/* Column: Governança? */}
+            <div className="flex flex-col gap-4 items-center">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.indicators.col_governance')}?
+              </h2>
+              {tableContent.map(ind => (
+                <div key={`gov-${ind.id}`} className="h-6 flex items-center">
+                  {ind.governance ? (
+                    <LuCircleCheck className="w-6 h-6 text-[#009368]" strokeWidth={1.75} />
+                  ) : (
+                    <LuCircleX className="w-6 h-6 text-[#dc2626]" strokeWidth={1.75} />
+                  )}
+                </div>
+              ))}
+            </div>
 
-              {/* Additional Info Card */}
-              <div className="bg-[#f1f0f0] rounded-[23px] p-6 w-[210px]">
-                <p className="font-['Onest',sans-serif] font-medium text-sm text-black text-center">
-                  {t('admin.indicators.total', { count: totalItems })}
-                </p>
-              </div>
+            {/* Column: Opções */}
+            <div className="flex flex-col gap-4 items-center">
+              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
+                {t('admin.indicators.col_options')}
+              </h2>
+              {tableContent.map(ind => {
+                const showLabel = ind.hidden ? t('admin.indicators.show', 'Mostrar') : t('admin.indicators.hide', 'Esconder');
+                return (
+                  <div key={`act-${ind.id}`} className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleHidden(ind.id, ind.hidden)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={showLabel}
+                      aria-label={showLabel}
+                      aria-pressed={!ind.hidden}
+                    >
+                      {ind.hidden ? <LuEyeOff className="w-6 h-6" strokeWidth={1.75} /> : <LuEye className="w-6 h-6" strokeWidth={1.75} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(ind.id)}
+                      className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                      title={t('common.edit')}
+                      aria-label={t('common.edit')}
+                    >
+                      <LuSquarePen className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const ok = await confirmAction({
+                          title: t('common.confirm_title'),
+                          message: t('admin.indicators.confirm_delete', { name: ind.name }),
+                        });
+                        if (ok) handleDelete(ind.id);
+                      }}
+                      className="text-[#dc2626] hover:text-[#b91c1c] cursor-pointer"
+                      title={t('common.delete')}
+                      aria-label={t('common.delete')}
+                    >
+                      <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </div>
+        </AdminCard>
+
+        {tableContent.length > 0 && (
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={Math.max(1, Math.ceil((totalItems || 0) / pageSize))}
+            hasNextPage={hasNextPage}
+            onPageChange={handlePageChange}
+          />
+        )}
+      </AdminListShell>
 
       {/* Indicator Wizard Modal */}
       <IndicatorWizard
