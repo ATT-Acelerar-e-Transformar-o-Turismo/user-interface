@@ -46,7 +46,7 @@ export default function AreaCard({
   return (
     <div
       style={{ containerType: 'inline-size' }}
-      className={`relative w-full max-w-[392px] aspect-[358/266] sm:aspect-[392/514] group hover:scale-[1.02] transition-transform duration-300 cursor-pointer ${className}`}
+      className={`relative w-full max-w-[392px] aspect-[358/300] sm:aspect-[392/514] group hover:scale-[1.02] transition-transform duration-300 cursor-pointer ${className}`}
       onClick={handleClick}
       {...props}
     >
@@ -65,7 +65,7 @@ export default function AreaCard({
       </div>
 
       {/* Card Content */}
-      <div className="absolute left-0 top-0 sm:top-[1%] w-full sm:w-[98.7%] h-full sm:h-[99%] flex flex-col justify-between px-[6%] pt-[7%] pb-[12%]">
+      <div className="absolute left-0 top-0 sm:top-[1%] w-full sm:w-[98.7%] h-full sm:h-[99%] flex flex-col justify-between px-[6%] pt-[4%] pb-[4%] sm:pt-[7%] sm:pb-[12%] gap-6 sm:gap-0">
         {/* Title */}
         <h3 className="font-['Onest'] font-semibold leading-[1.2] text-black tracking-[-0.32px] break-words w-full" style={{ fontSize: 'clamp(1.25rem, 8cqi, 2rem)' }}>
           {title}
