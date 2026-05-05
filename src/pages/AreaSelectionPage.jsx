@@ -21,6 +21,7 @@ export default function AreaSelectionPage() {
 
   const handleShowAll = () => {
     setShowAll(true);
+    window.dispatchEvent(new CustomEvent('navbar:suppress-hide', { detail: { duration: 1500 } }));
     setTimeout(() => {
       allSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
@@ -28,6 +29,7 @@ export default function AreaSelectionPage() {
 
   const handleHideAll = () => {
     setShowAll(false);
+    window.dispatchEvent(new CustomEvent('navbar:suppress-hide', { detail: { duration: 1500 } }));
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 50);

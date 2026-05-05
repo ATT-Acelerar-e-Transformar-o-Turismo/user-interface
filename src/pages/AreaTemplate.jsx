@@ -398,7 +398,7 @@ export default function AreaTemplate({ embedded = false }) {
                 </svg>
                 {t('common.back')}
               </button>
-              <nav className="flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
+              <nav className="hidden sm:flex items-center gap-2 text-base font-['Onest'] text-[#0a0a0a]">
                 <Link to="/indicators" className="hover:underline">{t('areas.breadcrumb_dimensions')}</Link>
                 <span className="text-gray-400">/</span>
                 <span className="underline underline-offset-4">{getName(selectedAreaObj) || inferredAreaName}</span>
@@ -627,7 +627,7 @@ export default function AreaTemplate({ embedded = false }) {
                                 : (getName(selectedDimension) || fromIndicator || undefined);
                             })()}
                             description={getName.field(indicator, 'description', 'description_en')}
-                            unit={indicator.unit}
+                            unit={getName.field(indicator, 'unit', 'unit_en')}
                             hidden={!!indicator.hidden}
                             isAdmin={isAdmin}
                             defaultChartType={indicator.default_chart_type}
@@ -641,15 +641,14 @@ export default function AreaTemplate({ embedded = false }) {
                     </div>
                   ) : (
                     /* Table view */
-                    <div className="bg-[#fffefc] rounded-2xl border border-[#e5e5e5] overflow-x-auto">
-                      <table className="min-w-full font-['Onest']">
+                    <div className="bg-[#fffefc] rounded-2xl p-4 sm:p-8 overflow-x-auto">
+                      <table className="min-w-full font-['Onest'] border-separate border-spacing-y-4">
                         <thead>
-                          <tr className="border-b border-[#e5e5e5] text-left text-sm text-gray-500">
-                            <th className="px-4 sm:px-6 py-4 font-medium">{t('areas.table_name')}</th>
-                            <th className="px-4 sm:px-6 py-4 font-medium">{t('areas.table_dimension')}</th>
-                            <th className="hidden md:table-cell px-4 sm:px-6 py-4 font-medium">{t('areas.table_dimension')}</th>
-                            <th className="hidden sm:table-cell px-4 sm:px-6 py-4 font-medium">{t('areas.table_unit')}</th>
-                            <th className="hidden lg:table-cell px-4 sm:px-6 py-4 font-medium">{t('areas.filter_governance')}</th>
+                          <tr className="text-[#0a0a0a]">
+                            <th className="text-left font-['Onest'] font-semibold text-lg sm:text-2xl tracking-[-0.48px] leading-[1.2] pr-4">{t('areas.table_name')}</th>
+                            <th className="text-center font-['Onest'] font-semibold text-lg sm:text-2xl tracking-[-0.48px] leading-[1.2] px-4">{t('areas.table_area')}</th>
+                            <th className="hidden sm:table-cell text-center font-['Onest'] font-semibold text-lg sm:text-2xl tracking-[-0.48px] leading-[1.2] px-4">{t('areas.table_governance')}</th>
+                            <th className="hidden md:table-cell text-center font-['Onest'] font-semibold text-lg sm:text-2xl tracking-[-0.48px] leading-[1.2] px-4">{t('areas.table_periodicity')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -657,38 +656,33 @@ export default function AreaTemplate({ embedded = false }) {
                             .filter(ind => ind?.name && ind?.id)
                             .map((indicator) => {
                               const rawArea = indicator.domain ?? indicator.area;
-                              const indAreaName = (typeof rawArea === 'object'
-                                ? rawArea?.name
-                                : areas.find(d => d.id === rawArea)?.name) || selectedAreaObj?.name;
-                              const indAreaObj = areas.find(d => d.name === indAreaName);
+                              const areaObj = typeof rawArea === 'object' ? rawArea : areas.find(d => d.id === rawArea);
+                              const indAreaName = getName(areaObj) || getName(selectedAreaObj);
                               const fromIndicator = indicator.subdomain || indicator.dimension;
                               const indDimension = isSearchMode || isAllIndicatorsMode
                                 ? (fromIndicator || '')
                                 : (getName(selectedDimension) || fromIndicator || '');
+                              const periodicity = getName.field(indicator, 'periodicity', 'periodicity_en') || '—';
                               return (
                                 <tr
                                   key={indicator.id}
-                                  className={`border-b border-[#f3f4f6] hover:bg-[#f9fafb] cursor-pointer transition-colors ${indicator.hidden ? 'opacity-50' : ''}`}
+                                  className={`hover:bg-black/[0.02] cursor-pointer transition-colors ${indicator.hidden ? 'opacity-50' : ''}`}
                                   onClick={() => navigateTo(`/indicator/${indicator.id}`, {
                                     state: { indicatorId: indicator.id, areaName: indAreaName, dimensionName: indDimension }
                                   })}
                                 >
-                                  <td className="px-4 sm:px-6 py-4 text-sm font-semibold text-[#0a0a0a]">
+                                  <td className="font-['Onest'] font-medium text-base sm:text-lg leading-6 text-[#0a0a0a] pr-4 truncate max-w-[280px]">
                                     {isSearchMode ? highlightSearchTerms(getName(indicator), searchQuery) : getName(indicator)}
                                   </td>
-                                  <td className="px-4 sm:px-6 py-4">
-                                    {indAreaName && (
-                                      <span
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap"
-                                        style={{ backgroundColor: indAreaObj?.color || '#9ca3af' }}
-                                      >
-                                        {indAreaName}
-                                      </span>
-                                    )}
+                                  <td className="text-center font-['Onest'] font-medium text-base sm:text-lg leading-6 text-[#3f8dff] px-4">
+                                    {indAreaName || '—'}
                                   </td>
-                                  <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indDimension}</td>
-                                  <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indicator.unit || '—'}</td>
-                                  <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">{indicator.governance ? t('common.yes') : t('common.no')}</td>
+                                  <td className="hidden sm:table-cell text-center font-['Onest'] font-medium text-base sm:text-lg leading-6 text-[#0a0a0a] px-4">
+                                    {indicator.governance ? t('common.yes') : t('common.no')}
+                                  </td>
+                                  <td className="hidden md:table-cell text-center font-['Onest'] font-medium text-base sm:text-lg leading-6 text-[#0a0a0a] px-4">
+                                    {periodicity}
+                                  </td>
                                 </tr>
                               );
                             })}

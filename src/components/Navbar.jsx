@@ -54,8 +54,13 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     }, []);
 
     // Scroll behavior to hide/show navbar
+    const suppressHideRef = useRef(false);
     useEffect(() => {
         const handleScroll = () => {
+            if (suppressHideRef.current) {
+                setLastScrollY(window.scrollY);
+                return;
+            }
             const currentScrollY = window.scrollY;
             if (currentScrollY > lastScrollY && currentScrollY > 100) {
                 setIsHidden(true);
@@ -67,6 +72,25 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, [lastScrollY]);
+
+    useEffect(() => {
+        let suppressTimeoutId = null;
+        const onSuppress = (e) => {
+            const duration = (e && e.detail && e.detail.duration) || 1200;
+            suppressHideRef.current = true;
+            setIsHidden(false);
+            if (suppressTimeoutId) clearTimeout(suppressTimeoutId);
+            suppressTimeoutId = setTimeout(() => {
+                suppressHideRef.current = false;
+                suppressTimeoutId = null;
+            }, duration);
+        };
+        window.addEventListener('navbar:suppress-hide', onSuppress);
+        return () => {
+            window.removeEventListener('navbar:suppress-hide', onSuppress);
+            if (suppressTimeoutId) clearTimeout(suppressTimeoutId);
+        };
+    }, []);
 
     useEffect(() => {
         setIsSearchOpen(false);
