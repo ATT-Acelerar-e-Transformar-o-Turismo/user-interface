@@ -22,7 +22,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
     const { areas } = useArea();
     
     // Use the custom hook to fetch indicator data
-    const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle);
+    const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle, { limit: 100, granularity: '1y' });
 
     // Find the area for this indicator
     const selectedArea = areas.find(d => d.name === area);
@@ -155,7 +155,10 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
             <div className="flex flex-col gap-4 w-full">
                 {dataLoading ? (
                     <div className="flex items-center justify-center h-[220px]">
-                        <div className="loading loading-spinner loading-md text-primary"></div>
+                        <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
                     </div>
                 ) : chartData?.series?.[0]?.data?.length > 0 ? (
                     <div className="h-[220px] w-full">

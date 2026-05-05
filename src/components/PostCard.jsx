@@ -21,20 +21,15 @@ export default function PostCard({ post: rawPost, compact = false, catName, base
             to={`${resolvedBase}/${post.id}`}
             className="bg-[#fffefc] flex flex-col gap-4 p-4 sm:p-6 rounded-lg sm:rounded-xl overflow-hidden shadow-[0_0_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow no-underline h-full"
         >
-            <div className="w-full h-[160px] sm:h-[200px] rounded sm:rounded-lg overflow-hidden bg-gray-100">
-                {thumbnail ? (
-                    <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
-                ) : primaryDocUrl ? (
-                    <PdfCardFill url={primaryDocUrl} />
-                ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-[#737373] bg-[#f3f4f6]">
-                        <svg className="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span className="font-['Onest'] text-xs">{t('blog.document', 'Documento')}</span>
-                    </div>
-                )}
-            </div>
+            {(thumbnail || primaryDocUrl) && (
+                <div className="w-full h-[160px] sm:h-[200px] rounded sm:rounded-lg overflow-hidden bg-gray-100">
+                    {thumbnail ? (
+                        <img src={thumbnail} alt={post.title} className="w-full h-full object-cover" />
+                    ) : (
+                        <PdfCardFill url={primaryDocUrl} />
+                    )}
+                </div>
+            )}
 
             <div className="flex items-start gap-4">
                 <h3 className="font-['Onest'] font-semibold text-sm sm:text-lg leading-snug text-[#0a0a0a] flex-1 line-clamp-2">
