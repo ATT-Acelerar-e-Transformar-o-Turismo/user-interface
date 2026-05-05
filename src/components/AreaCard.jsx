@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'framer-motion';
 import useLocalizedName from '../hooks/useLocalizedName';
 import arrowRight from '../assets/images/arrow-right.svg';
 
@@ -72,27 +73,38 @@ export default function AreaCard({
         </h3>
 
         {/* Indicators List — vertically centered between title and bottom row */}
-        <ul className="w-full flex flex-col flex-1 justify-center gap-4 sm:gap-9 md:gap-10">
-          {visible.map((ind, i) => {
-            const name = typeof ind === 'string' ? ind : getName(ind) || ind.name;
-            const id = typeof ind === 'object' ? ind.id : null;
-            return (
-              <li
-                key={id || `${currentPage}-${i}`}
-                className="font-['Onest'] font-medium leading-[1.33] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-primary transition-colors"
-                style={{ fontSize: 'clamp(0.95rem, 5cqi, 1.25rem)' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (id) {
-                    navigate(`/indicator/${id}`);
-                  }
-                }}
-              >
-                {name}
-              </li>
-            );
-          })}
-        </ul>
+        <div className="w-full flex flex-col flex-1 justify-center relative">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.ul
+              key={currentPage}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="w-full flex flex-col gap-4 sm:gap-9 md:gap-10"
+            >
+              {visible.map((ind, i) => {
+                const name = typeof ind === 'string' ? ind : getName(ind) || ind.name;
+                const id = typeof ind === 'object' ? ind.id : null;
+                return (
+                  <li
+                    key={id || `${currentPage}-${i}`}
+                    className="font-['Onest'] font-medium leading-[1.33] text-black underline underline-offset-4 decoration-1 truncate cursor-pointer hover:text-primary transition-colors"
+                    style={{ fontSize: 'clamp(0.95rem, 5cqi, 1.25rem)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (id) {
+                        navigate(`/indicator/${id}`);
+                      }
+                    }}
+                  >
+                    {name}
+                  </li>
+                );
+              })}
+            </motion.ul>
+          </AnimatePresence>
+        </div>
 
         {/* Bottom row: page dots + button */}
         <div className="w-full flex items-center justify-between">
