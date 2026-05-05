@@ -36,7 +36,7 @@
   },
   "home": {
     "title": "Get to know our tourism numbers",
-    "subtitle": "Choose a dimension to understand how the territory is transforming",
+    "subtitle": "Choose an area to understand how the territory is transforming.",
     "no_areas": "No areas available at the moment.",
     "view_all_indicators": "Show all indicators",
     "hide_all_indicators": "Hide all indicators",
@@ -158,7 +158,8 @@
     "previous": "Previous",
     "next": "Next",
     "page": "Page",
-    "page_of": "of"
+    "page_of": "of",
+    "showing": "Showing {{start}} - {{end}} of {{total}} {{itemName}}"
   },
   "admin": {
     "nav": {
@@ -515,7 +516,7 @@
     "search_results_description": "We found {{count}} indicator(s) matching your search.",
     "all_indicators_description": "Explore the complete list of sustainability indicators available on the platform.",
     "area_description": "Here you can consult the representation of the evolution of {{name}}, built based on key indicators. Below are all available indicators for detailed analysis.",
-    "breadcrumb_dimensions": "Dimensions",
+    "breadcrumb_dimensions": "Areas",
     "overall_performance": "Overall Performance",
     "insufficient_data": "Insufficient data",
     "stat_available_indicators": "Available Indicators",

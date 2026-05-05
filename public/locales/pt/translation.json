@@ -36,7 +36,7 @@
   },
   "home": {
     "title": "Conheça os Números do nosso Turismo",
-    "subtitle": "Escolha uma dimensão para entender como o território se está a transformar.",
+    "subtitle": "Escolha uma área para entender como o território se está a transformar.",
     "no_areas": "Nenhum área disponível no momento.",
     "view_all_indicators": "Mostrar todos os indicadores",
     "hide_all_indicators": "Esconder todos os indicadores",
@@ -158,7 +158,8 @@
     "previous": "Anterior",
     "next": "Próximo",
     "page": "Página",
-    "page_of": "de"
+    "page_of": "de",
+    "showing": "A mostrar {{start}} - {{end}} de {{total}} {{itemName}}"
   },
   "admin": {
     "nav": {
@@ -496,7 +497,7 @@
       "error": "Erro ao fazer upload do ficheiro"
     },
     "select_area": {
-      "choose_area": "Escolha o Área",
+      "choose_area": "Escolha a Área",
       "choose_dimension": "Escolha a Dimensão",
       "choose_indicator": "Escolha o Indicador",
       "no_indicators": "Nenhum indicador encontrado"
@@ -515,7 +516,7 @@
     "search_results_description": "Encontrámos {{count}} indicador(es) que correspondem à sua pesquisa.",
     "all_indicators_description": "Explore a lista completa de indicadores de sustentabilidade disponíveis na plataforma.",
     "area_description": "Aqui pode consultar a representação da evolução da {{name}}, construída com base em indicadores‑chave. Em seguida, encontram-se listados todos os indicadores disponíveis para análise detalhada.",
-    "breadcrumb_dimensions": "Dimensões",
+    "breadcrumb_dimensions": "Áreas",
     "overall_performance": "Desempenho Geral",
     "insufficient_data": "Sem dados suficientes",
     "stat_available_indicators": "Indicadores Disponíveis",

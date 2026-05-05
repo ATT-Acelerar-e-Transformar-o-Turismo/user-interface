@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 export default function Pagination({
   currentPage,
@@ -11,6 +12,7 @@ export default function Pagination({
   className = "",
   itemName = "items"
 }) {
+  const { t } = useTranslation();
   // Calculate pagination info
   const totalPages = Math.ceil(totalItems / pageSize);
   const hasNext = hasNextPage !== null ? hasNextPage : currentPage < totalPages - 1;
@@ -43,25 +45,25 @@ export default function Pagination({
           onClick={handlePrevious}
           disabled={currentPage === 0 || loading}
         >
-          Previous
+          {t('common.previous')}
         </button>
         <span className="flex items-center px-4">
-          Page {currentPage + 1}{totalPages > 0 && ` of ${totalPages}`}
+          {t('common.page')} {currentPage + 1}{totalPages > 0 && ` ${t('common.page_of')} ${totalPages}`}
         </span>
-        <button 
-          className="btn btn-sm" 
+        <button
+          className="btn btn-sm"
           onClick={handleNext}
           disabled={!hasNext || loading}
         >
-          Next
+          {t('common.next')}
         </button>
       </div>
-      
+
       {/* Item Count Display */}
       {showItemCount && totalItems > 0 && (
         <div className="text-sm text-base-content/60">
-          Showing {startIndex} - {endIndex} of {totalItems} {itemName}
-          {totalPages > 0 && ` (Page ${currentPage + 1} of ${totalPages})`}
+          {t('common.showing', { start: startIndex, end: endIndex, total: totalItems, itemName })}
+          {totalPages > 0 && ` (${t('common.page')} ${currentPage + 1} ${t('common.page_of')} ${totalPages})`}
         </div>
       )}
     </div>
