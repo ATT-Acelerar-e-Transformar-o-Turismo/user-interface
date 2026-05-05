@@ -22,7 +22,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
     const { areas } = useArea();
     
     // Use the custom hook to fetch indicator data
-    const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle, { limit: 100, granularity: '1y' });
+    const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle, { limit: 100, granularity: '1M' });
 
     // Find the area for this indicator
     const selectedArea = areas.find(d => d.name === area);

@@ -27,13 +27,13 @@ export default function IndicatorTemplate() {
 
   const [uiStartDate, setUiStartDate] = useState('');
   const [uiEndDate, setUiEndDate] = useState('');
-  const [uiGranularity, setUiGranularity] = useState('0');
+  const [uiGranularity, setUiGranularity] = useState('auto');
 
   const [fetchParams, setFetchParams] = useState({
-    granularity: '0',
+    granularity: 'auto',
     startDate: null,
     endDate: null,
-    limit: 100
+    limit: 200
   });
 
   const { data: chartData, loading: dataLoading } = useIndicatorData(indicatorId, "Indicator Data", fetchParams);
@@ -296,16 +296,16 @@ export default function IndicatorTemplate() {
   const handleResetFilters = () => {
     setUiStartDate('');
     setUiEndDate('');
-    setUiGranularity('0');
+    setUiGranularity('auto');
     setCurrentPage(0);
     setAllLoadedData(null);
     setIsLoadingMore(false);
     setViewport({ min: null, max: null });
     setFetchParams({
-      granularity: '0',
+      granularity: 'auto',
       startDate: null,
       endDate: null,
-      limit: 100
+      limit: 200
     });
   };
 
