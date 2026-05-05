@@ -166,6 +166,8 @@ export default function MobileNavbar() {
                                     <button
                                         onClick={() => toggleDropdown('admin')}
                                         className="flex items-center justify-between w-full"
+                                        aria-expanded={openDropdown === 'admin'}
+                                        aria-controls="mobile-admin-submenu"
                                     >
                                         <span className="font-bold text-2xl leading-6 text-[#fffefc]">{t('nav.admin')}</span>
                                         <FontAwesomeIcon
@@ -182,14 +184,14 @@ export default function MobileNavbar() {
                                                 transition={{ duration: 0.2 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="flex flex-col gap-1 mt-2">
+                                                <div className="flex flex-col gap-1 mt-2" id="mobile-admin-submenu">
                                                     {adminSubItems.map(sub => (
                                                         <Link
                                                             key={sub.path}
                                                             to={sub.path}
                                                             className={cn(
                                                                 'font-medium text-lg leading-6 text-[#fffefc]',
-                                                                location.pathname === sub.path && 'opacity-70'
+                                                                (location.pathname === sub.path || location.pathname.startsWith(`${sub.path}/`)) && 'opacity-70'
                                                             )}
                                                         >
                                                             {sub.label}

@@ -12,22 +12,31 @@ import indicatorService from '../services/indicatorService'
 // Setup lowlight for code highlighting
 const lowlight = createLowlight(common)
 
-// Insert a tab indent (4 non-breaking spaces) when Tab is pressed.
-// Shift+Tab removes one indent unit if present at the cursor.
-const TAB_INDENT = '    '
+// Insert a tab indent on Tab. In code blocks use a real tab character so
+// copied snippets keep standard whitespace; elsewhere use 4 non-breaking
+// spaces so the indent survives HTML rendering. Shift+Tab removes one unit.
+const TAB_INDENT_TEXT = '    '
+const TAB_INDENT_CODE = '\t'
 const TabIndent = Extension.create({
   name: 'tabIndent',
   addKeyboardShortcuts() {
+    const removeIndent = (token) => {
+      const { state } = this.editor
+      const { from } = state.selection
+      const before = state.doc.textBetween(Math.max(0, from - token.length), from)
+      if (before === token) {
+        return this.editor.commands.deleteRange({ from: from - token.length, to: from })
+      }
+      return false
+    }
     return {
-      Tab: () => this.editor.commands.insertContent(TAB_INDENT),
+      Tab: () => {
+        const inCode = this.editor.isActive('codeBlock') || this.editor.isActive('code')
+        return this.editor.commands.insertContent(inCode ? TAB_INDENT_CODE : TAB_INDENT_TEXT)
+      },
       'Shift-Tab': () => {
-        const { state } = this.editor
-        const { from } = state.selection
-        const before = state.doc.textBetween(Math.max(0, from - TAB_INDENT.length), from)
-        if (before === TAB_INDENT) {
-          return this.editor.commands.deleteRange({ from: from - TAB_INDENT.length, to: from })
-        }
-        return false
+        const inCode = this.editor.isActive('codeBlock') || this.editor.isActive('code')
+        return removeIndent(inCode ? TAB_INDENT_CODE : TAB_INDENT_TEXT)
       },
     }
   },

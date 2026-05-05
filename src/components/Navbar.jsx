@@ -74,14 +74,22 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     }, [lastScrollY]);
 
     useEffect(() => {
+        let suppressTimeoutId = null;
         const onSuppress = (e) => {
             const duration = (e && e.detail && e.detail.duration) || 1200;
             suppressHideRef.current = true;
             setIsHidden(false);
-            setTimeout(() => { suppressHideRef.current = false; }, duration);
+            if (suppressTimeoutId) clearTimeout(suppressTimeoutId);
+            suppressTimeoutId = setTimeout(() => {
+                suppressHideRef.current = false;
+                suppressTimeoutId = null;
+            }, duration);
         };
         window.addEventListener('navbar:suppress-hide', onSuppress);
-        return () => window.removeEventListener('navbar:suppress-hide', onSuppress);
+        return () => {
+            window.removeEventListener('navbar:suppress-hide', onSuppress);
+            if (suppressTimeoutId) clearTimeout(suppressTimeoutId);
+        };
     }, []);
 
     useEffect(() => {

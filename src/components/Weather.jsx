@@ -52,32 +52,30 @@ export default function Weather({ className = '' }) {
       try { return JSON.parse(sessionStorage.getItem(cacheKey) || 'null'); }
       catch { return null; }
     })();
-    if (Array.isArray(cached?.value) && cached.value.length === LOCATIONS.length && Date.now() - cached.ts < CACHE_TTL_MS) {
+    if (Array.isArray(cached?.value) && cached.value.length > 0 && Date.now() - cached.ts < CACHE_TTL_MS) {
       setReadings(cached.value);
       return;
     }
     (async () => {
-      try {
-        const results = await Promise.all(LOCATIONS.map(async (loc) => {
-          const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day`;
-          const res = await fetch(url);
-          if (!res.ok) return null;
-          const json = await res.json();
-          const current = json?.current;
-          if (typeof current?.temperature_2m !== 'number') return null;
-          return {
-            name: loc.name,
-            temperature: Math.round(current.temperature_2m),
-            code: current.weather_code,
-            isDay: current.is_day === 1,
-          };
-        }));
-        if (cancelled) return;
-        const filtered = results.filter(Boolean);
-        if (filtered.length === 0) return;
-        setReadings(filtered);
-        try { sessionStorage.setItem(cacheKey, JSON.stringify({ value: filtered, ts: Date.now() })); } catch (_) {}
-      } catch (_) { /* network failure — silently hide */ }
+      const settled = await Promise.allSettled(LOCATIONS.map(async (loc) => {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const current = json?.current;
+        if (typeof current?.temperature_2m !== 'number') throw new Error('Missing current temperature');
+        return {
+          name: loc.name,
+          temperature: Math.round(current.temperature_2m),
+          code: current.weather_code,
+          isDay: current.is_day === 1,
+        };
+      }));
+      if (cancelled) return;
+      const filtered = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+      if (filtered.length === 0) return;
+      setReadings(filtered);
+      try { sessionStorage.setItem(cacheKey, JSON.stringify({ value: filtered, ts: Date.now() })); } catch (_) {}
     })();
     return () => { cancelled = true; };
   }, []);

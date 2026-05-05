@@ -656,9 +656,8 @@ export default function AreaTemplate({ embedded = false }) {
                             .filter(ind => ind?.name && ind?.id)
                             .map((indicator) => {
                               const rawArea = indicator.domain ?? indicator.area;
-                              const indAreaName = (typeof rawArea === 'object'
-                                ? rawArea?.name
-                                : areas.find(d => d.id === rawArea)?.name) || selectedAreaObj?.name;
+                              const areaObj = typeof rawArea === 'object' ? rawArea : areas.find(d => d.id === rawArea);
+                              const indAreaName = getName(areaObj) || getName(selectedAreaObj);
                               const fromIndicator = indicator.subdomain || indicator.dimension;
                               const indDimension = isSearchMode || isAllIndicatorsMode
                                 ? (fromIndicator || '')
