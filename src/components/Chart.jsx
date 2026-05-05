@@ -55,6 +55,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     const chartRef = useRef(null)
     const chartContainerRef = useRef(null)
     const onViewportChangeRef = useRef(onViewportChange)
+    const pinnedPointsRef = useRef(new Set())
 
     useImperativeHandle(ref, () => ({
         chart: chartRef.current
@@ -324,8 +325,52 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         if (onViewportChangeRef.current && xaxis && xaxis.min != null && xaxis.max != null && xaxis.min < xaxis.max) {
                             onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
                         }
+                    },
+                    dataPointSelection: function(_event, chartContext, opts) {
+                        const seriesIndex = opts?.seriesIndex;
+                        const dataPointIndex = opts?.dataPointIndex;
+                        if (seriesIndex == null || seriesIndex < 0 || dataPointIndex == null || dataPointIndex < 0) return;
+                        const point = _series?.[seriesIndex]?.data?.[dataPointIndex];
+                        if (!point || point.x == null || point.y == null) return;
+                        const id = `pinned-${seriesIndex}-${dataPointIndex}`;
+                        if (pinnedPointsRef.current.has(id)) {
+                            chartContext.removeAnnotation(id);
+                            pinnedPointsRef.current.delete(id);
+                            return;
+                        }
+                        const xValue = xaxisType === 'datetime'
+                            ? (point.x instanceof Date ? point.x.getTime() : new Date(point.x).getTime())
+                            : point.x;
+                        chartContext.addPointAnnotation({
+                            id,
+                            x: xValue,
+                            y: point.y,
+                            marker: {
+                                size: 5,
+                                fillColor: '#ffffff',
+                                strokeColor: 'var(--color-primary)',
+                                strokeWidth: 2,
+                                radius: 5
+                            },
+                            label: {
+                                borderColor: 'var(--color-primary)',
+                                offsetY: 0,
+                                style: {
+                                    color: 'var(--color-primary-content)',
+                                    background: 'var(--color-primary)',
+                                    fontFamily: 'Onest, sans-serif',
+                                    fontSize: '12px',
+                                    padding: { left: 6, right: 6, top: 2, bottom: 2 }
+                                },
+                                text: formatYValue(point.y)
+                            }
+                        }, false);
+                        pinnedPointsRef.current.add(id);
                     }
                 }
+            },
+            states: {
+                active: { filter: { type: 'none' } }
             },
             plotOptions: {
                 bar: {
@@ -535,6 +580,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         if (chartRef.current) {
             try { chartRef.current.destroy() } catch (_) { /* swallow */ }
         }
+        pinnedPointsRef.current = new Set();
 
         try {
             const chart = new ApexCharts(chartContainerRef.current, chartOptions)
