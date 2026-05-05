@@ -678,15 +678,6 @@ export default function BlogPostForm() {
                 throw new Error(t('admin.blog.validation_required_fields'))
             }
 
-            // Publications must have at least one document
-            if (formData.post_type === 'publication') {
-                const hasExistingDoc = existingAttachments.some(a => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(a.filename || a.original_filename || ''))
-                const hasNewDoc = attachmentFiles.some(f => /\.(pdf|doc|docx|xlsx|txt|csv)$/i.test(f.name))
-                if (!hasExistingDoc && !hasNewDoc) {
-                    throw new Error(t('admin.blog.validation_publication_document', 'Publicações necessitam de pelo menos um documento anexado.'))
-                }
-            }
-
             let savedPost
 
             if (isEditing) {

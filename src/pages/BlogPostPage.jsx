@@ -136,7 +136,9 @@ export default function BlogPostPage() {
         .blog-content h1 { font-size: 2rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; line-height: 1; letter-spacing: -0.32px; }
         .blog-content h2 { font-size: 2rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.75rem; line-height: 1; letter-spacing: -0.32px; }
         .blog-content h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; line-height: 1.2; }
-        .blog-content p { font-size: 18px; font-weight: 500; line-height: 24px; margin-bottom: 1rem; }
+        .blog-content p { font-size: 18px; font-weight: 500; line-height: 24px; margin: 0 0 1rem 0 !important; display: block; white-space: pre-wrap; }
+        .blog-content p:empty { min-height: 1em; }
+        .blog-content br { display: block; content: ""; margin-top: 0.5rem; }
         .blog-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
         .blog-content ol { list-style-type: decimal; padding-left: 3rem; margin-bottom: 1rem; }
         .blog-content ol > li { font-size: 2rem; font-weight: 600; line-height: 1; letter-spacing: -0.32px; margin-bottom: 1.5rem; }

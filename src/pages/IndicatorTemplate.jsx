@@ -305,7 +305,7 @@ export default function IndicatorTemplate() {
       granularity: 'auto',
       startDate: null,
       endDate: null,
-      limit: 200
+      limit: 500
     });
   };
 
@@ -702,22 +702,36 @@ export default function IndicatorTemplate() {
 
         {/* Content */}
         <div className="max-w-[1512px] mx-auto px-4 sm:px-12 pb-18">
-          {/* Back button */}
-          <div className="pt-6 mb-6">
+          {/* Back button + mobile chart-type icons */}
+          <div className="pt-6 mb-6 flex items-center justify-between gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-2 border border-[#d4d4d4] rounded-full px-3 py-1 text-sm font-['Onest'] font-medium text-[#0a0a0a] hover:bg-white/60 shadow-sm cursor-pointer shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               {t('common.back')}
             </button>
+            {/* Mobile chart-type icon row (outside the chart card) */}
+            <div className="md:hidden flex items-center gap-2 overflow-x-auto min-w-0">
+              {chartTypeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setChartType(option.value)}
+                  className={`shrink-0 p-1.5 rounded-md border shadow-sm transition-colors ${chartType === option.value ? 'bg-black/[0.03] border-[#d4d4d4]' : 'bg-[#fffefc] border-[#e5e5e5]'}`}
+                  title={option.label}
+                  aria-label={option.label}
+                >
+                  {option.icon}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Breadcrumbs */}
           {resolvedAreaObj && (
-            <nav className="mb-6 flex items-center gap-2 font-['Onest'] text-base text-[#0a0a0a]">
+            <nav className="mb-6 hidden sm:flex items-center gap-2 font-['Onest'] text-base text-[#0a0a0a]">
               <Link to="/indicators" className="hover:underline">
                 {t('areas.breadcrumb_dimensions')}
               </Link>
@@ -824,7 +838,7 @@ export default function IndicatorTemplate() {
                         </div>
                       )}
                   </div>
-                  <div ref={chartDropdownRef} className="relative">
+                  <div ref={chartDropdownRef} className="relative hidden md:block">
                     <button
                       onClick={() => setChartDropdownOpen(!chartDropdownOpen)}
                       className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"

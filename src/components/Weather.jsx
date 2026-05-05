@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { LuSun, LuMoon, LuCloudSun, LuCloudMoon, LuCloud, LuCloudFog, LuCloudDrizzle, LuCloudRain, LuCloudSnow, LuCloudLightning } from 'react-icons/lu';
 
-// Ílhavo, Portugal
-const ILHAVO_LAT = 40.605;
-const ILHAVO_LON = -8.670;
+const LOCATIONS = [
+  { name: 'Ílhavo', lat: 40.605, lon: -8.670 },
+  { name: 'Barra', lat: 40.640, lon: -8.745 },
+];
+
+const ROTATE_MS = 5000;
+const CACHE_TTL_MS = 15 * 60 * 1000;
 
 // Group Open-Meteo WMO weather codes into a small set of icon buckets.
 function iconFor(code, isDay) {
@@ -38,46 +42,60 @@ function WeatherIcon({ kind }) {
 }
 
 export default function Weather({ className = '' }) {
-  const [data, setData] = useState(null);
+  const [readings, setReadings] = useState([]);
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    const cacheKey = 'weather:ilhavo:v2';
+    const cacheKey = 'weather:multi:v1';
     const cached = (() => {
       try { return JSON.parse(sessionStorage.getItem(cacheKey) || 'null'); }
       catch { return null; }
     })();
-    if (cached?.value && typeof cached.value.temperature === 'number' && Date.now() - cached.ts < 15 * 60 * 1000) {
-      setData(cached.value);
+    if (Array.isArray(cached?.value) && cached.value.length === LOCATIONS.length && Date.now() - cached.ts < CACHE_TTL_MS) {
+      setReadings(cached.value);
       return;
     }
     (async () => {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${ILHAVO_LAT}&longitude=${ILHAVO_LON}&current=temperature_2m,weather_code,is_day`;
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const json = await res.json();
-        const current = json?.current;
-        if (cancelled || typeof current?.temperature_2m !== 'number') return;
-        const value = {
-          temperature: Math.round(current.temperature_2m),
-          code: current.weather_code,
-          isDay: current.is_day === 1,
-        };
-        setData(value);
-        try { sessionStorage.setItem(cacheKey, JSON.stringify({ value, ts: Date.now() })); } catch (_) {}
+        const results = await Promise.all(LOCATIONS.map(async (loc) => {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day`;
+          const res = await fetch(url);
+          if (!res.ok) return null;
+          const json = await res.json();
+          const current = json?.current;
+          if (typeof current?.temperature_2m !== 'number') return null;
+          return {
+            name: loc.name,
+            temperature: Math.round(current.temperature_2m),
+            code: current.weather_code,
+            isDay: current.is_day === 1,
+          };
+        }));
+        if (cancelled) return;
+        const filtered = results.filter(Boolean);
+        if (filtered.length === 0) return;
+        setReadings(filtered);
+        try { sessionStorage.setItem(cacheKey, JSON.stringify({ value: filtered, ts: Date.now() })); } catch (_) {}
       } catch (_) { /* network failure — silently hide */ }
     })();
     return () => { cancelled = true; };
   }, []);
 
-  if (!data) return null;
+  useEffect(() => {
+    if (readings.length <= 1) return;
+    const id = setInterval(() => setIndex(i => (i + 1) % readings.length), ROTATE_MS);
+    return () => clearInterval(id);
+  }, [readings.length]);
+
+  if (readings.length === 0) return null;
+  const current = readings[index] || readings[0];
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <WeatherIcon kind={iconFor(data.code, data.isDay)} />
+      <WeatherIcon kind={iconFor(current.code, current.isDay)} />
       <span className="font-['Onest'] font-medium text-[17px] text-[#171717] tracking-[0.085px] whitespace-nowrap">
-        Ílhavo {data.temperature}ºC
+        {current.name} {current.temperature}ºC
       </span>
     </div>
   );

@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const logoDark = '/roots.svg'
 const logoWhite = '/roots-white.svg'
+const logoGreen = '/roots-green.svg'
 
 export default function MobileNavbar() {
     const { t, i18n } = useTranslation()
@@ -18,12 +19,25 @@ export default function MobileNavbar() {
     const [isOpen, setIsOpen] = useState(false)
     const [openDropdown, setOpenDropdown] = useState(null)
     const navRef = useRef(null)
+    const isAdminContext = location.pathname.startsWith('/admin')
+    const expandedBg = isAdminContext
+        ? 'var(--color-nav-expanded-admin)'
+        : 'var(--color-nav-expanded)'
 
     const rootsSubItems = [
         { label: t('roots.nav.quem_somos'), path: '/roots/about' },
         { label: t('roots.nav.governanca'), path: '/roots/governance' },
         { label: t('roots.nav.territorio'), path: '/roots/territory' },
         { label: t('roots.nav.redes'), path: '/roots/networks-certifications' },
+    ]
+
+    const adminSubItems = [
+        { label: t('admin.nav.indicators'), path: '/admin/indicators-management' },
+        { label: t('admin.nav.dimensions'), path: '/admin/dimensions' },
+        { label: t('admin.nav.areas'), path: '/admin/areas-management' },
+        { label: t('admin.nav.publications'), path: '/admin/publications' },
+        { label: t('admin.nav.news_events'), path: '/admin/news-events' },
+        { label: t('admin.nav.user_management'), path: '/admin/users' },
     ]
 
     useEffect(() => {
@@ -56,7 +70,7 @@ export default function MobileNavbar() {
 
             {/* Actual navbar — always absolutely positioned so it never affects layout */}
             <motion.div
-                animate={{ backgroundColor: isOpen ? '#084d92' : '#fffefc' }}
+                animate={{ backgroundColor: isOpen ? expandedBg : '#fffefc' }}
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
                 className={cn(
                     'absolute top-0 left-0 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 pt-1 overflow-hidden',
@@ -66,13 +80,13 @@ export default function MobileNavbar() {
                 {/* Header: logo + menu/close button */}
                 <div className="flex items-center gap-2">
                     <Link to="/" className="shrink-0">
-                        <img src={isOpen ? logoWhite : logoDark} alt="ROOTS" className="h-9 w-auto" />
+                        <img src={isOpen ? logoWhite : (isAdminContext ? logoGreen : logoDark)} alt="ROOTS" className="h-9 w-auto" />
                     </Link>
                     <motion.button
                         onClick={() => { setIsOpen(!isOpen); if (isOpen) setOpenDropdown(null) }}
                         animate={{
-                            backgroundColor: isOpen ? '#fffefc' : '#084d92',
-                            color: isOpen ? '#084d92' : '#fffefc',
+                            backgroundColor: isOpen ? '#fffefc' : expandedBg,
+                            color: isOpen ? expandedBg : '#fffefc',
                         }}
                         transition={{ duration: 0.25 }}
                         className="font-medium text-lg leading-6 px-3 py-1 rounded-full whitespace-nowrap"
@@ -146,11 +160,46 @@ export default function MobileNavbar() {
                                 {t('nav.news')}
                             </Link>
 
-                            {/* Admin — only for admin users */}
+                            {/* Admin dropdown — only for admin users */}
                             {isAuthenticated && user?.role === 'admin' && (
-                                <Link to="/admin" className="font-bold text-2xl leading-6 text-[#fffefc]">
-                                    {t('nav.admin')}
-                                </Link>
+                                <div className="flex flex-col">
+                                    <button
+                                        onClick={() => toggleDropdown('admin')}
+                                        className="flex items-center justify-between w-full"
+                                    >
+                                        <span className="font-bold text-2xl leading-6 text-[#fffefc]">{t('nav.admin')}</span>
+                                        <FontAwesomeIcon
+                                            icon={openDropdown === 'admin' ? faChevronUp : faChevronDown}
+                                            className="text-[#fffefc] text-sm mr-2"
+                                        />
+                                    </button>
+                                    <AnimatePresence>
+                                        {openDropdown === 'admin' && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="flex flex-col gap-1 mt-2">
+                                                    {adminSubItems.map(sub => (
+                                                        <Link
+                                                            key={sub.path}
+                                                            to={sub.path}
+                                                            className={cn(
+                                                                'font-medium text-lg leading-6 text-[#fffefc]',
+                                                                location.pathname === sub.path && 'opacity-70'
+                                                            )}
+                                                        >
+                                                            {sub.label}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             )}
 
                             {/* Divider */}

@@ -539,7 +539,9 @@
     "view_table": "Vista em tabela",
     "table_name": "Nome",
     "table_dimension": "Dimensão",
-    "table_dimension": "Dimensão",
+    "table_area": "Área",
+    "table_governance": "Governança",
+    "table_periodicity": "Periodicidade",
     "table_unit": "Unidade"
   },
   "indicator": {

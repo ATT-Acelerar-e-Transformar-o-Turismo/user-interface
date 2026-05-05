@@ -25,6 +25,13 @@ body {
   --font-family-sans: "Onest", sans-serif;
   --font-family-headings: "Onest", sans-serif;
   --font-family-body: "Onest", sans-serif;
+  --color-brand-blue: #084d92;
+  --color-brand-green: #009368;
+}
+
+:root {
+  --color-nav-expanded: var(--color-brand-blue);
+  --color-nav-expanded-admin: var(--color-brand-green);
 }
 @plugin "daisyui/theme" {
     name: "light";

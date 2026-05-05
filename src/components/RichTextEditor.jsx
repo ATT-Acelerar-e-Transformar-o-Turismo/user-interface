@@ -12,6 +12,27 @@ import indicatorService from '../services/indicatorService'
 // Setup lowlight for code highlighting
 const lowlight = createLowlight(common)
 
+// Insert a tab indent (4 non-breaking spaces) when Tab is pressed.
+// Shift+Tab removes one indent unit if present at the cursor.
+const TAB_INDENT = '    '
+const TabIndent = Extension.create({
+  name: 'tabIndent',
+  addKeyboardShortcuts() {
+    return {
+      Tab: () => this.editor.commands.insertContent(TAB_INDENT),
+      'Shift-Tab': () => {
+        const { state } = this.editor
+        const { from } = state.selection
+        const before = state.doc.textBetween(Math.max(0, from - TAB_INDENT.length), from)
+        if (before === TAB_INDENT) {
+          return this.editor.commands.deleteRange({ from: from - TAB_INDENT.length, to: from })
+        }
+        return false
+      },
+    }
+  },
+})
+
 // Extension to support Markdown-style links: [text](url)
 const MarkdownLink = Extension.create({
   name: 'markdownLink',
@@ -75,6 +96,7 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Es
         enDash: '–',
       }),
       MarkdownLink,
+      TabIndent,
       BlogIndicatorNode,
     ],
     content: value,
