@@ -468,20 +468,17 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         } else if (isCandlestick) {
             apexSeries = buildCandlestickPayload(_series).apexSeries;
         } else {
-            // For bar-family charts (bar/column/stackedBar/stackedColumn) we use
-            // xaxis.type 'category' so each x value is a discrete bar label. ApexCharts
-            // passes category INDICES (0, 1, 2…) to the labels.formatter — running
-            // formatDate over those gave 1970 for every bar. Pre-format x values to the
-            // final display string here so the category itself IS the label and the axis
-            // formatter can be a no-op.
-            const isBarFamily = isHorizontal || isStacked || chartType === 'column';
             apexSeries = _series.map(s => {
                 let sortedData = xaxisType === 'datetime'
                     ? [...s.data].sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime())
                     : xaxisType === 'numeric'
                         ? [...s.data].sort((a, b) => a.x - b.x)
                         : [...s.data];
-                if (isBarFamily) {
+                // For horizontal bars, ApexCharts uses data.x values as literal
+                // category labels on the visual Y axis without running them through
+                // any formatter. Pre-convert timestamps/numbers to display strings
+                // so the Y axis shows "2020" instead of a raw timestamp.
+                if (isHorizontal) {
                     sortedData = sortedData.map(d => ({ ...d, x: formatValue(d.x) }));
                 }
                 return { ...s, data: sortedData };
@@ -929,14 +926,16 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             },
             xaxis: {
                 // These chart types collapse data into one item per series,
-                // so the x-axis is categorical (series names) regardless of
-                // the source x type. Bar / column keep `xaxisType` so they
-                // can show a real datetime axis with zoom/pan support.
-                type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap || isHorizontal || isStacked || chartType === 'column')
+                // Categorical special cases (heatmap etc.) always use 'category'.
+                // Horizontal bars need a numeric xaxis for the value scale on the
+                // visual-X (bottom) — ApexCharts always puts xaxis on visual-X
+                // regardless of orientation, so the swap is unavoidable.
+                // All other charts use xaxisType so zoom/pan work correctly.
+                type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap)
                     ? 'category'
-                    : xaxisType,
-                min: (isHorizontal || isStacked || chartType === 'column') ? undefined : axisRangeMin,
-                max: (isHorizontal || isStacked || chartType === 'column') ? undefined : axisRangeMax,
+                    : isHorizontal ? 'numeric' : xaxisType,
+                min: isHorizontal ? calculateNiceMin() : axisRangeMin,
+                max: isHorizontal ? calculateNiceMax() : axisRangeMax,
                 labels: {
                     show: !minimalAxis,
                     style: {
@@ -944,12 +943,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         fontSize: compact ? '11px' : isHorizontal ? '10px' : '12px',
                         fontFamily: 'Onest, sans-serif'
                     },
-                    // Bar-family charts already have pre-formatted string x values
-                    // (see apexSeries construction), so the label IS the category — pass
-                    // it through. Other types still need date/number formatting.
-                    formatter: (isHorizontal || isStacked || chartType === 'column')
-                        ? (v) => v
-                        : formatValue
+                    formatter: isHorizontal ? formatYValue : formatValue
                 },
                 axisBorder: {
                     show: !compact && !minimalAxis,
