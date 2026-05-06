@@ -224,7 +224,11 @@
     "resources": {
       "add": "Add Data Resource",
       "confirm_delete_title": "Delete resource?",
-      "confirm_delete": "Are you sure you want to delete the resource \"{{name}}\"? This action cannot be undone."
+      "confirm_delete": "Are you sure you want to delete the resource \"{{name}}\"? This action cannot be undone.",
+      "confirm_remove_child_title": "Remove included indicator?",
+      "confirm_remove_child": "Are you sure you want to remove the indicator \"{{name}}\" from sources?",
+      "type_indicator": "Indicator",
+      "status_linked": "linked"
     },
     "news_events": {
       "title": "All News & Events",
@@ -457,6 +461,16 @@
       "source_csv": "CSV File",
       "source_xlsx": "XLSX File",
       "source_api": "API",
+      "source_indicator": "Existing indicator",
+      "step_indicator": "Select indicator",
+      "step_indicator_title": "Select indicator",
+      "step_indicator_desc": "Pick one or more existing indicators — their data will appear side by side on the chart.",
+      "indicator_search": "Search indicators…",
+      "indicator_search_hint": "Start typing to search.",
+      "indicator_no_results": "No results.",
+      "indicator_loading": "Loading…",
+      "indicator_required": "Select at least one indicator.",
+      "indicator_review": "The following indicators will be included:",
       "files_label": "Data Files",
       "api_url_label": "API URL configured:",
       "api_url_pending": "Data will be loaded after saving",
@@ -598,6 +612,8 @@
     "sources_title": "Indicator Sources",
     "add_sources": "Add Sources",
     "no_sources": "No sources associated with this indicator",
+    "source_kind_indicator": "Indicator",
+    "open_indicator": "Open indicator",
     "col_name": "Name",
     "col_start_period": "Start Period",
     "col_end_period": "End Period",

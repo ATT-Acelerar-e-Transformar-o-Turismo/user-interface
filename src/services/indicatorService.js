@@ -139,6 +139,26 @@ export const indicatorService = {
     return response.data;
   },
 
+  async getChildIndicators(indicatorId) {
+    const response = await apiClient.get(API_ENDPOINTS.INDICATORS.CHILD_INDICATORS(indicatorId));
+    return response.data;
+  },
+
+  async addChildIndicator(indicatorId, childId) {
+    const response = await apiClient.post(
+      API_ENDPOINTS.INDICATORS.CHILD_INDICATORS(indicatorId),
+      { child_id: childId },
+    );
+    return response.data;
+  },
+
+  async removeChildIndicator(indicatorId, childId) {
+    const response = await apiClient.delete(
+      API_ENDPOINTS.INDICATORS.CHILD_INDICATOR_BY_ID(indicatorId, childId),
+    );
+    return response.data;
+  },
+
   async getData(indicatorId, startDate = null, endDate = null, limit = 100) {
     let url = `${API_ENDPOINTS.INDICATORS.DATA(indicatorId)}?limit=${limit}`;
     if (startDate) url += `&start_date=${startDate}`;

@@ -19,6 +19,9 @@ export default function ResourcesManagement() {
   const [resources, setResources] = useState([]);
   const [resourcesDetails, setResourcesDetails] = useState([]);
   const [wrappersStatus, setWrappersStatus] = useState({});
+  // Composed indicators: each entry is the full Indicator doc fetched by id
+  // (we need name, domain.name, subdomain to render the row).
+  const [childIndicatorsDetails, setChildIndicatorsDetails] = useState([]);
   const [selectedResource, setSelectedResource] = useState(null);
   const [selectedWrapper, setSelectedWrapper] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -87,6 +90,24 @@ export default function ResourcesManagement() {
         setResourcesDetails([]);
         setWrappersStatus({});
       }
+
+      // Composed indicators: load full docs for each child id so we can
+      // render names + area in the table. Failures are logged but don't
+      // block the rest of the UI.
+      const childIds = indicatorResponse.child_indicators || [];
+      if (childIds.length > 0) {
+        const childResults = await Promise.all(
+          childIds.map(id =>
+            indicatorService.getById(id).catch(err => {
+              console.warn(`Failed to load child indicator ${id}:`, err);
+              return null;
+            }),
+          ),
+        );
+        setChildIndicatorsDetails(childResults.filter(Boolean));
+      } else {
+        setChildIndicatorsDetails([]);
+      }
     } catch (err) {
       setError(err.message || 'Failed to load data');
       console.error('Error loading data:', err);
@@ -95,11 +116,36 @@ export default function ResourcesManagement() {
     }
   };
 
-  const handleDelete = async (resourceId) => {
-    if (!resourceId || resourceId === 'undefined') {
+  const handleDelete = async (rowId) => {
+    if (!rowId || rowId === 'undefined') {
       setError('Invalid resource ID. Cannot delete.');
       return;
     }
+    // Composed-indicator row: rowId is `child:{indicatorId}`. Unlink via the
+    // indicator-service rather than deleting the resource.
+    if (typeof rowId === 'string' && rowId.startsWith('child:')) {
+      const childId = rowId.slice('child:'.length);
+      const child = childIndicatorsDetails.find(c => c.id === childId);
+      const name = child?.name || childId;
+      const ok = await confirmAction({
+        title: t('admin.resources.confirm_remove_child_title', 'Remover indicador incluído?'),
+        message: t('admin.resources.confirm_remove_child', {
+          name,
+          defaultValue: `Tem a certeza que deseja remover o indicador "${name}" das fontes?`,
+        }),
+      });
+      if (!ok) return;
+      try {
+        await indicatorService.removeChildIndicator(indicator, childId);
+        setChildIndicatorsDetails(childIndicatorsDetails.filter(c => c.id !== childId));
+      } catch (err) {
+        setError(err.message || 'Failed to remove child indicator');
+        console.error('Error removing child indicator:', err);
+      }
+      return;
+    }
+
+    const resourceId = rowId;
     const resource = resourcesDetails.find(r => r.id === resourceId);
     const name = resource?.name || resourceId;
     const ok = await confirmAction({
@@ -122,11 +168,20 @@ export default function ResourcesManagement() {
     }
   };
 
-  const handleViewDetails = (resourceId) => {
-    if (!resourceId || resourceId === 'undefined') {
+  const handleViewDetails = (rowId) => {
+    if (!rowId || rowId === 'undefined') {
       setError('Invalid resource ID.');
       return;
     }
+    // Composed-indicator row: navigate to that indicator's public page so
+    // the user can see its chart in context. No modal needed.
+    if (typeof rowId === 'string' && rowId.startsWith('child:')) {
+      const childId = rowId.slice('child:'.length);
+      navigate(`/indicator/${childId}`);
+      return;
+    }
+
+    const resourceId = rowId;
     const resource = resourcesDetails.find(r => r.id === resourceId);
     if (resource && resource.wrapper_id) {
       resourceService.getWrapper(resource.wrapper_id)
@@ -179,14 +234,27 @@ export default function ResourcesManagement() {
     { label: 'Delete', className: 'btn-secondary', onClick: handleDelete }
   ];
 
-  // Prepare table content with resource details
-  const tableContent = resourcesDetails.map(resource => ({
-    ...resource,
-    start_period: resource.start_period || resource.startPeriod || 'N/A',
-    end_period: resource.end_period || resource.endPeriod || 'N/A',
-    type: resource.type || 'Unknown',
-    status: wrappersStatus[resource.id] || 'loading...'
-  }));
+  // Prepare table content with resource details. Child indicators are
+  // appended as additional rows with `id` prefixed by `child:` so the action
+  // handlers can route to the indicator-service's child API instead of
+  // deleting/inspecting a resource.
+  const tableContent = [
+    ...resourcesDetails.map(resource => ({
+      ...resource,
+      start_period: resource.start_period || resource.startPeriod || 'N/A',
+      end_period: resource.end_period || resource.endPeriod || 'N/A',
+      type: resource.type || 'Unknown',
+      status: wrappersStatus[resource.id] || 'loading...',
+    })),
+    ...childIndicatorsDetails.map(child => ({
+      id: `child:${child.id}`,
+      name: child.name,
+      start_period: 'N/A',
+      end_period: 'N/A',
+      type: t('admin.resources.type_indicator', 'Indicador'),
+      status: t('admin.resources.status_linked', 'incluído'),
+    })),
+  ];
 
   if (loading) {
     return <LoadingSkeleton />;

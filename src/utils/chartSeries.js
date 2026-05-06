@@ -250,6 +250,20 @@ export const buildChartSeries = (
   const trans = seriesTranslations && typeof seriesTranslations === 'object'
     ? seriesTranslations
     : null;
+  // Composed indicators: when the response contains lines from more than one
+  // source indicator we prefix each line's name with the source indicator's
+  // localized name so the user can tell them apart. For a non-composed
+  // indicator every line shares the same source and the prefix is omitted.
+  const distinctSources = new Set(
+    rawSeries
+      .map(s => s.source_indicator_id)
+      .filter(id => id != null && id !== ''),
+  );
+  const showSourcePrefix = distinctSources.size > 1;
+  const pickSourceName = (s) => {
+    if (lang === 'en') return s.source_indicator_name_en || s.source_indicator_name || '';
+    return s.source_indicator_name || s.source_indicator_name_en || '';
+  };
   return {
     series: rawSeries.map((s) => {
       const resource = resById.get(s.resource_id);
@@ -257,11 +271,24 @@ export const buildChartSeries = (
       const localized = label && trans && trans[label]
         ? (trans[label][lang] || trans[label][lang === 'pt' ? 'en' : 'pt'])
         : null;
-      const name = (localized && localized.trim()) || label || resource?.name || s.resource_id;
+      const sourceName = pickSourceName(s);
+      // Base name precedence: translated series label → raw label → resource
+      // name → source indicator name → resource_id (fallback while resource
+      // list is still loading).
+      const baseName = (localized && localized.trim())
+        || label
+        || resource?.name
+        || sourceName
+        || s.resource_id;
+      const name = showSourcePrefix && sourceName && baseName !== sourceName
+        ? `${sourceName} — ${baseName}`
+        : baseName;
       return {
         name,
         resource_id: s.resource_id,
         series_label: label || null,
+        source_indicator_id: s.source_indicator_id || null,
+        source_indicator_name: sourceName || null,
         data: (s.points || [])
           .map((p) => ({
             // Backend serialises datetime x as ISO; numeric x stays numeric.

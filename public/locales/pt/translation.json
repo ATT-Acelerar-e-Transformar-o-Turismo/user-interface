@@ -224,7 +224,11 @@
     "resources": {
       "add": "Adicionar Recurso de Dados",
       "confirm_delete_title": "Eliminar recurso?",
-      "confirm_delete": "Tem a certeza que deseja eliminar o recurso \"{{name}}\"? Esta ação não pode ser revertida."
+      "confirm_delete": "Tem a certeza que deseja eliminar o recurso \"{{name}}\"? Esta ação não pode ser revertida.",
+      "confirm_remove_child_title": "Remover indicador incluído?",
+      "confirm_remove_child": "Tem a certeza que deseja remover o indicador \"{{name}}\" das fontes?",
+      "type_indicator": "Indicador",
+      "status_linked": "incluído"
     },
     "news_events": {
       "title": "Todas as Notícias e Eventos",
@@ -457,6 +461,16 @@
       "source_csv": "Ficheiro CSV",
       "source_xlsx": "Ficheiro XLSX",
       "source_api": "API",
+      "source_indicator": "Indicador existente",
+      "step_indicator": "Selecionar indicador",
+      "step_indicator_title": "Selecionar indicador",
+      "step_indicator_desc": "Escolha um ou mais indicadores existentes — os seus dados aparecerão lado a lado no gráfico.",
+      "indicator_search": "Pesquisar indicadores…",
+      "indicator_search_hint": "Comece a escrever para procurar.",
+      "indicator_no_results": "Sem resultados.",
+      "indicator_loading": "A carregar…",
+      "indicator_required": "Selecione pelo menos um indicador.",
+      "indicator_review": "Os seguintes indicadores serão incluídos:",
       "files_label": "Ficheiros de Dados",
       "api_url_label": "URL da API configurado:",
       "api_url_pending": "Os dados serão carregados após guardar",
@@ -598,6 +612,8 @@
     "sources_title": "Fontes do Indicador",
     "add_sources": "Adicionar Fontes",
     "no_sources": "Nenhuma fonte associada a este indicador",
+    "source_kind_indicator": "Indicador",
+    "open_indicator": "Abrir indicador",
     "col_name": "Nome",
     "col_start_period": "Período Início",
     "col_end_period": "Período Fim",

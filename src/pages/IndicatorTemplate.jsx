@@ -50,6 +50,7 @@ export default function IndicatorTemplate() {
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [chartDropdownOpen, setChartDropdownOpen] = useState(false);
   const [indicatorResources, setIndicatorResources] = useState([]);
+  const [childIndicators, setChildIndicators] = useState([]);
   const [sourcesError, setSourcesError] = useState(null);
   const [isResourceWizardOpen, setIsResourceWizardOpen] = useState(false);
   const [isIndicatorWizardOpen, setIsIndicatorWizardOpen] = useState(false);
@@ -126,8 +127,23 @@ export default function IndicatorTemplate() {
   const chartSupportsTools = ['line', 'area', 'scatter', 'bar', 'column', 'stackedColumn', 'stackedBar'].includes(chartType);
 
   const isHorizontalBar = chartType === 'bar' || chartType === 'stackedBar';
+
+  // For horizontal bars the xaxis is the value scale (not time), so viewport
+  // can't be applied via xaxis.min/max. Instead, filter categories by the
+  // viewport time range here so the chart only receives the visible slice.
+  const chartSeriesData = (allLoadedData || chartData)?.series || [];
+  const visibleSeries = isHorizontalBar && viewport.min != null && viewport.max != null
+    ? chartSeriesData.map(s => ({
+        ...s,
+        data: (s.data || []).filter(p => {
+          const xVal = typeof p.x === 'number' ? p.x : new Date(p.x).getTime();
+          return xVal >= viewport.min && xVal <= viewport.max;
+        }),
+      }))
+    : chartSeriesData;
+
   const chartCategoryCount = Math.max(
-    ...((allLoadedData || chartData)?.series || []).map(s => (s.data || []).length),
+    ...visibleSeries.map(s => (s.data || []).length),
     0
   );
   // Horizontal bars grow with category count so labels don't overlap (~22px each),
@@ -528,13 +544,22 @@ export default function IndicatorTemplate() {
   useEffect(() => {
     let cancelled = false;
     const fetchResources = async () => {
-      if (!indicatorData?.resources?.length) {
+      // Compose the set of resource IDs that need loading: parent's own
+      // resources + any resources referenced by the chart series. The series
+      // set covers child indicators' resources transitively, which the
+      // parent's `resources` field doesn't see.
+      const own = indicatorData?.resources || [];
+      const fromSeries = (rawSeries || [])
+        .map(s => s.resource_id)
+        .filter(Boolean);
+      const ids = Array.from(new Set([...own, ...fromSeries]));
+      if (!ids.length) {
         setIndicatorResources([]);
         setSourcesError(null);
         return;
       }
       const results = await Promise.all(
-        indicatorData.resources.map(id =>
+        ids.map(id =>
           resourceService.getById(id).then(
             r => ({ ok: true, resource: r }),
             err => ({ ok: false, id, err })
@@ -558,7 +583,30 @@ export default function IndicatorTemplate() {
     };
     fetchResources();
     return () => { cancelled = true; };
-  }, [indicatorData?.resources]);
+  }, [indicatorData?.resources, rawSeries]);
+
+  // Composed indicators: load each child's indicator doc so the sources
+  // panel can list them with proper names. Failures don't block render.
+  useEffect(() => {
+    let cancelled = false;
+    const ids = indicatorData?.child_indicators || [];
+    if (!ids.length) {
+      setChildIndicators([]);
+      return undefined;
+    }
+    (async () => {
+      const results = await Promise.all(
+        ids.map(id =>
+          indicatorService.getById(id).catch(err => {
+            console.warn(`Failed to load child indicator ${id}:`, err);
+            return null;
+          }),
+        ),
+      );
+      if (!cancelled) setChildIndicators(results.filter(Boolean));
+    })();
+    return () => { cancelled = true; };
+  }, [indicatorData?.child_indicators]);
 
   if (indicatorLoading) {
     return (
@@ -878,14 +926,14 @@ export default function IndicatorTemplate() {
                     <div className="loading loading-spinner loading-sm text-primary"></div>
                   </div>
                 )}
-                {(allLoadedData || chartData)?.series?.[0]?.data?.length > 0 ? (
+                {chartSeriesData?.[0]?.data?.length > 0 ? (
                   <div>
                     <GChart
                       ref={indicatorChartRef}
                       chartId={`indicator-${indicatorId}`}
                       chartType={chartType}
                       xaxisType="datetime"
-                      series={((allLoadedData || chartData)?.series || []).map(s => ({
+                      series={visibleSeries.map(s => ({
                         ...s,
                         // Each series carries its resource's name; only fall
                         // back to the indicator name if the resource hasn't
@@ -899,7 +947,7 @@ export default function IndicatorTemplate() {
                       disableAnimations={!isInitialLoad}
                       onViewportChange={handleViewportChange}
                       activeTool={activeChartTool}
-                      xaxisRange={viewport.min != null && viewport.max != null ? viewport : null}
+                      xaxisRange={!isHorizontalBar && viewport.min != null && viewport.max != null ? viewport : null}
                     />
                   </div>
                 ) : !dataLoading ? (
@@ -1076,7 +1124,7 @@ export default function IndicatorTemplate() {
                 className="w-full flex items-center justify-between cursor-pointer"
               >
                 <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
-                  {t('indicator.sources_title')} ({indicatorResources.length})
+                  {t('indicator.sources_title')} ({indicatorResources.length + childIndicators.length})
                 </h3>
                 <svg className={`w-7 h-7 text-[#0a0a0a] transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1100,11 +1148,11 @@ export default function IndicatorTemplate() {
                       {sourcesError}
                     </div>
                   )}
-                  {indicatorResources.length === 0 && !sourcesError ? (
+                  {indicatorResources.length === 0 && childIndicators.length === 0 && !sourcesError ? (
                     <div className="text-center py-8 text-[#737373]">
                       <p>{t('indicator.no_sources')}</p>
                     </div>
-                  ) : indicatorResources.length === 0 ? null : (
+                  ) : indicatorResources.length === 0 && childIndicators.length === 0 ? null : (
                     <div className="overflow-x-auto">
                       <table className="w-full font-['Onest']">
                         <thead>
@@ -1132,6 +1180,31 @@ export default function IndicatorTemplate() {
                                   </button>
                                   <button onClick={() => handleSourceView(resource)} className="text-[#737373] hover:text-success transition-colors cursor-pointer">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {childIndicators.map((child) => (
+                            <tr key={`child-${child.id}`} className="border-b border-[#f3f4f6]">
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary border border-primary/20">
+                                    {t('indicator.source_kind_indicator', 'Indicador')}
+                                  </span>
+                                  <span>{getName(child)}</span>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">-</td>
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">-</td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => navigate(`/indicator/${child.id}`)}
+                                    className="text-[#737373] hover:text-success transition-colors cursor-pointer"
+                                    title={t('indicator.open_indicator', 'Abrir indicador')}
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7v7M21 3l-9 9M5 21h14a2 2 0 002-2v-7" /></svg>
                                   </button>
                                 </div>
                               </td>
