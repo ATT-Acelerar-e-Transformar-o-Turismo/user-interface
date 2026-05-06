@@ -24,9 +24,10 @@ export const dataService = {
   // separately) since the indicator-service doesn't keep them.
   async getIndicatorSeries(indicatorId, { skip = 0, limit = 1000, sort = 'asc', startDate = null, endDate = null } = {}) {
     try {
-      let url = `${API_ENDPOINTS.INDICATORS.SERIES(indicatorId)}?skip=${skip}&limit=${limit}&sort=${sort}`;
-      if (startDate) url += `&start_date=${startDate}`;
-      if (endDate) url += `&end_date=${endDate}`;
+      const params = new URLSearchParams({ skip: String(skip), limit: String(limit), sort });
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const url = `${API_ENDPOINTS.INDICATORS.SERIES(indicatorId)}?${params.toString()}`;
       const response = await apiClient.get(url);
       return response.data || [];
     } catch (error) {

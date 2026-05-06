@@ -262,6 +262,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     // every pin after each chart rebuild (apex destroys annotations when the
     // chart is destroyed; the user expects pins to stick across re-renders).
     const pinnedPointsRef = useRef(new Map())
+    // Stored reference to the annotation click handler so we can remove the
+    // old one before attaching a new one on each chart rebuild — the chart
+    // container DOM element is reused across rebuilds, so without this the
+    // handler accumulates and a single click fires it multiple times.
+    const annotClickHandlerRef = useRef(null)
     // Pie / donut legend (or slice) click: apex's default toggle for
     // categorical aggregates is select/deselect (cosmetic), not hide. Track
     // hidden labels here and filter them out before building the apex
@@ -761,7 +766,10 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         //    text/rect sibling case.
                         const chartEl = chart?.el;
                         if (chartEl) {
-                            chartEl.addEventListener('click', (e) => {
+                            if (annotClickHandlerRef.current) {
+                                chartEl.removeEventListener('click', annotClickHandlerRef.current);
+                            }
+                            annotClickHandlerRef.current = (e) => {
                                 if (pinnedPointsRef.current.size === 0) return;
                                 const path = e.composedPath ? e.composedPath() : [];
                                 let matchId = null;
@@ -802,7 +810,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                                 if (!matchId) return;
                                 try { chart.removeAnnotation(matchId); } catch (_) { /* swallow */ }
                                 pinnedPointsRef.current.delete(matchId);
-                            });
+                            };
+                            chartEl.addEventListener('click', annotClickHandlerRef.current);
                         }
                     },
                 }

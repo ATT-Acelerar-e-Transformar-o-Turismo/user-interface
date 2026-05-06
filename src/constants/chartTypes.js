@@ -19,8 +19,6 @@ export const CHART_TYPES = [
   'rangeArea',
 ];
 
-// ... (SHAPE_SPECIFIC_CHART_TYPES stays the same)
-
 // i18n keys for user-facing labels. Keys live under `chart_types.*` in the
 // translation files.
 export const CHART_TYPE_LABEL_KEYS = {

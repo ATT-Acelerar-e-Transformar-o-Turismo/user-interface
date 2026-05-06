@@ -383,7 +383,7 @@
       "columns_hint": "Desmarque colunas para ocultá-las no gráfico público sem regenerar o wrapper.",
       "columns_empty": "Sem colunas nomeadas para este indicador. Adicione um wrapper de várias colunas para ver opções aqui.",
       "step_columns": "Colunas",
-      "step_columns_desc": "Active/desative colunas e ajuste as traduções PT/EN. As traduções pré-preenchidas vêm do tradutor automático e podem ser editadas.",
+      "step_columns_desc": "Ative/desative colunas e ajuste as traduções PT/EN. As traduções pré-preenchidas vêm do tradutor automático e podem ser editadas.",
       "column_label_pt": "Etiqueta (PT)",
       "column_label_en": "Etiqueta (EN)",
       "column_hidden_badge": "oculta"
