@@ -9,10 +9,11 @@ import ResourceWizard from "../components/wizard/ResourceWizard";
 import IndicatorWizard from "../components/wizard/IndicatorWizard";
 import indicatorService from "../services/indicatorService";
 import { showError, showSuccess } from "../utils/toast";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
-import useIndicatorData from "../hooks/useIndicatorData";
+import useIndicatorSeries from "../hooks/useIndicatorSeries";
 import useLocalizedName from "../hooks/useLocalizedName";
+import { buildChartSeries } from "../utils/chartSeries";
 import { useTranslation } from "react-i18next";
 
 export default function IndicatorTemplate() {
@@ -33,11 +34,11 @@ export default function IndicatorTemplate() {
     granularity: 'auto',
     startDate: null,
     endDate: null,
-    limit: 200
+    limit: 10000
   });
 
-  const { data: chartData, loading: dataLoading } = useIndicatorData(indicatorId, "Indicator Data", fetchParams);
-  
+  const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(indicatorId, fetchParams);
+
   const [indicatorData, setIndicatorData] = useState(null);
   const [error, setError] = useState(null);
   const [indicatorLoading, setIndicatorLoading] = useState(false);
@@ -62,6 +63,16 @@ export default function IndicatorTemplate() {
   const chartDropdownRef = useRef(null);
 
   const isAdmin = user?.role === 'admin';
+
+  // Join the per-resource series from /series with resource names loaded from
+  // resource-service. Names update reactively once indicatorResources arrive
+  // (the two fetches happen in parallel — order isn't guaranteed).
+  // chartData keeps the shape {series:[{name, data:[{x:ms, y}], resource_id}]}
+  // so the existing rendering / export code reads it unchanged.
+  const chartData = useMemo(
+    () => buildChartSeries(rawSeries, indicatorResources),
+    [rawSeries, indicatorResources],
+  );
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -316,13 +327,28 @@ export default function IndicatorTemplate() {
     return new Date(t).toISOString().slice(0, 10);
   };
 
-  const handleExportCSV = () => {
-    if (!chartData?.series?.[0]?.data) return;
+  const escapeCsv = (v) => {
+    if (v == null) return '';
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
 
-    const csvContent = [
-      ['Date', 'Value'],
-      ...chartData.series[0].data.map(point => [formatCsvDate(point.x), point.y])
-    ].map(row => row.join(',')).join('\n');
+  const handleExportCSV = () => {
+    const series = (chartData?.series || []).filter(s => s.data?.length);
+    if (series.length === 0) return;
+
+    // Wide format: one column per series. Union of x values, sorted asc.
+    const xs = Array.from(new Set(series.flatMap(s => s.data.map(p => p.x)))).sort((a, b) => a - b);
+    const seriesMaps = series.map(s => {
+      const m = new Map();
+      s.data.forEach(p => m.set(p.x, p.y));
+      return m;
+    });
+
+    const header = ['Date', ...series.map(s => s.name)];
+    const rows = xs.map(x => [formatCsvDate(x), ...seriesMaps.map(m => m.has(x) ? m.get(x) : '')]);
+
+    const csvContent = [header, ...rows].map(row => row.map(escapeCsv).join(',')).join('\n');
 
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
@@ -452,19 +478,21 @@ export default function IndicatorTemplate() {
     }
   };
 
-  const handleSourceExportCSV = (sourceName) => {
-    if (!chartData?.series?.[0]?.data) return;
+  const handleSourceExportCSV = (resource) => {
+    // Match by resource_id \u2014 names can collide across different sources.
+    const series = (chartData?.series || []).find(s => s.resource_id === resource.id);
+    if (!series?.data?.length) return;
 
     const csvContent = [
       ['Date', 'Value', 'Source'],
-      ...chartData.series[0].data.map(point => [formatCsvDate(point.x), point.y, sourceName])
-    ].map(row => row.join(',')).join('\n');
+      ...series.data.map(point => [formatCsvDate(point.x), point.y, resource.name])
+    ].map(row => row.map(escapeCsv).join(',')).join('\n');
 
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${sourceName}_data.csv`;
+    a.download = `${resource.name}_data.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -882,7 +910,10 @@ export default function IndicatorTemplate() {
                       xaxisType="datetime"
                       series={((allLoadedData || chartData)?.series || []).map(s => ({
                         ...s,
-                        name: getName(indicatorData) || s.name
+                        // Each series carries its resource's name; only fall
+                        // back to the indicator name if the resource hasn't
+                        // loaded yet (race with indicatorResources fetch).
+                        name: s.name || getName(indicatorData)
                       }))}
                       height="100%"
                       showToolbar={true}
@@ -1119,7 +1150,7 @@ export default function IndicatorTemplate() {
                               </td>
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-2">
-                                  <button onClick={() => handleSourceExportCSV(resource.name)} className="text-[#737373] hover:text-primary transition-colors cursor-pointer" title={t('indicator.export_csv')}>
+                                  <button onClick={() => handleSourceExportCSV(resource)} className="text-[#737373] hover:text-primary transition-colors cursor-pointer" title={t('indicator.export_csv')}>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                   </button>
                                   <button onClick={() => handleSourceView(resource)} className="text-[#737373] hover:text-success transition-colors cursor-pointer">
