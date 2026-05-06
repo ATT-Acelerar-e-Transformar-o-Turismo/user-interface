@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { API_ENDPOINTS } from '../constants/api';
 
 export const dataService = {
   async getIndicatorData(indicatorId, skip = 0, limit = 100, sort = 'asc', granularity = '0', startDate = null, endDate = null) {
@@ -14,6 +15,23 @@ export const dataService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching indicator data:', error);
+      return [];
+    }
+  },
+
+  // One timeseries per resource attached to the indicator. Each entry feeds a
+  // separate line on the chart; names come from the resource (fetched
+  // separately) since the indicator-service doesn't keep them.
+  async getIndicatorSeries(indicatorId, { skip = 0, limit = 1000, sort = 'asc', startDate = null, endDate = null } = {}) {
+    try {
+      const params = new URLSearchParams({ skip: String(skip), limit: String(limit), sort });
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const url = `${API_ENDPOINTS.INDICATORS.SERIES(indicatorId)}?${params.toString()}`;
+      const response = await apiClient.get(url);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching indicator series:', error);
       return [];
     }
   },

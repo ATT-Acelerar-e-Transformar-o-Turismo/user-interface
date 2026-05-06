@@ -50,9 +50,6 @@ export default function SuccessModal({
     };
   }, [isOpen, onClose]);
 
-  // Debug logging
-  console.log('SuccessModal render:', { isOpen, title, message });
-
   // Don't render if not open
   if (!isOpen) return null;
 
@@ -107,13 +104,9 @@ export default function SuccessModal({
               <button
                 type="button"
                 onClick={() => {
-                  console.log('SuccessModal: Primary button clicked:', primaryAction.label);
                   primaryAction.onClick();
                   if (primaryAction.closeAfter !== false) {
-                    console.log('SuccessModal: Auto-closing modal');
                     onClose();
-                  } else {
-                    console.log('SuccessModal: NOT auto-closing (closeAfter=false)');
                   }
                 }}
                 className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-6 py-3 rounded-lg transition-colors w-full"

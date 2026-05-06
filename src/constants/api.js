@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
     RESOURCES: (indicatorId) => `/api/indicators/${indicatorId}/resources`,
     RESOURCES_BY_ID: (indicatorId, resourceId) => `/api/indicators/${indicatorId}/resources/${resourceId}`,
     DATA: (indicatorId) => `/api/indicators/${indicatorId}/data`,
+    SERIES: (indicatorId) => `/api/indicators/${indicatorId}/series`,
     EXPORT_IMAGE: (indicatorId) => `/api/indicators/${indicatorId}/export/image`,
   },
   BLOG: {

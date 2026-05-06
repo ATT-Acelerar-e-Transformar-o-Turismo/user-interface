@@ -19,6 +19,7 @@ import { validateRequired, validateURL, validateFileSize, validateFileType, hasE
 import { useWrapper } from '../../contexts/WrapperContext';
 import indicatorService from '../../services/indicatorService';
 import resourceService from '../../services/resourceService';
+import { pickDefaultTimeColumn, defaultColumnSelectionForFile } from '../../utils/chartSeries';
 
 /**
  * ResourceWizard - Multi-step wizard for adding data resources
@@ -47,11 +48,11 @@ export default function ResourceWizard({
   const [wrappersData, setWrappersData] = useState([]);  // Store wrapper info for each file
 
   const isEditMode = !!resourceId;
-  const steps = [t('wizard.resource.step_type'), t('wizard.resource.step_config'), t('wizard.resource.step_preview')];
 
   const initialData = {
     sourceType: '',
     files: [],  // Changed to array for multiple files
+    columnSelections: {},  // {fileName: {sheetName, timeColumn, valueColumns: []}}
     apiConfig: {
       location: '',
       auth_type: 'none',
@@ -68,7 +69,28 @@ export default function ResourceWizard({
     }
   };
 
-  const wizard = useWizard(steps.length, initialData, handleSubmit);
+  // Allocate enough slots for the longest path (file mode = 4 steps). For API
+  // mode we render only 3 step labels via the `steps` array below; <Wizard>'s
+  // isLastStep is driven by that array, so the user submits at the right
+  // place. useWizard's totalSteps just caps the high end of nextStep.
+  const wizard = useWizard(4, initialData, handleSubmit);
+
+  // Steps shown in the progress indicator. File mode inserts a "columns" step
+  // between upload and preview where the user picks sheet + which columns to
+  // import as separate series.
+  const fileMode = ['CSV', 'XLSX'].includes(wizard.formData.sourceType);
+  const steps = fileMode
+    ? [
+        t('wizard.resource.step_type'),
+        t('wizard.resource.step_config'),
+        t('wizard.resource.step_columns', 'Selecionar colunas'),
+        t('wizard.resource.step_preview'),
+      ]
+    : [
+        t('wizard.resource.step_type'),
+        t('wizard.resource.step_config'),
+        t('wizard.resource.step_preview'),
+      ];
 
   // Load indicator data
   useEffect(() => {
@@ -91,12 +113,15 @@ export default function ResourceWizard({
     }
   }, [wizard.formData.files]);
 
-  // Auto-generate wrappers when entering preview step (step 2)
+  // Auto-generate wrappers when entering the preview step. Index depends on
+  // mode: file mode has a column-picker step in the middle, so preview is at
+  // index 3; API mode preview is at index 2.
+  const previewStepIndex = fileMode ? 3 : 2;
   useEffect(() => {
-    if (wizard.currentStep === 2 && wizard.formData.files.length > 0 && !generatingWrappers && wrappersData.length === 0) {
+    if (wizard.currentStep === previewStepIndex && wizard.formData.files.length > 0 && !generatingWrappers && wrappersData.length === 0) {
       generateWrappersForFiles();
     }
-  }, [wizard.currentStep]);
+  }, [wizard.currentStep, previewStepIndex]);
 
   const loadIndicator = async () => {
     try {
@@ -153,18 +178,18 @@ export default function ResourceWizard({
       const fileExtension = file.name.split('.').pop().toLowerCase();
 
       try {
-        let data;
+        let parsed;
         if (fileExtension === 'csv') {
-          data = await parseCSVPromise(file);
+          parsed = await parseCSVPromise(file);
         } else if (fileExtension === 'xlsx') {
-          data = await parseXLSXPromise(file);
+          parsed = await parseXLSXPromise(file);
         }
 
-        if (data) {
+        if (parsed) {
           parsedDataArray.push({
             fileName: file.name,
-            data: data,
-            file: file
+            parsed,
+            file,
           });
         }
       } catch (error) {
@@ -173,23 +198,36 @@ export default function ResourceWizard({
     }
 
     setPreviewData(parsedDataArray);
+
+    // Initialise sensible column-picker defaults whenever files are (re)parsed.
+    // Existing user choices for unchanged files are preserved.
+    const prev = wizard.formData.columnSelections || {};
+    const next = {};
+    for (const item of parsedDataArray) {
+      next[item.fileName] = prev[item.fileName] || defaultColumnSelectionForFile(item.parsed);
+    }
+    wizard.updateFormData('columnSelections', next);
   };
 
+  // Returns {kind:'csv', columns:[string], rowCount:number}.
   const parseCSVPromise = (file) => {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
         complete: (result) => {
-          resolve(result.data);
+          const rows = result.data || [];
+          const headerRow = rows[0] || [];
+          const columns = headerRow.map(c => (c == null ? '' : String(c).trim())).filter(c => c.length > 0);
+          resolve({ kind: 'csv', columns, rowCount: Math.max(0, rows.length - 1) });
         },
-        error: (error) => {
-          reject(error);
-        },
+        error: (error) => reject(error),
         header: false,
-        skipEmptyLines: true
+        skipEmptyLines: true,
       });
     });
   };
 
+  // Returns {kind:'xlsx', sheets:[{name, columns:[string], rowCount:number}]}.
+  // Headers come from the first row of each sheet.
   const parseXLSXPromise = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -198,33 +236,51 @@ export default function ResourceWizard({
           const arrayBuffer = event.target.result;
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(arrayBuffer);
-          const worksheet = workbook.worksheets[0];
-          const sheetData = [];
-          worksheet.eachRow({ includeEmpty: true }, (row) => {
-            const rowValues = [];
-            // ExcelJS row.values can be sparse, eachCell handles it better
-            // row.values returns [empty, col1, col2, ...]
-            // We want a clean array of values
-            row.eachCell({ includeEmpty: true }, (cell) => {
-              // Convert cell value to simple format if it's an object (like a formula or date)
-              let value = cell.value;
-              if (value && typeof value === 'object' && value.result !== undefined) {
-                value = value.result;
-              }
-              rowValues.push(value);
+          const sheets = workbook.worksheets.map(ws => {
+            const headers = [];
+            const firstRow = ws.getRow(1);
+            firstRow.eachCell({ includeEmpty: true }, (cell) => {
+              let v = cell.value;
+              // ExcelJS represents formulas / hyperlinks / dates as objects.
+              if (v && typeof v === 'object' && v.result !== undefined) v = v.result;
+              if (v && typeof v === 'object' && v.text !== undefined) v = v.text;
+              headers.push(v == null ? '' : String(v).trim());
             });
-            sheetData.push(rowValues);
+            const columns = headers.filter(h => h.length > 0);
+            const rowCount = Math.max(0, (ws.actualRowCount || ws.rowCount || 0) - 1);
+            return { name: ws.name, columns, rowCount };
           });
-          resolve(sheetData);
+          resolve({ kind: 'xlsx', sheets });
         } catch (error) {
           reject(error);
         }
       };
-      reader.onerror = (error) => {
-        reject(error);
-      };
+      reader.onerror = (error) => reject(error);
       reader.readAsArrayBuffer(file);
     });
+  };
+
+  // Update one file's column selection. Used by the picker UI.
+  const updateColumnSelection = (fileName, patch) => {
+    const prev = wizard.formData.columnSelections || {};
+    wizard.updateFormData('columnSelections', {
+      ...prev,
+      [fileName]: { ...(prev[fileName] || {}), ...patch },
+    });
+  };
+
+  // For an XLSX file, fetch the columns of a specific sheet from the parsed
+  // metadata. CSV files have a single column list.
+  const getColumnsForFile = (fileName) => {
+    const item = previewData.find(p => p.fileName === fileName);
+    if (!item) return [];
+    const sel = wizard.formData.columnSelections?.[fileName];
+    if (item.parsed.kind === 'xlsx') {
+      const sheet = (item.parsed.sheets || []).find(s => s.name === sel?.sheetName)
+        || item.parsed.sheets?.[0];
+      return sheet?.columns || [];
+    }
+    return item.parsed.columns || [];
   };
 
   const generateWrappersForFiles = async () => {
@@ -237,20 +293,30 @@ export default function ResourceWizard({
       for (let i = 0; i < wizard.formData.files.length; i++) {
         const file = wizard.formData.files[i];
         const sourceType = wizard.formData.sourceType;
+        const selection = wizard.formData.columnSelections?.[file.name] || {};
+        const valueColumns = (selection.valueColumns && selection.valueColumns.length > 0)
+          ? selection.valueColumns
+          : null;
 
-        console.log(`Generating wrapper for file: ${file.name}`);
+        console.log(`Generating wrapper for file: ${file.name} — ${valueColumns?.length || '?'} column(s)`);
 
-        // Upload file
+        // One wrapper per file. The wrapper emits one DataPoint per (row ×
+        // selected column), tagging each with the column name in `series`.
+        // The chart on the indicator page splits those into separate lines.
         const uploadResult = await uploadFile(file);
         console.log(`Upload result for ${file.name}:`, uploadResult);
 
-        // Prepare wrapper request
         const wrapperRequest = {
           source_type: sourceType,
           source_config: {
-            file_id: uploadResult.file_id
+            file_id: uploadResult.file_id,
+            ...(selection.sheetName ? { sheet_name: selection.sheetName } : {}),
+            ...(selection.timeColumn ? { time_column: selection.timeColumn } : {}),
+            ...(valueColumns ? { value_columns: valueColumns } : {}),
           },
           metadata: {
+            // One resource per file → resource name reflects the file, not
+            // any single column.
             name: `${indicator.name} - ${file.name}`,
             // Backend IndicatorMetadata requires `domain` / `subdomain`.
             // Indicator docs expose these as `domain` (object or id) and
@@ -271,7 +337,6 @@ export default function ResourceWizard({
 
         console.log(`Wrapper request for ${file.name}:`, wrapperRequest);
 
-        // Generate wrapper
         const wrapper = await generateWrapper(wrapperRequest);
         console.log(`Wrapper generated for ${file.name}:`, wrapper);
 
@@ -286,16 +351,14 @@ export default function ResourceWizard({
 
         wrappers.push({
           fileName: file.name,
-          wrapper: wrapper,
+          wrapper,
           status: wrapper.status,
-          resourceId: wrapper.resource_id
+          resourceId: wrapper.resource_id,
         });
 
-        // Start polling for this wrapper
         startPolling(wrapper.wrapper_id, 2000, async (updatedWrapper) => {
           console.log(`Wrapper ${wrapper.wrapper_id} status:`, updatedWrapper.status);
 
-          // Update the status in the wrappers array
           setWrappersData(prev => {
             const prevEntry = prev.find(w => w.wrapper.wrapper_id === updatedWrapper.wrapper_id);
             const prevStatus = prevEntry?.status;
@@ -433,6 +496,23 @@ export default function ResourceWizard({
               break;
             }
           }
+        }
+      }
+    }
+
+    // Column-picker step (file mode only). Each file must end up with at least
+    // one value column selected, otherwise nothing would be imported.
+    if (fileMode && stepIndex === 2) {
+      const sels = wizard.formData.columnSelections || {};
+      const files = wizard.formData.files || [];
+      for (const file of files) {
+        const sel = sels[file.name];
+        if (!sel || !sel.timeColumn || !sel.valueColumns || sel.valueColumns.length === 0) {
+          errors.columnSelections = t(
+            'wizard.resource.columns_required',
+            'Escolha a coluna de tempo e pelo menos uma coluna de valores em cada ficheiro.',
+          );
+          break;
         }
       }
     }
@@ -583,8 +663,9 @@ export default function ResourceWizard({
     w.status === 'completed' || w.status === 'executing'
   );
 
-  // Disable submit button if wrappers are processing
-  const disableSubmit = wizard.currentStep === 2 &&
+  // Disable submit on the preview step (last step in file mode = 3, API = 2)
+  // until every wrapper has completed at least once.
+  const disableSubmit = wizard.currentStep === previewStepIndex &&
     wizard.formData.sourceType !== 'API' &&
     (generatingWrappers || !allWrappersComplete);
 
@@ -664,8 +745,112 @@ export default function ResourceWizard({
           </WizardStep>
         )}
 
-        {/* Step 3: Preview */}
-        {wizard.currentStep === 2 && (
+        {/* Step 3: Column picker — file mode only. Lets the user pick the
+            sheet (XLSX) and which columns become separate series. */}
+        {fileMode && wizard.currentStep === 2 && (
+          <WizardStep
+            title={t('wizard.resource.step_columns', 'Selecionar colunas')}
+            description={t(
+              'wizard.resource.step_columns_desc',
+              'Escolha a coluna de tempo (X) e marque cada coluna a importar — cada uma cria uma linha separada no gráfico.',
+            )}
+          >
+            {wizard.errors.columnSelections && (
+              <div className="mb-3 p-3 rounded-lg bg-red-50 text-sm text-red-700">
+                {wizard.errors.columnSelections}
+              </div>
+            )}
+            <div className="space-y-6">
+              {previewData.length === 0 && (
+                <p className="text-sm text-gray-500">{t('wizard.resource.parsing_files', 'A analisar os ficheiros…')}</p>
+              )}
+              {previewData.map((item) => {
+                const sel = wizard.formData.columnSelections?.[item.fileName] || {};
+                const isXlsx = item.parsed.kind === 'xlsx';
+                const sheets = isXlsx ? (item.parsed.sheets || []) : [];
+                const columns = getColumnsForFile(item.fileName);
+                return (
+                  <div key={item.fileName} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="font-medium text-sm text-black">{item.fileName}</p>
+                    </div>
+
+                    {isXlsx && sheets.length > 1 && (
+                      <FormSelect
+                        label={t('wizard.resource.sheet_label', 'Folha')}
+                        name={`sheet_${item.fileName}`}
+                        value={sel.sheetName || ''}
+                        onChange={(value) => {
+                          // Reset column choices when the sheet changes — the
+                          // column lists from different sheets won't overlap.
+                          const sheet = sheets.find(s => s.name === value);
+                          const cols = sheet?.columns || [];
+                          const time = pickDefaultTimeColumn(cols);
+                          updateColumnSelection(item.fileName, {
+                            sheetName: value,
+                            timeColumn: time,
+                            valueColumns: cols.filter(c => c !== time),
+                          });
+                        }}
+                        options={sheets.map(s => ({ value: s.name, label: `${s.name} (${s.rowCount} linhas)` }))}
+                      />
+                    )}
+
+                    {columns.length === 0 ? (
+                      <p className="text-xs text-gray-500">{t('wizard.resource.no_columns', 'Não foram detetadas colunas nesta folha.')}</p>
+                    ) : (
+                      <>
+                        <FormSelect
+                          label={t('wizard.resource.time_column_label', 'Coluna de tempo (X)')}
+                          name={`time_${item.fileName}`}
+                          value={sel.timeColumn || ''}
+                          onChange={(value) => {
+                            // Time column should not also appear as a value column.
+                            const valueColumns = (sel.valueColumns || []).filter(c => c !== value);
+                            updateColumnSelection(item.fileName, { timeColumn: value, valueColumns });
+                          }}
+                          options={columns.map(c => ({ value: c, label: c }))}
+                        />
+                        <div>
+                          <p className="text-sm font-medium mb-2">
+                            {t('wizard.resource.value_columns_label', 'Colunas a importar (uma linha por cada)')}
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {columns.filter(c => c !== sel.timeColumn).map(col => {
+                              const checked = (sel.valueColumns || []).includes(col);
+                              return (
+                                <label key={col} className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer text-sm transition-colors ${checked ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                                  <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-sm"
+                                    checked={checked}
+                                    onChange={() => {
+                                      const next = checked
+                                        ? (sel.valueColumns || []).filter(c => c !== col)
+                                        : [...(sel.valueColumns || []), col];
+                                      updateColumnSelection(item.fileName, { valueColumns: next });
+                                    }}
+                                  />
+                                  <span>{col}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </WizardStep>
+        )}
+
+        {/* Last step: Preview — index 3 in file mode, 2 in API mode. */}
+        {wizard.currentStep === previewStepIndex && (
           <WizardStep
             title={t('wizard.resource.step_preview')}
             description={t('wizard.resource.step_preview_desc')}

@@ -9,10 +9,11 @@ import ResourceWizard from "../components/wizard/ResourceWizard";
 import IndicatorWizard from "../components/wizard/IndicatorWizard";
 import indicatorService from "../services/indicatorService";
 import { showError, showSuccess } from "../utils/toast";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
-import useIndicatorData from "../hooks/useIndicatorData";
+import useIndicatorSeries from "../hooks/useIndicatorSeries";
 import useLocalizedName from "../hooks/useLocalizedName";
+import { buildChartSeries } from "../utils/chartSeries";
 import { useTranslation } from "react-i18next";
 
 export default function IndicatorTemplate() {
@@ -23,7 +24,7 @@ export default function IndicatorTemplate() {
   const indicatorChartRef = useRef(null);
 
   const getName = useLocalizedName();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [uiStartDate, setUiStartDate] = useState('');
   const [uiEndDate, setUiEndDate] = useState('');
@@ -33,19 +34,17 @@ export default function IndicatorTemplate() {
     granularity: 'auto',
     startDate: null,
     endDate: null,
-    limit: 200
+    limit: 10000
   });
 
-  const { data: chartData, loading: dataLoading } = useIndicatorData(indicatorId, "Indicator Data", fetchParams);
-  
+  const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(indicatorId, fetchParams);
+
   const [indicatorData, setIndicatorData] = useState(null);
   const [error, setError] = useState(null);
   const [indicatorLoading, setIndicatorLoading] = useState(false);
   const [chartType, setChartType] = useState('line');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [allLoadedData, setAllLoadedData] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [viewport, setViewport] = useState({ min: null, max: null });
   const [infoOpen, setInfoOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -63,6 +62,30 @@ export default function IndicatorTemplate() {
 
   const isAdmin = user?.role === 'admin';
 
+  // Join the per-resource series from /series with resource names loaded from
+  // resource-service. Names update reactively once indicatorResources arrive
+  // (the two fetches happen in parallel — order isn't guaranteed).
+  // chartData keeps the shape {series:[{name, data:[{x:ms, y}], resource_id}]}
+  // so the existing rendering / export code reads it unchanged.
+  const chartData = useMemo(() => {
+    const lang = (i18n?.language || 'pt').startsWith('en') ? 'en' : 'pt';
+    const built = buildChartSeries(
+      rawSeries,
+      indicatorResources,
+      indicatorData?.series_translations || null,
+      lang,
+    );
+    if (!built) return built;
+    // Drop series the admin marked as hidden in the indicator wizard. The
+    // raw data stays in storage; this is purely a display filter.
+    const hidden = new Set(indicatorData?.hidden_series || []);
+    if (hidden.size === 0) return built;
+    return {
+      ...built,
+      series: built.series.filter(s => !hidden.has(s.series_label)),
+    };
+  }, [rawSeries, indicatorResources, indicatorData?.hidden_series, indicatorData?.series_translations, i18n?.language]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (chartDropdownRef.current && !chartDropdownRef.current.contains(e.target)) setChartDropdownOpen(false);
@@ -75,7 +98,9 @@ export default function IndicatorTemplate() {
     { value: 'line', label: t('chart_types.line'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'area', label: t('chart_types.area'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 17.5L7 13L11 15L17 8L21 12V21H3V17.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="currentColor" fillOpacity="0.2"/></svg> },
     { value: 'column', label: t('chart_types.column'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 10V19M16 7V19M8 14V19M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'stackedColumn', label: t('chart_types.stackedColumn'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 13V19M12 6V11M16 10V19M16 5V8M8 15V19M8 10V13M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'bar', label: t('chart_types.bar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'stackedBar', label: t('chart_types.stackedBar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 13V17.5M7 10.5V12M11.5 13V17.5M11.5 5.5V12M16 13V17.5M16 10.5V12M20.5 13V17.5M20.5 5.5V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'scatter', label: t('chart_types.scatter'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H7.8C6.12 21 5.28 21 4.638 20.673C4.074 20.385 3.615 19.927 3.327 19.362C3 18.72 3 17.88 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'pie', label: t('chart_types.pie'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 3v9l7 5" stroke="currentColor" strokeWidth="2"/></svg> },
     { value: 'donut', label: t('chart_types.donut'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/></svg> },
@@ -90,12 +115,26 @@ export default function IndicatorTemplate() {
   const chartTypeOptions = (() => {
     const allowed = indicatorData?.chart_types;
     if (!Array.isArray(allowed) || allowed.length === 0) {
-      return allChartTypeOptions.filter(o => ['line', 'column', 'bar', 'scatter'].includes(o.value));
+      return allChartTypeOptions.filter(o => ['line', 'column', 'bar', 'stackedColumn', 'stackedBar', 'scatter'].includes(o.value));
     }
     return allChartTypeOptions.filter(o => allowed.includes(o.value));
   })();
 
-  const chartSupportsTools = chartType !== 'bar' && chartType !== 'column';
+  // Match the Chart component's supportsZoomPan list. Pie/donut/treemap have
+  // no axis to scrub; box-plot/candlestick/range collapse data per series.
+  // Bar / column DO benefit from x-axis zoom on long timeseries.
+  const chartSupportsTools = ['line', 'area', 'scatter', 'bar', 'column', 'stackedColumn', 'stackedBar'].includes(chartType);
+
+  const isHorizontalBar = chartType === 'bar' || chartType === 'stackedBar';
+  const chartCategoryCount = Math.max(
+    ...((allLoadedData || chartData)?.series || []).map(s => (s.data || []).length),
+    0
+  );
+  // Horizontal bars grow with category count so labels don't overlap (~22px each),
+  // but are capped at 700px so the chart never takes up the full screen.
+  const chartHeight = isHorizontalBar
+    ? Math.min(Math.max(550, chartCategoryCount * 22), 700)
+    : 550;
 
   const modeIcons = {
     zoom: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
@@ -203,15 +242,17 @@ export default function IndicatorTemplate() {
   }, [viewport.min, viewport.max]);
 
   useEffect(() => {
-    setCurrentPage(0);
+    setViewport({ min: null, max: null });
+  }, [chartType]);
+
+  useEffect(() => {
     setAllLoadedData(null);
-    setIsLoadingMore(false);
     setViewport({ min: null, max: null });
     setFetchParams({
       granularity: uiGranularity,
       startDate: uiStartDate ? new Date(uiStartDate).toISOString() : null,
       endDate: uiEndDate ? new Date(uiEndDate).toISOString() : null,
-      limit: 100
+      limit: 10000,
     });
   }, [uiGranularity, uiStartDate, uiEndDate, isInitialLoad]);
 
@@ -221,91 +262,38 @@ export default function IndicatorTemplate() {
     }
   }, [chartData, isInitialLoad]);
 
+  // /series returns the full per-resource timeseries up to fetchParams.limit
+  // (default 10 000), so there's no streaming/pagination to merge — just
+  // mirror the latest chartData into allLoadedData with each series sorted
+  // ascending. The previous merge-with-prev / lazy-load-on-pan logic
+  // existed for paginated /data fetches and would re-fire indefinitely when
+  // a panned-out fetch came back empty.
   useEffect(() => {
-    if (chartData) {
-      setAllLoadedData(prevData => {
-        if (!prevData) {
-          setIsLoadingMore(false);
-          return {
-            ...chartData,
-            series: chartData.series.map(s => ({
-              ...s,
-              data: [...s.data].sort((a, b) => a.x - b.x)
-            }))
-          };
-        } else {
-          const mergedData = {
-            ...chartData,
-            series: chartData.series.map((newSeries, seriesIndex) => {
-              const prevSeries = prevData.series[seriesIndex];
-              if (!prevSeries) return newSeries;
-
-              const existingDataMap = new Map(
-                prevSeries.data.map(point => [new Date(point.x).getTime(), point])
-              );
-
-              newSeries.data.forEach(point => {
-                existingDataMap.set(new Date(point.x).getTime(), point);
-              });
-
-              const combinedData = Array.from(existingDataMap.values())
-                .sort((a, b) => new Date(a.x) - new Date(b.x));
-
-              return {
-                ...newSeries,
-                data: combinedData
-              };
-            })
-          };
-          setIsLoadingMore(false);
-          return mergedData;
-        }
-      });
-    }
+    if (!chartData) return;
+    setAllLoadedData({
+      ...chartData,
+      series: chartData.series.map(s => ({
+        ...s,
+        data: [...s.data].sort((a, b) => {
+          const ax = a.x instanceof Date ? a.x.getTime() : Number(a.x);
+          const bx = b.x instanceof Date ? b.x.getTime() : Number(b.x);
+          return ax - bx;
+        }),
+      })),
+    });
   }, [chartData]);
-
-  useEffect(() => {
-    if (!dataLoading && isLoadingMore && !chartData) {
-      console.log('📉 Data fetch completed with no results. Resetting loading state.');
-      setIsLoadingMore(false);
-    }
-  }, [dataLoading, isLoadingMore, chartData]);
-
-  useEffect(() => {
-    if (viewport.min && allLoadedData?.series?.[0]?.data?.length > 1 && !dataLoading && !isLoadingMore) {
-        const earliestDataPoint = allLoadedData.series[0].data[0];
-        const earliestDataTime = new Date(earliestDataPoint.x).getTime();
-        const visibleStartTime = new Date(viewport.min).getTime();
-
-        const binSize = allLoadedData.series[0].data[1].x - earliestDataPoint.x;
-        const loadMargin = binSize * 20;
-
-        if (visibleStartTime < earliestDataTime + loadMargin) {
-            console.log('TRIGGERING LOAD MORE DATA:', { visibleStartTime, earliestDataTime, loadMargin });
-            setIsLoadingMore(true);
-            setFetchParams(prev => ({
-                ...prev,
-                startDate: null, // Allow fetching older data without lower bound
-                endDate: new Date(earliestDataTime).toISOString(),
-                limit: 100
-            }));
-        }
-    }
-  }, [viewport.min, allLoadedData, dataLoading, isLoadingMore]);
 
   const handleResetFilters = () => {
     setUiStartDate('');
     setUiEndDate('');
     setUiGranularity('auto');
-    setCurrentPage(0);
     setAllLoadedData(null);
-    setIsLoadingMore(false);
     setViewport({ min: null, max: null });
     setFetchParams({
       granularity: 'auto',
       startDate: null,
       endDate: null,
-      limit: 500
+      limit: 10000,
     });
   };
 
@@ -316,13 +304,28 @@ export default function IndicatorTemplate() {
     return new Date(t).toISOString().slice(0, 10);
   };
 
-  const handleExportCSV = () => {
-    if (!chartData?.series?.[0]?.data) return;
+  const escapeCsv = (v) => {
+    if (v == null) return '';
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
 
-    const csvContent = [
-      ['Date', 'Value'],
-      ...chartData.series[0].data.map(point => [formatCsvDate(point.x), point.y])
-    ].map(row => row.join(',')).join('\n');
+  const handleExportCSV = () => {
+    const series = (chartData?.series || []).filter(s => s.data?.length);
+    if (series.length === 0) return;
+
+    // Wide format: one column per series. Union of x values, sorted asc.
+    const xs = Array.from(new Set(series.flatMap(s => s.data.map(p => p.x)))).sort((a, b) => a - b);
+    const seriesMaps = series.map(s => {
+      const m = new Map();
+      s.data.forEach(p => m.set(p.x, p.y));
+      return m;
+    });
+
+    const header = ['Date', ...series.map(s => s.name)];
+    const rows = xs.map(x => [formatCsvDate(x), ...seriesMaps.map(m => m.has(x) ? m.get(x) : '')]);
+
+    const csvContent = [header, ...rows].map(row => row.map(escapeCsv).join(',')).join('\n');
 
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
@@ -452,19 +455,21 @@ export default function IndicatorTemplate() {
     }
   };
 
-  const handleSourceExportCSV = (sourceName) => {
-    if (!chartData?.series?.[0]?.data) return;
+  const handleSourceExportCSV = (resource) => {
+    // Match by resource_id \u2014 names can collide across different sources.
+    const series = (chartData?.series || []).find(s => s.resource_id === resource.id);
+    if (!series?.data?.length) return;
 
     const csvContent = [
       ['Date', 'Value', 'Source'],
-      ...chartData.series[0].data.map(point => [formatCsvDate(point.x), point.y, sourceName])
-    ].map(row => row.join(',')).join('\n');
+      ...series.data.map(point => [formatCsvDate(point.x), point.y, resource.name])
+    ].map(row => row.map(escapeCsv).join(',')).join('\n');
 
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${sourceName}_data.csv`;
+    a.download = `${resource.name}_data.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -867,14 +872,14 @@ export default function IndicatorTemplate() {
                   </div>
                 </div>
               </div>
-              <div className="h-72 sm:h-96 xl:h-[550px] relative">
+              <div className="relative" style={{ minHeight: 288 }}>
                 {dataLoading && (
                   <div className="absolute top-4 right-4 z-10">
                     <div className="loading loading-spinner loading-sm text-primary"></div>
                   </div>
                 )}
                 {(allLoadedData || chartData)?.series?.[0]?.data?.length > 0 ? (
-                  <div className="h-full">
+                  <div>
                     <GChart
                       ref={indicatorChartRef}
                       chartId={`indicator-${indicatorId}`}
@@ -882,9 +887,12 @@ export default function IndicatorTemplate() {
                       xaxisType="datetime"
                       series={((allLoadedData || chartData)?.series || []).map(s => ({
                         ...s,
-                        name: getName(indicatorData) || s.name
+                        // Each series carries its resource's name; only fall
+                        // back to the indicator name if the resource hasn't
+                        // loaded yet (race with indicatorResources fetch).
+                        name: s.name || getName(indicatorData)
                       }))}
-                      height="100%"
+                      height={chartHeight}
                       showToolbar={true}
                       showLegend={true}
                       themeMode="light"
@@ -918,7 +926,7 @@ export default function IndicatorTemplate() {
             </div>
 
             {/* Sidebar: Ferramentas + Opções */}
-            <div className="w-full xl:w-84 shrink-0 space-y-6">
+            <div className="w-full xl:w-fit shrink-0 space-y-6">
             {/* Ferramentas (Tools) card — hidden for now
             <div className={cardClass}>
               <div className="flex flex-col gap-4">
@@ -1009,7 +1017,7 @@ export default function IndicatorTemplate() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                       </svg>
                     </div>
-                    <span className="font-['Onest'] text-sm text-[#0a0a0a]">{item.label}</span>
+                    <span className="font-['Onest'] text-sm text-[#0a0a0a] whitespace-nowrap">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -1119,7 +1127,7 @@ export default function IndicatorTemplate() {
                               </td>
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-2">
-                                  <button onClick={() => handleSourceExportCSV(resource.name)} className="text-[#737373] hover:text-primary transition-colors cursor-pointer" title={t('indicator.export_csv')}>
+                                  <button onClick={() => handleSourceExportCSV(resource)} className="text-[#737373] hover:text-primary transition-colors cursor-pointer" title={t('indicator.export_csv')}>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                   </button>
                                   <button onClick={() => handleSourceView(resource)} className="text-[#737373] hover:text-success transition-colors cursor-pointer">

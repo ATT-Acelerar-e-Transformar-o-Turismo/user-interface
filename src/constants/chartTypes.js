@@ -6,6 +6,8 @@ export const CHART_TYPES = [
   'area',
   'bar',
   'column',
+  'stackedColumn',
+  'stackedBar',
   'scatter',
   'pie',
   'donut',
@@ -17,16 +19,6 @@ export const CHART_TYPES = [
   'rangeArea',
 ];
 
-// Types that require specially-shaped series data (OHLC, [low,high], etc.).
-// These are still selectable, but Chart.jsx renders a placeholder when the
-// available data is flat {x, y}.
-export const SHAPE_SPECIFIC_CHART_TYPES = new Set([
-  'boxPlot',
-  'candlestick',
-  'rangeBar',
-  'rangeArea',
-]);
-
 // i18n keys for user-facing labels. Keys live under `chart_types.*` in the
 // translation files.
 export const CHART_TYPE_LABEL_KEYS = {
@@ -34,6 +26,8 @@ export const CHART_TYPE_LABEL_KEYS = {
   area: 'chart_types.area',
   bar: 'chart_types.bar',
   column: 'chart_types.column',
+  stackedColumn: 'chart_types.stackedColumn',
+  stackedBar: 'chart_types.stackedBar',
   scatter: 'chart_types.scatter',
   pie: 'chart_types.pie',
   donut: 'chart_types.donut',
@@ -45,5 +39,5 @@ export const CHART_TYPE_LABEL_KEYS = {
   rangeArea: 'chart_types.rangeArea',
 };
 
-export const DEFAULT_CHART_TYPES = ['line', 'column', 'bar', 'scatter'];
+export const DEFAULT_CHART_TYPES = ['line', 'column', 'bar', 'stackedColumn', 'stackedBar', 'scatter'];
 export const DEFAULT_CHART_TYPE = 'line';

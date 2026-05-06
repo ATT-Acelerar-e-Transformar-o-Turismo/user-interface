@@ -285,7 +285,7 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         }
     };
     const defaultRight = (
-        <div className="hidden lg:flex items-center gap-3 xl:gap-4 shrink-0">
+        <div className="hidden lg:flex items-center gap-2 xl:gap-3 2xl:gap-4 shrink-0">
             <Weather />
             <div className="w-px h-[24px] bg-[#0a0a0a] opacity-20" />
             <button
@@ -325,20 +325,54 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
             {/* Floating pill navbar — Figma node 724:1948 */}
             <div ref={navbarWrapperRef} className={`fixed top-0 left-0 right-0 z-50 px-4 lg:px-12 pt-3 lg:pt-5 pointer-events-none font-['Onest'] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
                 {/* Desktop nav pill — hidden on mobile */}
-                <nav className="hidden lg:flex bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] items-center h-[72px] px-4 xl:px-9 pointer-events-auto">
+                <nav className="hidden lg:flex bg-[#fffefc] rounded-[999999px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] items-center h-[72px] px-4 xl:px-9 gap-6 xl:gap-16 2xl:gap-[143px] pointer-events-auto">
 
                     {/* Logo — admin console uses the green variant */}
                     <Link to="/" className="shrink-0 flex items-center">
                         <img src={isAdminContext ? logoRootsGreen : logoRoots} alt="ROOTS" className="h-9 w-auto" />
                     </Link>
 
-                    {/* Nav Items — desktop, auto-sized and centered */}
-                    <div className="flex mx-auto items-center h-full gap-1 xl:gap-4">
-                        {items.map(item => (
-                            <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
-                                {item.label}
-                            </Link>
-                        ))}
+                    {/* Nav Items — desktop, spread with justify-between (Figma: flex-1) */}
+                    <div className="flex flex-1 min-w-0 items-center justify-center gap-2 xl:gap-8 h-full">
+                        {items.map(item => {
+                            if (!navItems && item.label === 'ROOTS') {
+                                return (
+                                    <div
+                                        key={item.path}
+                                        ref={rootsDropdownRef}
+                                        className="relative h-full flex items-center"
+                                        onMouseEnter={() => { clearTimeout(rootsTimeoutRef.current); setIsRootsOpen(true); }}
+                                        onMouseLeave={() => { rootsTimeoutRef.current = setTimeout(() => setIsRootsOpen(false), 150); }}
+                                    >
+                                        <button
+                                            onClick={() => setIsRootsOpen(o => !o)}
+                                            className={`${navItemClass('/roots', false, isRootsActive)} cursor-pointer`}
+                                        >
+                                            ROOTS
+                                        </button>
+                                        {isRootsOpen && (
+                                            <div className="absolute top-full left-0 mt-2 bg-[#fffefc] flex flex-col gap-2 p-4 rounded-[18px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] w-[353px] z-50">
+                                                {rootsSubItems.map(sub => (
+                                                    <Link
+                                                        key={sub.path}
+                                                        to={sub.path}
+                                                        className={`flex items-center p-2 rounded-lg font-['Onest'] font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap transition-colors ${location.pathname === sub.path ? `${activeBg}` : `text-[#0a0a0a] ${hoverBg}`}`}
+                                                        onClick={() => setIsRootsOpen(false)}
+                                                    >
+                                                        {sub.label}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+                            return (
+                                <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
                     </div>
 
                     {/* Right section */}

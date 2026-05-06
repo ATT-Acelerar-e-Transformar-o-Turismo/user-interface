@@ -20,13 +20,23 @@ const SAMPLE_DATA = [
  */
 export default function ChartTypePreview({ chartType, data, height = 90 }) {
   const points = Array.isArray(data) && data.length > 0 ? data : SAMPLE_DATA;
+  const isStacked = chartType === 'stackedColumn' || chartType === 'stackedBar';
+  
+  // Stacking only looks like stacking with >1 series.
+  const series = isStacked
+    ? [
+        { name: 'p1', data: points.map(p => ({ ...p, y: Math.round(p.y * 0.6) })) },
+        { name: 'p2', data: points.map(p => ({ ...p, y: Math.round(p.y * 0.4) })) },
+      ]
+    : [{ name: 'preview', data: points }];
+
   return (
     <div className="pointer-events-none" aria-hidden>
       <GChart
         chartId={`preview-${chartType}`}
         chartType={chartType}
         xaxisType="datetime"
-        series={[{ name: 'preview', data: points }]}
+        series={series}
         height={height}
         showLegend={false}
         showToolbar={false}
