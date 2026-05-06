@@ -378,7 +378,15 @@
       "default_chart_type_label": "Tipo de gráfico por omissão",
       "default_chart_type_placeholder": "Selecione o tipo por omissão",
       "default_chart_type_hint": "É o tipo mostrado no cartão do indicador e selecionado primeiro na página de detalhe.",
-      "default_chart_type_invalid": "O tipo por omissão tem de ser um dos tipos suportados."
+      "default_chart_type_invalid": "O tipo por omissão tem de ser um dos tipos suportados.",
+      "columns_label": "Colunas de dados",
+      "columns_hint": "Desmarque colunas para ocultá-las no gráfico público sem regenerar o wrapper.",
+      "columns_empty": "Sem colunas nomeadas para este indicador. Adicione um wrapper de várias colunas para ver opções aqui.",
+      "step_columns": "Colunas",
+      "step_columns_desc": "Active/desative colunas e ajuste as traduções PT/EN. As traduções pré-preenchidas vêm do tradutor automático e podem ser editadas.",
+      "column_label_pt": "Etiqueta (PT)",
+      "column_label_en": "Etiqueta (EN)",
+      "column_hidden_badge": "oculta"
     },
     "area": {
       "title_new": "Novo Área",

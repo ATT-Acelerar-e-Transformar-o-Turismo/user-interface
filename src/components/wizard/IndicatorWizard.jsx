@@ -15,6 +15,7 @@ import { validateRequired, validateForm, hasErrors } from '../../utils/formValid
 import indicatorService from '../../services/indicatorService';
 import areaService from '../../services/areaService';
 import dataService from '../../services/dataService';
+import useIndicatorSeries from '../../hooks/useIndicatorSeries';
 import ChartTypePreview from './ChartTypePreview';
 import {
   CHART_TYPES,
@@ -39,11 +40,21 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   // to a synthetic series inside ChartTypePreview.
   const [previewData, setPreviewData] = useState([]);
 
-  const steps = [
-    t('wizard.indicator.step_info'),
-    t('wizard.indicator.step_units'),
-    t('wizard.indicator.step_charts'),
-  ];
+  // Columns step is shown only when editing an existing indicator — new
+  // indicators have no resources/columns yet, so the step would be empty.
+  const showColumnsStep = !!indicatorId;
+  const steps = showColumnsStep
+    ? [
+        t('wizard.indicator.step_info'),
+        t('wizard.indicator.step_units'),
+        t('wizard.indicator.step_charts'),
+        t('wizard.indicator.step_columns', 'Colunas'),
+      ]
+    : [
+        t('wizard.indicator.step_info'),
+        t('wizard.indicator.step_units'),
+        t('wizard.indicator.step_charts'),
+      ];
 
   const initialData = {
     name: '',
@@ -65,9 +76,51 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     carrying_capacity: '',
     chart_types: [...DEFAULT_CHART_TYPES],
     default_chart_type: DEFAULT_CHART_TYPE,
+    hidden_series: [],
+    series_translations: {},
   };
 
   const wizard = useWizard(steps.length, initialData, handleSubmit);
+
+  // Pull the indicator's per-resource series so the column-toggle UI can list
+  // every known column (each entry is one line on the chart). Only fires in
+  // edit mode — new indicators have no resources yet.
+  const { series: knownSeries } = useIndicatorSeries(indicatorId || null, { limit: 1 });
+  const knownSeriesLabels = Array.from(new Set(
+    (knownSeries || [])
+      .map(s => s?.series_label)
+      .filter(label => typeof label === 'string' && label.length > 0)
+  ));
+  // Show any previously-hidden labels that no longer appear in the live data
+  // so the admin can still un-hide them — otherwise a label that ends up in
+  // hidden_series and then stops being emitted would be stuck off.
+  const seriesToggleOptions = Array.from(new Set([
+    ...knownSeriesLabels,
+    ...(wizard.formData.hidden_series || []),
+  ]));
+
+  const toggleHiddenSeries = (label) => {
+    const current = wizard.formData.hidden_series || [];
+    const next = current.includes(label)
+      ? current.filter(l => l !== label)
+      : [...current, label];
+    wizard.updateFormData('hidden_series', next);
+  };
+
+  const updateSeriesTranslation = (label, lang, value) => {
+    const current = wizard.formData.series_translations || {};
+    // First-time edit: seed the OTHER side with the original label so the
+    // user's keystroke in PT doesn't blank out EN (and vice-versa). The
+    // render-time fallback only kicks in when the stored value is
+    // undefined, so once we write any defined value to the entry we have
+    // to make the sibling field defined too — otherwise it would render
+    // as the empty string.
+    const entry = current[label] || { pt: label, en: label };
+    wizard.updateFormData('series_translations', {
+      ...current,
+      [label]: { ...entry, [lang]: value },
+    });
+  };
 
   // Load areas and indicator data on mount
   useEffect(() => {
@@ -123,6 +176,10 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               ? indicator.chart_types
               : [...DEFAULT_CHART_TYPES],
             default_chart_type: indicator.default_chart_type || DEFAULT_CHART_TYPE,
+            hidden_series: Array.isArray(indicator.hidden_series) ? indicator.hidden_series : [],
+            series_translations: (indicator.series_translations && typeof indicator.series_translations === 'object')
+              ? indicator.series_translations
+              : {},
           });
         }
 
@@ -219,6 +276,8 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
         favourites: 0,
         chart_types: data.chart_types,
         default_chart_type: data.default_chart_type,
+        hidden_series: data.hidden_series || [],
+        series_translations: data.series_translations || {},
       };
 
       let result;
@@ -291,15 +350,6 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     value: typeof s === 'string' ? s : s.name,
     label: typeof s === 'string' ? s : s.name
   }));
-
-  // Debug logging
-  console.log('IndicatorWizard render:', {
-    isOpen,
-    showSuccessModal,
-    showResourceWizard,
-    createdIndicatorId,
-    wizardVisible: isOpen && !showSuccessModal && !showResourceWizard
-  });
 
   return (
     <>
@@ -475,6 +525,7 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
                 type="number"
               />
             )}
+
           </WizardStep>
         )}
 
@@ -534,6 +585,71 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               />
               <p className="text-xs text-gray-500 mt-1">{t('wizard.indicator.default_chart_type_hint')}</p>
             </div>
+
+          </WizardStep>
+        )}
+
+        {showColumnsStep && wizard.currentStep === 3 && (
+          <WizardStep
+            title={t('wizard.indicator.step_columns', 'Colunas')}
+            description={t('wizard.indicator.step_columns_desc', 'Active/desative colunas e ajuste as traduções PT/EN. As traduções pré-preenchidas vêm do tradutor automático e podem ser editadas.')}
+          >
+            {seriesToggleOptions.length === 0 ? (
+              <p className="text-sm text-gray-500 italic">
+                {t('wizard.indicator.columns_empty', 'Sem colunas nomeadas para este indicador. Adicione um wrapper de várias colunas para ver opções aqui.')}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {seriesToggleOptions.map(label => {
+                  const hidden = (wizard.formData.hidden_series || []).includes(label);
+                  const checked = !hidden;
+                  // Render-time fallback: when the stored translation is
+                  // missing/undefined, show the original column label as the
+                  // input's actual value (real, deletable text). Once the
+                  // admin types or backspaces, the form-state value (which
+                  // may be an empty string) takes over so they can also
+                  // clear the field.
+                  const stored = (wizard.formData.series_translations || {})[label];
+                  const ptValue = stored && stored.pt !== undefined ? stored.pt : label;
+                  const enValue = stored && stored.en !== undefined ? stored.en : label;
+                  return (
+                    <div
+                      key={label}
+                      className={`border rounded-lg p-3 transition-colors ${checked ? 'border-primary bg-primary/5' : 'border-gray-200 bg-gray-50'}`}
+                    >
+                      <label className="flex items-center gap-2 cursor-pointer mb-2">
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-sm"
+                          checked={checked}
+                          onChange={() => toggleHiddenSeries(label)}
+                        />
+                        <span className="text-sm font-medium truncate" title={label}>{label}</span>
+                        {!checked && (
+                          <span className="text-xs text-gray-500 ml-auto">
+                            {t('wizard.indicator.column_hidden_badge', 'oculta')}
+                          </span>
+                        )}
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
+                        <FormInput
+                          label={t('wizard.indicator.column_label_pt', 'Etiqueta (PT)')}
+                          name={`series_pt_${label}`}
+                          value={ptValue}
+                          onChange={(v) => updateSeriesTranslation(label, 'pt', v)}
+                        />
+                        <FormInput
+                          label={t('wizard.indicator.column_label_en', 'Label (EN)')}
+                          name={`series_en_${label}`}
+                          value={enValue}
+                          onChange={(v) => updateSeriesTranslation(label, 'en', v)}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </WizardStep>
         )}
       </Wizard>

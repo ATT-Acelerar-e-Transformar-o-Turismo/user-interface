@@ -12,6 +12,12 @@ import {
   defaultColumnSelectionForFile,
   buildChartSeries,
   normaliseHeader,
+  buildPieDonutPayload,
+  buildTreemapPayload,
+  buildHeatmapPayload,
+  buildBoxPlotPayload,
+  buildRangePayload,
+  buildCandlestickPayload,
 } from './chartSeries.js';
 
 // --- pickDefaultTimeColumn -------------------------------------------------
@@ -184,4 +190,130 @@ test('buildChartSeries: drops malformed points instead of crashing', () => {
   );
   assert.equal(out.series[0].data.length, 1);
   assert.equal(out.series[0].data[0].y, 1);
+});
+
+// ---------------------------------------------------------------------------
+// Apex per-chart-type payloads.
+// ---------------------------------------------------------------------------
+// These adapters fix the "Could not render this chart type with the current
+// data" / "requires multi-valued data" messages the user reported. Each
+// chart type needs a different shape; the tests pin down what comes out.
+
+const indicatorSeries = [
+  { name: 'Total', data: [{ x: 100, y: 30 }, { x: 200, y: 40 }, { x: 300, y: 50 }] },
+  { name: 'Águas residuais', data: [{ x: 100, y: 5 }, { x: 200, y: 6 }, { x: 300, y: 7 }] },
+];
+
+test('buildPieDonutPayload: multi-series → one slice per series, value = sum', () => {
+  const out = buildPieDonutPayload(indicatorSeries);
+  assert.deepEqual(out.apexLabels, ['Total', 'Águas residuais']);
+  assert.deepEqual(out.apexSeries, [120, 18]);
+});
+
+test('buildPieDonutPayload: single series with many points → slice per point', () => {
+  // One nationality with 3 years of data — pie shows one slice per year.
+  const out = buildPieDonutPayload([{
+    name: 'Hotel guests',
+    data: [{ x: 2019, y: 100 }, { x: 2020, y: 30 }, { x: 2021, y: 80 }],
+  }]);
+  assert.deepEqual(out.apexLabels, ['2019', '2020', '2021']);
+  assert.deepEqual(out.apexSeries, [100, 30, 80]);
+});
+
+test('buildPieDonutPayload: hidden series excluded', () => {
+  const out = buildPieDonutPayload([
+    { name: 'A', data: [{ x: 1, y: 10 }] },
+    { name: 'B', data: [{ x: 1, y: 20 }], hidden: true },
+  ]);
+  assert.deepEqual(out.apexLabels, ['A']);
+  assert.deepEqual(out.apexSeries, [10]);
+});
+
+test('buildPieDonutPayload: empty input → empty arrays (no crash)', () => {
+  assert.deepEqual(buildPieDonutPayload([]), { apexSeries: [], apexLabels: [] });
+});
+
+test('buildTreemapPayload: one apex series per cell so the legend shows each cell', () => {
+  const out = buildTreemapPayload(indicatorSeries);
+  // Each cell becomes its own apex series → apex builds a legend entry per
+  // cell (with `distributed: true`, each series gets its own colour).
+  assert.equal(out.apexSeries.length, 2);
+  assert.equal(out.apexSeries[0].name, 'Total');
+  assert.deepEqual(out.apexSeries[0].data, [{ x: 'Total', y: 120 }]);
+  assert.equal(out.apexSeries[1].name, 'Águas residuais');
+  assert.deepEqual(out.apexSeries[1].data, [{ x: 'Águas residuais', y: 18 }]);
+});
+
+test('buildTreemapPayload: single series with many points → one apex series per data point', () => {
+  // Single-series indicator with N points → N cells, N legend entries.
+  const out = buildTreemapPayload([{
+    name: 'Indicator',
+    data: [{ x: 2019, y: 100 }, { x: 2020, y: 30 }, { x: 2021, y: 80 }],
+  }]);
+  assert.deepEqual(out.apexSeries.map((s) => s.name), ['2019', '2020', '2021']);
+  assert.deepEqual(out.apexSeries[0].data, [{ x: '2019', y: 100 }]);
+});
+
+test('buildHeatmapPayload: each series → one row, x is stringified category', () => {
+  const out = buildHeatmapPayload(indicatorSeries, (x) => `Y${x}`);
+  assert.equal(out.apexSeries.length, 2);
+  assert.equal(out.apexSeries[0].name, 'Total');
+  assert.deepEqual(out.apexSeries[0].data[0], { x: 'Y100', y: 30 });
+  assert.equal(out.apexSeries[1].name, 'Águas residuais');
+});
+
+test('buildBoxPlotPayload: y = [min, q1, median, q3, max] per series', () => {
+  const out = buildBoxPlotPayload([
+    { name: 'A', data: [1, 2, 3, 4, 5].map((y, i) => ({ x: i, y })) },
+  ]);
+  // Five-value series: linear quartiles → [1, 2, 3, 4, 5]
+  assert.deepEqual(out.apexSeries[0].data[0].y, [1, 2, 3, 4, 5]);
+  assert.equal(out.apexSeries[0].data[0].x, 'A');
+});
+
+test('buildBoxPlotPayload: degenerate single-value series → flat box', () => {
+  const out = buildBoxPlotPayload([{ name: 'A', data: [{ x: 1, y: 7 }] }]);
+  assert.deepEqual(out.apexSeries[0].data[0].y, [7, 7, 7, 7, 7]);
+});
+
+test('buildBoxPlotPayload: empty series filtered out (no NaN box)', () => {
+  const out = buildBoxPlotPayload([
+    { name: 'A', data: [{ x: 1, y: 10 }] },
+    { name: 'B', data: [] },
+  ]);
+  assert.equal(out.apexSeries[0].data.length, 1);
+  assert.equal(out.apexSeries[0].data[0].x, 'A');
+});
+
+test('buildRangePayload: y = [min, max] — one apex series per indicator series', () => {
+  const out = buildRangePayload(indicatorSeries);
+  assert.equal(out.apexSeries.length, 2);
+  assert.equal(out.apexSeries[0].name, 'Total');
+  assert.deepEqual(out.apexSeries[0].data, [{ x: 'Total', y: [30, 50] }]);
+  assert.equal(out.apexSeries[1].name, 'Águas residuais');
+  assert.deepEqual(out.apexSeries[1].data, [{ x: 'Águas residuais', y: [5, 7] }]);
+});
+
+test('buildCandlestickPayload: y = [open, high, low, close] from chrono order', () => {
+  // Out-of-order points should still produce open=earliest, close=latest.
+  const out = buildCandlestickPayload([{
+    name: 'A',
+    data: [
+      { x: 200, y: 5 },
+      { x: 100, y: 1 },
+      { x: 300, y: 9 },
+      { x: 250, y: 7 },
+    ],
+  }]);
+  // open = y at x=100 → 1, close = y at x=300 → 9
+  // high = max(1,5,9,7) = 9, low = min = 1
+  assert.deepEqual(out.apexSeries[0].data[0].y, [1, 9, 1, 9]);
+});
+
+test('buildCandlestickPayload: skips empty series', () => {
+  const out = buildCandlestickPayload([
+    { name: 'A', data: [{ x: 1, y: 10 }] },
+    { name: 'B', data: [] },
+  ]);
+  assert.equal(out.apexSeries[0].data.length, 1);
 });

@@ -24,7 +24,7 @@ export default function IndicatorTemplate() {
   const indicatorChartRef = useRef(null);
 
   const getName = useLocalizedName();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [uiStartDate, setUiStartDate] = useState('');
   const [uiEndDate, setUiEndDate] = useState('');
@@ -45,8 +45,6 @@ export default function IndicatorTemplate() {
   const [chartType, setChartType] = useState('line');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [allLoadedData, setAllLoadedData] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [viewport, setViewport] = useState({ min: null, max: null });
   const [infoOpen, setInfoOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -69,10 +67,24 @@ export default function IndicatorTemplate() {
   // (the two fetches happen in parallel — order isn't guaranteed).
   // chartData keeps the shape {series:[{name, data:[{x:ms, y}], resource_id}]}
   // so the existing rendering / export code reads it unchanged.
-  const chartData = useMemo(
-    () => buildChartSeries(rawSeries, indicatorResources),
-    [rawSeries, indicatorResources],
-  );
+  const chartData = useMemo(() => {
+    const lang = (i18n?.language || 'pt').startsWith('en') ? 'en' : 'pt';
+    const built = buildChartSeries(
+      rawSeries,
+      indicatorResources,
+      indicatorData?.series_translations || null,
+      lang,
+    );
+    if (!built) return built;
+    // Drop series the admin marked as hidden in the indicator wizard. The
+    // raw data stays in storage; this is purely a display filter.
+    const hidden = new Set(indicatorData?.hidden_series || []);
+    if (hidden.size === 0) return built;
+    return {
+      ...built,
+      series: built.series.filter(s => !hidden.has(s.series_label)),
+    };
+  }, [rawSeries, indicatorResources, indicatorData?.hidden_series, indicatorData?.series_translations, i18n?.language]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -106,7 +118,10 @@ export default function IndicatorTemplate() {
     return allChartTypeOptions.filter(o => allowed.includes(o.value));
   })();
 
-  const chartSupportsTools = chartType !== 'bar' && chartType !== 'column';
+  // Match the Chart component's supportsZoomPan list. Pie/donut/treemap have
+  // no axis to scrub; box-plot/candlestick/range collapse data per series.
+  // Bar / column DO benefit from x-axis zoom on long timeseries.
+  const chartSupportsTools = ['line', 'area', 'scatter', 'bar', 'column'].includes(chartType);
 
   const modeIcons = {
     zoom: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
@@ -214,15 +229,13 @@ export default function IndicatorTemplate() {
   }, [viewport.min, viewport.max]);
 
   useEffect(() => {
-    setCurrentPage(0);
     setAllLoadedData(null);
-    setIsLoadingMore(false);
     setViewport({ min: null, max: null });
     setFetchParams({
       granularity: uiGranularity,
       startDate: uiStartDate ? new Date(uiStartDate).toISOString() : null,
       endDate: uiEndDate ? new Date(uiEndDate).toISOString() : null,
-      limit: 100
+      limit: 10000,
     });
   }, [uiGranularity, uiStartDate, uiEndDate, isInitialLoad]);
 
@@ -232,91 +245,38 @@ export default function IndicatorTemplate() {
     }
   }, [chartData, isInitialLoad]);
 
+  // /series returns the full per-resource timeseries up to fetchParams.limit
+  // (default 10 000), so there's no streaming/pagination to merge — just
+  // mirror the latest chartData into allLoadedData with each series sorted
+  // ascending. The previous merge-with-prev / lazy-load-on-pan logic
+  // existed for paginated /data fetches and would re-fire indefinitely when
+  // a panned-out fetch came back empty.
   useEffect(() => {
-    if (chartData) {
-      setAllLoadedData(prevData => {
-        if (!prevData) {
-          setIsLoadingMore(false);
-          return {
-            ...chartData,
-            series: chartData.series.map(s => ({
-              ...s,
-              data: [...s.data].sort((a, b) => a.x - b.x)
-            }))
-          };
-        } else {
-          const mergedData = {
-            ...chartData,
-            series: chartData.series.map((newSeries, seriesIndex) => {
-              const prevSeries = prevData.series[seriesIndex];
-              if (!prevSeries) return newSeries;
-
-              const existingDataMap = new Map(
-                prevSeries.data.map(point => [new Date(point.x).getTime(), point])
-              );
-
-              newSeries.data.forEach(point => {
-                existingDataMap.set(new Date(point.x).getTime(), point);
-              });
-
-              const combinedData = Array.from(existingDataMap.values())
-                .sort((a, b) => new Date(a.x) - new Date(b.x));
-
-              return {
-                ...newSeries,
-                data: combinedData
-              };
-            })
-          };
-          setIsLoadingMore(false);
-          return mergedData;
-        }
-      });
-    }
+    if (!chartData) return;
+    setAllLoadedData({
+      ...chartData,
+      series: chartData.series.map(s => ({
+        ...s,
+        data: [...s.data].sort((a, b) => {
+          const ax = a.x instanceof Date ? a.x.getTime() : Number(a.x);
+          const bx = b.x instanceof Date ? b.x.getTime() : Number(b.x);
+          return ax - bx;
+        }),
+      })),
+    });
   }, [chartData]);
-
-  useEffect(() => {
-    if (!dataLoading && isLoadingMore && !chartData) {
-      console.log('📉 Data fetch completed with no results. Resetting loading state.');
-      setIsLoadingMore(false);
-    }
-  }, [dataLoading, isLoadingMore, chartData]);
-
-  useEffect(() => {
-    if (viewport.min && allLoadedData?.series?.[0]?.data?.length > 1 && !dataLoading && !isLoadingMore) {
-        const earliestDataPoint = allLoadedData.series[0].data[0];
-        const earliestDataTime = new Date(earliestDataPoint.x).getTime();
-        const visibleStartTime = new Date(viewport.min).getTime();
-
-        const binSize = allLoadedData.series[0].data[1].x - earliestDataPoint.x;
-        const loadMargin = binSize * 20;
-
-        if (visibleStartTime < earliestDataTime + loadMargin) {
-            console.log('TRIGGERING LOAD MORE DATA:', { visibleStartTime, earliestDataTime, loadMargin });
-            setIsLoadingMore(true);
-            setFetchParams(prev => ({
-                ...prev,
-                startDate: null, // Allow fetching older data without lower bound
-                endDate: new Date(earliestDataTime).toISOString(),
-                limit: 100
-            }));
-        }
-    }
-  }, [viewport.min, allLoadedData, dataLoading, isLoadingMore]);
 
   const handleResetFilters = () => {
     setUiStartDate('');
     setUiEndDate('');
     setUiGranularity('auto');
-    setCurrentPage(0);
     setAllLoadedData(null);
-    setIsLoadingMore(false);
     setViewport({ min: null, max: null });
     setFetchParams({
       granularity: 'auto',
       startDate: null,
       endDate: null,
-      limit: 500
+      limit: 10000,
     });
   };
 

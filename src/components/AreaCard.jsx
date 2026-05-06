@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import useLocalizedName from '../hooks/useLocalizedName';
-import arrowRight from '../assets/images/arrow-right.svg';
 
 const PAGE_SIZE = 4;
 const MAX_DOTS = 3;
@@ -119,9 +118,11 @@ export default function AreaCard({
               />
             ))}
           </div>
-          <button className="bg-base-100 text-primary px-4 py-1.5 rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-100 transition-colors shadow-sm">
+          <button className="bg-[#f3f4f6] text-[#084d92] px-4 py-1.5 rounded-full flex items-center justify-center gap-2 font-medium hover:bg-gray-200 transition-colors shadow-sm">
             <span className="font-['Onest'] font-medium leading-snug whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 5cqi, 1.125rem)' }}>{t('components.area_card.view_all')}</span>
-            <img src={arrowRight} alt="" className="w-4 h-4" />
+            <svg className="w-4 h-4" viewBox="0 0 28.2931 28.2931" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.82845 6.29253C10.2601 5.86092 10.9593 5.86092 11.3909 6.29253L18.4642 13.3658C18.8957 13.7974 18.8958 14.4967 18.4642 14.9283L11.3909 22.0015C10.9594 22.4327 10.2599 22.4329 9.82845 22.0015C9.39698 21.57 9.3972 20.8706 9.82845 20.439L16.1204 14.147L9.82845 7.85503C9.39696 7.42354 9.39719 6.72416 9.82845 6.29253Z" fill="currentColor" />
+            </svg>
           </button>
         </div>
       </div>

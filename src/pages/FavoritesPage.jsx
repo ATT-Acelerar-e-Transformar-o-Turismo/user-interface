@@ -224,6 +224,8 @@ export default function FavoritesPage() {
                     description={indicator.description}
                     description_en={indicator.description_en}
                     defaultChartType={indicator.default_chart_type}
+                    hiddenSeries={indicator.hidden_series || []}
+                    seriesTranslations={indicator.series_translations || null}
                   />
                 ))}
               </div>

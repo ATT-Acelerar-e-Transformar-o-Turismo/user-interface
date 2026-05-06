@@ -58,27 +58,206 @@ export const defaultColumnSelectionForFile = (parsed) => {
   };
 };
 
+// ---------------------------------------------------------------------------
+// Apex chart payload adapters.
+// ---------------------------------------------------------------------------
+// Each chart type expects a different `series` / `labels` shape from
+// ApexCharts. Our internal series shape is uniform:
+//   [{ name, data: [{x, y}, ...] }, ...]
+// The functions below transform that into the apex-flavoured payload for
+// every chart type the indicator detail page can pick. Putting the logic
+// here (instead of inline in Chart.jsx) lets us unit-test it without a
+// browser, and keeps the rendering component free of branching switch-on-
+// chartType code.
+
+const isFiniteNumber = (n) => typeof n === 'number' && Number.isFinite(n);
+
+const sortAsc = (arr) => [...arr].sort((a, b) => a - b);
+
+const computeQuartiles = (values) => {
+  // Linear-interpolation quartiles. For empty / one-value series we fall
+  // back to a degenerate box (all five stats equal) so the chart renders
+  // a flat marker instead of erroring out.
+  if (!values.length) return null;
+  const sorted = sortAsc(values);
+  if (sorted.length === 1) return [sorted[0], sorted[0], sorted[0], sorted[0], sorted[0]];
+  const at = (q) => {
+    const pos = (sorted.length - 1) * q;
+    const lo = Math.floor(pos);
+    const hi = Math.ceil(pos);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+  };
+  return [sorted[0], at(0.25), at(0.5), at(0.75), sorted[sorted.length - 1]];
+};
+
+// Pie / Donut
+//   Multi-series indicator → one slice per series, sized by SUM of its y values.
+//   Single-series indicator with N>1 points → one slice per data point.
+//   Single point → one slice (degenerate but renders).
+export const buildPieDonutPayload = (series) => {
+  const visible = (series || []).filter((s) => !s.hidden);
+  if (visible.length === 0) return { apexSeries: [], apexLabels: [] };
+
+  if (visible.length === 1 && (visible[0].data?.length ?? 0) > 1) {
+    const labels = visible[0].data.map((d) => String(d.x));
+    const values = visible[0].data.map((d) => Number(d.y) || 0);
+    return { apexSeries: values, apexLabels: labels };
+  }
+
+  const labels = visible.map((s, i) => s.name || `Series ${i + 1}`);
+  const values = visible.map((s) =>
+    (s.data || []).reduce((acc, d) => acc + (Number(d.y) || 0), 0),
+  );
+  return { apexSeries: values, apexLabels: labels };
+};
+
+// Treemap
+//   Same per-series-or-per-point logic as pie/donut. Apex treemap renders
+//   one rectangle per data-point and assigns colours per *series*, so to get
+//   a legend with one entry per cell we wrap every cell in its own series.
+//   With plotOptions.treemap.distributed=true each series then pulls a
+//   distinct colour from `colors` and Apex builds a matching legend.
+export const buildTreemapPayload = (series) => {
+  const visible = (series || []).filter((s) => !s.hidden);
+  let cells;
+  if (visible.length === 1 && (visible[0].data?.length ?? 0) > 1) {
+    cells = visible[0].data.map((d) => ({ x: String(d.x), y: Number(d.y) || 0 }));
+  } else {
+    cells = visible.map((s, i) => ({
+      x: s.name || `Series ${i + 1}`,
+      y: (s.data || []).reduce((acc, d) => acc + (Number(d.y) || 0), 0),
+    }));
+  }
+  // One series per cell → one legend entry per cell.
+  return {
+    apexSeries: cells.map((c) => ({ name: c.x, data: [c] })),
+  };
+};
+
+// Heatmap
+//   One row per series, each cell at column x (formatted as a label) =
+//   y value. Apex heatmap needs the x-axis to be category, so we stringify
+//   x here even when the source is datetime.
+export const buildHeatmapPayload = (series, xLabel = (x) => String(x)) => {
+  const visible = (series || []).filter((s) => !s.hidden);
+  return {
+    apexSeries: visible.map((s) => ({
+      name: s.name,
+      data: (s.data || []).map((d) => ({
+        x: xLabel(d.x),
+        y: Number(d.y) || 0,
+      })),
+    })),
+  };
+};
+
+// Box plot
+//   One box per indicator series, computed from that series' y values:
+//     y = [min, q1, median, q3, max]
+//   Each indicator series becomes its OWN apex series so apex's default
+//   legend renders one toggleable entry per box (collapsing everything into
+//   a single apex series gives just one legend item).
+export const buildBoxPlotPayload = (series) => {
+  const visible = (series || []).filter((s) => !s.hidden);
+  return {
+    apexSeries: visible
+      .map((s, i) => {
+        const ys = (s.data || []).map((d) => Number(d.y)).filter(isFiniteNumber);
+        const q = computeQuartiles(ys);
+        if (!q) return null;
+        const name = s.name || `Series ${i + 1}`;
+        return { name, type: 'boxPlot', data: [{ x: name, y: q }] };
+      })
+      .filter(Boolean),
+  };
+};
+
+// Range bar / range area
+//   One bar/band per indicator series, y = [min, max] across that series.
+//   One apex series per item so each gets its own legend entry.
+export const buildRangePayload = (series) => {
+  const visible = (series || []).filter((s) => !s.hidden);
+  return {
+    apexSeries: visible
+      .map((s, i) => {
+        const ys = (s.data || []).map((d) => Number(d.y)).filter(isFiniteNumber);
+        if (!ys.length) return null;
+        const name = s.name || `Series ${i + 1}`;
+        return { name, data: [{ x: name, y: [Math.min(...ys), Math.max(...ys)] }] };
+      })
+      .filter(Boolean),
+  };
+};
+
+// Candlestick
+//   No "real" OHLC in indicator data, so we fake it from the series' time
+//   ordering: open = first y chronologically, close = last y, high = max,
+//   low = min. One apex series per indicator series so each candle has its
+//   own legend entry.
+export const buildCandlestickPayload = (series) => {
+  const visible = (series || []).filter((s) => !s.hidden);
+  return {
+    apexSeries: visible
+      .map((s, i) => {
+        const sorted = (s.data || [])
+          .map((d) => ({ x: d.x, y: Number(d.y) }))
+          .filter((d) => isFiniteNumber(d.y))
+          .sort((a, b) => {
+            const ax = a.x instanceof Date ? a.x.getTime() : Number(a.x);
+            const bx = b.x instanceof Date ? b.x.getTime() : Number(b.x);
+            return ax - bx;
+          });
+        if (!sorted.length) return null;
+        const ys = sorted.map((d) => d.y);
+        const name = s.name || `Series ${i + 1}`;
+        return {
+          name,
+          data: [{
+            x: name,
+            y: [sorted[0].y, Math.max(...ys), Math.min(...ys), sorted[sorted.length - 1].y],
+          }],
+        };
+      })
+      .filter(Boolean),
+  };
+};
+
 // Build the chart-ready series for the indicator page. Each entry from
 // /api/indicators/{id}/series identifies a line by (resource_id, series_label)
 // — a multi-column file produces several series under one resource_id, each
 // with a different series_label (the column name).
 //
-// Naming preference:
-//   1. series_label (column name) when present — most informative.
-//   2. resource.name when there's only one series for that resource.
-//   3. resource_id as a last-resort fallback (resource list still loading).
+// Naming preference (highest first):
+//   1. seriesTranslations[series_label][lang] when set — admin-curated label.
+//   2. series_label (column name) when present — most informative raw value.
+//   3. resource.name when there's only one series for that resource.
+//   4. resource_id as a last-resort fallback (resource list still loading).
 //
 //   rawSeries: [{resource_id, series_label, points:[{x:isoString|number, y:number}]}, ...]
 //   indicatorResources: [{id, name, ...}]
+//   seriesTranslations: { [series_label]: { pt, en } } — optional
+//   lang: 'pt' | 'en' — optional, defaults to 'pt'
 // Returns: {series:[{name, resource_id, series_label, data:[{x:ms|number, y}]}]} | null
-export const buildChartSeries = (rawSeries, indicatorResources) => {
+export const buildChartSeries = (
+  rawSeries,
+  indicatorResources,
+  seriesTranslations = null,
+  lang = 'pt',
+) => {
   if (!Array.isArray(rawSeries) || rawSeries.length === 0) return null;
   const resById = new Map((indicatorResources || []).map((r) => [r.id, r]));
+  const trans = seriesTranslations && typeof seriesTranslations === 'object'
+    ? seriesTranslations
+    : null;
   return {
     series: rawSeries.map((s) => {
       const resource = resById.get(s.resource_id);
       const label = s.series_label;
-      const name = label || resource?.name || s.resource_id;
+      const localized = label && trans && trans[label]
+        ? (trans[label][lang] || trans[label][lang === 'pt' ? 'en' : 'pt'])
+        : null;
+      const name = (localized && localized.trim()) || label || resource?.name || s.resource_id;
       return {
         name,
         resource_id: s.resource_id,

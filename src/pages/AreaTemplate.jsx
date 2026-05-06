@@ -631,6 +631,8 @@ export default function AreaTemplate({ embedded = false }) {
                             hidden={!!indicator.hidden}
                             isAdmin={isAdmin}
                             defaultChartType={indicator.default_chart_type}
+                            hiddenSeries={indicator.hidden_series || []}
+                            seriesTranslations={indicator.series_translations || null}
                             onToggleHidden={async (e) => {
                               e.stopPropagation();
                               await indicatorService.patch(indicator.id, { hidden: !indicator.hidden });

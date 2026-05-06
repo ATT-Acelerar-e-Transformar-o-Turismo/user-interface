@@ -3,15 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { faHeart as faSolidHeart, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useArea } from "../contexts/AreaContext";
 import Chart from "./Chart";
-import useIndicatorData from "../hooks/useIndicatorData";
+import useIndicatorSeries from "../hooks/useIndicatorSeries";
 import useLocalizedName from "../hooks/useLocalizedName";
+import { buildChartSeries } from "../utils/chartSeries";
 import PropTypes from "prop-types";
 
-export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimension, description, description_en, unit, hidden = false, onToggleHidden, isAdmin = false, defaultChartType = 'line' }) {
-    const { t } = useTranslation();
+export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimension, description, description_en, unit, hidden = false, onToggleHidden, isAdmin = false, defaultChartType = 'line', hiddenSeries = [], seriesTranslations = null }) {
+    const { t, i18n } = useTranslation();
     const getName = useLocalizedName();
     const localizedDescription = getName.field({ description, description_en }, 'description', 'description_en');
     const navigate = useNavigate();
@@ -21,8 +22,18 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
     const [indicatorData] = useState(null);
     const { areas } = useArea();
     
-    // Use the custom hook to fetch indicator data
-    const { data: chartData, loading: dataLoading } = useIndicatorData(IndicatorId, IndicatorTitle, { limit: 100, granularity: '1M' });
+    // Pull the per-resource series so multi-column indicators render every
+    // line in the preview (the legacy useIndicatorData hook collapses
+    // everything into a single line, hiding multi-series data).
+    const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(IndicatorId, { limit: 1000 });
+    const chartData = useMemo(() => {
+        const lang = (i18n?.language || 'pt').startsWith('en') ? 'en' : 'pt';
+        const built = buildChartSeries(rawSeries, [], seriesTranslations, lang);
+        if (!built) return null;
+        const hidden = new Set(hiddenSeries || []);
+        if (hidden.size === 0) return built;
+        return { ...built, series: built.series.filter(s => !hidden.has(s.series_label)) };
+    }, [rawSeries, hiddenSeries, seriesTranslations, i18n?.language]);
 
     // Find the area for this indicator
     const selectedArea = areas.find(d => d.name === area);
@@ -160,7 +171,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                         </svg>
                     </div>
-                ) : chartData?.series?.[0]?.data?.length > 0 ? (
+                ) : (chartData?.series || []).some(s => (s.data || []).length > 0) ? (
                     <div className="h-[220px] w-full">
                         <Chart
                             chartId={`preview-${IndicatorId}`}
@@ -226,5 +237,8 @@ IndicatorCard.propTypes = {
     unit: PropTypes.string,
     hidden: PropTypes.bool,
     onToggleHidden: PropTypes.func,
-    isAdmin: PropTypes.bool
+    isAdmin: PropTypes.bool,
+    defaultChartType: PropTypes.string,
+    hiddenSeries: PropTypes.arrayOf(PropTypes.string),
+    seriesTranslations: PropTypes.object,
 };
