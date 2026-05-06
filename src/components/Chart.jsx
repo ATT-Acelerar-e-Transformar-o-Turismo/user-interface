@@ -468,12 +468,22 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         } else if (isCandlestick) {
             apexSeries = buildCandlestickPayload(_series).apexSeries;
         } else {
+            // For bar-family charts (bar/column/stackedBar/stackedColumn) we use
+            // xaxis.type 'category' so each x value is a discrete bar label. ApexCharts
+            // passes category INDICES (0, 1, 2…) to the labels.formatter — running
+            // formatDate over those gave 1970 for every bar. Pre-format x values to the
+            // final display string here so the category itself IS the label and the axis
+            // formatter can be a no-op.
+            const isBarFamily = isHorizontal || isStacked || chartType === 'column';
             apexSeries = _series.map(s => {
-                const sortedData = xaxisType === 'datetime'
+                let sortedData = xaxisType === 'datetime'
                     ? [...s.data].sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime())
                     : xaxisType === 'numeric'
                         ? [...s.data].sort((a, b) => a.x - b.x)
                         : [...s.data];
+                if (isBarFamily) {
+                    sortedData = sortedData.map(d => ({ ...d, x: formatValue(d.x) }));
+                }
                 return { ...s, data: sortedData };
             });
         }
@@ -541,9 +551,9 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 height: height,
                 redrawOnParentResize: true,
                 zoom: {
-                    type: isHorizontal ? 'xy' : 'x',
+                    type: 'x',
                     enabled: allowUserInteraction && supportsZoomPan,
-                    autoScaleYaxis: allowUserInteraction && supportsZoomPan && !isHorizontal,
+                    autoScaleYaxis: allowUserInteraction && supportsZoomPan,
                 },
                 pan: {
                     enabled: allowUserInteraction && supportsZoomPan,
@@ -596,32 +606,28 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     animationEnd: function(chart) {
                         if (isTreemap) injectTreemapLabels(chart?.el, _series, formatYValue);
                     },
-                    zoomed: function(chartContext, { xaxis, yaxis }) {
+                    zoomed: function(chartContext, { xaxis }) {
                         if (onViewportChangeRef.current) {
-                            const bounds = isHorizontal ? yaxis : xaxis;
-                            if (bounds) onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
+                            if (xaxis) onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
                         }
                     },
-                    updated: function(chartContext, { xaxis, yaxis }) {
+                    updated: function(chartContext, { xaxis }) {
                         if (onViewportChangeRef.current) {
-                            const bounds = isHorizontal ? yaxis : xaxis;
-                            if (bounds) onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
+                            if (xaxis) onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
                         }
                         if (isTreemap) {
                             requestAnimationFrame(() => injectTreemapLabels(chartContext?.el, _series, formatYValue));
                         }
                     },
-                    scrolled: function(chartContext, { xaxis, yaxis }) {
+                    scrolled: function(chartContext, { xaxis }) {
                         if (onViewportChangeRef.current) {
-                            const bounds = isHorizontal ? yaxis : xaxis;
-                            if (bounds) onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
+                            if (xaxis) onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
                         }
                     },
-                    selection: function(chartContext, { xaxis, yaxis }) {
+                    selection: function(chartContext, { xaxis }) {
                         if (onViewportChangeRef.current) {
-                            const bounds = isHorizontal ? yaxis : xaxis;
-                            if (bounds && bounds.min != null && bounds.max != null && bounds.min < bounds.max) {
-                                onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
+                            if (xaxis && xaxis.min != null && xaxis.max != null && xaxis.min < xaxis.max) {
+                                onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
                             }
                         }
                     },
@@ -809,7 +815,9 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             },
             plotOptions: {
                 bar: {
-                    horizontal: isHorizontal
+                    horizontal: isHorizontal,
+                    barHeight: isHorizontal ? '60%' : '85%',
+                    columnWidth: '85%',
                 },
                 // Heatmap defaults to a single colour shade with no gradient,
                 // making every cell look identical (the user reported "always
@@ -924,19 +932,24 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 // so the x-axis is categorical (series names) regardless of
                 // the source x type. Bar / column keep `xaxisType` so they
                 // can show a real datetime axis with zoom/pan support.
-                type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap)
+                type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap || isHorizontal || isStacked || chartType === 'column')
                     ? 'category'
-                    : (isHorizontal ? 'numeric' : xaxisType),
-                min: isHorizontal ? calculateNiceMin() : axisRangeMin,
-                max: isHorizontal ? calculateNiceMax() : axisRangeMax,
+                    : xaxisType,
+                min: (isHorizontal || isStacked || chartType === 'column') ? undefined : axisRangeMin,
+                max: (isHorizontal || isStacked || chartType === 'column') ? undefined : axisRangeMax,
                 labels: {
                     show: !minimalAxis,
                     style: {
                         colors: '#737373',
-                        fontSize: compact ? '11px' : '12px',
+                        fontSize: compact ? '11px' : isHorizontal ? '10px' : '12px',
                         fontFamily: 'Onest, sans-serif'
                     },
-                    formatter: isHorizontal ? formatYValue : formatValue
+                    // Bar-family charts already have pre-formatted string x values
+                    // (see apexSeries construction), so the label IS the category — pass
+                    // it through. Other types still need date/number formatting.
+                    formatter: (isHorizontal || isStacked || chartType === 'column')
+                        ? (v) => v
+                        : formatValue
                 },
                 axisBorder: {
                     show: !compact && !minimalAxis,
@@ -952,8 +965,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             },
             yaxis: {
                 forceNiceScale: true,
-                min: isHorizontal ? axisRangeMin : calculateNiceMin(),
-                max: isHorizontal ? axisRangeMax : calculateNiceMax(),
+                min: calculateNiceMin(),
+                max: calculateNiceMax(),
                 labels: {
                     show: !minimalAxis,
                     style: {
@@ -962,7 +975,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         fontFamily: 'Onest, sans-serif'
                     },
                     offsetX: compact ? -8 : 0,
-                    formatter: isHorizontal ? formatValue : formatYValue
+                    formatter: formatYValue
                 },
                 axisBorder: {
                     show: !compact && !minimalAxis,
@@ -976,7 +989,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 logBase: log || 10
             },
             annotations: {
-                xaxis: (isHorizontal ? annotations.yaxis : annotations.xaxis).map(annotation => ({
+                xaxis: annotations.xaxis.map(annotation => ({
                     x: annotation.value,
                     strokeDashArray: 8,
                     borderColor: 'var(--color-base-content)',
@@ -985,7 +998,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         text: annotation.label,
                     }
                 })),
-                yaxis: (isHorizontal ? annotations.xaxis : annotations.yaxis).map(annotation => ({
+                yaxis: annotations.yaxis.map(annotation => ({
                     y: annotation.value,
                     borderColor: 'var(--color-primary)',
                     label: {
@@ -1008,10 +1021,13 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 // keep them small so the line still reads cleanly.
                 // In compact mode (previews), we hide markers to show only
                 // a smooth curve.
-                size: compact ? 0 : 4,
+                // Bar/column charts have no individual point markers — Apex
+                // tries to call screenCTM() on them during zoom/pan updates
+                // and crashes when the elements are null.
+                size: compact || isHorizontal || chartType === 'column' || chartType === 'stackedColumn' ? 0 : 4,
                 strokeWidth: 1,
                 strokeColors: '#ffffff',
-                hover: { size: 7, sizeOffset: 3 },
+                hover: { size: isHorizontal || chartType === 'column' || chartType === 'stackedColumn' ? 0 : 7, sizeOffset: 3 },
             },
             legend: {
                 show: showLegend,

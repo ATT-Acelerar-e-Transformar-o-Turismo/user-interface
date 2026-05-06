@@ -125,6 +125,17 @@ export default function IndicatorTemplate() {
   // Bar / column DO benefit from x-axis zoom on long timeseries.
   const chartSupportsTools = ['line', 'area', 'scatter', 'bar', 'column', 'stackedColumn', 'stackedBar'].includes(chartType);
 
+  const isHorizontalBar = chartType === 'bar' || chartType === 'stackedBar';
+  const chartCategoryCount = Math.max(
+    ...((allLoadedData || chartData)?.series || []).map(s => (s.data || []).length),
+    0
+  );
+  // Horizontal bars grow with category count so labels don't overlap (~22px each),
+  // but are capped at 700px so the chart never takes up the full screen.
+  const chartHeight = isHorizontalBar
+    ? Math.min(Math.max(550, chartCategoryCount * 22), 700)
+    : 550;
+
   const modeIcons = {
     zoom: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
     pan: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -861,14 +872,14 @@ export default function IndicatorTemplate() {
                   </div>
                 </div>
               </div>
-              <div className="h-72 sm:h-96 xl:h-[550px] relative">
+              <div className="relative" style={{ minHeight: 288 }}>
                 {dataLoading && (
                   <div className="absolute top-4 right-4 z-10">
                     <div className="loading loading-spinner loading-sm text-primary"></div>
                   </div>
                 )}
                 {(allLoadedData || chartData)?.series?.[0]?.data?.length > 0 ? (
-                  <div className="h-full">
+                  <div>
                     <GChart
                       ref={indicatorChartRef}
                       chartId={`indicator-${indicatorId}`}
@@ -881,7 +892,7 @@ export default function IndicatorTemplate() {
                         // loaded yet (race with indicatorResources fetch).
                         name: s.name || getName(indicatorData)
                       }))}
-                      height="100%"
+                      height={chartHeight}
                       showToolbar={true}
                       showLegend={true}
                       themeMode="light"
@@ -915,7 +926,7 @@ export default function IndicatorTemplate() {
             </div>
 
             {/* Sidebar: Ferramentas + Opções */}
-            <div className="w-full xl:w-84 shrink-0 space-y-6">
+            <div className="w-full xl:w-fit shrink-0 space-y-6">
             {/* Ferramentas (Tools) card — hidden for now
             <div className={cardClass}>
               <div className="flex flex-col gap-4">
@@ -1006,7 +1017,7 @@ export default function IndicatorTemplate() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                       </svg>
                     </div>
-                    <span className="font-['Onest'] text-sm text-[#0a0a0a]">{item.label}</span>
+                    <span className="font-['Onest'] text-sm text-[#0a0a0a] whitespace-nowrap">{item.label}</span>
                   </button>
                 ))}
               </div>
