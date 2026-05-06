@@ -620,6 +620,8 @@
     "area": "Área",
     "bar": "Barras",
     "column": "Colunas",
+    "stackedColumn": "Colunas empilhadas",
+    "stackedBar": "Barras empilhadas",
     "scatter": "Dispersão",
     "pie": "Setores",
     "donut": "Rosca",

@@ -620,6 +620,8 @@
     "area": "Area",
     "bar": "Bars",
     "column": "Columns",
+    "stackedColumn": "Stacked columns",
+    "stackedBar": "Stacked bars",
     "scatter": "Scatter",
     "pie": "Pie",
     "donut": "Donut",

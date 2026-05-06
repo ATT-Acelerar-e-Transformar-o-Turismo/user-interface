@@ -294,7 +294,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     // ApexCharts uses these internal type names; a few of our selectable
     // values map onto them.
     const apexChartType = (
-        chartType === 'column' ? 'bar'
+        chartType === 'column' || chartType === 'stackedColumn' || chartType === 'stackedBar' ? 'bar'
         : chartType === 'donut' ? 'donut'
         : chartType === 'pie' ? 'pie'
         : chartType === 'treemap' ? 'treemap'
@@ -306,7 +306,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         : chartType
     );
     const isCategoricalAggregate = chartType === 'pie' || chartType === 'donut';
-    const isHorizontal = chartType === 'bar';
+    const isStacked = chartType === 'stackedColumn' || chartType === 'stackedBar';
+    const isHorizontal = chartType === 'bar' || chartType === 'stackedBar';
     const isTreemap = chartType === 'treemap';
     const isHeatmap = chartType === 'heatmap';
     const isBoxPlot = chartType === 'boxPlot';
@@ -317,7 +318,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     // range charts collapse the data into one item per series. Line, area,
     // scatter, bar and column all support x-axis zoom — including bar /
     // column on a category axis (Apex maps the drag to category indices).
-    const supportsZoomPan = ['line', 'area', 'scatter', 'bar', 'column'].includes(chartType);
+    const supportsZoomPan = ['line', 'area', 'scatter', 'bar', 'column', 'stackedColumn', 'stackedBar'].includes(chartType);
 
     const detectGranularity = (xs) => {
         const dates = (xs || []).map(v => new Date(v)).filter(d => !isNaN(d));
@@ -362,7 +363,16 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
 
     useEffect(() => {
         const shape = series.map(s => s.shape)
-        const _series = series.filter(s => !s.hidden)
+        const _series = series.filter(s => {
+            if (s.hidden) return false;
+            if (isStacked) {
+                const name = (s.name || '').toLowerCase();
+                // Filter out common "total" labels when stacked to avoid double-counting
+                // (the stack already represents the total of its parts).
+                if (name === 'total' || name === 'totais') return false;
+            }
+            return true;
+        });
 
         // Resolve CSS custom properties and modern color functions (oklch, etc.) to
         // plain rgb(...) so the chart exports cleanly to PNG.
@@ -408,8 +418,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             ]
             : brandColors;
 
-        let xaxisMin = undefined;
-        let xaxisMax = undefined;
+        let axisRangeMin = undefined;
+        let axisRangeMax = undefined;
 
         // viewport (and therefore xaxisRange) is in raw x units — milliseconds
         // for datetime, numbers for numeric. Applying ms values to a category
@@ -417,8 +427,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         // an array of length ~ms-since-epoch and crash with "Invalid array
         // length". Only feed it back to charts that share the source x type.
         if (xaxisRange?.min != null && xaxisRange?.max != null && supportsZoomPan) {
-            xaxisMin = xaxisRange.min;
-            xaxisMax = xaxisRange.max;
+            axisRangeMin = xaxisRange.min;
+            axisRangeMax = xaxisRange.max;
         }
 
         // Build the series / labels payload for this chart type. Each adapter
@@ -468,10 +478,50 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             });
         }
 
+        // Numeric axis (Y for column/line, X for bar) needs a "nice" min/max to 
+        // prevent clipping and provide a clean 0-baseline where appropriate.
+        const calculateNiceMin = () => {
+            if (log) return undefined;
+            const ys = (_series || []).flatMap(s => (s.data || []).map(d => parseFloat(d.y))).filter(v => isFinite(v));
+            if (!ys.length) return undefined;
+            return Math.min(...ys) >= 0 ? 0 : undefined;
+        };
+
+        const calculateNiceMax = () => {
+            if (log) return undefined;
+            
+            let dataMax;
+            if (isStacked) {
+                // For stacked charts, max is the highest SUM across all 
+                // series at any single X point.
+                const sums = new Map();
+                (_series || []).forEach(s => {
+                    (s.data || []).forEach(d => {
+                        const x = String(d.x);
+                        sums.set(x, (sums.get(x) || 0) + (parseFloat(d.y) || 0));
+                    });
+                });
+                dataMax = Math.max(...Array.from(sums.values()), 0);
+            } else {
+                const ys = (_series || []).flatMap(s => (s.data || []).map(d => parseFloat(d.y))).filter(v => isFinite(v));
+                if (!ys.length) return undefined;
+                dataMax = Math.max(...ys);
+            }
+            
+            if (dataMax <= 0) return undefined;
+            const padded = dataMax * 1.1;
+            const mag = Math.pow(10, Math.floor(Math.log10(padded)));
+            const normalized = padded / mag;
+            const niceSteps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+            const niceStep = niceSteps.find(s => s >= normalized) || 10;
+            return niceStep * mag;
+        };
+
         const chartOptions = {
             colors: extendedColors,
             chart: {
                 type: apexChartType,
+                stacked: isStacked,
                 id: chartId,
                 group: group,
                 background: 'transparent',
@@ -491,9 +541,9 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 height: height,
                 redrawOnParentResize: true,
                 zoom: {
-                    type: 'x',
+                    type: isHorizontal ? 'xy' : 'x',
                     enabled: allowUserInteraction && supportsZoomPan,
-                    autoScaleYaxis: allowUserInteraction && supportsZoomPan,
+                    autoScaleYaxis: allowUserInteraction && supportsZoomPan && !isHorizontal,
                 },
                 pan: {
                     enabled: allowUserInteraction && supportsZoomPan,
@@ -547,26 +597,32 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         if (isTreemap) injectTreemapLabels(chart?.el, _series, formatYValue);
                     },
                     zoomed: function(chartContext, { xaxis, yaxis }) {
-                        if (onViewportChangeRef.current && xaxis) {
-                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                        if (onViewportChangeRef.current) {
+                            const bounds = isHorizontal ? yaxis : xaxis;
+                            if (bounds) onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
                         }
                     },
-                    updated: function(chartContext, { xaxis }) {
-                        if (onViewportChangeRef.current && xaxis) {
-                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                    updated: function(chartContext, { xaxis, yaxis }) {
+                        if (onViewportChangeRef.current) {
+                            const bounds = isHorizontal ? yaxis : xaxis;
+                            if (bounds) onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
                         }
                         if (isTreemap) {
                             requestAnimationFrame(() => injectTreemapLabels(chartContext?.el, _series, formatYValue));
                         }
                     },
-                    scrolled: function(chartContext, { xaxis }) {
-                        if (onViewportChangeRef.current && xaxis) {
-                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                    scrolled: function(chartContext, { xaxis, yaxis }) {
+                        if (onViewportChangeRef.current) {
+                            const bounds = isHorizontal ? yaxis : xaxis;
+                            if (bounds) onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
                         }
                     },
-                    selection: function(chartContext, { xaxis }) {
-                        if (onViewportChangeRef.current && xaxis && xaxis.min != null && xaxis.max != null && xaxis.min < xaxis.max) {
-                            onViewportChangeRef.current({ min: xaxis.min, max: xaxis.max });
+                    selection: function(chartContext, { xaxis, yaxis }) {
+                        if (onViewportChangeRef.current) {
+                            const bounds = isHorizontal ? yaxis : xaxis;
+                            if (bounds && bounds.min != null && bounds.max != null && bounds.min < bounds.max) {
+                                onViewportChangeRef.current({ min: bounds.min, max: bounds.max });
+                            }
                         }
                     },
                     legendClick: function(_chartContext, seriesIndex, w) {
@@ -753,7 +809,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             },
             plotOptions: {
                 bar: {
-                    horizontal: chartType === 'bar'
+                    horizontal: isHorizontal
                 },
                 // Heatmap defaults to a single colour shade with no gradient,
                 // making every cell look identical (the user reported "always
@@ -870,9 +926,9 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 // can show a real datetime axis with zoom/pan support.
                 type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap)
                     ? 'category'
-                    : xaxisType,
-                min: xaxisMin,
-                max: xaxisMax,
+                    : (isHorizontal ? 'numeric' : xaxisType),
+                min: isHorizontal ? calculateNiceMin() : axisRangeMin,
+                max: isHorizontal ? calculateNiceMax() : axisRangeMax,
                 labels: {
                     show: !minimalAxis,
                     style: {
@@ -880,7 +936,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         fontSize: compact ? '11px' : '12px',
                         fontFamily: 'Onest, sans-serif'
                     },
-                    formatter: formatValue
+                    formatter: isHorizontal ? formatYValue : formatValue
                 },
                 axisBorder: {
                     show: !compact && !minimalAxis,
@@ -896,23 +952,8 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             },
             yaxis: {
                 forceNiceScale: true,
-                min: log ? undefined : (() => {
-                    const ys = (_series || []).flatMap(s => (s.data || []).map(d => parseFloat(d.y))).filter(v => isFinite(v));
-                    if (!ys.length) return undefined;
-                    return Math.min(...ys) >= 0 ? 0 : undefined;
-                })(),
-                max: log ? undefined : (() => {
-                    const ys = (_series || []).flatMap(s => (s.data || []).map(d => parseFloat(d.y))).filter(v => isFinite(v));
-                    if (!ys.length) return undefined;
-                    const dataMax = Math.max(...ys);
-                    if (dataMax <= 0) return undefined;
-                    const padded = dataMax * 1.1;
-                    const mag = Math.pow(10, Math.floor(Math.log10(padded)));
-                    const normalized = padded / mag;
-                    const niceSteps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
-                    const niceStep = niceSteps.find(s => s >= normalized) || 10;
-                    return niceStep * mag;
-                })(),
+                min: isHorizontal ? axisRangeMin : calculateNiceMin(),
+                max: isHorizontal ? axisRangeMax : calculateNiceMax(),
                 labels: {
                     show: !minimalAxis,
                     style: {
@@ -921,7 +962,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         fontFamily: 'Onest, sans-serif'
                     },
                     offsetX: compact ? -8 : 0,
-                    formatter: formatYValue
+                    formatter: isHorizontal ? formatValue : formatYValue
                 },
                 axisBorder: {
                     show: !compact && !minimalAxis,
@@ -935,7 +976,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 logBase: log || 10
             },
             annotations: {
-                xaxis: annotations.xaxis.map(annotation => ({
+                xaxis: (isHorizontal ? annotations.yaxis : annotations.xaxis).map(annotation => ({
                     x: annotation.value,
                     strokeDashArray: 8,
                     borderColor: 'var(--color-base-content)',
@@ -944,7 +985,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         text: annotation.label,
                     }
                 })),
-                yaxis: annotations.yaxis.map(annotation => ({
+                yaxis: (isHorizontal ? annotations.xaxis : annotations.yaxis).map(annotation => ({
                     y: annotation.value,
                     borderColor: 'var(--color-primary)',
                     label: {

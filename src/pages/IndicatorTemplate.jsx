@@ -98,7 +98,9 @@ export default function IndicatorTemplate() {
     { value: 'line', label: t('chart_types.line'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 15L12 9L16 13L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'area', label: t('chart_types.area'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 17.5L7 13L11 15L17 8L21 12V21H3V17.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="currentColor" fillOpacity="0.2"/></svg> },
     { value: 'column', label: t('chart_types.column'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 10V19M16 7V19M8 14V19M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'stackedColumn', label: t('chart_types.stackedColumn'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 13V19M12 6V11M16 10V19M16 5V8M8 15V19M8 10V13M4 5V19C4 19.552 4.448 20 5 20H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'bar', label: t('chart_types.bar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 10.5V17.5M11.5 5.5V17.5M16 10.5V17.5M20.5 5.5V17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+    { value: 'stackedBar', label: t('chart_types.stackedBar'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" transform="rotate(90) matrix(-1,0,0,1,0,0)"><path d="M21 21H6.2C5.08 21 4.52 21 4.09 20.782C3.72 20.59 3.41 20.284 3.22 19.908C3 19.48 3 18.92 3 17.8V3M7 13V17.5M7 10.5V12M11.5 13V17.5M11.5 5.5V12M16 13V17.5M16 10.5V12M20.5 13V17.5M20.5 5.5V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'scatter', label: t('chart_types.scatter'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 21H7.8C6.12 21 5.28 21 4.638 20.673C4.074 20.385 3.615 19.927 3.327 19.362C3 18.72 3 17.88 3 16.2V3M9.5 8.5H9.51M19.5 7.5H19.51M14.5 12.5H14.51M8.5 15.5H8.51M18.5 15.5H18.51" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
     { value: 'pie', label: t('chart_types.pie'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 3v9l7 5" stroke="currentColor" strokeWidth="2"/></svg> },
     { value: 'donut', label: t('chart_types.donut'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/></svg> },
@@ -113,7 +115,7 @@ export default function IndicatorTemplate() {
   const chartTypeOptions = (() => {
     const allowed = indicatorData?.chart_types;
     if (!Array.isArray(allowed) || allowed.length === 0) {
-      return allChartTypeOptions.filter(o => ['line', 'column', 'bar', 'scatter'].includes(o.value));
+      return allChartTypeOptions.filter(o => ['line', 'column', 'bar', 'stackedColumn', 'stackedBar', 'scatter'].includes(o.value));
     }
     return allChartTypeOptions.filter(o => allowed.includes(o.value));
   })();
@@ -121,7 +123,7 @@ export default function IndicatorTemplate() {
   // Match the Chart component's supportsZoomPan list. Pie/donut/treemap have
   // no axis to scrub; box-plot/candlestick/range collapse data per series.
   // Bar / column DO benefit from x-axis zoom on long timeseries.
-  const chartSupportsTools = ['line', 'area', 'scatter', 'bar', 'column'].includes(chartType);
+  const chartSupportsTools = ['line', 'area', 'scatter', 'bar', 'column', 'stackedColumn', 'stackedBar'].includes(chartType);
 
   const modeIcons = {
     zoom: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
@@ -227,6 +229,10 @@ export default function IndicatorTemplate() {
         setViewport(newViewport);
     }
   }, [viewport.min, viewport.max]);
+
+  useEffect(() => {
+    setViewport({ min: null, max: null });
+  }, [chartType]);
 
   useEffect(() => {
     setAllLoadedData(null);
