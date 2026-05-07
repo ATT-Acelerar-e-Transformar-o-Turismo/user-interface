@@ -13,6 +13,7 @@ import FormInput from '../forms/FormInput';
 import FormFileUpload from '../forms/FormFileUpload';
 import APIConfigForm from '../APIConfigForm';
 import IndicatorPicker from './IndicatorPicker';
+import useLocalizedName from '../../hooks/useLocalizedName';
 import GChart from '../Chart';
 import useWizard from '../../hooks/useWizard';
 import { showError } from '../../utils/toast';
@@ -37,6 +38,7 @@ export default function ResourceWizard({
 }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const getName = useLocalizedName();
   const { uploadFile, generateWrapper, startPolling } = useWrapper();
   const [previewModal, setPreviewModal] = useState({ open: false, wrapperId: null, loading: false, data: [], error: null });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -950,7 +952,7 @@ export default function ResourceWizard({
                       </div>
                       <div className="min-w-0">
                         <p className="font-['Onest',sans-serif] text-sm text-black truncate">
-                          {ind.name}
+                          {getName(ind)}
                         </p>
                         {(ind.domain_name || ind.subdomain) && (
                           <p className="font-['Onest',sans-serif] text-xs text-gray-500 truncate">

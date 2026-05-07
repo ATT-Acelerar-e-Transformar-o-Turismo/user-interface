@@ -252,10 +252,17 @@ export default function IndicatorTemplate() {
   };
 
   const handleViewportChange = useCallback((newViewport) => {
+    // For horizontal bars the chart's xaxis is the numeric VALUE scale, not
+    // time. Its viewport events therefore report value-range numbers that
+    // would not line up with the timestamp filter the page uses for category
+    // pruning. The manual +/- buttons (`applyCappedZoom`) set viewport in
+    // time coordinates directly, so ignoring chart-emitted events here keeps
+    // both flows correct.
+    if (isHorizontalBar) return;
     if (newViewport.min !== viewport.min || newViewport.max !== viewport.max) {
         setViewport(newViewport);
     }
-  }, [viewport.min, viewport.max]);
+  }, [viewport.min, viewport.max, isHorizontalBar]);
 
   useEffect(() => {
     setViewport({ min: null, max: null });
@@ -541,18 +548,24 @@ export default function IndicatorTemplate() {
     }
   }, [indicatorId]);
 
+  // Compose the set of resource IDs that need loading: parent's own resources
+  // + any resources referenced by the chart series (the series set covers
+  // child indicators' resources transitively, which the parent's `resources`
+  // field doesn't see). `rawSeries` changes on every refetch even when the
+  // id set is identical, so derive a stable string key and dep on that —
+  // otherwise we'd refetch every resource on every chart refresh.
+  const resourceIdsKey = useMemo(() => {
+    const own = indicatorData?.resources || [];
+    const fromSeries = (rawSeries || [])
+      .map(s => s.resource_id)
+      .filter(Boolean);
+    return Array.from(new Set([...own, ...fromSeries])).sort().join('|');
+  }, [indicatorData?.resources, rawSeries]);
+
   useEffect(() => {
     let cancelled = false;
     const fetchResources = async () => {
-      // Compose the set of resource IDs that need loading: parent's own
-      // resources + any resources referenced by the chart series. The series
-      // set covers child indicators' resources transitively, which the
-      // parent's `resources` field doesn't see.
-      const own = indicatorData?.resources || [];
-      const fromSeries = (rawSeries || [])
-        .map(s => s.resource_id)
-        .filter(Boolean);
-      const ids = Array.from(new Set([...own, ...fromSeries]));
+      const ids = resourceIdsKey ? resourceIdsKey.split('|') : [];
       if (!ids.length) {
         setIndicatorResources([]);
         setSourcesError(null);
@@ -583,7 +596,7 @@ export default function IndicatorTemplate() {
     };
     fetchResources();
     return () => { cancelled = true; };
-  }, [indicatorData?.resources, rawSeries]);
+  }, [resourceIdsKey]);
 
   // Composed indicators: load each child's indicator doc so the sources
   // panel can list them with proper names. Failures don't block render.

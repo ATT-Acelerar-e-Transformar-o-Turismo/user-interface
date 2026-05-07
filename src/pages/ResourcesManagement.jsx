@@ -137,7 +137,7 @@ export default function ResourcesManagement() {
       if (!ok) return;
       try {
         await indicatorService.removeChildIndicator(indicator, childId);
-        setChildIndicatorsDetails(childIndicatorsDetails.filter(c => c.id !== childId));
+        setChildIndicatorsDetails(prev => prev.filter(c => c.id !== childId));
       } catch (err) {
         setError(err.message || 'Failed to remove child indicator');
         console.error('Error removing child indicator:', err);

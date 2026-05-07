@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import indicatorService from '../../services/indicatorService';
+import useLocalizedName from '../../hooks/useLocalizedName';
 
 /**
  * IndicatorPicker — search + multi-select for existing indicators.
@@ -22,11 +23,17 @@ export default function IndicatorPicker({
   error = null,
 }) {
   const { t } = useTranslation();
+  const getName = useLocalizedName();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(null);
   const debounceRef = useRef(null);
+  // Sequence number for the in-flight search request. Only the most recent
+  // request is allowed to update state — protects against rapid typing
+  // resolving in the wrong order, and against late responses landing after
+  // unmount.
+  const requestSeqRef = useRef(0);
 
   const excludeSet = useMemo(() => {
     const s = new Set(excludeIds || []);
@@ -37,7 +44,9 @@ export default function IndicatorPicker({
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = (query || '').trim();
+    let cancelled = false;
     debounceRef.current = setTimeout(async () => {
+      const mySeq = ++requestSeqRef.current;
       try {
         setLoading(true);
         setFetchError(null);
@@ -46,16 +55,23 @@ export default function IndicatorPicker({
         const data = trimmed.length >= 2
           ? await indicatorService.search(trimmed, 25, 0, 'relevance')
           : await indicatorService.getAll(0, 25, 'name', 'asc');
+        // Drop responses superseded by a later request, or those that come
+        // back after the effect has been cleaned up (cleanup ran).
+        if (cancelled || mySeq !== requestSeqRef.current) return;
         setResults(Array.isArray(data) ? data : []);
       } catch (err) {
+        if (cancelled || mySeq !== requestSeqRef.current) return;
         console.error('Indicator picker search failed:', err);
         setFetchError(err?.userMessage || err?.message || 'Erro ao pesquisar.');
         setResults([]);
       } finally {
-        setLoading(false);
+        if (!cancelled && mySeq === requestSeqRef.current) {
+          setLoading(false);
+        }
       }
     }, trimmed.length >= 2 ? 200 : 0);
     return () => {
+      cancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [query]);
@@ -70,6 +86,8 @@ export default function IndicatorPicker({
     } else {
       const compact = {
         id,
+        // Keep both names so renderers can pick the right one for the
+        // current language without re-fetching.
         name: ind.name,
         name_en: ind.name_en,
         subdomain: ind.subdomain,
@@ -102,7 +120,7 @@ export default function IndicatorPicker({
               key={ind.id}
               className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/30 rounded-full px-3 py-1 text-sm"
             >
-              {ind.name}
+              {getName(ind)}
               <button
                 type="button"
                 onClick={() => toggle(ind)}
@@ -155,7 +173,7 @@ export default function IndicatorPicker({
               />
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-sm text-black truncate">
-                  {r.name || r.id}
+                  {getName(r) || r.id}
                 </div>
                 {(r?.domain?.name || r.subdomain) && (
                   <div className="text-xs text-gray-500 truncate">
