@@ -12,6 +12,8 @@ import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
 import FormFileUpload from '../forms/FormFileUpload';
 import APIConfigForm from '../APIConfigForm';
+import IndicatorPicker from './IndicatorPicker';
+import useLocalizedName from '../../hooks/useLocalizedName';
 import GChart from '../Chart';
 import useWizard from '../../hooks/useWizard';
 import { showError } from '../../utils/toast';
@@ -36,6 +38,7 @@ export default function ResourceWizard({
 }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const getName = useLocalizedName();
   const { uploadFile, generateWrapper, startPolling } = useWrapper();
   const [previewModal, setPreviewModal] = useState({ open: false, wrapperId: null, loading: false, data: [], error: null });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -53,6 +56,8 @@ export default function ResourceWizard({
     sourceType: '',
     files: [],  // Changed to array for multiple files
     columnSelections: {},  // {fileName: {sheetName, timeColumn, valueColumns: []}}
+    // Indicator-mode picker state. Each entry: {id, name, domain, subdomain}.
+    selectedIndicators: [],
     apiConfig: {
       location: '',
       auth_type: 'none',
@@ -77,8 +82,10 @@ export default function ResourceWizard({
 
   // Steps shown in the progress indicator. File mode inserts a "columns" step
   // between upload and preview where the user picks sheet + which columns to
-  // import as separate series.
+  // import as separate series. Indicator (composed) mode mirrors API mode:
+  // 3 steps with no column-picker.
   const fileMode = ['CSV', 'XLSX'].includes(wizard.formData.sourceType);
+  const indicatorMode = wizard.formData.sourceType === 'INDICATOR';
   const steps = fileMode
     ? [
         t('wizard.resource.step_type'),
@@ -88,7 +95,9 @@ export default function ResourceWizard({
       ]
     : [
         t('wizard.resource.step_type'),
-        t('wizard.resource.step_config'),
+        indicatorMode
+          ? t('wizard.resource.step_indicator', 'Selecionar indicador')
+          : t('wizard.resource.step_config'),
         t('wizard.resource.step_preview'),
       ];
 
@@ -115,13 +124,19 @@ export default function ResourceWizard({
 
   // Auto-generate wrappers when entering the preview step. Index depends on
   // mode: file mode has a column-picker step in the middle, so preview is at
-  // index 3; API mode preview is at index 2.
+  // index 3; API and INDICATOR modes preview is at index 2.
   const previewStepIndex = fileMode ? 3 : 2;
   useEffect(() => {
-    if (wizard.currentStep === previewStepIndex && wizard.formData.files.length > 0 && !generatingWrappers && wrappersData.length === 0) {
+    if (
+      wizard.currentStep === previewStepIndex
+      && fileMode
+      && wizard.formData.files.length > 0
+      && !generatingWrappers
+      && wrappersData.length === 0
+    ) {
       generateWrappersForFiles();
     }
-  }, [wizard.currentStep, previewStepIndex]);
+  }, [wizard.currentStep, previewStepIndex, fileMode]);
 
   const loadIndicator = async () => {
     try {
@@ -469,13 +484,20 @@ export default function ResourceWizard({
     }
 
     if (stepIndex === 1) {
-      // Step 2: File or API config
+      // Step 2: File / API config / Indicator picker
       if (wizard.formData.sourceType === 'API') {
         const urlError = validateURL(wizard.formData.apiConfig.location);
         if (!wizard.formData.apiConfig.location) {
           errors.apiLocation = t('wizard.resource.api_url_required');
         } else if (urlError) {
           errors.apiLocation = urlError;
+        }
+      } else if (wizard.formData.sourceType === 'INDICATOR') {
+        if (!wizard.formData.selectedIndicators || wizard.formData.selectedIndicators.length === 0) {
+          errors.selectedIndicators = t(
+            'wizard.resource.indicator_required',
+            'Selecione pelo menos um indicador.',
+          );
         }
       } else {
         // File validation - support multiple files
@@ -532,7 +554,30 @@ export default function ResourceWizard({
 
   async function handleSubmit(data) {
     try {
-      if (data.sourceType === 'API') {
+      if (data.sourceType === 'INDICATOR') {
+        // Composed indicator: each picked indicator becomes a child of the
+        // current one. The backend rejects cycles and self-inclusion; surface
+        // those errors to the user without poisoning the success path.
+        const picked = data.selectedIndicators || [];
+        if (picked.length === 0) {
+          throw new Error(t('wizard.resource.indicator_required', 'Selecione pelo menos um indicador.'));
+        }
+        const failures = [];
+        for (const ind of picked) {
+          try {
+            await indicatorService.addChildIndicator(indicatorId, ind.id);
+          } catch (err) {
+            const msg = err?.response?.data?.detail || err?.userMessage || err?.message || 'Erro';
+            failures.push({ name: ind.name, msg });
+          }
+        }
+        if (failures.length === picked.length) {
+          throw new Error(failures.map(f => `${f.name}: ${f.msg}`).join('; '));
+        }
+        if (failures.length > 0) {
+          showError(failures.map(f => `${f.name}: ${f.msg}`).join(' / '), 8000);
+        }
+      } else if (data.sourceType === 'API') {
         // Handle API submission separately
         setWrapperStatus('pending');
 
@@ -647,7 +692,8 @@ export default function ResourceWizard({
   const sourceTypeOptions = [
     { value: 'CSV', label: t('wizard.resource.source_csv') },
     { value: 'XLSX', label: t('wizard.resource.source_xlsx') },
-    { value: 'API', label: t('wizard.resource.source_api') }
+    { value: 'API', label: t('wizard.resource.source_api') },
+    { value: 'INDICATOR', label: t('wizard.resource.source_indicator', 'Indicador existente') },
   ];
 
   const getSubmitLabel = () => {
@@ -663,10 +709,12 @@ export default function ResourceWizard({
     w.status === 'completed' || w.status === 'executing'
   );
 
-  // Disable submit on the preview step (last step in file mode = 3, API = 2)
-  // until every wrapper has completed at least once.
+  // Disable submit on the preview step (last step in file mode = 3, API/
+  // INDICATOR = 2) until every wrapper has completed at least once. API and
+  // INDICATOR modes don't generate wrappers in the wizard, so they bypass
+  // this check.
   const disableSubmit = wizard.currentStep === previewStepIndex &&
-    wizard.formData.sourceType !== 'API' &&
+    fileMode &&
     (generatingWrappers || !allWrappersComplete);
 
   return (
@@ -714,20 +762,39 @@ export default function ResourceWizard({
           </WizardStep>
         )}
 
-        {/* Step 2: File Upload or API Configuration */}
+        {/* Step 2: File Upload, API Configuration, or Indicator Picker */}
         {wizard.currentStep === 1 && (
           <WizardStep
-            title={wizard.formData.sourceType === 'API' ? t('wizard.resource.step_api_title') : t('wizard.resource.step_file_title')}
+            title={
+              wizard.formData.sourceType === 'API'
+                ? t('wizard.resource.step_api_title')
+                : wizard.formData.sourceType === 'INDICATOR'
+                  ? t('wizard.resource.step_indicator_title', 'Selecionar indicador')
+                  : t('wizard.resource.step_file_title')
+            }
             description={
               wizard.formData.sourceType === 'API'
                 ? t('wizard.resource.step_api_desc')
-                : t('wizard.resource.step_file_desc')
+                : wizard.formData.sourceType === 'INDICATOR'
+                  ? t(
+                      'wizard.resource.step_indicator_desc',
+                      'Escolha um ou mais indicadores existentes — os seus dados aparecerão lado a lado no gráfico.',
+                    )
+                  : t('wizard.resource.step_file_desc')
             }
           >
             {wizard.formData.sourceType === 'API' ? (
               <APIConfigForm
                 onConfigChange={(config) => wizard.updateFormData('apiConfig', config)}
                 initialConfig={wizard.formData.apiConfig}
+              />
+            ) : wizard.formData.sourceType === 'INDICATOR' ? (
+              <IndicatorPicker
+                excludeId={indicatorId}
+                excludeIds={indicator?.child_indicators || []}
+                selected={wizard.formData.selectedIndicators || []}
+                onChange={(arr) => wizard.updateFormData('selectedIndicators', arr)}
+                error={wizard.errors.selectedIndicators}
               />
             ) : (
               <FormFileUpload
@@ -863,6 +930,39 @@ export default function ResourceWizard({
                 <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
                   {t('wizard.resource.api_url_pending')}
                 </p>
+              </div>
+            ) : wizard.formData.sourceType === 'INDICATOR' ? (
+              <div className="space-y-3">
+                <p className="font-['Onest',sans-serif] text-sm text-gray-700">
+                  {t(
+                    'wizard.resource.indicator_review',
+                    'Os seguintes indicadores serão incluídos:',
+                  )}
+                </p>
+                <ul className="space-y-2">
+                  {(wizard.formData.selectedIndicators || []).map((ind) => (
+                    <li
+                      key={ind.id}
+                      className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg"
+                    >
+                      <div className="w-8 h-8 bg-[#f1f0f0] rounded flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l4-4 5 5 9-9M21 4h-6M21 4v6" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-['Onest',sans-serif] text-sm text-black truncate">
+                          {getName(ind)}
+                        </p>
+                        {(ind.domain_name || ind.subdomain) && (
+                          <p className="font-['Onest',sans-serif] text-xs text-gray-500 truncate">
+                            {[ind.domain_name, ind.subdomain].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : (
               <div className="space-y-6">

@@ -397,15 +397,24 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
             }
         };
 
+        // Series palette. Picked so adjacent indices land on hues that are
+        // unambiguously different — composition routinely produces N distinct
+        // sources at the same time, so the first few colors must be very
+        // distinct, not "different shades of brand blue". Earlier the palette
+        // started with primary (navy ~254°) followed by primary-hover (also
+        // navy) which made two-series composed charts look like one line; we
+        // also drop --color-info (sky ~232°) for the same reason. Hues
+        // chosen below span the wheel: blue, orange, green, red, purple,
+        // teal, yellow, magenta.
         const brandColors = [
-            'var(--color-primary)',
-            'var(--color-primary-hover)',
-            'var(--color-secondary)',
-            'var(--color-accent)',
-            'var(--color-info)',
-            'oklch(76% 0.177 163.223)',
-            'oklch(82% 0.18659 84.429)',
-            'oklch(71% 0.194 13.428)'
+            'var(--color-primary)',         // navy blue (brand) ~254°
+            'oklch(70% 0.17 50)',           // orange ~50°
+            'var(--color-secondary)',       // green (brand) ~163°
+            'oklch(65% 0.2 25)',            // red ~25°
+            'var(--color-accent)',          // teal (brand) ~182°
+            'oklch(60% 0.2 290)',           // purple ~290°
+            'oklch(80% 0.17 90)',           // yellow ~90°
+            'oklch(65% 0.2 350)',           // magenta ~350°
         ].map(resolveColor)
 
         // Treemap renders one apex series per cell so the legend can show one
