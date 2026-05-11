@@ -22,11 +22,13 @@ export const dataService = {
   // One timeseries per resource attached to the indicator. Each entry feeds a
   // separate line on the chart; names come from the resource (fetched
   // separately) since the indicator-service doesn't keep them.
-  async getIndicatorSeries(indicatorId, { skip = 0, limit = 1000, sort = 'asc', startDate = null, endDate = null } = {}) {
+  async getIndicatorSeries(indicatorId, { skip = 0, limit = 1000, sort = 'asc', startDate = null, endDate = null, granularity = '0', aggregator = 'avg' } = {}) {
     try {
       const params = new URLSearchParams({ skip: String(skip), limit: String(limit), sort });
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
+      if (granularity && granularity !== '0') params.append('granularity', granularity);
+      if (aggregator) params.append('aggregator', aggregator);
       const url = `${API_ENDPOINTS.INDICATORS.SERIES(indicatorId)}?${params.toString()}`;
       const response = await apiClient.get(url);
       return response.data || [];

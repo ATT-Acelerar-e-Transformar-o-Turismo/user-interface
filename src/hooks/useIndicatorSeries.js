@@ -10,7 +10,7 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const { startDate = null, endDate = null, limit = 10000, sort = 'asc' } = options;
+  const { startDate = null, endDate = null, limit = 2000, sort = 'asc', granularity = 'auto', aggregator = 'avg' } = options;
 
   useEffect(() => {
     if (!indicatorId) {
@@ -24,7 +24,7 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
         setLoading(true);
         setError(null);
         const apiSeries = await dataService.getIndicatorSeries(indicatorId, {
-          limit, sort, startDate, endDate,
+          limit, sort, startDate, endDate, granularity, aggregator,
         });
         if (cancelled) return;
         setSeries(Array.isArray(apiSeries) ? apiSeries : []);
@@ -38,7 +38,7 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
       }
     })();
     return () => { cancelled = true; };
-  }, [indicatorId, startDate, endDate, limit, sort]);
+  }, [indicatorId, startDate, endDate, limit, sort, granularity, aggregator]);
 
   return { series, loading, error };
 };

@@ -3,7 +3,7 @@ export const APP_CONFIG = {
   DEFAULT_ITEMS_PER_PAGE: 10,
   DEFAULT_SORT_ORDER: 'asc',
   DEFAULT_SORT_BY: 'name',
-  MIN_SEARCH_QUERY_LENGTH: 2,
+  MIN_SEARCH_QUERY_LENGTH: 1,
   DATE_FORMAT: 'pt-BR',
   DATE_OPTIONS: {
     year: 'numeric',
