@@ -43,7 +43,12 @@ export default function AreaTemplate({ embedded = false }) {
       .join(" ");
   };
   
-  const inferredAreaName = embedded ? '' : (areaName || (location.pathname === '/all-indicators' ? '' : pathToAreaName(areaPath || location.pathname)));
+  const inferredAreaName = embedded
+    ? ''
+    : (areaName
+      || (location.pathname === '/all-indicators' || location.pathname === '/search'
+        ? ''
+        : pathToAreaName(areaPath || location.pathname)));
   const isAllIndicatorsMode = embedded || (!inferredAreaName && !isSearchMode);
 
   // Debug logging
@@ -290,13 +295,29 @@ export default function AreaTemplate({ embedded = false }) {
   const handleSearchSubmit = useCallback((e) => {
     e.preventDefault();
     const trimmed = searchInput.trim();
-    const basePath = '/indicators';
     if (trimmed) {
-      navigateTo(`${basePath}?q=${encodeURIComponent(trimmed)}`);
+      navigateTo(`/search?q=${encodeURIComponent(trimmed)}`);
     } else if (isSearchMode) {
-      navigateTo(basePath);
+      navigateTo('/search');
     }
   }, [searchInput, isSearchMode, navigateTo, embedded]);
+
+  // Live search: navigate to /search?q=... as the user types so the results
+  // update without needing Enter. Debounced to avoid a request per keystroke.
+  // First nav off a domain page pushes a history entry; subsequent edits
+  // while already on /search replace it so back returns to the source page.
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+    if (trimmed === (searchQuery || '')) return;
+    const handle = setTimeout(() => {
+      if (trimmed) {
+        navigateTo(`/search?q=${encodeURIComponent(trimmed)}`, { replace: isSearchMode });
+      } else if (isSearchMode) {
+        navigateTo('/search', { replace: true });
+      }
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [searchInput, searchQuery, isSearchMode, navigateTo]);
 
   const areaColor = selectedAreaObj?.AreaColor || selectedAreaObj?.color || '#C3F25E';
   const areaIcon = selectedAreaObj?.AreaIcon;

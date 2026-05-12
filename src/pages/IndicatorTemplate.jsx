@@ -34,7 +34,7 @@ export default function IndicatorTemplate() {
     granularity: 'auto',
     startDate: null,
     endDate: null,
-    limit: 10000
+    limit: 2000
   });
 
   const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(indicatorId, fetchParams);
@@ -275,7 +275,7 @@ export default function IndicatorTemplate() {
       granularity: uiGranularity,
       startDate: uiStartDate ? new Date(uiStartDate).toISOString() : null,
       endDate: uiEndDate ? new Date(uiEndDate).toISOString() : null,
-      limit: 10000,
+      limit: 2000,
     });
   }, [uiGranularity, uiStartDate, uiEndDate, isInitialLoad]);
 
@@ -316,7 +316,7 @@ export default function IndicatorTemplate() {
       granularity: 'auto',
       startDate: null,
       endDate: null,
-      limit: 10000,
+      limit: 2000,
     });
   };
 
