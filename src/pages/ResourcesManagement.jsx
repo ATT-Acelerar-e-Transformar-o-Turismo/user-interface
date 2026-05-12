@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ManagementTemplate from '../components/ManagementTemplate';
@@ -41,7 +41,15 @@ export default function ResourcesManagement() {
   const [editingResourceId, setEditingResourceId] = useState(null);
 
   const { t } = useTranslation();
-  const { startPolling } = useWrapper();
+  const { startPolling, stopPolling } = useWrapper();
+
+  // Wrapper polled after a Regenerate so we can stop polling when the user
+  // closes the details modal or navigates away (the interval is otherwise
+  // orphaned and keeps updating state on a stale modal).
+  const polledWrapperIdRef = useRef(null);
+  // Set to false when the preview modal is closed so an in-flight preview
+  // fetch doesn't re-open it after the user dismissed it.
+  const previewOpenRef = useRef(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -238,8 +246,14 @@ export default function ResourcesManagement() {
   // Called by RegenerateWrapperButton after a successful re-queue. Mirrors
   // ResourceWizard.handleRegenerated: keep the modal open, update the
   // wrapper card in place, and poll until the new run finishes. Also
-  // refresh the status badge on the underlying resource row.
+  // refresh the status badge on the underlying resource row. The polled id
+  // is parked in a ref so cleanup paths (modal close, unmount, regenerate-
+  // again) can call stopPolling and drop the orphaned interval.
   const handleRegenerated = (updated) => {
+    if (polledWrapperIdRef.current && polledWrapperIdRef.current !== updated.wrapper_id) {
+      stopPolling(polledWrapperIdRef.current);
+    }
+    polledWrapperIdRef.current = updated.wrapper_id;
     setSelectedWrapper(updated);
     setWrappersStatus(prev => selectedResource
       ? { ...prev, [selectedResource.id]: updated.status }
@@ -253,19 +267,49 @@ export default function ResourcesManagement() {
         const reason = next.error_message || t('wizard.resource.generation_failed', 'Generation failed');
         showError(reason, 8000);
       }
+      if (next.status === 'completed' || next.status === 'error') {
+        // startPolling itself clears the interval on terminal states; just
+        // forget the id so subsequent regenerates aren't no-ops.
+        if (polledWrapperIdRef.current === next.wrapper_id) {
+          polledWrapperIdRef.current = null;
+        }
+      }
     });
   };
+
+  // Tear down a still-running poll when the details modal closes or the page
+  // unmounts. Without this, a regenerate started against an in-progress run
+  // keeps updating state behind a dismissed modal.
+  useEffect(() => {
+    if (showDetailsModal) return;
+    if (polledWrapperIdRef.current) {
+      stopPolling(polledWrapperIdRef.current);
+      polledWrapperIdRef.current = null;
+    }
+  }, [showDetailsModal, stopPolling]);
+
+  useEffect(() => () => {
+    if (polledWrapperIdRef.current) {
+      stopPolling(polledWrapperIdRef.current);
+      polledWrapperIdRef.current = null;
+    }
+  }, [stopPolling]);
 
   const openPreview = async () => {
     if (!selectedWrapper || !selectedResource) return;
     const wrapperId = selectedWrapper.wrapper_id;
     const resourceId = selectedResource.id;
+    previewOpenRef.current = true;
     setPreviewModal({ open: true, wrapperId, loading: true, data: [], error: null });
     try {
       const dataResult = await resourceService.getResourceData(resourceId);
+      // The user may have dismissed the modal while we awaited — don't
+      // resurrect it from a stale promise.
+      if (!previewOpenRef.current) return;
       setPreviewModal({ open: true, wrapperId, loading: false, data: dataResult.data || [], error: null });
     } catch (err) {
       console.error('Failed to load preview data:', err);
+      if (!previewOpenRef.current) return;
       setPreviewModal({
         open: true,
         wrapperId,
@@ -276,7 +320,10 @@ export default function ResourcesManagement() {
     }
   };
 
-  const closePreview = () => setPreviewModal({ open: false, wrapperId: null, loading: false, data: [], error: null });
+  const closePreview = () => {
+    previewOpenRef.current = false;
+    setPreviewModal({ open: false, wrapperId: null, loading: false, data: [], error: null });
+  };
 
   const isWrapperReady = selectedWrapper && (selectedWrapper.status === 'completed' || selectedWrapper.status === 'executing');
 
