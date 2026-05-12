@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ManagementTemplate from '../components/ManagementTemplate';
 import ResourceWizard from '../components/wizard/ResourceWizard';
+import RegenerateWrapperButton from '../components/wizard/RegenerateWrapperButton';
+import GChart from '../components/Chart';
 import { confirmAction } from '../utils/confirm';
+import { useWrapper } from '../contexts/WrapperContext';
+import { showError } from '../utils/toast';
 import indicatorService from '../services/indicatorService';
 import resourceService from '../services/resourceService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -28,12 +32,24 @@ export default function ResourcesManagement() {
   const [showAdvancedLogs, setShowAdvancedLogs] = useState(false);
   const [wrapperLogs, setWrapperLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  // Mirrors the ResourceWizard preview flow so admins can sanity-check the
+  // chart after a regenerate without leaving this page.
+  const [previewModal, setPreviewModal] = useState({ open: false, wrapperId: null, loading: false, data: [], error: null });
 
   // Resource wizard state
   const [isResourceWizardOpen, setIsResourceWizardOpen] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState(null);
 
   const { t } = useTranslation();
+  const { startPolling, stopPolling } = useWrapper();
+
+  // Wrapper polled after a Regenerate so we can stop polling when the user
+  // closes the details modal or navigates away (the interval is otherwise
+  // orphaned and keeps updating state on a stale modal).
+  const polledWrapperIdRef = useRef(null);
+  // Set to false when the preview modal is closed so an in-flight preview
+  // fetch doesn't re-open it after the user dismissed it.
+  const previewOpenRef = useRef(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -227,6 +243,90 @@ export default function ResourcesManagement() {
     setShowAdvancedLogs(!showAdvancedLogs);
   };
 
+  // Called by RegenerateWrapperButton after a successful re-queue. Mirrors
+  // ResourceWizard.handleRegenerated: keep the modal open, update the
+  // wrapper card in place, and poll until the new run finishes. Also
+  // refresh the status badge on the underlying resource row. The polled id
+  // is parked in a ref so cleanup paths (modal close, unmount, regenerate-
+  // again) can call stopPolling and drop the orphaned interval.
+  const handleRegenerated = (updated) => {
+    if (polledWrapperIdRef.current && polledWrapperIdRef.current !== updated.wrapper_id) {
+      stopPolling(polledWrapperIdRef.current);
+    }
+    polledWrapperIdRef.current = updated.wrapper_id;
+    setSelectedWrapper(updated);
+    setWrappersStatus(prev => selectedResource
+      ? { ...prev, [selectedResource.id]: updated.status }
+      : prev);
+    startPolling(updated.wrapper_id, 2000, (next) => {
+      setSelectedWrapper(prev => prev && prev.wrapper_id === next.wrapper_id ? { ...prev, ...next } : prev);
+      setWrappersStatus(prev => selectedResource
+        ? { ...prev, [selectedResource.id]: next.status }
+        : prev);
+      if (next.status === 'error') {
+        const reason = next.error_message || t('wizard.resource.generation_failed', 'Generation failed');
+        showError(reason, 8000);
+      }
+      if (next.status === 'completed' || next.status === 'error') {
+        // startPolling itself clears the interval on terminal states; just
+        // forget the id so subsequent regenerates aren't no-ops.
+        if (polledWrapperIdRef.current === next.wrapper_id) {
+          polledWrapperIdRef.current = null;
+        }
+      }
+    });
+  };
+
+  // Tear down a still-running poll when the details modal closes or the page
+  // unmounts. Without this, a regenerate started against an in-progress run
+  // keeps updating state behind a dismissed modal.
+  useEffect(() => {
+    if (showDetailsModal) return;
+    if (polledWrapperIdRef.current) {
+      stopPolling(polledWrapperIdRef.current);
+      polledWrapperIdRef.current = null;
+    }
+  }, [showDetailsModal, stopPolling]);
+
+  useEffect(() => () => {
+    if (polledWrapperIdRef.current) {
+      stopPolling(polledWrapperIdRef.current);
+      polledWrapperIdRef.current = null;
+    }
+  }, [stopPolling]);
+
+  const openPreview = async () => {
+    if (!selectedWrapper || !selectedResource) return;
+    const wrapperId = selectedWrapper.wrapper_id;
+    const resourceId = selectedResource.id;
+    previewOpenRef.current = true;
+    setPreviewModal({ open: true, wrapperId, loading: true, data: [], error: null });
+    try {
+      const dataResult = await resourceService.getResourceData(resourceId);
+      // The user may have dismissed the modal while we awaited — don't
+      // resurrect it from a stale promise.
+      if (!previewOpenRef.current) return;
+      setPreviewModal({ open: true, wrapperId, loading: false, data: dataResult.data || [], error: null });
+    } catch (err) {
+      console.error('Failed to load preview data:', err);
+      if (!previewOpenRef.current) return;
+      setPreviewModal({
+        open: true,
+        wrapperId,
+        loading: false,
+        data: [],
+        error: err?.userMessage || err?.message || t('wizard.resource.preview_load_failed', 'Failed to load preview data'),
+      });
+    }
+  };
+
+  const closePreview = () => {
+    previewOpenRef.current = false;
+    setPreviewModal({ open: false, wrapperId: null, loading: false, data: [], error: null });
+  };
+
+  const isWrapperReady = selectedWrapper && (selectedWrapper.status === 'completed' || selectedWrapper.status === 'executing');
+
   const visibleColumns = ['name', 'start_period', 'end_period', 'type', 'status'];
 
   const actions = [
@@ -416,12 +516,28 @@ export default function ResourcesManagement() {
             )}
 
             <div className="modal-action">
+              {isWrapperReady && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary"
+                  onClick={openPreview}
+                >
+                  {t('wizard.resource.preview_data', 'Preview data')}
+                </button>
+              )}
+              {selectedResource?.wrapper_id && (
+                <RegenerateWrapperButton
+                  wrapperId={selectedResource.wrapper_id}
+                  onRegenerated={handleRegenerated}
+                />
+              )}
               <button
                 className="btn"
                 onClick={() => {
                   setShowDetailsModal(false);
                   setShowAdvancedLogs(false);
                   setWrapperLogs([]);
+                  loadData();
                 }}
               >
                 Close
@@ -446,6 +562,52 @@ export default function ResourcesManagement() {
             loadData();
           }}
         />
+      )}
+
+      {previewModal.open && (
+        <dialog className="modal modal-open">
+          <div className="modal-box w-11/12 max-w-4xl">
+            <h3 className="font-bold text-lg mb-4">{t('wizard.resource.preview_title', 'Data preview')}</h3>
+            {previewModal.loading && (
+              <div className="flex justify-center py-10">
+                <span className="loading loading-spinner loading-lg" />
+              </div>
+            )}
+            {!previewModal.loading && previewModal.error && (
+              <div className="alert alert-error">
+                <span>{previewModal.error}</span>
+              </div>
+            )}
+            {!previewModal.loading && !previewModal.error && previewModal.data.length === 0 && (
+              <p className="text-sm text-gray-600">{t('wizard.resource.preview_empty', 'No data to preview yet.')}</p>
+            )}
+            {!previewModal.loading && !previewModal.error && previewModal.data.length > 0 && (
+              <GChart
+                title={t('wizard.resource.preview_title', 'Data preview')}
+                chartId={`preview-chart-${previewModal.wrapperId}`}
+                chartType="line"
+                xaxisType="datetime"
+                series={[{
+                  name: t('wizard.resource.preview_series_name', 'Value'),
+                  data: previewModal.data.map(p => ({
+                    x: new Date(p.x).getTime(),
+                    y: parseFloat(p.y) || 0,
+                  })),
+                }]}
+                height={350}
+                disableAnimations={true}
+              />
+            )}
+            <div className="modal-action">
+              <button type="button" className="btn" onClick={closePreview}>
+                {t('common.close', 'Close')}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop" onClick={closePreview}>
+            <button>close</button>
+          </form>
+        </dialog>
       )}
     </>
   );

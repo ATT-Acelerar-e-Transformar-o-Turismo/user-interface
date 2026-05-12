@@ -10,12 +10,20 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const { startDate = null, endDate = null, limit = 2000, sort = 'asc', granularity = 'auto', aggregator = 'avg' } = options;
+  const { startDate = null, endDate = null, limit = 2000, sort = 'asc', granularity = 'auto', aggregator = 'avg', enabled = true } = options;
 
   useEffect(() => {
     if (!indicatorId) {
+      // No indicator selected — clear any stale series and stop the spinner.
       setSeries([]);
+      setError(null);
       setLoading(false);
+      return;
+    }
+    if (!enabled) {
+      // Idle: callers like IndicatorCard gate the fetch on in-view so the
+      // domain page doesn't fire 12 parallel /series calls on mount. Loading
+      // stays true so they show the spinner placeholder until in-view flips.
       return;
     }
     let cancelled = false;
@@ -38,7 +46,7 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
       }
     })();
     return () => { cancelled = true; };
-  }, [indicatorId, startDate, endDate, limit, sort, granularity, aggregator]);
+  }, [indicatorId, startDate, endDate, limit, sort, granularity, aggregator, enabled]);
 
   return { series, loading, error };
 };
