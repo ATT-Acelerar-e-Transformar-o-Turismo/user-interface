@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { faHeart as faSolidHeart, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect, useMemo } from "react";
+import { useInView } from 'react-intersection-observer';
 import { useArea } from "../contexts/AreaContext";
 import Chart from "./Chart";
 import useIndicatorSeries from "../hooks/useIndicatorSeries";
@@ -21,11 +22,18 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
     const [hearts, setHearts] = useState([]);
     const [indicatorData] = useState(null);
     const { areas } = useArea();
-    
+
+    // Domain pages render up to 12 cards at once; firing 12 parallel /series
+    // calls + initialising 12 ApexCharts on mount wedges the main thread for
+    // seconds. Gate both the fetch and the chart on in-view so off-screen
+    // cards stay idle, and once we trigger we stay triggered so scrolling
+    // back up doesn't refetch.
+    const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' });
+
     // Pull the per-resource series so multi-column indicators render every
-    // line in the preview (the legacy useIndicatorData hook collapses
-    // everything into a single line, hiding multi-series data).
-    const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(IndicatorId, { limit: 1000 });
+    // line in the preview. limit=200 is plenty for a 220px-tall sparkline —
+    // auto granularity downsamples to that target server-side.
+    const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(IndicatorId, { limit: 200, enabled: inView });
     const chartData = useMemo(() => {
         const lang = (i18n?.language || 'pt').startsWith('en') ? 'en' : 'pt';
         const built = buildChartSeries(rawSeries, [], seriesTranslations, lang);
@@ -112,6 +120,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
 
     return (
         <div
+            ref={inViewRef}
             className={`bg-[#fffefc] rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 group w-full cursor-pointer relative flex flex-col gap-6 p-8 ${hidden ? 'opacity-50' : ''}`}
             onClick={handleClick}
         >
@@ -184,6 +193,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
                             showTooltip={false}
                             allowUserInteraction={false}
                             compact={true}
+                            disableAnimations={true}
                         />
                     </div>
                 ) : (

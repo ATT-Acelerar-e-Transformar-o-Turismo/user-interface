@@ -10,12 +10,13 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const { startDate = null, endDate = null, limit = 2000, sort = 'asc', granularity = 'auto', aggregator = 'avg' } = options;
+  const { startDate = null, endDate = null, limit = 2000, sort = 'asc', granularity = 'auto', aggregator = 'avg', enabled = true } = options;
 
   useEffect(() => {
-    if (!indicatorId) {
-      setSeries([]);
-      setLoading(false);
+    if (!indicatorId || !enabled) {
+      // Idle while disabled — callers like IndicatorCard gate the fetch on
+      // in-view so the domain page doesn't fire 12 parallel /series calls on
+      // mount. Loading stays true so they show the spinner placeholder.
       return;
     }
     let cancelled = false;
@@ -38,7 +39,7 @@ export const useIndicatorSeries = (indicatorId, options = {}) => {
       }
     })();
     return () => { cancelled = true; };
-  }, [indicatorId, startDate, endDate, limit, sort, granularity, aggregator]);
+  }, [indicatorId, startDate, endDate, limit, sort, granularity, aggregator, enabled]);
 
   return { series, loading, error };
 };

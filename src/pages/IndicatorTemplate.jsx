@@ -34,7 +34,7 @@ export default function IndicatorTemplate() {
     granularity: 'auto',
     startDate: null,
     endDate: null,
-    limit: 2000
+    limit: 800
   });
 
   const { series: rawSeries, loading: dataLoading } = useIndicatorSeries(indicatorId, fetchParams);
@@ -275,9 +275,39 @@ export default function IndicatorTemplate() {
       granularity: uiGranularity,
       startDate: uiStartDate ? new Date(uiStartDate).toISOString() : null,
       endDate: uiEndDate ? new Date(uiEndDate).toISOString() : null,
-      limit: 2000,
+      limit: 800,
     });
   }, [uiGranularity, uiStartDate, uiEndDate, isInitialLoad]);
+
+  // Zoom-to-refetch: when the user pans/zooms the chart, ask the server for
+  // the visible window with auto granularity so the zoomed range gets a
+  // finer bucket. Without this, zooming in just clips the same coarse data
+  // picked for the full date span. Debounced so a pan gesture doesn't fire
+  // a request per frame. Horizontal bars use the value scale on their xaxis
+  // (not time), so we ignore viewport bounds for that chart type and fetch
+  // the full ui-bounded range — switching to it after a zoom will refetch.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      const useViewport = !isHorizontalBar;
+      const startISO = useViewport && viewport.min != null
+        ? new Date(viewport.min).toISOString()
+        : (uiStartDate ? new Date(uiStartDate).toISOString() : null);
+      const endISO = useViewport && viewport.max != null
+        ? new Date(viewport.max).toISOString()
+        : (uiEndDate ? new Date(uiEndDate).toISOString() : null);
+      setFetchParams(prev => {
+        if (
+          prev.startDate === startISO &&
+          prev.endDate === endISO &&
+          prev.granularity === uiGranularity
+        ) {
+          return prev;
+        }
+        return { granularity: uiGranularity, startDate: startISO, endDate: endISO, limit: 800 };
+      });
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [viewport.min, viewport.max, uiStartDate, uiEndDate, uiGranularity, isHorizontalBar]);
 
   useEffect(() => {
     if (chartData && isInitialLoad) {
@@ -316,7 +346,7 @@ export default function IndicatorTemplate() {
       granularity: 'auto',
       startDate: null,
       endDate: null,
-      limit: 2000,
+      limit: 800,
     });
   };
 
@@ -957,7 +987,7 @@ export default function IndicatorTemplate() {
                       showToolbar={true}
                       showLegend={true}
                       themeMode="light"
-                      disableAnimations={!isInitialLoad}
+                      disableAnimations={!isInitialLoad || chartCategoryCount > 400}
                       onViewportChange={handleViewportChange}
                       activeTool={activeChartTool}
                       xaxisRange={!isHorizontalBar && viewport.min != null && viewport.max != null ? viewport : null}
