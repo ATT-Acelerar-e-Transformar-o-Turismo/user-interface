@@ -68,12 +68,14 @@ export default function MobileNavbar() {
                 <span className="font-medium text-lg px-3 py-1">Menu</span>
             </div>
 
-            {/* Actual navbar — always absolutely positioned so it never affects layout */}
+            {/* Actual navbar — always absolutely positioned so it never affects layout.
+                max-w caps the expanded width so long labels (e.g. "Redes e Certificações")
+                wrap inside the viewport instead of stretching the menu past it. */}
             <motion.div
                 animate={{ backgroundColor: isOpen ? expandedBg : '#fffefc' }}
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
                 className={cn(
-                    'absolute top-0 left-0 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 pt-1 overflow-hidden',
+                    'absolute top-0 left-0 shadow-[0px_0px_4px_0px_rgba(0,0,0,0.05)] px-2 pt-1 overflow-hidden max-w-[calc(100vw-2rem)]',
                     isOpen ? 'rounded-2xl pb-3.5' : 'rounded-full pb-1'
                 )}
             >
@@ -132,7 +134,10 @@ export default function MobileNavbar() {
                                                         key={sub.path}
                                                         to={sub.path}
                                                         className={cn(
-                                                            'font-medium text-lg leading-6 text-[#fffefc]',
+                                                            // leading-tight keeps a two-line wrap (e.g. "Redes e
+                                                            // Certificações" on narrow screens) close together
+                                                            // instead of the default 1.5× line height.
+                                                            'font-medium text-lg leading-tight text-[#fffefc]',
                                                             location.pathname === sub.path && 'opacity-70'
                                                         )}
                                                     >

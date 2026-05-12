@@ -855,31 +855,35 @@ export default function IndicatorTemplate() {
                   {getName(indicatorData)} {indicatorData.unit ? `(${indicatorData.unit})` : ''}
                 </h2>
                 <div className="flex flex-col-reverse md:flex-row items-end md:items-center gap-2 shrink-0">
-                  {/* Desktop: standalone action buttons */}
+                  {/* Tablet (md–xl): standalone zoom action buttons. On xl+ these
+                      move to the sidebar Ferramentas card; mobile keeps them in
+                      the tools dropdown below. */}
                   <button
                     onClick={() => handleChartToolSelect('zoomOut')}
-                    className="hidden md:flex text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
+                    className="hidden md:flex xl:hidden text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
                     title={t('indicator.chart_tool_zoom_out')}
                   >
                     {zoomOutIcon}
                   </button>
                   <button
                     onClick={() => handleChartToolSelect('zoomIn')}
-                    className="hidden md:flex text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
+                    className="hidden md:flex xl:hidden text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
                     title={t('indicator.chart_tool_zoom_in')}
                   >
                     {zoomInIcon}
                   </button>
                   <button
                     onClick={() => handleChartToolSelect('reset')}
-                    className="hidden md:flex text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
+                    className="hidden md:flex xl:hidden text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors items-center cursor-pointer"
                     title={t('indicator.chart_tool_reset')}
                   >
                     {resetIcon}
                   </button>
 
-                  {/* Tools dropdown: desktop = modes only (hidden on bar/column); mobile = modes + actions */}
-                  <div ref={toolDropdownRef} className={`relative ${!chartSupportsTools ? 'md:hidden' : ''}`}>
+                  {/* Tools dropdown: mobile = modes + zoom actions; tablet =
+                      modes only when chartSupportsTools. Hidden on xl because
+                      the sidebar Ferramentas card owns these on desktop. */}
+                  <div ref={toolDropdownRef} className={`relative xl:hidden ${!chartSupportsTools ? 'md:hidden' : ''}`}>
                       <button
                         onClick={() => setToolDropdownOpen(!toolDropdownOpen)}
                         className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
@@ -1018,6 +1022,58 @@ export default function IndicatorTemplate() {
 
             {/* Sidebar: Ferramentas + Opções */}
             <div className="w-full xl:w-fit shrink-0 space-y-6">
+            {/* Ferramentas (Tools) — desktop sidebar card. Below xl these live
+                in the chart header (tablet) or the tools dropdown (mobile). */}
+            <div className={`${cardClass} hidden xl:block xl:w-64`}>
+              <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight mb-4">
+                {t('indicator.tools', 'Ferramentas')}
+              </h3>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => handleChartToolSelect('zoomIn')}
+                    className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-center cursor-pointer"
+                    title={t('indicator.chart_tool_zoom_in')}
+                  >
+                    {zoomInIcon}
+                  </button>
+                  <button
+                    onClick={() => handleChartToolSelect('zoomOut')}
+                    className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-center cursor-pointer"
+                    title={t('indicator.chart_tool_zoom_out')}
+                  >
+                    {zoomOutIcon}
+                  </button>
+                  <button
+                    onClick={() => handleChartToolSelect('reset')}
+                    className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center justify-center cursor-pointer"
+                    title={t('indicator.chart_tool_reset')}
+                  >
+                    {resetIcon}
+                  </button>
+                </div>
+                {chartSupportsTools && (
+                  <div className="flex gap-2">
+                    {chartToolModes.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleChartToolSelect(option.value)}
+                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
+                          activeChartTool === option.value
+                            ? 'bg-black/[0.03] border-[#d4d4d4] text-primary'
+                            : 'bg-[#fffefc] border-[#e5e5e5] text-[#0a0a0a]'
+                        }`}
+                        title={option.label}
+                      >
+                        {option.icon}
+                        <span className="font-['Onest'] text-sm">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Ferramentas (Tools) card — hidden for now
             <div className={cardClass}>
               <div className="flex flex-col gap-4">
