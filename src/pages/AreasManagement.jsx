@@ -9,6 +9,7 @@ import SuccessModal from '../components/wizard/SuccessModal';
 import areaService from '../services/areaService';
 import indicatorService from '../services/indicatorService';
 import useLocalizedName from '../hooks/useLocalizedName';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import { confirmAction } from '../utils/confirm';
 import { ptCompare } from '../utils/sort';
 import AdminListShell, {
@@ -34,6 +35,9 @@ export default function AreasManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(false);
+  // Flips true after first loadData so subsequent loads don't tear the page
+  // into a skeleton (which unmounts the search input and steals focus).
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(() => {
     const p = parseInt(searchParams.get('page') || '0', 10);
@@ -54,7 +58,10 @@ export default function AreasManagement() {
   // Sorting and filtering state
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
-  const [searchQuery, setSearchQuery] = useState('');
+  // searchInput drives the controlled input; searchQuery is its debounced
+  // value used by loadData so typing doesn't fire an API call per keystroke.
+  const [searchInput, setSearchInput] = useState('');
+  const searchQuery = useDebouncedValue(searchInput, 300);
 
   // Modal state
   const [isAreaWizardOpen, setIsAreaWizardOpen] = useState(false);
@@ -132,6 +139,7 @@ export default function AreasManagement() {
       console.error('Error loading areas:', err);
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   };
 
@@ -171,11 +179,11 @@ export default function AreasManagement() {
   };
 
   const handleSearch = (query) => {
-    setSearchQuery(query);
+    setSearchInput(query);
     setCurrentPage(0);
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
     <AdminPageTemplate>
         <LoadingSkeleton />
@@ -208,7 +216,7 @@ export default function AreasManagement() {
         <AdminFilterBar
           search={
             <AdminSearchInput
-              value={searchQuery}
+              value={searchInput}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder={t('admin.areas.search_placeholder', t('admin.indicators.search_placeholder', 'Pesquisar'))}
             />

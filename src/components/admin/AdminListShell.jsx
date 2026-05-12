@@ -177,6 +177,14 @@ export function AdminSelectDropdown({ placeholder, options, value, onChange, dis
 
   const active = options.find(o => o.value === value);
 
+  const Dot = ({ color }) => (
+    <span
+      aria-hidden
+      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+      style={{ backgroundColor: color }}
+    />
+  );
+
   return (
     <div ref={ref} className="relative inline-flex items-center">
       <button
@@ -186,6 +194,7 @@ export function AdminSelectDropdown({ placeholder, options, value, onChange, dis
         className={`${PILL_BASE} ${allowClear && active ? 'pr-10' : ''}`}
       >
         <LuChevronDown className="w-4 h-4" strokeWidth={1.75} />
+        {active?.color && <Dot color={active.color} />}
         <span className="truncate max-w-[200px]">{active ? active.label : placeholder}</span>
       </button>
       {allowClear && active && (
@@ -210,9 +219,10 @@ export function AdminSelectDropdown({ placeholder, options, value, onChange, dis
                 key={opt.value}
                 type="button"
                 onClick={() => { onChange(opt.value); setOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 font-['Onest'] text-sm transition-colors hover:bg-black/[0.03] ${isActive ? 'text-[#009368] font-medium' : 'text-[#0a0a0a]'}`}
+                className={`w-full text-left px-4 py-2.5 font-['Onest'] text-sm transition-colors hover:bg-black/[0.03] flex items-center gap-2 ${isActive ? 'text-[#009368] font-medium' : 'text-[#0a0a0a]'}`}
               >
-                {opt.label}
+                {opt.color && <Dot color={opt.color} />}
+                <span className="truncate">{opt.label}</span>
               </button>
             );
           })}
@@ -227,6 +237,7 @@ AdminSelectDropdown.propTypes = {
   options: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
+    color: PropTypes.string,
   })).isRequired,
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,

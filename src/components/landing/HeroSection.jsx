@@ -31,22 +31,30 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className="relative max-w-[1512px] mx-auto px-4 sm:px-12 sm:min-h-[900px] flex flex-col sm:justify-center pb-8 sm:pb-0">
+      {/* Main Content Container. Matches the Figma hero (node 667:779): the
+          title block is anchored near the top of the viewport, not vertically
+          centred — Figma puts ~180 px above the title and leaves the rest as
+          empty canvas below the CTA, so the top gap reads smaller than the
+          bottom gap. We approximate that with pt = navbar + ~7 rem on desktop
+          and let the content stack from there (no justify-center). */}
+      <div className="relative max-w-[1512px] mx-auto px-4 sm:px-12 pt-[calc(var(--navbar-height,80px)+3rem)] sm:pt-[calc(var(--navbar-height,80px)+10rem)] sm:min-h-screen flex flex-col pb-8 sm:pb-0">
 
-        {/* Title Section — constrained to left half on xl to avoid overlapping images */}
-        <div className="relative z-20 flex flex-col items-start text-left xl:max-w-[55%]" style={{ paddingTop: 'calc(var(--navbar-height, 80px) + 5rem)' }}>
+        {/* Title Section — constrained to left half on xl to avoid overlapping images.
+            Font size uses clamp() so the words shrink fluidly between sm and xl
+            instead of jumping at md and forcing a 3-row wrap on tablet widths.
+            tracking-tight pulls the letters slightly closer. */}
+        <div className="relative z-20 flex flex-col items-start text-left xl:max-w-[55%]">
           {/* "A Raíz Da" */}
-          <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-8 justify-start mb-1 sm:mb-4" data-aos="fade-right" data-aos-delay="0">
-            <span className="font-['Onest'] font-bold text-[42px] sm:text-[72px] md:text-[100px] leading-none text-black">{titlePrefixParts[0]}</span>
-            <span className="font-['Onest'] font-bold text-[42px] sm:text-[72px] md:text-[100px] leading-none text-black">{titlePrefixParts[1] || ''}</span>
-            <span className="font-['Onest'] font-bold text-[42px] sm:text-[72px] md:text-[100px] leading-none text-black">{t('hero.title_suffix')}</span>
+          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-5 justify-start mb-1 sm:mb-3" data-aos="fade-right" data-aos-delay="0">
+            <span className="font-['Onest'] font-bold text-[clamp(42px,calc(9vw-16px),100px)] leading-[0.95] tracking-tight text-black">{titlePrefixParts[0]}</span>
+            <span className="font-['Onest'] font-bold text-[clamp(42px,calc(9vw-16px),100px)] leading-[0.95] tracking-tight text-black">{titlePrefixParts[1] || ''}</span>
+            <span className="font-['Onest'] font-bold text-[clamp(42px,calc(9vw-16px),100px)] leading-[0.95] tracking-tight text-black">{t('hero.title_suffix')}</span>
           </div>
 
           {/* "Decisões Certas" */}
-          <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-8 justify-start" data-aos="fade-right" data-aos-delay="150">
-            <span className="font-['Onest'] font-bold text-[42px] sm:text-[72px] md:text-[100px] leading-none text-black">{t('hero.title_decisions')}</span>
-            <span className="font-['Onest'] font-bold text-[42px] sm:text-[72px] md:text-[100px] leading-none text-black">{t('hero.title_right')}</span>
+          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-5 justify-start" data-aos="fade-right" data-aos-delay="150">
+            <span className="font-['Onest'] font-bold text-[clamp(42px,calc(9vw-16px),100px)] leading-[0.95] tracking-tight text-black">{t('hero.title_decisions')}</span>
+            <span className="font-['Onest'] font-bold text-[clamp(42px,calc(9vw-16px),100px)] leading-[0.95] tracking-tight text-black">{t('hero.title_right')}</span>
           </div>
         </div>
 

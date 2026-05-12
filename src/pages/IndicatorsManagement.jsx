@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 import indicatorService from '../services/indicatorService';
 import areaService from '../services/areaService';
@@ -43,6 +44,11 @@ export default function IndicatorsManagement() {
   const [selectedOption, setSelectedOption] = useState('indicators');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Flips true after the first loadData completes so subsequent loads
+  // (triggered by typing in the search box, filter changes, etc.) don't
+  // tear down the page into a skeleton — the input stays mounted and
+  // the user keeps focus.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [indicators, setIndicators] = useState([]);
   const [areas, setAreas] = useState([]);
 
@@ -78,17 +84,20 @@ export default function IndicatorsManagement() {
   const [areaFilter, setAreaFilter] = useState(null);
   const [dimensionFilter, setDimensionFilter] = useState(null);
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchMode, setIsSearchMode] = useState(false);
-  
+  // Search state. `searchInput` is the controlled value bound to the input
+  // element so typing stays responsive; `searchQuery` is the debounced value
+  // that drives loadData so we don't fire an API call (and unmount the page
+  // into a skeleton) on every keystroke.
+  const [searchInput, setSearchInput] = useState('');
+  const searchQuery = useDebouncedValue(searchInput, 300);
+  const isSearchMode = searchQuery.trim().length > 0;
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const search = searchParams.get('q');
     if (search) {
-      setSearchQuery(search);
-      setIsSearchMode(true);
+      setSearchInput(search);
       setSelectedOption('indicators'); // Force to indicators view for search
     }
   }, [searchParams]);
@@ -154,6 +163,7 @@ export default function IndicatorsManagement() {
       console.error('Error loading data:', err);
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   };
 
@@ -240,7 +250,7 @@ export default function IndicatorsManagement() {
     setCurrentPage(newPage);
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
     <AdminPageTemplate>
         <LoadingSkeleton />
@@ -275,10 +285,9 @@ export default function IndicatorsManagement() {
         <AdminFilterBar
           search={
             <AdminSearchInput
-              value={searchQuery}
+              value={searchInput}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsSearchMode(e.target.value.trim().length > 0);
+                setSearchInput(e.target.value);
                 setCurrentPage(0);
               }}
               placeholder={t('admin.indicators.search_placeholder', 'Pesquisar indicadores')}
@@ -303,7 +312,7 @@ export default function IndicatorsManagement() {
             placeholder={t('admin.indicators.col_area')}
             value={areaFilter}
             onChange={(v) => { setAreaFilter(v); setDimensionFilter(null); setCurrentPage(0); }}
-            options={areas.map(a => ({ value: a.id, label: getName(a) || a.name || '—' }))}
+            options={areas.map(a => ({ value: a.id, label: getName(a) || a.name || '—', color: a.color }))}
           />
           <AdminSelectDropdown
             placeholder={t('admin.indicators.col_dimension', 'Dimensão')}

@@ -80,9 +80,16 @@ function Dropdowns({
             tabIndex={0}
             onClick={() => setIsAreaDropdownOpen(!isAreaDropdownOpen)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsAreaDropdownOpen(!isAreaDropdownOpen); } }}
-            className="truncate cursor-pointer flex-1"
+            className="truncate cursor-pointer flex-1 flex items-center gap-2"
           >
-            {getName(selectedArea) || t('components.select_area.choose_area')}
+            {selectedArea?.color && (
+              <span
+                aria-hidden
+                className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: selectedArea.color }}
+              />
+            )}
+            <span className="truncate">{getName(selectedArea) || t('components.select_area.choose_area')}</span>
           </span>
           <div className="flex items-center gap-1">
             {selectedArea?.name && allowAreaClear && (
@@ -115,9 +122,16 @@ function Dropdowns({
               <button
                 key={area?.name || index}
                 onClick={() => handleSelectArea(area)}
-                className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] w-full text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+                className="font-['Onest',sans-serif] text-sm text-[#0a0a0a] w-full text-left px-4 py-2.5 hover:bg-black/[0.03] transition-colors first:rounded-t-2xl last:rounded-b-2xl flex items-center gap-2"
               >
-                {getName(area) || "Unnamed Area"}
+                {area?.color && (
+                  <span
+                    aria-hidden
+                    className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: area.color }}
+                  />
+                )}
+                <span className="truncate">{getName(area) || "Unnamed Area"}</span>
               </button>
             ))}
           </div>
