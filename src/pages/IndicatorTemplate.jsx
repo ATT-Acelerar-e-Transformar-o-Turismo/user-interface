@@ -1001,8 +1001,8 @@ export default function IndicatorTemplate() {
                       onViewportChange={handleViewportChange}
                       activeTool={activeChartTool}
                       xaxisRange={!isHorizontalBar && viewport.min != null && viewport.max != null ? viewport : null}
-                      xaxisTitle={t('indicator.axis_time', 'Tempo')}
-                      yaxisTitle={getName.field(indicatorData, 'unit', 'unit_en') || getName(indicatorData) || ''}
+                      xaxisTitle={isHorizontalBar ? (getName.field(indicatorData, 'unit', 'unit_en') || getName(indicatorData) || '') : t('indicator.axis_time', 'Tempo')}
+                      yaxisTitle={isHorizontalBar ? t('indicator.axis_time', 'Tempo') : (getName.field(indicatorData, 'unit', 'unit_en') || getName(indicatorData) || '')}
                     />
                   </div>
                 ) : !dataLoading ? (

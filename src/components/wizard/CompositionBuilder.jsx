@@ -5,11 +5,15 @@ import indicatorService from '../../services/indicatorService';
 import useLocalizedName from '../../hooks/useLocalizedName';
 
 /**
- * CompositionBuilder — lets the admin define a derived series from one or
- * more existing indicators plus a free-form arithmetic formula.
+ * CompositionBuilder — lets the admin define a derived series from exactly
+ * two existing indicators (variables `a` and `b`) plus a free-form arithmetic
+ * formula. The two-input shape is enforced both here and by the backend
+ * schema; the formula evaluator itself supports more, but the UI does not
+ * expose that.
  *
  * Shape of `value`:
- *   { inputs: [{ key, indicator_id, indicator }], formula, bucket, aggregator, name }
+ *   { inputs: [{ key, indicator_id, indicator }, { key, indicator_id, indicator }],
+ *     formula, bucket, aggregator, name }
  *
  * `indicator` is the full picker row (for display); the backend only
  * receives { key, indicator_id }.

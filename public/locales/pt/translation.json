@@ -518,7 +518,7 @@
       "name_placeholder": "Ex: Taxa de ocupação",
       "inputs_label": "Indicadores fonte",
       "add_input": "Adicionar indicador",
-      "empty_hint": "Adicione pelo menos um indicador para usar na fórmula.",
+      "empty_hint": "Escolha os dois indicadores para usar na fórmula.",
       "key_label": "Variável",
       "loading": "A carregar…",
       "choose_indicator": "Escolher indicador…",
@@ -540,7 +540,7 @@
       "agg_first": "Primeiro",
       "agg_median": "Mediana",
       "agg_count": "Contagem",
-      "inputs_required": "Adicione pelo menos um indicador fonte.",
+      "inputs_required": "Selecione os dois indicadores fonte (a e b).",
       "inputs_duplicate_keys": "As variáveis (a, b, …) têm de ser únicas.",
       "formula_required": "Defina uma fórmula (ex.: a / b)."
     }
