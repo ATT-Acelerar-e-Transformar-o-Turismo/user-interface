@@ -79,7 +79,7 @@ export default function AuthorPage() {
     }
 
     if (loading) return <PageTemplate><div className="py-8"><LoadingSkeleton /></div></PageTemplate>
-    if (error) return <PageTemplate><div className="py-8"><ErrorDisplay error={error} /></div></PageTemplate>
+    if (error) return <ErrorDisplay error={error} />
     if (!author) {
         return (
             <PageTemplate>

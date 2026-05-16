@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { routesList } from './routes.jsx'
+import ServerError from './pages/errors/ServerError';
 import { AuthProvider } from './contexts/AuthContext';
 import { AreaProvider } from './contexts/AreaContext';
 import { IndicatorProvider } from './contexts/IndicatorContext';
@@ -21,7 +22,12 @@ AOS.init({
   mirror: true,
 });
 
-const router = createBrowserRouter(routesList)
+// Attach the on-brand 500 page as the fallback for any uncaught render error
+// or loader/action throw in any route. Without this, React Router would show
+// its bare default error UI which doesn't match the rest of the app.
+const router = createBrowserRouter(
+  routesList.map(route => ({ errorElement: <ServerError />, ...route })),
+)
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -172,11 +172,7 @@ export default function BlogManagement({
         )
     }
     if (error) {
-        return (
-            <AdminPageTemplate>
-                <div className="py-8 px-4 md:px-12"><ErrorDisplay error={error} /></div>
-            </AdminPageTemplate>
-        )
+        return <ErrorDisplay error={error} />
     }
 
     return (

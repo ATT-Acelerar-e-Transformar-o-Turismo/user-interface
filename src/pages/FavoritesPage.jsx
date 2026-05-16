@@ -198,7 +198,7 @@ export default function FavoritesPage() {
       
       {loading && <LoadingSkeleton />}
       
-      {error && <ErrorDisplay error={error} />}
+      {error && <ErrorDisplay error={error} inline />}
       
       {!loading && !error && (
         <>

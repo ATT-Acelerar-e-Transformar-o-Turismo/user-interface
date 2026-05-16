@@ -80,7 +80,7 @@ export default function AreaSelectionPage() {
 
           {/* Area cards — row with justify-between on desktop */}
           {loading && <LoadingSkeleton />}
-          {error && <ErrorDisplay error={error} />}
+          {error && <ErrorDisplay error={error} inline />}
           {!loading && !error && areas.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">{t('home.no_areas')}</p>

@@ -23,6 +23,9 @@ import Governanca from "./pages/roots/Governanca";
 import Territorio from "./pages/roots/Territorio";
 import RedesCertificacoes from "./pages/roots/RedesCertificacoes";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Forbidden from "./pages/errors/Forbidden";
+import NotFound from "./pages/errors/NotFound";
+import ServerError from "./pages/errors/ServerError";
 
 export const routesList = [
     {
@@ -376,5 +379,10 @@ export const routesList = [
                 <RedesCertificacoes />
             </>
         )
-    }
+    },
+    { path: '/403', element: <Forbidden /> },
+    { path: '/404', element: <NotFound /> },
+    { path: '/500', element: <ServerError /> },
+    // React Router v7 catch-all: any unmatched path renders the 404 page.
+    { path: '*', element: <NotFound /> }
 ];

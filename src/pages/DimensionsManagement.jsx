@@ -236,11 +236,7 @@ export default function DimensionsManagement() {
   }
 
   if (error) {
-    return (
-    <AdminPageTemplate>
-        <ErrorDisplay error={error} onRetry={loadDimensions} />
-      </AdminPageTemplate>
-    );
+    return <ErrorDisplay error={error} onRetry={loadDimensions} />;
   }
 
   return (

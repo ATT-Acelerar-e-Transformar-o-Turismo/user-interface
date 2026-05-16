@@ -744,13 +744,7 @@ export default function BlogPostForm() {
     }
 
     if (error && !formData.title) {
-        return (
-            <AdminPageTemplate>
-                <div className="py-8">
-                    <ErrorDisplay error={error} />
-                </div>
-            </AdminPageTemplate>
-        )
+        return <ErrorDisplay error={error} />
     }
 
     // Save as draft: flip the in-memory status to 'draft' then run the

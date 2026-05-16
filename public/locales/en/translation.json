@@ -717,7 +717,9 @@
       "title": "Governance",
       "intro": "ROOTS governance is based on a collaborative structure involving public entities, academic institutions, and tourism sector agents. This model seeks to ensure scientific rigor, institutional coordination, and connection to the territory, allowing tourism monitoring to be carried out in an integrated and participatory manner.",
       "modelo_title": "Observatory Governance Model",
-      "modelo_placeholder": "Governance model diagram"
+      "almost_ready_title": "Almost there!",
+      "almost_ready_desc": "We're finalising our governance model. Stay tuned!",
+      "illustration_alt": "Lighthouse and Costa Nova houses illustration"
     },
     "territorio": {
       "area_title": "Monitoring Area",
@@ -746,6 +748,35 @@
       "governanca": "Governance",
       "territorio": "Territory",
       "redes": "Networks & certifications"
+    }
+  },
+  "errors": {
+    "back": "Back",
+    "inline": {
+      "title": "We couldn't load this content.",
+      "description": "Something went wrong fetching the data. Please try again in a few seconds.",
+      "retry": "Try again"
+    },
+    "forbidden": {
+      "page_title": "Restricted area · ROOTS",
+      "illustration_alt": "Closed gate",
+      "title": "Restricted area.",
+      "description": "It looks like you don't have permission to view this content. If you have an account with access, make sure you're signed in.",
+      "cta": "Go to home"
+    },
+    "not_found": {
+      "page_title": "Page not found · ROOTS",
+      "illustration_alt": "Magnifying glass searching",
+      "title": "Page not found",
+      "description": "The page you're looking for seems to have moved or no longer exists. No worries — it's easy to get back on track.",
+      "cta": "Go to home"
+    },
+    "server": {
+      "page_title": "Something went wrong · ROOTS",
+      "illustration_alt": "Magnifying glass investigating",
+      "title": "Something went wrong.",
+      "description": "We hit a technical issue on our side and couldn't load this page. Sorry about the interruption.",
+      "cta": "Go to home"
     }
   }
 }

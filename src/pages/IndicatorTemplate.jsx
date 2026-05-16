@@ -3,6 +3,7 @@ import { useArea } from "../contexts/AreaContext";
 import { useAuth } from "../contexts/AuthContext";
 import resourceService from "../services/resourceService";
 import PageTemplate from "./PageTemplate";
+import ErrorDisplay from "../components/ErrorDisplay";
 import Carousel from "../components/Carousel";
 import GChart from "../components/Chart";
 import ResourceWizard from "../components/wizard/ResourceWizard";
@@ -676,7 +677,7 @@ export default function IndicatorTemplate() {
   }
 
   if (error || !indicatorData) {
-    return <div>{error || t('indicator.not_found')}</div>;
+    return <ErrorDisplay error={error || t('indicator.not_found')} />;
   }
 
   // Backend returns the top-level group as `domain` (populated Domain object

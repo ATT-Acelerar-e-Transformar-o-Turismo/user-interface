@@ -106,7 +106,7 @@ export default function BlogPostPage() {
         return <PageTemplate><div className="py-8"><LoadingSkeleton /></div></PageTemplate>
     }
     if (error) {
-        return <PageTemplate><div className="py-8"><ErrorDisplay error={error} /></div></PageTemplate>
+        return <ErrorDisplay error={error} />
     }
     if (!post) {
         return (

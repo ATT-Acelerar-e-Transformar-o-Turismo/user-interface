@@ -192,11 +192,7 @@ export default function AreasManagement() {
   }
 
   if (error) {
-    return (
-    <AdminPageTemplate>
-        <ErrorDisplay error={error} onRetry={loadAreas} />
-      </AdminPageTemplate>
-    );
+    return <ErrorDisplay error={error} onRetry={loadAreas} />;
   }
 
   return (
