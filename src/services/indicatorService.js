@@ -159,6 +159,22 @@ export const indicatorService = {
     return response.data;
   },
 
+  async addComposition(indicatorId, composition) {
+    // composition: { name?, name_en?, inputs:[{key, indicator_id}], formula, bucket, aggregator }
+    const response = await apiClient.post(
+      API_ENDPOINTS.INDICATORS.COMPOSITIONS(indicatorId),
+      composition,
+    );
+    return response.data;
+  },
+
+  async removeComposition(indicatorId, compositionId) {
+    const response = await apiClient.delete(
+      API_ENDPOINTS.INDICATORS.COMPOSITION_BY_ID(indicatorId, compositionId),
+    );
+    return response.data;
+  },
+
   async getData(indicatorId, startDate = null, endDate = null, limit = 100) {
     let url = `${API_ENDPOINTS.INDICATORS.DATA(indicatorId)}?limit=${limit}`;
     if (startDate) url += `&start_date=${startDate}`;

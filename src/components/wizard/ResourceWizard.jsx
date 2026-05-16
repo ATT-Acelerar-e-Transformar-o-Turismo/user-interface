@@ -13,6 +13,7 @@ import FormInput from '../forms/FormInput';
 import FormFileUpload from '../forms/FormFileUpload';
 import APIConfigForm from '../APIConfigForm';
 import IndicatorPicker from './IndicatorPicker';
+import CompositionBuilder from './CompositionBuilder';
 import useLocalizedName from '../../hooks/useLocalizedName';
 import GChart from '../Chart';
 import useWizard from '../../hooks/useWizard';
@@ -58,6 +59,14 @@ export default function ResourceWizard({
     columnSelections: {},  // {fileName: {sheetName, timeColumn, valueColumns: []}}
     // Indicator-mode picker state. Each entry: {id, name, domain, subdomain}.
     selectedIndicators: [],
+    // Composition-mode builder state.
+    composition: {
+      name: '',
+      inputs: [],  // [{ key, indicator_id, indicator }]
+      formula: '',
+      bucket: '1M',
+      aggregator: 'avg',
+    },
     apiConfig: {
       location: '',
       auth_type: 'none',
@@ -86,6 +95,7 @@ export default function ResourceWizard({
   // 3 steps with no column-picker.
   const fileMode = ['CSV', 'XLSX'].includes(wizard.formData.sourceType);
   const indicatorMode = wizard.formData.sourceType === 'INDICATOR';
+  const compositionMode = wizard.formData.sourceType === 'COMPOSITION';
   const steps = fileMode
     ? [
         t('wizard.resource.step_type'),
@@ -97,7 +107,9 @@ export default function ResourceWizard({
         t('wizard.resource.step_type'),
         indicatorMode
           ? t('wizard.resource.step_indicator', 'Selecionar indicador')
-          : t('wizard.resource.step_config'),
+          : compositionMode
+            ? t('wizard.resource.step_composition', 'Definir fórmula')
+            : t('wizard.resource.step_config'),
         t('wizard.resource.step_preview'),
       ];
 
@@ -492,11 +504,54 @@ export default function ResourceWizard({
         } else if (urlError) {
           errors.apiLocation = urlError;
         }
+        // Each auth type has its own required credential — block step
+        // advancement if it's missing so the wrapper isn't generated with
+        // empty headers (which would 401 at runtime).
+        const cfg = wizard.formData.apiConfig;
+        if (cfg.auth_type === 'api_key' && !cfg.api_key) {
+          errors.apiAuth = t(
+            'wizard.resource.api_key_required',
+            'Indique a API key para esta autenticação.',
+          );
+        } else if (cfg.auth_type === 'bearer' && !cfg.bearer_token) {
+          errors.apiAuth = t(
+            'wizard.resource.bearer_token_required',
+            'Indique o bearer token para esta autenticação.',
+          );
+        } else if (cfg.auth_type === 'basic' && (!cfg.username || !cfg.password)) {
+          errors.apiAuth = t(
+            'wizard.resource.basic_auth_required',
+            'Indique o utilizador e a palavra-passe para autenticação básica.',
+          );
+        }
       } else if (wizard.formData.sourceType === 'INDICATOR') {
         if (!wizard.formData.selectedIndicators || wizard.formData.selectedIndicators.length === 0) {
           errors.selectedIndicators = t(
             'wizard.resource.indicator_required',
             'Selecione pelo menos um indicador.',
+          );
+        }
+      } else if (wizard.formData.sourceType === 'COMPOSITION') {
+        const comp = wizard.formData.composition || {};
+        const inputs = (comp.inputs || []).filter((i) => i.key && i.indicator_id);
+        if (inputs.length !== 2) {
+          errors.compositionInputs = t(
+            'wizard.composition.inputs_required',
+            'Selecione os dois indicadores fonte (a e b).',
+          );
+        }
+        const keys = inputs.map((i) => i.key);
+        if (new Set(keys).size !== keys.length) {
+          errors.compositionInputs = t(
+            'wizard.composition.inputs_duplicate_keys',
+            'As variáveis (a, b, …) têm de ser únicas.',
+          );
+        }
+        const formula = (comp.formula || '').trim();
+        if (!formula) {
+          errors.compositionFormula = t(
+            'wizard.composition.formula_required',
+            'Defina uma fórmula (ex.: a / b).',
           );
         }
       } else {
@@ -554,7 +609,34 @@ export default function ResourceWizard({
 
   async function handleSubmit(data) {
     try {
-      if (data.sourceType === 'INDICATOR') {
+      if (data.sourceType === 'COMPOSITION') {
+        const comp = data.composition || {};
+        const inputs = (comp.inputs || [])
+          .filter((i) => i.key && i.indicator_id)
+          .map((i) => ({ key: i.key, indicator_id: i.indicator_id }));
+        try {
+          await indicatorService.addComposition(indicatorId, {
+            name: comp.name || null,
+            inputs,
+            formula: (comp.formula || '').trim(),
+            bucket: comp.bucket || '1M',
+            aggregator: comp.aggregator || 'avg',
+          });
+        } catch (err) {
+          const detail = err?.response?.data?.detail;
+          const msg = Array.isArray(detail)
+            ? detail.map((d) => d?.msg || JSON.stringify(d)).join('; ')
+            : detail || err?.userMessage || err?.message || 'Erro ao guardar composição.';
+          showError(msg, 8000);
+          throw err;
+        }
+        // Close directly — COMPOSITION has no wrapper/resource to show in the
+        // generic success modal, so just dismiss and refresh.
+        if (onSuccess) onSuccess();
+        onClose();
+        wizard.reset();
+        return;
+      } else if (data.sourceType === 'INDICATOR') {
         // Composed indicator: each picked indicator becomes a child of the
         // current one. The backend rejects cycles and self-inclusion; surface
         // those errors to the user without poisoning the success path.
@@ -577,6 +659,11 @@ export default function ResourceWizard({
         if (failures.length > 0) {
           showError(failures.map(f => `${f.name}: ${f.msg}`).join(' / '), 8000);
         }
+        // Same as COMPOSITION: close directly, no wrapper modal needed.
+        if (onSuccess) onSuccess();
+        onClose();
+        wizard.reset();
+        return;
       } else if (data.sourceType === 'API') {
         // Handle API submission separately
         setWrapperStatus('pending');
@@ -638,7 +725,6 @@ export default function ResourceWizard({
           }
         }
 
-        console.log('All resources linked to indicator:', indicatorId);
       }
 
       setShowSuccessModal(true);
@@ -648,7 +734,11 @@ export default function ResourceWizard({
       }
     } catch (error) {
       console.error('Error creating resource:', error);
-      setWrapperStatus('error');
+      // COMPOSITION and INDICATOR modes don't use wrapperStatus; setting it to
+      // 'error' permanently disables the submit button (isSubmitting check includes !!wrapperStatus).
+      if (data.sourceType !== 'COMPOSITION' && data.sourceType !== 'INDICATOR') {
+        setWrapperStatus('error');
+      }
       throw error;
     }
   }
@@ -694,6 +784,7 @@ export default function ResourceWizard({
     { value: 'XLSX', label: t('wizard.resource.source_xlsx') },
     { value: 'API', label: t('wizard.resource.source_api') },
     { value: 'INDICATOR', label: t('wizard.resource.source_indicator', 'Indicador existente') },
+    { value: 'COMPOSITION', label: t('wizard.resource.source_composition', 'Indicador composto (fórmula)') },
   ];
 
   const getSubmitLabel = () => {
@@ -784,10 +875,18 @@ export default function ResourceWizard({
             }
           >
             {wizard.formData.sourceType === 'API' ? (
-              <APIConfigForm
-                onConfigChange={(config) => wizard.updateFormData('apiConfig', config)}
-                initialConfig={wizard.formData.apiConfig}
-              />
+              <>
+                <APIConfigForm
+                  onConfigChange={(config) => wizard.updateFormData('apiConfig', config)}
+                  initialConfig={wizard.formData.apiConfig}
+                />
+                {wizard.errors.apiLocation && (
+                  <div className="text-sm text-red-600 mt-2">{wizard.errors.apiLocation}</div>
+                )}
+                {wizard.errors.apiAuth && (
+                  <div className="text-sm text-red-600 mt-2">{wizard.errors.apiAuth}</div>
+                )}
+              </>
             ) : wizard.formData.sourceType === 'INDICATOR' ? (
               <IndicatorPicker
                 excludeId={indicatorId}
@@ -795,6 +894,16 @@ export default function ResourceWizard({
                 selected={wizard.formData.selectedIndicators || []}
                 onChange={(arr) => wizard.updateFormData('selectedIndicators', arr)}
                 error={wizard.errors.selectedIndicators}
+              />
+            ) : wizard.formData.sourceType === 'COMPOSITION' ? (
+              <CompositionBuilder
+                value={wizard.formData.composition}
+                onChange={(v) => wizard.updateFormData('composition', v)}
+                excludeId={indicatorId}
+                errors={{
+                  inputs: wizard.errors.compositionInputs,
+                  formula: wizard.errors.compositionFormula,
+                }}
               />
             ) : (
               <FormFileUpload
@@ -930,6 +1039,49 @@ export default function ResourceWizard({
                 <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
                   {t('wizard.resource.api_url_pending')}
                 </p>
+              </div>
+            ) : wizard.formData.sourceType === 'COMPOSITION' ? (
+              <div className="space-y-3">
+                <p className="font-['Onest',sans-serif] text-sm text-gray-700">
+                  {t(
+                    'wizard.resource.composition_review',
+                    'Indicador composto a criar:',
+                  )}
+                </p>
+                <div className="border border-gray-200 rounded-lg p-4 space-y-2">
+                  {wizard.formData.composition.name && (
+                    <div>
+                      <span className="text-xs text-gray-500">
+                        {t('wizard.composition.name_label', 'Nome')}:
+                      </span>{' '}
+                      <span className="text-sm">{wizard.formData.composition.name}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs text-gray-500">
+                      {t('wizard.composition.formula_label', 'Fórmula')}:
+                    </span>{' '}
+                    <code className="text-sm">{wizard.formData.composition.formula}</code>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500">
+                      {t('wizard.composition.inputs_label', 'Indicadores fonte')}:
+                    </span>
+                    <ul className="mt-1 space-y-1">
+                      {(wizard.formData.composition.inputs || []).map((row, idx) => (
+                        <li key={idx} className="text-sm">
+                          <code>{row.key}</code> = {getName(row.indicator) || row.indicator_id}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {t('wizard.composition.bucket_label', 'Granularidade')}:{' '}
+                    {wizard.formData.composition.bucket} ·{' '}
+                    {t('wizard.composition.aggregator_label', 'Agregação')}:{' '}
+                    {wizard.formData.composition.aggregator}
+                  </div>
+                </div>
               </div>
             ) : wizard.formData.sourceType === 'INDICATOR' ? (
               <div className="space-y-3">
