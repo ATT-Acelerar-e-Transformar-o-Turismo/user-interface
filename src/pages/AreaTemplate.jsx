@@ -617,7 +617,7 @@ export default function AreaTemplate({ embedded = false }) {
 
             {/* Loading / Error */}
             {loading && <LoadingSkeleton />}
-            {error && <ErrorDisplay error={error} />}
+            {error && <ErrorDisplay error={error} inline />}
 
             {!loading && !error && (
               <>

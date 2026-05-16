@@ -214,11 +214,7 @@ export default function BlogPage() {
     }
 
     if (error && posts.length === 0) {
-        return (
-            <PageTemplate>
-                <div className="py-8"><ErrorDisplay error={error} /></div>
-            </PageTemplate>
-        )
+        return <ErrorDisplay error={error} />
     }
 
     return (

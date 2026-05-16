@@ -259,11 +259,7 @@ export default function IndicatorsManagement() {
   }
 
   if (error) {
-    return (
-    <AdminPageTemplate>
-        <ErrorDisplay error={error} onRetry={loadData} />
-      </AdminPageTemplate>
-    );
+    return <ErrorDisplay error={error} onRetry={loadData} />;
   }
 
   return (

@@ -717,7 +717,9 @@
       "title": "Governança",
       "intro": "A governança da ROOTS assenta numa estrutura colaborativa que envolve entidades públicas, instituições académicas e agentes do setor turístico. Este modelo procura assegurar rigor científico, articulação institucional e ligação ao território, permitindo que a monitorização do turismo seja realizada de forma integrada e participativa.",
       "modelo_title": "Modelo de Governança do Observatório",
-      "modelo_placeholder": "Diagrama do modelo de governança"
+      "almost_ready_title": "Quase pronto!",
+      "almost_ready_desc": "Estamos a finalizar ao nosso modelo de governança. Fique atento!",
+      "illustration_alt": "Ilustração do farol e casas da Costa Nova"
     },
     "territorio": {
       "area_title": "A Área de Monitorização",
@@ -746,6 +748,35 @@
       "governanca": "Governança",
       "territorio": "Território",
       "redes": "Redes e certificações"
+    }
+  },
+  "errors": {
+    "back": "Voltar",
+    "inline": {
+      "title": "Não foi possível carregar este conteúdo.",
+      "description": "Algo correu mal ao obter os dados. Tente novamente daqui a uns segundos.",
+      "retry": "Tentar novamente"
+    },
+    "forbidden": {
+      "page_title": "Área reservada · ROOTS",
+      "illustration_alt": "Portão fechado",
+      "title": "Área reservada.",
+      "description": "Parece que não tem as permissões necessárias para aceder a este conteúdo. Se tem uma conta com acesso a esta área, certifique-se de que a sua sessão está iniciada corretamente.",
+      "cta": "Ir para o início"
+    },
+    "not_found": {
+      "page_title": "Página não encontrada · ROOTS",
+      "illustration_alt": "Lupa a procurar",
+      "title": "Página não encontrada",
+      "description": "A página que procura parece ter mudado de sítio ou já não existe. Não se preocupe, é fácil voltar ao caminho certo e continuar a sua navegação.",
+      "cta": "Ir para o início"
+    },
+    "server": {
+      "page_title": "Algo correu mal · ROOTS",
+      "illustration_alt": "Lupa a investigar",
+      "title": "Algo não correu como esperado.",
+      "description": "Tivemos um problema técnico do nosso lado e não foi possível carregar esta página. Pedimos desculpa pela interrupção.",
+      "cta": "Ir para o início"
     }
   }
 }

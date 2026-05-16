@@ -88,13 +88,7 @@ export default function UserManagement() {
     }
 
     if (error) {
-        return (
-            <AdminPageLayout title="User Management">
-                <div className="py-8">
-                    <ErrorDisplay error={error} />
-                </div>
-            </AdminPageLayout>
-        )
+        return <ErrorDisplay error={error} />
     }
 
     return (
