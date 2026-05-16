@@ -252,7 +252,7 @@ if (typeof window !== 'undefined' && !window.__apexUnhandledGuardInstalled) {
     });
 }
 
-const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, minimalAxis = false, activeTool = 'pan', disableAnimations = false, onViewportChange, xaxisRange }, ref) => {
+const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations = DEFAULT_ANNOTATIONS, log, series, group, height, themeMode = 'light', showLegend = true, showToolbar = true, showTooltip = true, allowUserInteraction = true, compact = false, minimalAxis = false, activeTool = 'pan', disableAnimations = false, onViewportChange, xaxisRange, xaxisTitle = '', yaxisTitle = '' }, ref) => {
     const [labelColor, setLabelColor] = useState('var(--color-base-content)')
     const [options, setOptions] = useState({})
     const chartRef = useRef(null)
@@ -971,6 +971,15 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     show: !compact && !minimalAxis,
                     color: '#000000'
                 },
+                title: {
+                    text: (xaxisTitle && !minimalAxis) ? xaxisTitle : '',
+                    style: {
+                        color: '#000000',
+                        fontSize: compact ? '11px' : '12px',
+                        fontFamily: 'Onest, sans-serif',
+                        fontWeight: 500,
+                    }
+                },
                 tooltip: {
                     enabled: false
                 }
@@ -996,6 +1005,15 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 axisTicks: {
                     show: !compact && !minimalAxis,
                     color: '#000000'
+                },
+                title: {
+                    text: (yaxisTitle && !minimalAxis) ? yaxisTitle : '',
+                    style: {
+                        color: '#000000',
+                        fontSize: compact ? '11px' : '12px',
+                        fontFamily: 'Onest, sans-serif',
+                        fontWeight: 500,
+                    }
                 },
                 logarithmic: !!log,
                 logBase: log || 10
@@ -1199,7 +1217,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current = null
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, activeTool, xaxisRange, hiddenSliceLabels])
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, activeTool, xaxisRange, hiddenSliceLabels, xaxisTitle, yaxisTitle])
 
     return <div ref={chartContainerRef} className="w-full h-full" />
 })
@@ -1247,7 +1265,9 @@ GChart.propTypes = {
     xaxisRange: PropTypes.shape({
         min: PropTypes.number,
         max: PropTypes.number
-    })
+    }),
+    xaxisTitle: PropTypes.string,
+    yaxisTitle: PropTypes.string,
 }
 
 GChart.defaultProps = {

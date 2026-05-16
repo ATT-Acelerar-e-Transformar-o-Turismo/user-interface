@@ -52,9 +52,11 @@ export default function IndicatorPicker({
         setFetchError(null);
         // Empty query: list a default page so the picker isn't empty on first
         // open. Search uses the dedicated search endpoint with relevance.
+        // Load all indicators — the picker is a one-shot selection UI; paging
+        // here is more friction than it's worth. Backend caps at 500.
         const data = trimmed.length >= 2
-          ? await indicatorService.search(trimmed, 25, 0, 'relevance')
-          : await indicatorService.getAll(0, 25, 'name', 'asc');
+          ? await indicatorService.search(trimmed, 500, 0, 'relevance')
+          : await indicatorService.getAll(0, 500, 'name', 'asc');
         // Drop responses superseded by a later request, or those that come
         // back after the effect has been cleaned up (cleanup ran).
         if (cancelled || mySeq !== requestSeqRef.current) return;

@@ -588,7 +588,7 @@ export default function IndicatorTemplate() {
     const own = indicatorData?.resources || [];
     const fromSeries = (rawSeries || [])
       .map(s => s.resource_id)
-      .filter(Boolean);
+      .filter(id => id && !id.startsWith('composition:'));
     return Array.from(new Set([...own, ...fromSeries])).sort().join('|');
   }, [indicatorData?.resources, rawSeries]);
 
@@ -629,10 +629,16 @@ export default function IndicatorTemplate() {
   }, [resourceIdsKey]);
 
   // Composed indicators: load each child's indicator doc so the sources
-  // panel can list them with proper names. Failures don't block render.
+  // panel can list them with proper names. Composition inputs (formula-based
+  // derived indicators) are surfaced the same way — the underlying indicators
+  // are effectively sources of this one. Failures don't block render.
   useEffect(() => {
     let cancelled = false;
-    const ids = indicatorData?.child_indicators || [];
+    const childIds = indicatorData?.child_indicators || [];
+    const compositionInputIds = (indicatorData?.compositions || [])
+      .flatMap(c => (c.inputs || []).map(i => i.indicator_id))
+      .filter(Boolean);
+    const ids = Array.from(new Set([...childIds, ...compositionInputIds]));
     if (!ids.length) {
       setChildIndicators([]);
       return undefined;
@@ -649,7 +655,7 @@ export default function IndicatorTemplate() {
       if (!cancelled) setChildIndicators(results.filter(Boolean));
     })();
     return () => { cancelled = true; };
-  }, [indicatorData?.child_indicators]);
+  }, [indicatorData?.child_indicators, indicatorData?.compositions]);
 
   if (indicatorLoading) {
     return (
@@ -995,6 +1001,8 @@ export default function IndicatorTemplate() {
                       onViewportChange={handleViewportChange}
                       activeTool={activeChartTool}
                       xaxisRange={!isHorizontalBar && viewport.min != null && viewport.max != null ? viewport : null}
+                      xaxisTitle={isHorizontalBar ? (getName.field(indicatorData, 'unit', 'unit_en') || getName(indicatorData) || '') : t('indicator.axis_time', 'Tempo')}
+                      yaxisTitle={isHorizontalBar ? t('indicator.axis_time', 'Tempo') : (getName.field(indicatorData, 'unit', 'unit_en') || getName(indicatorData) || '')}
                     />
                   </div>
                 ) : !dataLoading ? (

@@ -108,9 +108,14 @@ export default function ResourcesManagement() {
       }
 
       // Composed indicators: load full docs for each child id so we can
-      // render names + area in the table. Failures are logged but don't
-      // block the rest of the UI.
-      const childIds = indicatorResponse.child_indicators || [];
+      // render names + area in the table. Composition inputs (formula-based
+      // derived indicators) are surfaced the same way. Failures are logged
+      // but don't block the rest of the UI.
+      const rawChildIds = indicatorResponse.child_indicators || [];
+      const compositionInputIds = (indicatorResponse.compositions || [])
+        .flatMap(c => (c.inputs || []).map(i => i.indicator_id))
+        .filter(Boolean);
+      const childIds = Array.from(new Set([...rawChildIds, ...compositionInputIds]));
       if (childIds.length > 0) {
         const childResults = await Promise.all(
           childIds.map(id =>
@@ -138,11 +143,19 @@ export default function ResourcesManagement() {
       return;
     }
     // Composed-indicator row: rowId is `child:{indicatorId}`. Unlink via the
-    // indicator-service rather than deleting the resource.
+    // indicator-service rather than deleting the resource. If the indicator
+    // is referenced by one or more compositions on this indicator, those
+    // compositions get removed too (a composition with a missing input is
+    // unusable, and compositions are always exactly 2 inputs).
     if (typeof rowId === 'string' && rowId.startsWith('child:')) {
       const childId = rowId.slice('child:'.length);
       const child = childIndicatorsDetails.find(c => c.id === childId);
       const name = child?.name || childId;
+      const compositions = indicatorData?.compositions || [];
+      const matchingCompositions = compositions.filter(c =>
+        (c.inputs || []).some(i => i.indicator_id === childId),
+      );
+      const isPlainChild = (indicatorData?.child_indicators || []).includes(childId);
       const ok = await confirmAction({
         title: t('admin.resources.confirm_remove_child_title', 'Remover indicador incluído?'),
         message: t('admin.resources.confirm_remove_child', {
@@ -152,8 +165,15 @@ export default function ResourcesManagement() {
       });
       if (!ok) return;
       try {
-        await indicatorService.removeChildIndicator(indicator, childId);
-        setChildIndicatorsDetails(prev => prev.filter(c => c.id !== childId));
+        for (const comp of matchingCompositions) {
+          await indicatorService.removeComposition(indicator, comp.id);
+        }
+        if (isPlainChild) {
+          await indicatorService.removeChildIndicator(indicator, childId);
+        }
+        // Refresh from the server so compositions + child_indicators stay in
+        // sync with what we just changed.
+        await loadData();
       } catch (err) {
         setError(err.message || 'Failed to remove child indicator');
         console.error('Error removing child indicator:', err);

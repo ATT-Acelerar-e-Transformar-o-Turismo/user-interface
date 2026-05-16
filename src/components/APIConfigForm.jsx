@@ -2,19 +2,26 @@ import { useState } from 'react';
 import FormInput from './forms/FormInput';
 import FormSelect from './forms/FormSelect';
 
-export default function APIConfigForm({ onConfigChange }) {
-    const [config, setConfig] = useState({
-        location: '',
-        auth_type: 'none',
-        api_key: '',
-        api_key_header: 'X-API-Key',
-        bearer_token: '',
-        username: '',
-        password: '',
-        timeout_seconds: 30,
-        custom_headers: {},
-        query_params: {}
-    });
+const DEFAULT_CONFIG = {
+    location: '',
+    auth_type: 'none',
+    api_key: '',
+    api_key_header: 'X-API-Key',
+    bearer_token: '',
+    username: '',
+    password: '',
+    timeout_seconds: 30,
+    date_field: '',
+    value_field: '',
+    custom_headers: {},
+    query_params: {}
+};
+
+export default function APIConfigForm({ onConfigChange, initialConfig }) {
+    const [config, setConfig] = useState(() => ({
+        ...DEFAULT_CONFIG,
+        ...(initialConfig || {}),
+    }));
 
     const [customHeaderKey, setCustomHeaderKey] = useState('');
     const [customHeaderValue, setCustomHeaderValue] = useState('');
@@ -97,6 +104,7 @@ export default function APIConfigForm({ onConfigChange }) {
                         value={config.api_key}
                         onChange={(value) => handleChange('api_key', value)}
                         placeholder="Enter API key"
+                        required
                     />
                     <FormInput
                         label="API Key Header Name"
@@ -116,6 +124,7 @@ export default function APIConfigForm({ onConfigChange }) {
                     value={config.bearer_token}
                     onChange={(value) => handleChange('bearer_token', value)}
                     placeholder="Enter bearer token"
+                    required
                 />
             )}
 

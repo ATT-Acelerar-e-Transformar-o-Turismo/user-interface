@@ -267,7 +267,7 @@ export const buildChartSeries = (
   return {
     series: rawSeries.map((s) => {
       const resource = resById.get(s.resource_id);
-      const label = s.series_label;
+      const label = (lang === 'en' && s.series_label_en) ? s.series_label_en : s.series_label;
       const localized = label && trans && trans[label]
         ? (trans[label][lang] || trans[label][lang === 'pt' ? 'en' : 'pt'])
         : null;
