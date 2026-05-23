@@ -332,7 +332,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         if (allYearStart) return 'year';
         const allMonthStart = dates.every(d => d.getUTCDate() === 1 && d.getUTCHours() === 0 && d.getUTCMinutes() === 0);
         if (allMonthStart) return 'month';
-        return 'day';
+        const allDayStart = dates.every(d => d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0);
+        if (allDayStart) return 'day';
+        const allMinuteStart = dates.every(d => d.getUTCSeconds() === 0);
+        if (allMinuteStart) return 'minute';
+        return 'second';
     }
 
     const dateGranularity = (xaxisType === 'datetime')
@@ -349,6 +353,27 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         return d.toLocaleDateString('pt-PT', { timeZone: 'UTC' });
     }
 
+    // Tooltip formatter — when the data has sub-day timestamps (e.g. APIs that
+    // emit a point every 30 minutes), show the exact time alongside the date
+    // so the user can disambiguate same-day points. Axis labels still use the
+    // coarser `formatDate` to avoid clutter.
+    const formatDateTooltip = (value) => {
+        const d = new Date(value);
+        if (isNaN(d)) return value;
+        if (dateGranularity === 'year') return String(d.getUTCFullYear());
+        if (dateGranularity === 'month') {
+            return d.toLocaleDateString('pt-PT', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+        }
+        if (dateGranularity === 'day') {
+            return d.toLocaleDateString('pt-PT', { timeZone: 'UTC' });
+        }
+        const datePart = d.toLocaleDateString('pt-PT', { timeZone: 'UTC' });
+        const timeOpts = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false };
+        if (dateGranularity === 'second') timeOpts.second = '2-digit';
+        const timePart = d.toLocaleTimeString('pt-PT', timeOpts);
+        return `${datePart} ${timePart}`;
+    }
+
     const formatValue = (value) => {
         if (xaxisType === 'datetime') {
             return formatDate(value);
@@ -357,6 +382,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         } else {
             return value
         }
+    }
+
+    const formatTooltipX = (value) => {
+        if (xaxisType === 'datetime') return formatDateTooltip(value);
+        return formatValue(value);
     }
 
     const formatYValue = (value) => {
@@ -1145,7 +1175,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     if (isHeatmap) {
                         const point = _series?.[seriesIndex]?.data?.[dataPointIndex];
                         const name = _series?.[seriesIndex]?.name || `Série ${seriesIndex + 1}`;
-                        const xLabel = point ? formatValue(point.x) : '';
+                        const xLabel = point ? formatTooltipX(point.x) : '';
                         const yValue = point ? point.y : '';
                         return `<div class="bg-base-100">
                             <div class="bg-base-200 p-2 font-bold text-base-content">${xLabel}</div>
@@ -1164,7 +1194,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         ? series[seriesIndex][dataPointIndex]
                         : series?.[seriesIndex];
                     return `<div class="bg-base-100">
-                        <div class="bg-base-200 p-2 font-bold text-base-content">${formatValue(point.x)}</div>
+                        <div class="bg-base-200 p-2 font-bold text-base-content">${formatTooltipX(point.x)}</div>
                         <div class="p-2">
                             <span class="font-semibold">${seriesName}:</span>
                             <span>${formatYValue(value)}</span>
