@@ -6,7 +6,7 @@ const DEFAULT_CONFIG = {
     location: '',
     auth_type: 'none',
     api_key: '',
-    api_key_header: 'X-API-Key',
+    api_key_header: 'api-key',
     bearer_token: '',
     username: '',
     password: '',
@@ -111,7 +111,7 @@ export default function APIConfigForm({ onConfigChange, initialConfig }) {
                         name="api_key_header"
                         value={config.api_key_header}
                         onChange={(value) => handleChange('api_key_header', value)}
-                        placeholder="X-API-Key"
+                        placeholder="api-key"
                     />
                 </>
             )}

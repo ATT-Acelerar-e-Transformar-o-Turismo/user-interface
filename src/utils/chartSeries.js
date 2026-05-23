@@ -250,6 +250,26 @@ export const buildChartSeries = (
   const trans = seriesTranslations && typeof seriesTranslations === 'object'
     ? seriesTranslations
     : null;
+  // Count how many rawSeries each resource contributes. A multi-column file
+  // emits one rawSeries per column, all under the same resource_id; for
+  // those we prefer the column name in the legend so the user can tell the
+  // lines apart. Single-column resources fall back to the file name.
+  const seriesCountByResource = new Map();
+  for (const s of rawSeries) {
+    if (s?.resource_id) {
+      seriesCountByResource.set(s.resource_id, (seriesCountByResource.get(s.resource_id) || 0) + 1);
+    }
+  }
+  // Resource names are stored as "<indicator name> - <file.ext>" by the
+  // upload flow (ResourceWizard). Extract the trailing file name as the
+  // friendly default legend.
+  const extractFileName = (resourceName) => {
+    if (!resourceName || typeof resourceName !== 'string') return null;
+    const idx = resourceName.lastIndexOf(' - ');
+    if (idx < 0) return resourceName.trim() || null;
+    const tail = resourceName.slice(idx + 3).trim();
+    return tail || null;
+  };
   // Composed indicators: when the response contains lines from more than one
   // source indicator we prefix each line's name with the source indicator's
   // localized name so the user can tell them apart. For a non-composed
@@ -264,38 +284,75 @@ export const buildChartSeries = (
     if (lang === 'en') return s.source_indicator_name_en || s.source_indicator_name || '';
     return s.source_indicator_name || s.source_indicator_name_en || '';
   };
+  // Merge rawSeries entries that represent the same logical line. Two
+  // entries are considered the same line when they come from the same source
+  // indicator AND share the same (non-empty) series label — that's the
+  // typical "one indicator, one column, two resources covering different
+  // year ranges" case. Without this the chart would render two disjoint
+  // segments and double up the legend; users expect a single continuous
+  // line under the column's name.
+  //
+  // When the series_label is absent the rawSeries entries can't be matched
+  // on column identity, so we fall back to one line per resource — the
+  // legacy "different files = different streams" behavior.
+  const pickLabel = (s) => (lang === 'en' && s.series_label_en) ? s.series_label_en : s.series_label;
+  const groups = new Map();
+  for (const s of rawSeries) {
+    const label = pickLabel(s);
+    const groupKey = label
+      ? `${s.source_indicator_id || ''}|${label}`
+      : `r:${s.resource_id}|${s.source_indicator_id || ''}`;
+    if (!groups.has(groupKey)) groups.set(groupKey, []);
+    groups.get(groupKey).push(s);
+  }
   return {
-    series: rawSeries.map((s) => {
-      const resource = resById.get(s.resource_id);
-      const label = (lang === 'en' && s.series_label_en) ? s.series_label_en : s.series_label;
+    series: Array.from(groups.values()).map((entries) => {
+      const first = entries[0];
+      const label = pickLabel(first);
       const localized = label && trans && trans[label]
         ? (trans[label][lang] || trans[label][lang === 'pt' ? 'en' : 'pt'])
         : null;
-      const sourceName = pickSourceName(s);
-      // Base name precedence: translated series label → raw label → resource
-      // name → source indicator name → resource_id (fallback while resource
-      // list is still loading).
+      const sourceName = pickSourceName(first);
+      // Only fall back to the file name when (a) the group represents a
+      // single rawSeries entry (no resources were merged) AND (b) that
+      // resource contributes a single column overall. Either condition
+      // failing means we'd be arbitrarily picking one file's name for what
+      // is really many — defer to the column label instead.
+      const singleEntry = entries.length === 1;
+      const resourceSeriesCount = seriesCountByResource.get(first.resource_id) || 0;
+      const fileName = (singleEntry && resourceSeriesCount === 1)
+        ? extractFileName(resById.get(first.resource_id)?.name)
+        : null;
       const baseName = (localized && localized.trim())
+        || fileName
         || label
-        || resource?.name
         || sourceName
-        || s.resource_id;
+        || first.resource_id;
       const name = showSourcePrefix && sourceName && baseName !== sourceName
         ? `${sourceName} — ${baseName}`
         : baseName;
+      // Concatenate every entry's points, normalise x to ms, then sort
+      // ascending so two resources covering adjacent year ranges render as
+      // one continuous line with no internal gap.
+      const data = entries
+        .flatMap((s) => (s.points || []).map((p) => ({
+          x: typeof p.x === 'string' ? new Date(p.x).getTime() : p.x,
+          y: Number(p.y),
+        })))
+        .filter((p) => !Number.isNaN(p.x) && !Number.isNaN(p.y))
+        .sort((a, b) => a.x - b.x);
       return {
         name,
-        resource_id: s.resource_id,
+        // Carry through the *first* resource_id so existing per-series
+        // hooks (export, hidden_series filter) still match by it. The full
+        // resource list is preserved on `resource_ids` for callers that
+        // need to know every contributor.
+        resource_id: first.resource_id,
+        resource_ids: entries.map((s) => s.resource_id).filter(Boolean),
         series_label: label || null,
-        source_indicator_id: s.source_indicator_id || null,
+        source_indicator_id: first.source_indicator_id || null,
         source_indicator_name: sourceName || null,
-        data: (s.points || [])
-          .map((p) => ({
-            // Backend serialises datetime x as ISO; numeric x stays numeric.
-            x: typeof p.x === 'string' ? new Date(p.x).getTime() : p.x,
-            y: Number(p.y),
-          }))
-          .filter((p) => !Number.isNaN(p.x) && !Number.isNaN(p.y)),
+        data,
       };
     }),
   };

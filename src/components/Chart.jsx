@@ -287,6 +287,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         onViewportChangeRef.current = onViewportChange;
     }, [onViewportChange]);
 
+
     useEffect(() => {
         const computedStyle = getComputedStyle(document.documentElement)
         const baseContentColor = computedStyle.getPropertyValue('--color-base-content').trim()
@@ -324,6 +325,38 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     // scatter, bar and column all support x-axis zoom — including bar /
     // column on a category axis (Apex maps the drag to category indices).
     const supportsZoomPan = ['line', 'area', 'scatter', 'bar', 'column', 'stackedColumn', 'stackedBar'].includes(chartType);
+
+    // Apply xaxisRange (viewport zoom/pan) imperatively. Calling
+    // `chart.updateOptions(..., false, false)` lets apex update its internal
+    // min/max without redrawing the whole chart and without animating, which
+    // is critical: during a pan gesture, apex fires `scrolled` on every
+    // tick, the parent stores the new viewport, and a full rebuild here
+    // would tear the chart down mid-drag — making pan look completely
+    // broken even though apex has wired all the events up correctly.
+    useEffect(() => {
+        const chart = chartRef.current;
+        if (!chart || typeof chart.updateOptions !== 'function') return;
+        if (!supportsZoomPan) return;
+        // Only apply an explicit, non-null range. When the parent clears its
+        // viewport (no zoom / no pan history), apex's own min/max recompute
+        // from the data range is what we want — calling updateOptions here
+        // with undefined values forces an unnecessary rebuild and can reset
+        // pan state set up in `mounted`.
+        if (xaxisRange?.min == null || xaxisRange?.max == null) return;
+        const min = xaxisRange.min;
+        const max = xaxisRange.max;
+        // Apex already mutates its own xaxis as the user pans, then fires
+        // `scrolled` which the parent reflects back into `xaxisRange`. If the
+        // values match what apex already has, skip — re-applying them via
+        // updateOptions during an active drag yanks the chart out from under
+        // the gesture and the pan visibly stops moving.
+        const curMin = chart?.w?.config?.xaxis?.min;
+        const curMax = chart?.w?.config?.xaxis?.max;
+        if (curMin === min && curMax === max) return;
+        try {
+            chart.updateOptions({ xaxis: { min, max } }, false, false);
+        } catch (_) { /* swallow */ }
+    }, [xaxisRange?.min, xaxisRange?.max, supportsZoomPan]);
 
     const detectGranularity = (xs) => {
         const dates = (xs || []).map(v => new Date(v)).filter(d => !isNaN(d));
@@ -619,7 +652,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         pan: allowUserInteraction && supportsZoomPan,
                         reset: allowUserInteraction && supportsZoomPan,
                     },
-                    autoSelected: allowUserInteraction && supportsZoomPan ? activeTool : undefined
+                    autoSelected: allowUserInteraction && supportsZoomPan ? activeTool : undefined,
                 },
                 events: {
                     beforeMount: function (chart) {
@@ -830,7 +863,14 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                                 // Strategy 2: coordinate proximity within annotations group
                                 if (!matchId) {
                                     const annotContainer = chartEl.querySelector('.apexcharts-point-annotations');
-                                    const inAnnotations = annotContainer && path.some(n => n === annotContainer || annotContainer.contains(n));
+                                    // `composedPath()` includes Window at the
+                                    // end, which isn't a Node; calling
+                                    // `Node.contains(window)` throws. Restrict
+                                    // the check to actual Node entries.
+                                    const inAnnotations = annotContainer && path.some(n => (
+                                        n === annotContainer
+                                        || (n instanceof Node && annotContainer.contains(n))
+                                    ));
                                     if (inAnnotations) {
                                         for (const [id] of pinnedPointsRef.current) {
                                             const el = annotContainer.querySelector(`.${id}`);
@@ -1247,7 +1287,14 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current = null
             }
         }
-    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, activeTool, xaxisRange, hiddenSliceLabels, xaxisTitle, yaxisTitle])
+        // `activeTool` and `xaxisRange` are intentionally excluded from the
+        // dep list. Including `xaxisRange` destroys and rebuilds the chart on
+        // every pan tick (because `scrolled` -> `onViewportChange` -> parent
+        // state -> new `xaxisRange` prop), interrupting the drag and making
+        // pan look completely broken. Both are applied imperatively below via
+        // updateOptions / toolbar helpers on the live chart instead.
+    }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, activeTool, hiddenSliceLabels, xaxisTitle, yaxisTitle])
+
 
     return <div ref={chartContainerRef} className="w-full h-full" />
 })
@@ -1289,7 +1336,7 @@ GChart.propTypes = {
     allowUserInteraction: PropTypes.bool,
     compact: PropTypes.bool,
     minimalAxis: PropTypes.bool,
-    activeTool: PropTypes.oneOf(['zoom', 'pan', 'selection']),
+    activeTool: PropTypes.oneOf(['zoom', 'pan', 'selection', null]),
     disableAnimations: PropTypes.bool,
     onViewportChange: PropTypes.func,
     xaxisRange: PropTypes.shape({

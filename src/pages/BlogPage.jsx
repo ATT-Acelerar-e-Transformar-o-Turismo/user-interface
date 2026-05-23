@@ -44,7 +44,7 @@ function FeaturedPost({ post: rawPost, catName }) {
                         {post.title}
                     </h2>
                     {post.excerpt && (
-                        <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a] leading-normal line-clamp-3">
+                        <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a] leading-normal line-clamp-3 whitespace-pre-line">
                             {post.excerpt}
                         </p>
                     )}

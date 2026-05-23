@@ -90,9 +90,13 @@ export default function Weather({ className = '' }) {
   const current = readings[index] || readings[0];
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2 shrink-0 ${className}`}>
       <WeatherIcon kind={iconFor(current.code, current.isDay)} />
-      <span className="font-['Onest'] font-medium text-[17px] text-[#171717] tracking-[0.085px] whitespace-nowrap">
+      {/* Reserve enough width for the widest label ("Ílhavo 99ºC") so the
+          navbar layout doesn't shift when the city rotates between Ílhavo
+          and Barra — the surrounding nav items used to get squeezed every
+          5 seconds when the text length changed. */}
+      <span className="font-['Onest'] font-medium text-[17px] text-[#171717] tracking-[0.085px] whitespace-nowrap inline-block min-w-[112px]">
         {current.name} {current.temperature}ºC
       </span>
     </div>
