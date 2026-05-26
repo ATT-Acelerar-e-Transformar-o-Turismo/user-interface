@@ -186,7 +186,7 @@ export default function IndicatorTemplate() {
   const zoomOutIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
   const resetIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 
-  const [activeChartTool, setActiveChartTool] = useState(null);
+  const [activeChartTool, setActiveChartTool] = useState('selection');
   const [toolDropdownOpen, setToolDropdownOpen] = useState(false);
   const toolDropdownRef = useRef(null);
 
@@ -240,6 +240,7 @@ export default function IndicatorTemplate() {
         zoomHistoryRef.current.push({ min: viewport.min, max: viewport.max });
       }
       setViewport({ min: null, max: null });
+      clickToolbarButton('.apexcharts-reset-icon');
       return true;
     }
 
@@ -270,6 +271,9 @@ export default function IndicatorTemplate() {
       if (zoomHistoryRef.current.length > 0) {
         const prev = zoomHistoryRef.current.pop();
         setViewport(prev);
+        if (prev?.min == null || prev?.max == null) {
+          clickToolbarButton('.apexcharts-reset-icon');
+        }
         return;
       }
       if (applyCappedZoom(2)) return;

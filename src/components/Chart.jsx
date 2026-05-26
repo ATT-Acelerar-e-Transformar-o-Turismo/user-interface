@@ -1287,12 +1287,11 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 chartRef.current = null
             }
         }
-        // `activeTool` and `xaxisRange` are intentionally excluded from the
-        // dep list. Including `xaxisRange` destroys and rebuilds the chart on
-        // every pan tick (because `scrolled` -> `onViewportChange` -> parent
-        // state -> new `xaxisRange` prop), interrupting the drag and making
-        // pan look completely broken. Both are applied imperatively below via
-        // updateOptions / toolbar helpers on the live chart instead.
+        // `xaxisRange` is intentionally excluded from the dep list. Including
+        // it destroys and rebuilds the chart on every pan tick (because
+        // `scrolled` -> `onViewportChange` -> parent state -> new `xaxisRange`
+        // prop), interrupting the drag and making pan look broken. Viewport
+        // updates are applied imperatively via `chart.updateOptions` instead.
     }, [title, chartId, chartType, xaxisType, annotations, log, series, group, height, themeMode, labelColor, showLegend, showToolbar, showTooltip, allowUserInteraction, minimalAxis, activeTool, hiddenSliceLabels, xaxisTitle, yaxisTitle])
 
 
