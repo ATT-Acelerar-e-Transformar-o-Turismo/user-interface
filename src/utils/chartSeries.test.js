@@ -148,6 +148,43 @@ test('buildChartSeries: multi-column file — series_label takes priority over r
   assert.deepEqual(new Set(out.series.map((s) => s.resource_id)), new Set(['r1']));
 });
 
+test('buildChartSeries: complementary year ranges — merges resources sharing a series label', () => {
+  // Two resources covering different time windows for the SAME column collapse
+  // into one continuous line. Without merging the chart used to render two
+  // disjoint segments with both filenames in the legend; users expect a single
+  // series under the column name.
+  const raw = [
+    {
+      resource_id: 'r-old',
+      series_label: 'Valor',
+      points: [
+        { x: '2020-01-01T00:00:00', y: 10 },
+        { x: '2021-01-01T00:00:00', y: 11 },
+        { x: '2022-01-01T00:00:00', y: 12 },
+      ],
+    },
+    {
+      resource_id: 'r-new',
+      series_label: 'Valor',
+      points: [
+        { x: '2023-01-01T00:00:00', y: 13 },
+        { x: '2024-01-01T00:00:00', y: 14 },
+      ],
+    },
+  ];
+  const resources = [
+    { id: 'r-old', name: 'Indicator - INE-2020-2022.xlsx' },
+    { id: 'r-new', name: 'Indicator - INE-2023-2024.xlsx' },
+  ];
+  const out = buildChartSeries(raw, resources);
+  assert.equal(out.series.length, 1);
+  assert.equal(out.series[0].name, 'Valor');
+  assert.equal(out.series[0].data.length, 5);
+  // Sorted ascending so the line is continuous across the boundary.
+  assert.deepEqual(out.series[0].data.map((d) => d.y), [10, 11, 12, 13, 14]);
+  assert.deepEqual(out.series[0].resource_ids, ['r-old', 'r-new']);
+});
+
 test('buildChartSeries: falls back to resource_id when both name and series_label are missing', () => {
   // Race condition: /series response arrives before resources are loaded.
   const out = buildChartSeries(

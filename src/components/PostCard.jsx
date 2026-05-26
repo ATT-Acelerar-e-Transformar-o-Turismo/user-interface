@@ -43,7 +43,7 @@ export default function PostCard({ post: rawPost, compact = false, catName, base
             </div>
 
             {!compact && post.excerpt && (
-                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-3 sm:line-clamp-4">
+                <p className="font-['Onest'] text-xs text-[#0a0a0a] leading-relaxed line-clamp-3 sm:line-clamp-4 whitespace-pre-line">
                     {post.excerpt}
                 </p>
             )}

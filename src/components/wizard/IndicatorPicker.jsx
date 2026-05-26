@@ -55,8 +55,8 @@ export default function IndicatorPicker({
         // Load all indicators — the picker is a one-shot selection UI; paging
         // here is more friction than it's worth. Backend caps at 500.
         const data = trimmed.length >= 2
-          ? await indicatorService.search(trimmed, 500, 0, 'relevance')
-          : await indicatorService.getAll(0, 500, 'name', 'asc');
+          ? await indicatorService.search(trimmed, 500, 0, 'relevance', null, null, null, null, true)
+          : await indicatorService.getAll(0, 500, 'name', 'asc', null, true);
         // Drop responses superseded by a later request, or those that come
         // back after the effect has been cleaned up (cleanup ran).
         if (cancelled || mySeq !== requestSeqRef.current) return;

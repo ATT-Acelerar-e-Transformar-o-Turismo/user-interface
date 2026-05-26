@@ -257,7 +257,12 @@ export default function BlogPostForm() {
         status: 'draft',
         categories: [],
         keywords: [],
-        tags: []
+        tags: [],
+        // Local 'YYYY-MM-DD' chosen at create time; converted to ISO before
+        // sending to the backend. On edit we load the existing date here for
+        // display purposes only — the form never sends `published_at` again,
+        // so the chosen date stays fixed for the life of the post.
+        published_at: ''
     })
     const [tagInput, setTagInput] = useState('')
     const [allCategories, setAllCategories] = useState([])
@@ -320,7 +325,7 @@ export default function BlogPostForm() {
                 title: '', title_en: '', content: '', content_en: '', excerpt: '', excerpt_en: '',
                 author: '', author_id: '', author_photo: '', author_role: '', post_type: routePostType,
                 publication_link: '', publication_link_label: '', publication_link_label_en: '',
-                status: 'draft', categories: [], keywords: [], tags: []
+                status: 'draft', categories: [], keywords: [], tags: [], published_at: ''
             }
             setInitialFormData(empty)
         }
@@ -394,7 +399,11 @@ export default function BlogPostForm() {
                 status: postData.status,
                 categories: postData.categories || [],
                 keywords: postData.keywords || [],
-                tags: postData.tags || []
+                tags: postData.tags || [],
+                // For display only on edit; we won't send it back.
+                published_at: postData.published_at
+                    ? new Date(postData.published_at).toISOString().slice(0, 10)
+                    : '',
             }
             setFormData(loadedFormData)
             setInitialFormData(loadedFormData) // Set initial data for change tracking
@@ -681,11 +690,23 @@ export default function BlogPostForm() {
             let savedPost
 
             if (isEditing) {
-                // Update existing post
-                savedPost = await blogService.updatePost(postId, formData)
+                // The publication date is locked once the post is created —
+                // strip it from the update payload so the backend keeps the
+                // originally chosen value untouched.
+                // eslint-disable-next-line no-unused-vars
+                const { published_at: _ignored, ...updatePayload } = formData
+                savedPost = await blogService.updatePost(postId, updatePayload)
             } else {
-                // Create new post
-                savedPost = await blogService.createPost(formData)
+                // Create new post — convert the YYYY-MM-DD picker value to an
+                // ISO datetime (midnight UTC of that day). Empty value falls
+                // back to backend default behavior (auto-set on publish).
+                const createPayload = { ...formData }
+                if (formData.published_at) {
+                    createPayload.published_at = new Date(`${formData.published_at}T00:00:00Z`).toISOString()
+                } else {
+                    delete createPayload.published_at
+                }
+                savedPost = await blogService.createPost(createPayload)
             }
 
             // Upload thumbnail if provided
@@ -1198,6 +1219,33 @@ export default function BlogPostForm() {
                                 />
                             </div>
                         )}
+
+                        {/* Publication date — editable on create, read-only on edit */}
+                        <div>
+                            <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
+                                {t('admin.blog.field_published_at', 'Data de publicação')}
+                            </label>
+                            {isEditing ? (
+                                <div className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#f3f4f6] border border-[#e5e5e5] rounded-lg text-[#0a0a0a]">
+                                    {formData.published_at
+                                        ? new Date(`${formData.published_at}T00:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC' })
+                                        : t('admin.blog.field_published_at_unset', 'Sem data (será definida ao publicar)')}
+                                </div>
+                            ) : (
+                                <>
+                                    <input
+                                        type="date"
+                                        name="published_at"
+                                        value={formData.published_at}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
+                                    />
+                                    <p className="mt-1 font-['Onest'] text-xs text-[#737373]">
+                                        {t('admin.blog.field_published_at_hint', 'Em branco assume a data de publicação. Não poderá ser alterada depois de criar.')}
+                                    </p>
+                                </>
+                            )}
+                        </div>
 
                         {/* Excerpt — mandatory for publications, optional for news-events */}
                         <div>

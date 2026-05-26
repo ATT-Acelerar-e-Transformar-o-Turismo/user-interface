@@ -228,22 +228,34 @@ export default function BlogPostPage() {
                 <div className={`bg-[#fffefc] rounded-2xl flex flex-col gap-4 shadow-[0_0_3px_rgba(0,0,0,0.05)] ${mobile ? 'p-4' : 'px-8 py-6'}`}>
                     <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">{t('blog.related_publications')}</h3>
                     <div className="flex flex-col gap-4">
-                        {relatedPosts.map((rp) => (
-                            <Link key={rp.id} to={`${backPath}/${rp.id}`}
-                                className="flex gap-4 items-start no-underline hover:opacity-80 transition-opacity">
-                                <div className="w-[60px] h-[60px] rounded-lg overflow-hidden bg-gray-200 shrink-0 flex items-center justify-center">
-                                    {rp.thumbnail_url ? (
-                                        <img src={blogService.getFileUrl(rp.thumbnail_url)} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="font-['Onest'] font-bold text-lg text-gray-400">{(rp.title || '?')[0]}</span>
-                                    )}
-                                </div>
-                                <div className="flex flex-col flex-1 min-w-0">
-                                    <span className="font-['Onest'] font-medium text-lg text-[#0a0a0a] line-clamp-1">{rp.title}</span>
-                                    <span className="font-['Onest'] text-xs text-[#737373] line-clamp-2">{rp.excerpt}</span>
-                                </div>
-                            </Link>
-                        ))}
+                        {relatedPosts.map((rp) => {
+                            // Match PostCard's thumbnail logic so related items
+                            // keep the same visual when no explicit thumbnail
+                            // is set but a PDF attachment is available.
+                            const rpThumb = rp.thumbnail_url ? blogService.getFileUrl(rp.thumbnail_url) : null;
+                            const rpPdf = !rpThumb && rp.attachments
+                                ? rp.attachments.find(a => /\.pdf$/i.test(a.filename || a.original_filename || ''))
+                                : null;
+                            const rpPdfUrl = rpPdf ? blogService.getFileUrl(rpPdf.url) : null;
+                            return (
+                                <Link key={rp.id} to={`${backPath}/${rp.id}`}
+                                    className="flex gap-4 items-start no-underline hover:opacity-80 transition-opacity">
+                                    <div className="w-[60px] h-[60px] rounded-lg overflow-hidden bg-gray-200 shrink-0 flex items-center justify-center">
+                                        {rpThumb ? (
+                                            <img src={rpThumb} alt="" className="w-full h-full object-cover" />
+                                        ) : rpPdfUrl ? (
+                                            <PdfCardFill url={rpPdfUrl} />
+                                        ) : (
+                                            <span className="font-['Onest'] font-bold text-lg text-gray-400">{(rp.title || '?')[0]}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                        <span className="font-['Onest'] font-medium text-lg text-[#0a0a0a] line-clamp-1">{rp.title}</span>
+                                        <span className="font-['Onest'] text-xs text-[#737373] line-clamp-2">{rp.excerpt}</span>
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
             )}

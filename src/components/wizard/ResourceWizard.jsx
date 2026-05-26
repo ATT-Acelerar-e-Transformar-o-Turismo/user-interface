@@ -62,6 +62,7 @@ export default function ResourceWizard({
     // Composition-mode builder state.
     composition: {
       name: '',
+      name_en: '',
       inputs: [],  // [{ key, indicator_id, indicator }]
       formula: '',
       bucket: '1M',
@@ -71,7 +72,7 @@ export default function ResourceWizard({
       location: '',
       auth_type: 'none',
       api_key: '',
-      api_key_header: 'X-API-Key',
+      api_key_header: 'api-key',
       bearer_token: '',
       username: '',
       password: '',
@@ -617,6 +618,7 @@ export default function ResourceWizard({
         try {
           await indicatorService.addComposition(indicatorId, {
             name: comp.name || null,
+            name_en: comp.name_en || null,
             inputs,
             formula: (comp.formula || '').trim(),
             bucket: comp.bucket || '1M',
@@ -1055,6 +1057,14 @@ export default function ResourceWizard({
                         {t('wizard.composition.name_label', 'Nome')}:
                       </span>{' '}
                       <span className="text-sm">{wizard.formData.composition.name}</span>
+                    </div>
+                  )}
+                  {wizard.formData.composition.name_en && (
+                    <div>
+                      <span className="text-xs text-gray-500">
+                        {t('wizard.composition.name_en_label', 'Nome em inglês')}:
+                      </span>{' '}
+                      <span className="text-sm">{wizard.formData.composition.name_en}</span>
                     </div>
                   )}
                   <div>

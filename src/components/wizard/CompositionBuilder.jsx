@@ -32,7 +32,7 @@ export default function CompositionBuilder({ value, onChange, excludeId, errors 
     (async () => {
       try {
         setLoading(true);
-        const data = await indicatorService.getAll(0, 500, 'name', 'asc');
+        const data = await indicatorService.getAll(0, 500, 'name', 'asc', null, true);
         setAllIndicators(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to load indicators for composition:', err);
@@ -65,6 +65,7 @@ export default function CompositionBuilder({ value, onChange, excludeId, errors 
   const bucket = value?.bucket || '1M';
   const aggregator = value?.aggregator || 'avg';
   const name = value?.name || '';
+  const nameEn = value?.name_en || '';
 
   const update = (patch) => onChange({ ...value, ...patch });
 
@@ -87,18 +88,32 @@ export default function CompositionBuilder({ value, onChange, excludeId, errors 
 
   return (
     <div className="space-y-5">
-      {/* Optional display name */}
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          {t('wizard.composition.name_label', 'Nome (opcional)')}
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => update({ name: e.target.value })}
-          placeholder={t('wizard.composition.name_placeholder', 'e.g. Taxa de ocupação')}
-          className="input input-bordered w-full"
-        />
+      {/* Optional display name (PT + EN) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            {t('wizard.composition.name_label', 'Nome (opcional)')}
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => update({ name: e.target.value })}
+            placeholder={t('wizard.composition.name_placeholder', 'e.g. Taxa de ocupação')}
+            className="input input-bordered w-full"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            {t('wizard.composition.name_en_label', 'Nome em inglês (opcional)')}
+          </label>
+          <input
+            type="text"
+            value={nameEn}
+            onChange={(e) => update({ name_en: e.target.value })}
+            placeholder={t('wizard.composition.name_en_placeholder', 'e.g. Occupancy rate')}
+            className="input input-bordered w-full"
+          />
+        </div>
       </div>
 
       {/* Inputs list */}
@@ -221,6 +236,7 @@ CompositionBuilder.propTypes = {
     bucket: PropTypes.string,
     aggregator: PropTypes.string,
     name: PropTypes.string,
+    name_en: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
   excludeId: PropTypes.string,

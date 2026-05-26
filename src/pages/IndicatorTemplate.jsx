@@ -132,16 +132,35 @@ export default function IndicatorTemplate() {
   // For horizontal bars the xaxis is the value scale (not time), so viewport
   // can't be applied via xaxis.min/max. Instead, filter categories by the
   // viewport time range here so the chart only receives the visible slice.
-  const chartSeriesData = (allLoadedData || chartData)?.series || [];
-  const visibleSeries = isHorizontalBar && viewport.min != null && viewport.max != null
-    ? chartSeriesData.map(s => ({
-        ...s,
-        data: (s.data || []).filter(p => {
-          const xVal = typeof p.x === 'number' ? p.x : new Date(p.x).getTime();
-          return xVal >= viewport.min && xVal <= viewport.max;
-        }),
-      }))
-    : chartSeriesData;
+  const chartSeriesData = useMemo(
+    () => (allLoadedData || chartData)?.series || [],
+    [allLoadedData, chartData],
+  );
+  // Memoise so the array reference is stable when nothing meaningful changed.
+  // Without this the chart sees a new `series` prop on every parent re-render
+  // (e.g. while the user is panning, the `scrolled` event fires `setViewport`
+  // which re-renders here) and rebuilds itself, tearing down the drag the
+  // user is in the middle of.
+  const visibleSeries = useMemo(() => (
+    isHorizontalBar && viewport.min != null && viewport.max != null
+      ? chartSeriesData.map(s => ({
+          ...s,
+          data: (s.data || []).filter(p => {
+            const xVal = typeof p.x === 'number' ? p.x : new Date(p.x).getTime();
+            return xVal >= viewport.min && xVal <= viewport.max;
+          }),
+        }))
+      : chartSeriesData
+  ), [chartSeriesData, isHorizontalBar, viewport.min, viewport.max]);
+
+  // Final series array handed to the chart. Memoising the .map keeps the
+  // reference stable so the chart's series-keyed useEffect doesn't fire on
+  // every parent render — pan stays alive across viewport state updates.
+  const indicatorName = getName(indicatorData);
+  const chartSeries = useMemo(
+    () => visibleSeries.map(s => ({ ...s, name: s.name || indicatorName })),
+    [visibleSeries, indicatorName],
+  );
 
   const chartCategoryCount = Math.max(
     ...visibleSeries.map(s => (s.data || []).length),
@@ -160,7 +179,6 @@ export default function IndicatorTemplate() {
   };
 
   const chartToolModes = [
-    { value: 'pan', label: t('indicator.chart_tool_pan'), icon: modeIcons.pan },
     { value: 'selection', label: t('indicator.chart_tool_selection'), icon: modeIcons.selection },
   ];
 
@@ -168,7 +186,7 @@ export default function IndicatorTemplate() {
   const zoomOutIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
   const resetIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 
-  const [activeChartTool, setActiveChartTool] = useState('pan');
+  const [activeChartTool, setActiveChartTool] = useState('selection');
   const [toolDropdownOpen, setToolDropdownOpen] = useState(false);
   const toolDropdownRef = useRef(null);
 
@@ -200,7 +218,12 @@ export default function IndicatorTemplate() {
     return { min: Math.min(...xs), max: Math.max(...xs) };
   };
 
-  const applyCappedZoom = (factor) => {
+  // Zoom-history stack: each zoom-in / pan / chart-emitted viewport change
+  // pushes the previous viewport here, so that zoom-out can step back through
+  // the user's path instead of jumping straight to the full data range.
+  const zoomHistoryRef = useRef([]);
+
+  const applyCappedZoom = (factor, recordHistory = false) => {
     const bounds = getDataXBounds();
     if (!bounds || !(bounds.min < bounds.max)) return false;
 
@@ -213,7 +236,11 @@ export default function IndicatorTemplate() {
     const dataRange = bounds.max - bounds.min;
 
     if (newRange >= dataRange) {
+      if (recordHistory && viewport.min != null) {
+        zoomHistoryRef.current.push({ min: viewport.min, max: viewport.max });
+      }
       setViewport({ min: null, max: null });
+      clickToolbarButton('.apexcharts-reset-icon');
       return true;
     }
 
@@ -224,18 +251,34 @@ export default function IndicatorTemplate() {
     if (newMax > bounds.max) { newMin -= newMax - bounds.max; newMax = bounds.max; }
     if (newMin < bounds.min) newMin = bounds.min;
 
+    if (recordHistory) {
+      zoomHistoryRef.current.push({ min: viewport.min, max: viewport.max });
+    }
     setViewport({ min: newMin, max: newMax });
     return true;
   };
 
   const handleChartToolSelect = (tool) => {
     if (tool === 'reset') {
+      zoomHistoryRef.current = [];
       setViewport({ min: null, max: null });
       clickToolbarButton('.apexcharts-reset-icon');
       return;
     }
-    if (tool === 'zoomOut' && applyCappedZoom(2)) return;
-    if (tool === 'zoomIn' && applyCappedZoom(0.5)) return;
+    if (tool === 'zoomOut') {
+      // Prefer stepping back through the user's zoom history; fall back to
+      // a 2× expansion if there's nothing on the stack.
+      if (zoomHistoryRef.current.length > 0) {
+        const prev = zoomHistoryRef.current.pop();
+        setViewport(prev);
+        if (prev?.min == null || prev?.max == null) {
+          clickToolbarButton('.apexcharts-reset-icon');
+        }
+        return;
+      }
+      if (applyCappedZoom(2)) return;
+    }
+    if (tool === 'zoomIn' && applyCappedZoom(0.5, true)) return;
 
     const selectorMap = {
       zoom: '.apexcharts-zoom-icon',
@@ -247,7 +290,10 @@ export default function IndicatorTemplate() {
     const selector = selectorMap[tool];
     if (!selector) return;
     if (['zoom', 'pan', 'selection'].includes(tool)) {
-      setActiveChartTool(tool);
+      // Toggle: clicking the active tool again deselects it (no drag
+      // interaction until the user picks a tool back). Apex's toolbar
+      // toggles the same way, so we mirror the icon click either way.
+      setActiveChartTool(prev => (prev === tool ? null : tool));
     }
     clickToolbarButton(selector);
   };
@@ -261,6 +307,9 @@ export default function IndicatorTemplate() {
     // both flows correct.
     if (isHorizontalBar) return;
     if (newViewport.min !== viewport.min || newViewport.max !== viewport.max) {
+        // Record the previous viewport so the zoom-out button can step back
+        // through chart-driven changes (mouse zoom, pan, selection) too.
+        zoomHistoryRef.current.push({ min: viewport.min, max: viewport.max });
         setViewport(newViewport);
     }
   }, [viewport.min, viewport.max, isHorizontalBar]);
@@ -896,7 +945,7 @@ export default function IndicatorTemplate() {
                         className="text-[#0a0a0a] bg-[#fffefc] border border-[#d4d4d4] rounded-lg p-2 shadow-sm hover:bg-black/[0.02] transition-colors flex items-center gap-1 cursor-pointer"
                         title={t('indicator.chart_tools')}
                       >
-                        {chartSupportsTools ? (modeIcons[activeChartTool === 'zoom' ? 'pan' : activeChartTool] || modeIcons.pan) : zoomInIcon}
+                        {chartSupportsTools ? (modeIcons[activeChartTool] || modeIcons.selection) : zoomInIcon}
                         <svg className={`w-3.5 h-3.5 text-[#0a0a0a] shrink-0 transition-transform ${toolDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -987,13 +1036,7 @@ export default function IndicatorTemplate() {
                       chartId={`indicator-${indicatorId}`}
                       chartType={chartType}
                       xaxisType="datetime"
-                      series={visibleSeries.map(s => ({
-                        ...s,
-                        // Each series carries its resource's name; only fall
-                        // back to the indicator name if the resource hasn't
-                        // loaded yet (race with indicatorResources fetch).
-                        name: s.name || getName(indicatorData)
-                      }))}
+                      series={chartSeries}
                       height={chartHeight}
                       showToolbar={true}
                       showLegend={true}
@@ -1083,7 +1126,7 @@ export default function IndicatorTemplate() {
               </div>
             </div>
 
-            {/* Ferramentas (Tools) card — hidden for now
+            {/* Ferramentas (Tools) card */}
             <div className={cardClass}>
               <div className="flex flex-col gap-4">
                 <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
@@ -1091,7 +1134,7 @@ export default function IndicatorTemplate() {
                 </h3>
 
                 <div className="space-y-4">
-                  {/* Date range * /}
+                  {/* Date range */}
                   <div>
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-4">
@@ -1114,33 +1157,9 @@ export default function IndicatorTemplate() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Interval selector — hidden for now
-                  <div>
-                    <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] mb-2">{t('indicator.interval', 'Intervalo')}:</p>
-                    <div className="flex">
-                      {[
-                        { label: t('indicator.granularity_day'), value: '1d' },
-                        { label: t('indicator.granularity_month'), value: '1M' },
-                        { label: t('indicator.granularity_year'), value: '1y' },
-                      ].map((option, i, arr) => (
-                        <button
-                          key={option.value}
-                          onClick={() => setUiGranularity(option.value)}
-                          className={`font-['Onest'] font-medium text-sm px-3 py-2 border border-[#e5e5e5] -ml-px first:ml-0 transition-colors cursor-pointer
-                            ${i === 0 ? 'rounded-l-lg' : ''} ${i === arr.length - 1 ? 'rounded-r-lg' : ''}
-                            ${uiGranularity === option.value ? 'bg-black/[0.03] border-[#d4d4d4] text-[#0a0a0a]' : 'bg-transparent text-[#0a0a0a]'}`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  * /}
-
                 </div>
 
-                {/* Reset button * /}
+                {/* Reset button */}
                 <button
                   onClick={handleResetFilters}
                   className="w-full font-['Onest'] font-medium text-base text-[#0a0a0a] border border-[#d4d4d4] rounded-full py-2 shadow-sm hover:bg-black/[0.02] transition-colors cursor-pointer"
@@ -1149,7 +1168,6 @@ export default function IndicatorTemplate() {
                 </button>
               </div>
             </div>
-            */}
 
             {/* Opções (Options) card */}
             <div className={cardClass}>
