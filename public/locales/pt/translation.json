@@ -169,7 +169,8 @@
       "areas": "Áreas",
       "news_events": "Notícias e Eventos",
       "publications": "Publicações",
-      "user_management": "Gestão de Utilizadores"
+      "user_management": "Gestão de Utilizadores",
+      "communication": "Comunicação"
     },
     "indicators": {
       "title": "Indicadores",
@@ -181,6 +182,8 @@
       "empty": "Ainda não existem indicadores",
       "add": "Adicionar indicador",
       "view_drafts": "Rascunhos",
+      "view_all": "Ver todos",
+      "publish_draft": "Publicar",
       "sort_by": "Ordenar por",
       "search_placeholder": "Pesquisar indicadores",
       "drafts_wip": "Ver Rascunhos - Funcionalidade em desenvolvimento",
@@ -188,7 +191,29 @@
       "confirm_delete": "Tem certeza que deseja eliminar o indicador \"{{name}}\"?",
       "hide": "Ocultar",
       "show": "Mostrar",
-      "deleted_success": "Indicador eliminado com sucesso."
+      "deleted_success": "Indicador eliminado com sucesso.",
+      "col_source": "Fonte",
+      "source_api": "API",
+      "source_upload": "Upload",
+      "stats": {
+        "total_title": "Total de Indicadores",
+        "total_caption": "distribuídos pelas {{count}} áreas",
+        "by_area_title": "Indicadores por área",
+        "sources_title": "Fontes de dados",
+        "governance_title": "Indicadores de governança",
+        "governance_caption": "do total de indicadores"
+      },
+      "new_title": "Novo Indicador",
+      "new_subtitle": "Preencha todos os campos obrigatórios para adicionar um novo indicador",
+      "edit_title": "Editar Indicador",
+      "edit_subtitle": "Altere os campos necessários para atualizar as informações do indicador.",
+      "section_general": "Informações gerais",
+      "save_draft": "Guardar rascunho",
+      "save_changes": "Guardar alterações",
+      "edit_indicator": "Editar Indicador",
+      "manage_sources": "Gerir fontes de dados",
+      "created_success": "Indicador adicionado!",
+      "created_message": "Pode completar o indicador adicionando fontes ou pode fazê-lo mais tarde"
     },
     "areas": {
       "title": "Áreas",
@@ -204,7 +229,12 @@
       "delete_error": "Falha ao eliminar área",
       "deleted_success": "Área \"{{name}}\" eliminado com sucesso.",
       "hide": "Ocultar",
-      "show": "Mostrar"
+      "show": "Mostrar",
+      "new_title": "Nova Área",
+      "new_subtitle": "Preencha todos os campos obrigatórios para adicionar uma nova área",
+      "edit_title": "Editar Área",
+      "edit_subtitle": "Altere os campos necessários para atualizar a área.",
+      "save_changes": "Guardar alterações"
     },
     "dimensions": {
       "title": "Dimensões",
@@ -228,7 +258,34 @@
       "confirm_remove_child_title": "Remover indicador incluído?",
       "confirm_remove_child": "Tem a certeza que deseja remover o indicador \"{{name}}\" das fontes?",
       "type_indicator": "Indicador",
-      "status_linked": "incluído"
+      "status_linked": "incluído",
+      "tab_overview": "Visão geral",
+      "tab_data": "Dados",
+      "tab_config": "Configuração",
+      "preview": "Pré-visualização",
+      "description": "Descrição",
+      "last_sync": "Última sincronização",
+      "sync_now": "Sincronizar agora",
+      "sync_failed": "Falha ao sincronizar",
+      "no_data": "Sem dados para pré-visualizar.",
+      "no_description": "Sem descrição.",
+      "unknown_indicator": "Indicador",
+      "empty": "Ainda não existem fontes de dados",
+      "col_value": "Valor",
+      "tab_resources": "Recursos",
+      "col_name": "Nome",
+      "col_type": "Tipo",
+      "col_period": "Período",
+      "view_logs": "Ver logs",
+      "wrapper_logs": "Logs do wrapper",
+      "regenerating": "A regenerar wrapper",
+      "waiting_logs": "A aguardar logs…",
+      "no_logs": "Sem logs.",
+      "error": "Erro",
+      "wrapper_info": "Wrapper",
+      "details": "Detalhes",
+      "col_status": "Estado",
+      "load_failed": "Não foi possível carregar os recursos."
     },
     "news_events": {
       "title": "Todas as Notícias e Eventos",
@@ -240,7 +297,13 @@
       "confirm_delete": "Tem a certeza que quer eliminar esta notícia / evento?",
       "deleted_success": "Notícia / evento eliminado com sucesso.",
       "drafts": "Rascunhos",
-      "search_placeholder": "Pesquisar notícias"
+      "search_placeholder": "Pesquisar notícias",
+      "tab": "Notícias e Eventos",
+      "form_title_new": "Nova Notícia / Evento",
+      "form_subtitle": "Preencha todos os campos obrigatórios para adicionar uma nova notícia ou evento.",
+      "created_success": "Notícia adicionada!",
+      "created_message": "A notícia foi adicionada com sucesso.",
+      "add": "Adicionar notícia"
     },
     "publications": {
       "title": "Todas as Publicações",
@@ -252,7 +315,13 @@
       "confirm_delete": "Tem a certeza que quer eliminar esta publicação?",
       "deleted_success": "Publicação eliminada com sucesso.",
       "drafts": "Rascunhos",
-      "search_placeholder": "Pesquisar publicações"
+      "search_placeholder": "Pesquisar publicações",
+      "tab": "Publicações",
+      "form_title_new": "Nova publicação",
+      "form_subtitle": "Preencha todos os campos obrigatórios para adicionar uma nova publicação.",
+      "created_success": "Publicação adicionada!",
+      "created_message": "A publicação foi adicionada com sucesso.",
+      "add": "Adicionar publicação"
     },
     "blog": {
       "title": "Gerar Blog",
@@ -325,7 +394,42 @@
       "unsaved_changes_cancel": "Você tem alterações não salvas. Tem certeza que deseja cancelar?",
       "saving": "Salvando...",
       "update": "Atualizar",
-      "create": "Criar Post"
+      "create": "Criar Post",
+      "col_type": "Tipo",
+      "type_news": "Notícia",
+      "type_event": "Evento",
+      "type_publication": "Publicação",
+      "share": "Partilhar notícia",
+      "edit_news": "Editar notícia",
+      "go_home": "Ir para o início"
+    },
+    "authors": {
+      "tab": "Autores",
+      "title": "Autores",
+      "add": "Adicionar autor",
+      "save": "Guardar autor",
+      "edit_title": "Editar autor",
+      "new_title": "Novo autor",
+      "new_subtitle": "Preencha todos os campos obrigatórios para adicionar um novo autor.",
+      "section_personal": "Informações pessoais",
+      "first_name": "Nome",
+      "last_name": "Apelido",
+      "email": "E-mail",
+      "description": "Descrição",
+      "description_placeholder": "Escreva uma descrição",
+      "section_affiliation": "Afiliação",
+      "institution": "Instituição",
+      "role": "Cargo",
+      "section_identifiers": "Identificadores",
+      "url_or_username": "URL ou username",
+      "col_name": "Nome",
+      "col_role": "Cargo",
+      "col_email": "E-mail",
+      "col_options": "Opções",
+      "empty": "Ainda não há autores.",
+      "search_placeholder": "Pesquisar autores",
+      "confirm_delete": "Eliminar o autor \"{{name}}\"?",
+      "save_error": "Não foi possível guardar o autor."
     }
   },
   "wizard": {
@@ -433,7 +537,9 @@
       "error": "Falha ao processar dimensão",
       "success_added": "Dimensão Adicionada!",
       "success_updated": "Dimensão Atualizada!",
-      "success_message": "A dimensão foi guardada com sucesso."
+      "success_message": "A dimensão foi guardada com sucesso.",
+      "subtitle_add": "Preencha os campos obrigatórios para adicionar uma nova dimensão.",
+      "subtitle_edit": "Altere os campos necessários para atualizar a dimensão."
     },
     "resource": {
       "title_new": "Adicionar Recurso de Dados",
@@ -511,7 +617,8 @@
       "generation_failed": "Falha na geração do wrapper. Tente novamente.",
       "source_composition": "Indicador composto (fórmula)",
       "step_composition": "Definir fórmula",
-      "composition_review": "Indicador composto a criar:"
+      "composition_review": "Indicador composto a criar:",
+      "view_indicator": "Ver indicador"
     },
     "composition": {
       "name_label": "Nome (opcional)",

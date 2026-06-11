@@ -367,8 +367,10 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                                     </div>
                                 );
                             }
+                            const forceActive = Array.isArray(item.matchPaths)
+                                && item.matchPaths.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
                             return (
-                                <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact)}>
+                                <Link key={item.path} to={item.path} className={navItemClass(item.path, item.exact, forceActive)}>
                                     {item.label}
                                 </Link>
                             );
@@ -394,6 +396,7 @@ Navbar.propTypes = {
         label: PropTypes.string.isRequired,
         path: PropTypes.string.isRequired,
         exact: PropTypes.bool,
+        matchPaths: PropTypes.arrayOf(PropTypes.string),
     })),
     rightContent: PropTypes.node,
     showSearchBox: PropTypes.bool,

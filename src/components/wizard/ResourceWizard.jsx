@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
@@ -37,7 +36,6 @@ export default function ResourceWizard({
   resourceId = null,
   onSuccess = null
 }) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const getName = useLocalizedName();
   const { uploadFile, generateWrapper, startPolling } = useWrapper();
@@ -747,14 +745,17 @@ export default function ResourceWizard({
 
   const handleFinish = () => {
     setShowSuccessModal(false);
-    onClose();
     wizard.reset();
     setPreviewData([]);
     setChartSeries([]);
     setWrapperStatus(null);
     setWrappersData([]);
     setGeneratingWrappers(false);
-    navigate(`/admin/resources-management/${indicatorId}`);
+    // Resources are now managed inside the indicator detail panel; let the
+    // parent refresh its list and close the wizard rather than navigating to
+    // the (removed) standalone resources page.
+    if (onSuccess) onSuccess();
+    onClose();
   };
 
   const handleAddNewResource = () => {
@@ -1269,6 +1270,14 @@ export default function ResourceWizard({
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleFinish}
+        iconBg="bg-[#fde047]"
+        icon={(
+          <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14 3v4a1 1 0 0 0 1 1h4" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h4M9 17h2" />
+          </svg>
+        )}
         title={wrappersData.length > 1 ? t('wizard.resource.success_multiple') : t('wizard.resource.success_single')}
         message={
           wrappersData.length > 1
@@ -1276,7 +1285,7 @@ export default function ResourceWizard({
             : t('wizard.resource.success_msg_single')
         }
         primaryAction={{
-          label: t('wizard.resource.exit'),
+          label: t('wizard.resource.view_indicator', 'Ver indicador'),
           onClick: handleFinish
         }}
         secondaryAction={{

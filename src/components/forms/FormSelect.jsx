@@ -22,10 +22,10 @@ export default function FormSelect({
       {label && (
         <label
           htmlFor={name}
-          className="font-['Onest',sans-serif] font-medium text-sm text-black"
+          className="font-['Onest',sans-serif] font-semibold text-[18px] text-[#0a0a0a]"
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-[#dc2626] ml-1">*</span>}
         </label>
       )}
 
@@ -41,17 +41,17 @@ export default function FormSelect({
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${name}-error` : undefined}
           className={`
-            font-['Onest',sans-serif] text-sm text-black
-            bg-[#f1f0f0] rounded-lg px-4 py-3
-            border-2 transition-colors
+            font-['Onest',sans-serif] text-[16px]
+            bg-[#fffefc] rounded-full px-5 py-3.5 pr-12
+            border transition-colors
             appearance-none w-full
             ${error
-              ? 'border-red-500 focus:border-red-600'
-              : 'border-transparent focus:border-primary'
+              ? 'border-[#dc2626] focus:border-[#dc2626]'
+              : 'border-[#e5e5e5] focus:border-[#009368]'
             }
-            ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 cursor-pointer'}
-            ${!value ? 'text-gray-500' : 'text-black'}
-            focus:outline-none focus:ring-2 focus:ring-primary/20
+            ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            ${!value ? 'text-[#737373]' : 'text-[#0a0a0a]'}
+            focus:outline-none focus:ring-2 focus:ring-[#009368]/20
           `}
         >
           {/* Placeholder option */}

@@ -384,7 +384,7 @@ export default function BlogPostPage() {
                                             <h2 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-[-0.48px]">
                                                 {t('blog.description_section', 'Descrição')}
                                             </h2>
-                                            <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] leading-[1.5]">
+                                            <p className="font-['Onest'] font-medium text-sm text-[#0a0a0a] leading-[1.5] whitespace-pre-line">
                                                 {post.excerpt}
                                             </p>
                                         </div>
@@ -652,7 +652,7 @@ export default function BlogPostPage() {
                                         {post.title}
                                     </h1>
                                     {post.excerpt && (
-                                        <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a] leading-normal">
+                                        <p className="font-['Onest'] font-medium text-lg text-[#0a0a0a] leading-normal whitespace-pre-line">
                                             {post.excerpt}
                                         </p>
                                     )}

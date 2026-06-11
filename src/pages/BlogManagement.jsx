@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import AdminPageTemplate from './AdminPageTemplate'
@@ -11,6 +10,11 @@ import { PdfCardFill } from '../components/PdfPreview'
 import { confirmAction } from '../utils/confirm'
 import { ptCompare } from '../utils/sort'
 import { AdminSortDropdown, AdminSelectDropdown } from '../components/admin/AdminListShell'
+import CommunicationTabs from '../components/admin/CommunicationTabs'
+import InitialsAvatar from '../components/admin/InitialsAvatar'
+import PostTypePill from '../components/admin/PostTypePill'
+import NewsPreviewDrawer from '../components/admin/NewsPreviewDrawer'
+import BlogPostForm from './BlogPostForm'
 
 const DOC_RE = /\.(pdf|doc|docx|xlsx|txt|csv)$/i
 const firstDocAttachment = (post) =>
@@ -54,7 +58,6 @@ const PAGE_SIZE = 10
  */
 export default function BlogManagement({
     postType = 'news-event',
-    basePath = '/admin/news-events',
     i18nNamespace = 'admin.news_events',
 }) {
     const { t } = useTranslation()
@@ -62,6 +65,9 @@ export default function BlogManagement({
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [successMessage, setSuccessMessage] = useState(null)
+    const [previewPost, setPreviewPost] = useState(null)
+    // Post create/edit drawer (no dedicated route — opens over the list).
+    const [formDrawer, setFormDrawer] = useState({ open: false, postId: null })
 
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState('created')
@@ -148,14 +154,6 @@ export default function BlogManagement({
         if (page > totalPages) setPage(totalPages)
     }, [page, totalPages])
 
-    const statusLabel = (status) => {
-        switch (status) {
-            case 'published': return t('admin.blog.status_published')
-            case 'draft': return t('admin.blog.status_draft')
-            default: return status
-        }
-    }
-
     const publicViewPath = (postId) =>
         postType === 'publication' ? `/publications/${postId}` : `/news-events/${postId}`
 
@@ -179,6 +177,9 @@ export default function BlogManagement({
         <AdminPageTemplate>
             <div className="min-h-screen bg-[#f3f4f6] px-4 md:px-12 pb-12 pt-8">
                 <div className="max-w-[1416px] mx-auto flex flex-col gap-8">
+                    {/* Communication area tabs */}
+                    <CommunicationTabs />
+
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h1 className="font-['Onest'] font-semibold text-[32px] leading-none tracking-[-0.32px] text-[#0a0a0a]">
@@ -196,15 +197,16 @@ export default function BlogManagement({
                                 </svg>
                                 {t(`${i18nNamespace}.drafts`, { defaultValue: 'Rascunhos' })}
                             </button>
-                            <Link
-                                to={`${basePath}/create`}
-                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] text-white font-['Onest'] font-medium text-[17px] whitespace-nowrap transition-colors"
+                            <button
+                                type="button"
+                                onClick={() => setFormDrawer({ open: true, postId: null })}
+                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] text-white font-['Onest'] font-medium text-[17px] whitespace-nowrap transition-colors cursor-pointer"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
                                 {t(`${i18nNamespace}.new_post`, { defaultValue: t('admin.blog.new_post') })}
-                            </Link>
+                            </button>
                         </div>
                     </div>
 
@@ -255,7 +257,7 @@ export default function BlogManagement({
                                     <thead>
                                         <tr className="text-left">
                                             <th className="pb-4 pr-6 font-['Onest'] font-semibold text-[24px] tracking-[-0.48px] text-[#0a0a0a]">{t('admin.blog.col_title')}</th>
-                                            <th className="pb-4 px-4 font-['Onest'] font-semibold text-[24px] tracking-[-0.48px] text-[#0a0a0a] text-center">{t('admin.blog.col_status')}</th>
+                                            <th className="pb-4 px-4 font-['Onest'] font-semibold text-[24px] tracking-[-0.48px] text-[#0a0a0a] text-center">{t('admin.blog.col_type', 'Tipo')}</th>
                                             <th className="pb-4 px-4 font-['Onest'] font-semibold text-[24px] tracking-[-0.48px] text-[#0a0a0a] text-center">{t('admin.blog.col_author')}</th>
                                             <th className="pb-4 px-4 font-['Onest'] font-semibold text-[24px] tracking-[-0.48px] text-[#0a0a0a] text-center">{t('admin.blog.col_date')}</th>
                                             <th className="pb-4 pl-4 font-['Onest'] font-semibold text-[24px] tracking-[-0.48px] text-[#0a0a0a] text-center">{t('admin.blog.col_actions')}</th>
@@ -265,30 +267,38 @@ export default function BlogManagement({
                                         {pagePosts.map(post => (
                                             <tr key={post.id} className="align-middle">
                                                 <td className="py-3 pr-6 font-['Onest'] font-medium text-[18px] text-[#0a0a0a]">
-                                                    <Link to={`${basePath}/edit/${post.id}`} className="flex items-center gap-3 hover:underline">
+                                                    <button type="button" onClick={() => setFormDrawer({ open: true, postId: post.id })} className="flex items-center gap-3 hover:underline cursor-pointer text-left">
                                                         <PostThumb post={post} />
                                                         <span>{post.title}</span>
-                                                    </Link>
+                                                    </button>
                                                 </td>
-                                                <td className="py-3 px-4 font-['Onest'] font-medium text-[18px] text-[#0a0a0a] text-center">
-                                                    {statusLabel(post.status)}
+                                                <td className="py-3 px-4 text-center">
+                                                    <div className="flex justify-center">
+                                                        <PostTypePill post={post} />
+                                                    </div>
                                                 </td>
-                                                <td className="py-3 px-4 font-['Onest'] font-medium text-[18px] text-[#0a0a0a] text-center">
-                                                    {post.author}
+                                                <td className="py-3 px-4 text-center">
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <InitialsAvatar name={post.author} photoUrl={post.author_photo ? blogService.getFileUrl(post.author_photo) : null} size="sm" />
+                                                        <span className="font-['Onest'] font-medium text-[18px] text-[#0a0a0a]">{post.author}</span>
+                                                    </div>
                                                 </td>
                                                 <td className="py-3 px-4 font-['Onest'] font-medium text-[18px] text-[#0a0a0a] text-center">
                                                     {blogService.formatDate(post.created_at)}
                                                 </td>
                                                 <td className="py-3 pl-4">
                                                     <div className="flex items-center justify-center gap-4">
-                                                        {post.status === 'published' && (
-                                                            <Link to={publicViewPath(post.id)} className="text-[#0a0a0a] hover:text-[#009368]" aria-label={t('admin.blog.action_view')}>
-                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                            </Link>
-                                                        )}
-                                                        <Link to={`${basePath}/edit/${post.id}`} className="text-[#0a0a0a] hover:text-[#009368]" aria-label={t('common.edit')}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setPreviewPost(post)}
+                                                            className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer"
+                                                            aria-label={t('admin.blog.action_view')}
+                                                        >
+                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                        </button>
+                                                        <button type="button" onClick={() => setFormDrawer({ open: true, postId: post.id })} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('common.edit')}>
                                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                        </Link>
+                                                        </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => handleDeletePost(post.id, post.title)}
@@ -344,12 +354,31 @@ export default function BlogManagement({
                 message={successMessage}
                 primaryAction={{ label: t('common.continue'), onClick: () => setSuccessMessage(null) }}
             />
+            {previewPost && (
+                <NewsPreviewDrawer
+                    post={previewPost}
+                    onClose={() => setPreviewPost(null)}
+                    onEdit={() => {
+                        const id = previewPost.id
+                        setPreviewPost(null)
+                        setFormDrawer({ open: true, postId: id })
+                    }}
+                    onShare={() => window.open(publicViewPath(previewPost.id), '_blank', 'noopener')}
+                />
+            )}
+            {formDrawer.open && (
+                <BlogPostForm
+                    postType={postType}
+                    postId={formDrawer.postId}
+                    onClose={() => setFormDrawer({ open: false, postId: null })}
+                    onSaved={() => loadPosts()}
+                />
+            )}
         </AdminPageTemplate>
     )
 }
 
 BlogManagement.propTypes = {
     postType: PropTypes.oneOf(['news-event', 'publication']),
-    basePath: PropTypes.string,
     i18nNamespace: PropTypes.string,
 }

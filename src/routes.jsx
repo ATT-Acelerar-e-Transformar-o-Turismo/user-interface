@@ -7,14 +7,13 @@ import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
 import IndicatorsManagement from "./pages/IndicatorsManagement";
 import DimensionsManagement from "./pages/DimensionsManagement";
-import ResourcesManagement from "./pages/ResourcesManagement";
 import NewArea from "./pages/NewArea";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import PublicationsPage from "./pages/PublicationsPage";
 import NewsEventsManagement from "./pages/NewsEventsManagement";
 import PublicationsManagement from "./pages/PublicationsManagement";
-import BlogPostForm from "./pages/BlogPostForm";
+import AuthorsManagement from "./pages/AuthorsManagement";
 import AuthorPage from "./pages/AuthorPage";
 import UserManagement from "./pages/UserManagement";
 import AdminLogin from "./pages/AdminLogin";
@@ -161,17 +160,6 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/resources-management/:indicator',
-        element: (
-            <ProtectedRoute>
-                <Helmet>
-                    <title>Resources</title>
-                </Helmet>
-                <ResourcesManagement />
-            </ProtectedRoute>
-        )
-    },
-    {
         path: '/admin/new_area',
         element: (
             <ProtectedRoute>
@@ -271,28 +259,6 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/news-events/create',
-        element: (
-            <ProtectedRoute>
-                <Helmet>
-                    <title>News & Events - Create Post</title>
-                </Helmet>
-                <BlogPostForm />
-            </ProtectedRoute>
-        )
-    },
-    {
-        path: '/admin/news-events/edit/:postId',
-        element: (
-            <ProtectedRoute>
-                <Helmet>
-                    <title>News & Events - Edit Post</title>
-                </Helmet>
-                <BlogPostForm />
-            </ProtectedRoute>
-        )
-    },
-    {
         path: '/admin/publications',
         element: (
             <ProtectedRoute>
@@ -304,24 +270,13 @@ export const routesList = [
         )
     },
     {
-        path: '/admin/publications/create',
+        path: '/admin/authors',
         element: (
             <ProtectedRoute>
                 <Helmet>
-                    <title>Publications - Create</title>
+                    <title>Authors - Management</title>
                 </Helmet>
-                <BlogPostForm />
-            </ProtectedRoute>
-        )
-    },
-    {
-        path: '/admin/publications/edit/:postId',
-        element: (
-            <ProtectedRoute>
-                <Helmet>
-                    <title>Publications - Edit</title>
-                </Helmet>
-                <BlogPostForm />
+                <AuthorsManagement />
             </ProtectedRoute>
         )
     },

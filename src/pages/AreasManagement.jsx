@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import AdminPageTemplate from './AdminPageTemplate';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
-import AreaWizard from '../components/wizard/AreaWizard';
+import AreaFormPanel from '../components/admin/AreaFormPanel';
 import SuccessModal from '../components/wizard/SuccessModal';
 import areaService from '../services/areaService';
 import indicatorService from '../services/indicatorService';
@@ -310,18 +310,17 @@ export default function AreasManagement() {
         )}
       </AdminListShell>
 
-      {/* Area Wizard Modal */}
-      <AreaWizard
-        isOpen={isAreaWizardOpen}
-        onClose={() => {
-          setIsAreaWizardOpen(false);
-          setEditingAreaId(null);
-        }}
-        areaId={editingAreaId}
-        onSuccess={() => {
-          loadAreas();
-        }}
-      />
+      {/* Area create/edit — right-half panel */}
+      {isAreaWizardOpen && (
+        <AreaFormPanel
+          areaId={editingAreaId}
+          onClose={() => {
+            setIsAreaWizardOpen(false);
+            setEditingAreaId(null);
+          }}
+          onSaved={() => loadAreas()}
+        />
+      )}
 
       <SuccessModal
         isOpen={!!successMessage}

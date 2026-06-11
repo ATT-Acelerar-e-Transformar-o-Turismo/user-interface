@@ -32,6 +32,10 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
   const [errorMessage, setErrorMessage] = useState('');
   const [showResourceWizard, setShowResourceWizard] = useState(false);
   const [createdIndicatorId, setCreatedIndicatorId] = useState(null);
+  // Active language for the bilingual fields (PT/EN tabs, matching the Figma
+  // indicator form). Language-agnostic fields (area, dimension, checkboxes)
+  // are always shown regardless of the active tab.
+  const [formLang, setFormLang] = useState('pt');
   const [areas, setAreas] = useState([]);
   const [dimensions, setDimensions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -351,6 +355,24 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
     label: typeof s === 'string' ? s : s.name
   }));
 
+  // PT/EN segmented control shown above the bilingual fields.
+  const languageTabs = (
+    <div className="flex gap-1 p-1 bg-[#f3f4f6] rounded-full">
+      {[{ k: 'pt', l: 'Português' }, { k: 'en', l: 'English' }].map(({ k, l }) => (
+        <button
+          key={k}
+          type="button"
+          onClick={() => setFormLang(k)}
+          className={`flex-1 py-2.5 px-4 rounded-full text-[16px] font-medium transition-colors cursor-pointer ${
+            formLang === k ? 'bg-[#fffefc] text-[#0a0a0a] shadow-sm' : 'text-[#737373] hover:text-[#0a0a0a]'
+          }`}
+        >
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <>
       <Wizard
@@ -370,23 +392,27 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
             title={t('wizard.indicator.step_info')}
             description={t('wizard.indicator.step_info_desc')}
           >
-            <FormInput
-              label={t('wizard.indicator.name_pt')}
-              name="name"
-              value={wizard.formData.name}
-              onChange={(value) => wizard.updateFormData('name', value)}
-              placeholder={t('wizard.indicator.name_pt_placeholder')}
-              required
-              error={wizard.errors.name}
-            />
+            {languageTabs}
 
-            <FormInput
-              label={t('wizard.indicator.name_en')}
-              name="name_en"
-              value={wizard.formData.name_en}
-              onChange={(value) => wizard.updateFormData('name_en', value)}
-              placeholder={t('wizard.indicator.name_en_placeholder')}
-            />
+            {formLang === 'pt' ? (
+              <FormInput
+                label={t('wizard.indicator.name_pt')}
+                name="name"
+                value={wizard.formData.name}
+                onChange={(value) => wizard.updateFormData('name', value)}
+                placeholder={t('wizard.indicator.name_pt_placeholder')}
+                required
+                error={wizard.errors.name}
+              />
+            ) : (
+              <FormInput
+                label={t('wizard.indicator.name_en')}
+                name="name_en"
+                value={wizard.formData.name_en}
+                onChange={(value) => wizard.updateFormData('name_en', value)}
+                placeholder={t('wizard.indicator.name_en_placeholder')}
+              />
+            )}
 
             <FormSelect
               label={t('wizard.indicator.area')}
@@ -415,23 +441,25 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
               disabled={!wizard.formData.area || loading}
             />
 
-            <FormTextarea
-              label={t('wizard.indicator.description_pt')}
-              name="description"
-              value={wizard.formData.description}
-              onChange={(value) => wizard.updateFormData('description', value)}
-              placeholder={t('wizard.indicator.description_pt_placeholder')}
-              rows={4}
-            />
-
-            <FormTextarea
-              label={t('wizard.indicator.description_en')}
-              name="description_en"
-              value={wizard.formData.description_en}
-              onChange={(value) => wizard.updateFormData('description_en', value)}
-              placeholder={t('wizard.indicator.description_en_placeholder')}
-              rows={4}
-            />
+            {formLang === 'pt' ? (
+              <FormTextarea
+                label={t('wizard.indicator.description_pt')}
+                name="description"
+                value={wizard.formData.description}
+                onChange={(value) => wizard.updateFormData('description', value)}
+                placeholder={t('wizard.indicator.description_pt_placeholder')}
+                rows={4}
+              />
+            ) : (
+              <FormTextarea
+                label={t('wizard.indicator.description_en')}
+                name="description_en"
+                value={wizard.formData.description_en}
+                onChange={(value) => wizard.updateFormData('description_en', value)}
+                placeholder={t('wizard.indicator.description_en_placeholder')}
+                rows={4}
+              />
+            )}
           </WizardStep>
         )}
 
@@ -440,65 +468,80 @@ export default function IndicatorWizard({ isOpen, onClose, indicatorId = null, o
             title={t('wizard.indicator.step_units')}
             description={t('wizard.indicator.step_units_desc')}
           >
-            <FormInput
-              label={t('wizard.indicator.unit')}
-              name="unit"
-              value={wizard.formData.unit}
-              onChange={(value) => wizard.updateFormData('unit', value)}
-              placeholder={t('wizard.indicator.unit_placeholder')}
-            />
-            <FormInput
-              label={t('wizard.indicator.unit_en')}
-              name="unit_en"
-              value={wizard.formData.unit_en}
-              onChange={(value) => wizard.updateFormData('unit_en', value)}
-              placeholder={t('wizard.indicator.unit_en_placeholder')}
-            />
+            {languageTabs}
 
-            <FormInput
-              label={t('wizard.indicator.scale')}
-              name="scale"
-              value={wizard.formData.scale}
-              onChange={(value) => wizard.updateFormData('scale', value)}
-              placeholder={t('wizard.indicator.scale_placeholder')}
-            />
-            <FormInput
-              label={t('wizard.indicator.scale_en')}
-              name="scale_en"
-              value={wizard.formData.scale_en}
-              onChange={(value) => wizard.updateFormData('scale_en', value)}
-              placeholder={t('wizard.indicator.scale_en_placeholder')}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {formLang === 'pt' ? (
+                <FormInput
+                  label={t('wizard.indicator.unit')}
+                  name="unit"
+                  value={wizard.formData.unit}
+                  onChange={(value) => wizard.updateFormData('unit', value)}
+                  placeholder={t('wizard.indicator.unit_placeholder')}
+                />
+              ) : (
+                <FormInput
+                  label={t('wizard.indicator.unit_en')}
+                  name="unit_en"
+                  value={wizard.formData.unit_en}
+                  onChange={(value) => wizard.updateFormData('unit_en', value)}
+                  placeholder={t('wizard.indicator.unit_en_placeholder')}
+                />
+              )}
+              {formLang === 'pt' ? (
+                <FormInput
+                  label={t('wizard.indicator.scale')}
+                  name="scale"
+                  value={wizard.formData.scale}
+                  onChange={(value) => wizard.updateFormData('scale', value)}
+                  placeholder={t('wizard.indicator.scale_placeholder')}
+                />
+              ) : (
+                <FormInput
+                  label={t('wizard.indicator.scale_en')}
+                  name="scale_en"
+                  value={wizard.formData.scale_en}
+                  onChange={(value) => wizard.updateFormData('scale_en', value)}
+                  placeholder={t('wizard.indicator.scale_en_placeholder')}
+                />
+              )}
+            </div>
 
-            <FormInput
-              label={t('wizard.indicator.source')}
-              name="font"
-              value={wizard.formData.font}
-              onChange={(value) => wizard.updateFormData('font', value)}
-              placeholder={t('wizard.indicator.source_placeholder')}
-            />
-            <FormInput
-              label={t('wizard.indicator.source_en')}
-              name="font_en"
-              value={wizard.formData.font_en}
-              onChange={(value) => wizard.updateFormData('font_en', value)}
-              placeholder={t('wizard.indicator.source_en_placeholder')}
-            />
+            {formLang === 'pt' ? (
+              <FormInput
+                label={t('wizard.indicator.source')}
+                name="font"
+                value={wizard.formData.font}
+                onChange={(value) => wizard.updateFormData('font', value)}
+                placeholder={t('wizard.indicator.source_placeholder')}
+              />
+            ) : (
+              <FormInput
+                label={t('wizard.indicator.source_en')}
+                name="font_en"
+                value={wizard.formData.font_en}
+                onChange={(value) => wizard.updateFormData('font_en', value)}
+                placeholder={t('wizard.indicator.source_en_placeholder')}
+              />
+            )}
 
-            <FormInput
-              label={t('wizard.indicator.periodicity')}
-              name="periodicity"
-              value={wizard.formData.periodicity}
-              onChange={(value) => wizard.updateFormData('periodicity', value)}
-              placeholder={t('wizard.indicator.periodicity_placeholder')}
-            />
-            <FormInput
-              label={t('wizard.indicator.periodicity_en')}
-              name="periodicity_en"
-              value={wizard.formData.periodicity_en}
-              onChange={(value) => wizard.updateFormData('periodicity_en', value)}
-              placeholder={t('wizard.indicator.periodicity_en_placeholder')}
-            />
+            {formLang === 'pt' ? (
+              <FormInput
+                label={t('wizard.indicator.periodicity')}
+                name="periodicity"
+                value={wizard.formData.periodicity}
+                onChange={(value) => wizard.updateFormData('periodicity', value)}
+                placeholder={t('wizard.indicator.periodicity_placeholder')}
+              />
+            ) : (
+              <FormInput
+                label={t('wizard.indicator.periodicity_en')}
+                name="periodicity_en"
+                value={wizard.formData.periodicity_en}
+                onChange={(value) => wizard.updateFormData('periodicity_en', value)}
+                placeholder={t('wizard.indicator.periodicity_en_placeholder')}
+              />
+            )}
 
             <FormCheckbox
               label={t('wizard.indicator.governance')}

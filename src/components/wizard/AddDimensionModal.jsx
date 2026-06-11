@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import FormSelect from '../forms/FormSelect';
 import FormInput from '../forms/FormInput';
 import SuccessModal from './SuccessModal';
+import useSlideOver from '../../hooks/useSlideOver';
 import { validateRequired, hasErrors } from '../../utils/formValidation';
 import areaService from '../../services/areaService';
 import indicatorService from '../../services/indicatorService';
@@ -25,7 +26,7 @@ async function fetchAllAreaIndicators(areaId) {
 /**
  * AddDimensionModal - Modal for adding or editing a dimension (dimension) on a area
  */
-export default function AddDimensionModal({ isOpen, onClose, onSuccess, editAreaId = null, editDimensionName = null, editDimensionNameEn = null }) {
+export default function AddDimensionModal({ onClose, onSuccess, editAreaId = null, editDimensionName = null, editDimensionNameEn = null }) {
   const { t } = useTranslation();
   const isEditing = Boolean(editAreaId && editDimensionName);
   const [areas, setAreas] = useState([]);
@@ -35,17 +36,16 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { requestClose, backdropClass, panelClass } = useSlideOver(onClose);
 
   useEffect(() => {
-    if (isOpen) {
-      loadAreas();
-      if (isEditing) {
-        setSelectedArea(editAreaId);
-        setDimensionName(editDimensionName);
-        setDimensionNameEn(editDimensionNameEn || '');
-      }
+    loadAreas();
+    if (isEditing) {
+      setSelectedArea(editAreaId);
+      setDimensionName(editDimensionName);
+      setDimensionNameEn(editDimensionNameEn || '');
     }
-  }, [isOpen, editAreaId, editDimensionName, editDimensionNameEn, isEditing]);
+  }, [editAreaId, editDimensionName, editDimensionNameEn, isEditing]);
 
   const loadAreas = async () => {
     try {
@@ -147,11 +147,8 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
 
   const handleClose = () => {
     if (!loading) {
-      setSelectedArea('');
-      setDimensionName('');
-      setDimensionNameEn('');
       setErrors({});
-      onClose();
+      requestClose();
     }
   };
 
@@ -176,43 +173,37 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
     );
   }
 
-  if (!isOpen) return null;
-
   const areaOptions = areas.map(d => ({
     value: d.id,
     label: d.name
   }));
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !loading) {
-          handleClose();
-        }
-      }}
-    >
-      <div className="bg-white rounded-[23px] shadow-2xl w-full max-w-md mx-4 p-8">
+    <div className="fixed inset-0 z-50 flex justify-end font-['Onest']">
+      <div className={backdropClass} onClick={() => !loading && handleClose()} aria-hidden />
+      <aside className={`relative h-full w-full sm:w-[48%] sm:min-w-[520px] max-w-[720px] bg-[#fffefc] shadow-2xl flex flex-col ${panelClass}`}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-['Onest',sans-serif] font-semibold text-2xl text-black">
-            {isEditing ? t('wizard.dimension.title_edit') : t('wizard.dimension.title_add')}
-          </h2>
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={loading}
-            className="text-gray-500 hover:text-black transition-colors p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label={t('wizard.dimension.close')}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+        <div className="bg-[#f3f4f6] border-b border-[#e0e0e0] px-8 pt-10 pb-8 flex flex-col gap-3 shrink-0">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="font-semibold text-[32px] leading-none tracking-[-0.32px] text-[#0a0a0a]">
+              {isEditing ? t('wizard.dimension.title_edit') : t('wizard.dimension.title_add')}
+            </h2>
+            <button type="button" onClick={handleClose} disabled={loading} aria-label={t('wizard.dimension.close')}
+              className="text-[#404040] hover:text-[#0a0a0a] disabled:opacity-50 cursor-pointer">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p className="font-medium text-[18px] leading-6 text-[#0a0a0a]">
+            {isEditing
+              ? t('wizard.dimension.subtitle_edit', 'Altere os campos necessários para atualizar a dimensão.')
+              : t('wizard.dimension.subtitle_add', 'Preencha os campos obrigatórios para adicionar uma nova dimensão.')}
+          </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form body */}
+        <form id="dimension-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-8 py-8 flex flex-col gap-6">
           <FormSelect
             label={t('wizard.dimension.area')}
             name="area"
@@ -224,7 +215,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
             error={errors.area}
             disabled={loading}
           />
-
           <FormInput
             label={t('wizard.dimension.name_pt')}
             name="name"
@@ -235,7 +225,6 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
             error={errors.name}
             disabled={loading}
           />
-
           <FormInput
             label={t('wizard.dimension.name_en')}
             name="name_en"
@@ -244,57 +233,30 @@ export default function AddDimensionModal({ isOpen, onClose, onSuccess, editArea
             placeholder={t('wizard.dimension.name_en_placeholder')}
             disabled={loading}
           />
-
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="font-['Onest',sans-serif] text-sm text-red-600">
-                {errors.submit}
-              </p>
+              <p className="text-sm text-red-600">{errors.submit}</p>
             </div>
           )}
-
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={loading}
-              className="font-['Onest',sans-serif] text-sm font-medium text-gray-700 hover:text-black px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {t('wizard.dimension.cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-8 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {t('wizard.dimension.processing')}
-                </>
-              ) : (
-                isEditing ? t('wizard.dimension.save') : t('wizard.dimension.add')
-              )}
-            </button>
-          </div>
         </form>
-      </div>
 
+        {/* Footer */}
+        <div className="bg-[#fafafa] border-t border-[#e0e0e0] px-8 py-6 flex items-center justify-between gap-3 shrink-0">
+          <button type="button" onClick={handleClose} disabled={loading}
+            className="inline-flex items-center justify-center h-11 px-5 rounded-full border border-[#d4d4d4] bg-[#fffefc] font-medium text-[17px] text-[#0a0a0a] shadow-sm hover:bg-black/[0.03] disabled:opacity-50 transition-colors cursor-pointer">
+            {t('wizard.dimension.cancel')}
+          </button>
+          <button type="submit" form="dimension-form" disabled={loading}
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#009368] hover:bg-[#007d57] font-medium text-[17px] text-[#fafafa] transition-colors disabled:opacity-50 cursor-pointer">
+            {loading ? t('wizard.dimension.processing') : (isEditing ? t('wizard.dimension.save') : t('wizard.dimension.add'))}
+          </button>
+        </div>
+      </aside>
     </div>
   );
 }
 
 AddDimensionModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSuccess: PropTypes.func,
   editAreaId: PropTypes.string,
