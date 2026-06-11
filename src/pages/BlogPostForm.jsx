@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import { useDropzone } from 'react-dropzone'
-import AdminPageTemplate from './AdminPageTemplate'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import ErrorDisplay from '../components/ErrorDisplay'
+import SuccessModal from '../components/wizard/SuccessModal'
+import useSlideOver from '../hooks/useSlideOver'
 import RichTextEditor from '../components/RichTextEditor'
 import ConfirmModal from '../components/ConfirmModal'
 import blogService from '../services/blogService'
@@ -183,38 +184,27 @@ function AuthorForm({ mode, data, setData, photoPreview, onPhotoDrop, coverPrevi
     )
 }
 
-export default function BlogPostForm() {
-    const { postId } = useParams()
-    const navigate = useNavigate()
-    const location = useLocation()
+export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, postType = 'news-event', postId = null }) {
     const { t } = useTranslation()
     const isEditing = Boolean(postId)
-    // Infer the post_type / base URL from the current path. The form is
-    // mounted at /admin/news-events/* and /admin/publications/*, one per
-    // post type — no manual type selector is needed on create.
-    const isPublicationsRoute = location.pathname.startsWith('/admin/publications')
-    const routePostType = isPublicationsRoute ? 'publication' : 'news-event'
-    const routeBasePath = isPublicationsRoute ? '/admin/publications' : '/admin/news-events'
+    // The form now renders as a right-side drawer (Figma 2923:9932 /
+    // 2903:21366). Post type + the post id come in as props instead of from
+    // the route; closing/saving is communicated back via callbacks.
+    const routePostType = postType
+    const { requestClose, backdropClass, panelClass } = useSlideOver(onClose)
 
-    // Hidden file-input refs so the header "Anexar" / "Imagem de capa"
-    // buttons from the Figma design can trigger the existing upload flows.
+    // Hidden file-input refs so the "Anexar" / "Imagem de capa" buttons can
+    // trigger the existing upload flows.
     const headerThumbnailInputRef = useRef(null)
     const headerAttachmentInputRef = useRef(null)
-
-    // Redirect base path: on create, use the route-derived one. On edit,
-    // prefer the actual post_type of the loaded/edited post so editing a
-    // publication via a legacy /admin/news-events URL still lands back on
-    // /admin/publications (where the post actually lives in the list).
-    const effectiveBasePath = () => {
-        const effectiveType = formData?.post_type || routePostType
-        return effectiveType === 'publication' ? '/admin/publications' : '/admin/news-events'
-    }
 
     const [post, setPost] = useState(null)
     const [loading, setLoading] = useState(isEditing)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState(null)
     const [showPublishConfirm, setShowPublishConfirm] = useState(false)
+    // Success card shown after a NEW post is created (Figma node 2903:21597).
+    const [createdSuccess, setCreatedSuccess] = useState(false)
 
     // Author profiles
     const [authors, setAuthors] = useState([])
@@ -745,27 +735,18 @@ export default function BlogPostForm() {
             setAttachmentFiles([])
             setThumbnailFile(null)
 
-            // Redirect to blog management
-            navigate(effectiveBasePath())
+            // Let the list refresh, then close (edit) or show the success card (create).
+            onSaved(savedPost)
+            if (isEditing) {
+                requestClose()
+            } else {
+                setCreatedSuccess(true)
+            }
         } catch (err) {
             setError(err.message)
         } finally {
             setSaving(false)
         }
-    }
-
-    if (loading) {
-        return (
-            <AdminPageTemplate>
-                <div className="py-8">
-                    <LoadingSkeleton />
-                </div>
-            </AdminPageTemplate>
-        )
-    }
-
-    if (error && !formData.title) {
-        return <ErrorDisplay error={error} />
     }
 
     // Save as draft: flip the in-memory status to 'draft' then run the
@@ -786,81 +767,66 @@ export default function BlogPostForm() {
     }
 
     return (
-        <AdminPageTemplate>
-            <div className="min-h-screen pb-12 pt-8 px-4 md:px-12 bg-[#f3f4f6]">
-                <div className="max-w-[1416px] mx-auto">
-                    {/* Header — Figma node 2562:12663 */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div className="fixed inset-0 z-50 flex justify-end font-['Onest']">
+            <div className={backdropClass} onClick={requestClose} aria-hidden />
+            <aside className={`relative h-full w-full max-w-[807px] bg-[#fffefc] shadow-2xl flex flex-col ${panelClass}`}>
+                {/* Header band — Figma nodes 2923:9932 (news) / 2903:21366 (publication) */}
+                <div className="bg-[#f3f4f6] border-b border-[#e0e0e0] px-8 pt-10 pb-8 flex flex-col gap-3 shrink-0">
+                    <div className="flex items-center justify-between gap-4">
                         <h1 className="font-['Onest'] font-semibold text-[32px] leading-none tracking-[-0.32px] text-[#0a0a0a]">
                             {isEditing
                                 ? t('admin.blog.title_edit')
                                 : (routePostType === 'publication'
-                                    ? t('admin.publications.new_post', { defaultValue: t('admin.blog.title_create') })
-                                    : t('admin.news_events.new_post', { defaultValue: t('admin.blog.title_create') }))}
+                                    ? t('admin.publications.form_title_new', 'Nova publicação')
+                                    : t('admin.news_events.form_title_new', 'Nova Notícia / Evento'))}
                         </h1>
-                        <div className="flex flex-wrap items-center gap-4">
-                            <button
-                                type="button"
-                                onClick={handleSaveDraft}
-                                disabled={saving}
-                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                {t('admin.blog.save_draft', 'Guardar nos rascunhos')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => headerAttachmentInputRef.current?.click()}
-                                disabled={saving}
-                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 10-5.656-5.656L4.828 12.343a6 6 0 108.486 8.486L20.5 13.5" />
-                                </svg>
-                                {t('admin.blog.attach', 'Anexar')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => headerThumbnailInputRef.current?.click()}
-                                disabled={saving}
-                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[17px] text-[#0a0a0a] whitespace-nowrap shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                {t('admin.blog.cover_image', 'Imagem de capa')}
-                            </button>
-                            {/* Hidden inputs — feed the existing handlers so the
-                                thumbnail preview + attachment list sections below
-                                pick up the selected files. */}
-                            <input
-                                ref={headerThumbnailInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleThumbnailChange}
-                            />
-                            <input
-                                ref={headerAttachmentInputRef}
-                                type="file"
-                                multiple
-                                className="hidden"
-                                onChange={handleAttachmentChange}
-                            />
-                            <button
-                                type="button"
-                                onClick={handlePublishClick}
-                                disabled={saving}
-                                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] font-['Onest'] font-medium text-[17px] text-white whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                {t('admin.blog.publish', 'Publicar')}
-                            </button>
-                        </div>
+                        <button type="button" onClick={requestClose} aria-label={t('common.close', 'Fechar')} className="text-[#404040] hover:text-[#0a0a0a] cursor-pointer">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    {!isEditing && (
+                        <p className="font-['Onest'] font-medium text-[18px] leading-6 text-[#0a0a0a]">
+                            {routePostType === 'publication'
+                                ? t('admin.publications.form_subtitle', 'Preencha todos os campos obrigatórios para adicionar uma nova publicação.')
+                                : t('admin.news_events.form_subtitle', 'Preencha todos os campos obrigatórios para adicionar uma nova notícia ou evento.')}
+                        </p>
+                    )}
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto px-8 py-8">
+                    {loading ? (
+                        <div className="py-8"><LoadingSkeleton /></div>
+                    ) : (error && !formData.title) ? (
+                        <ErrorDisplay error={error} />
+                    ) : (
+                    <>
+                    {/* Upload triggers (cover / attachments) */}
+                    <div className="flex flex-wrap items-center gap-3 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => headerAttachmentInputRef.current?.click()}
+                            disabled={saving}
+                            className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[15px] text-[#0a0a0a] shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 10-5.656-5.656L4.828 12.343a6 6 0 108.486 8.486L20.5 13.5" />
+                            </svg>
+                            {t('admin.blog.attach', 'Anexar')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => headerThumbnailInputRef.current?.click()}
+                            disabled={saving}
+                            className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border border-[#d4d4d4] hover:bg-gray-50 font-['Onest'] font-medium text-[15px] text-[#0a0a0a] shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {t('admin.blog.cover_image', 'Imagem de capa')}
+                        </button>
+                        <input ref={headerThumbnailInputRef} type="file" accept="image/*" className="hidden" onChange={handleThumbnailChange} />
+                        <input ref={headerAttachmentInputRef} type="file" multiple className="hidden" onChange={handleAttachmentChange} />
                     </div>
 
                     {/* Form */}
@@ -1461,33 +1427,49 @@ export default function BlogPostForm() {
                             </div>
                         )}
 
-                        {/* Submit Buttons */}
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (hasUnsavedChanges) {
-                                        const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_cancel'))
-                                        if (!confirmLeave) return
-                                    }
-                                    navigate(effectiveBasePath())
-                                }}
-                                className="font-['Onest'] font-medium text-sm text-[#0a0a0a] border border-[#d4d4d4] px-6 py-2 rounded-full hover:bg-black/[0.02] transition-colors cursor-pointer"
-                                disabled={saving}
-                            >
-                                {t('common.cancel')}
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="font-['Onest'] font-medium text-sm text-white bg-[#009368] px-6 py-2 rounded-full transition-opacity disabled:opacity-50 hover:opacity-90 cursor-pointer"
-                            >
-                                {saving ? t('admin.blog.saving') : (isEditing ? t('admin.blog.update') : t('admin.blog.create'))}
-                            </button>
-                        </div>
                     </form>
+                    </>
+                    )}
                 </div>
-            </div>
+
+                {/* Footer — drawer actions (Figma 2923:9932 / 2903:21366) */}
+                <div className="bg-[#fafafa] border-t border-[#e0e0e0] px-8 py-6 flex items-center justify-between gap-3 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (hasUnsavedChanges) {
+                                const confirmLeave = window.confirm(t('admin.blog.unsaved_changes_cancel'))
+                                if (!confirmLeave) return
+                            }
+                            requestClose()
+                        }}
+                        disabled={saving}
+                        className="inline-flex items-center justify-center h-11 px-5 rounded-full border border-[#d4d4d4] bg-[#fffefc] font-medium text-[17px] text-[#0a0a0a] shadow-sm hover:bg-black/[0.03] disabled:opacity-50 transition-colors cursor-pointer"
+                    >
+                        {t('common.cancel', 'Cancelar')}
+                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSaveDraft}
+                            disabled={saving}
+                            className="inline-flex items-center gap-2 h-11 px-5 rounded-full border border-[#d4d4d4] bg-[#fffefc] font-medium text-[17px] text-[#0a0a0a] shadow-sm hover:bg-black/[0.03] disabled:opacity-50 transition-colors cursor-pointer"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            {t('admin.blog.save_draft', 'Guardar rascunho')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handlePublishClick}
+                            disabled={saving}
+                            className="inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#009368] hover:bg-[#007d57] font-medium text-[17px] text-[#fafafa] transition-colors disabled:opacity-50 cursor-pointer"
+                        >
+                            {saving ? t('admin.blog.saving') : (routePostType === 'publication' ? t('admin.publications.add', 'Adicionar publicação') : t('admin.news_events.add', 'Adicionar notícia'))}
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
             <ConfirmModal
                 isOpen={showPublishConfirm}
                 onConfirm={() => { setShowPublishConfirm(false); executeSubmit(); }}
@@ -1556,6 +1538,28 @@ export default function BlogPostForm() {
                     </div>
                 </div>
             )}
-        </AdminPageTemplate>
+            <SuccessModal
+                isOpen={createdSuccess}
+                onClose={() => { setCreatedSuccess(false); requestClose() }}
+                icon={false}
+                title={routePostType === 'publication'
+                    ? t('admin.publications.created_success', 'Publicação adicionada!')
+                    : t('admin.news_events.created_success', 'Notícia adicionada!')}
+                message={routePostType === 'publication'
+                    ? t('admin.publications.created_message', 'A publicação foi adicionada com sucesso.')
+                    : t('admin.news_events.created_message', 'A notícia foi adicionada com sucesso.')}
+                primaryAction={{
+                    label: t('admin.blog.go_home', 'Ir para o início'),
+                    onClick: () => { setCreatedSuccess(false); requestClose() },
+                }}
+            />
+        </div>
     )
+}
+
+BlogPostForm.propTypes = {
+    onClose: PropTypes.func,
+    onSaved: PropTypes.func,
+    postType: PropTypes.oneOf(['news-event', 'publication']),
+    postId: PropTypes.string,
 }

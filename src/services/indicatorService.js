@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from '../constants/api';
 import { APP_CONFIG } from '../constants/app';
 
 export const indicatorService = {
-  async getAll(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
+  async getAll(skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false, statusFilter = null) {
     let url = `${API_ENDPOINTS.INDICATORS.BASE}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
@@ -11,20 +11,24 @@ export const indicatorService = {
     if (includeHidden) {
       url += `&include_hidden=true`;
     }
-    const response = await apiClient.get(url);
-    return response.data;
-  },
-
-  async getCount(includeHidden = false) {
-    let url = API_ENDPOINTS.INDICATORS.COUNT;
-    if (includeHidden) {
-      url += `?include_hidden=true`;
+    if (statusFilter) {
+      url += `&status_filter=${encodeURIComponent(statusFilter)}`;
     }
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getCountByArea(areaId, governanceFilter = null, includeHidden = false) {
+  async getCount(includeHidden = false, statusFilter = null) {
+    let url = API_ENDPOINTS.INDICATORS.COUNT;
+    const params = [];
+    if (includeHidden) params.push('include_hidden=true');
+    if (statusFilter) params.push(`status_filter=${encodeURIComponent(statusFilter)}`);
+    if (params.length) url += `?${params.join('&')}`;
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  async getCountByArea(areaId, governanceFilter = null, includeHidden = false, statusFilter = null) {
     let url = API_ENDPOINTS.INDICATORS.COUNT_BY_AREA(areaId);
     const params = [];
     if (governanceFilter !== null) {
@@ -33,12 +37,15 @@ export const indicatorService = {
     if (includeHidden) {
       params.push(`include_hidden=true`);
     }
+    if (statusFilter) {
+      params.push(`status_filter=${encodeURIComponent(statusFilter)}`);
+    }
     if (params.length) url += `?${params.join('&')}`;
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getCountByDimension(areaId, dimensionName, governanceFilter = null, includeHidden = false) {
+  async getCountByDimension(areaId, dimensionName, governanceFilter = null, includeHidden = false, statusFilter = null) {
     let url = API_ENDPOINTS.INDICATORS.COUNT_BY_SUBDOMAIN(areaId, dimensionName);
     const params = [];
     if (governanceFilter !== null) {
@@ -47,12 +54,15 @@ export const indicatorService = {
     if (includeHidden) {
       params.push(`include_hidden=true`);
     }
+    if (statusFilter) {
+      params.push(`status_filter=${encodeURIComponent(statusFilter)}`);
+    }
     if (params.length) url += `?${params.join('&')}`;
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, areaFilter = null, dimensionFilter = null, includeHidden = false) {
+  async search(query, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, skip = 0, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, areaFilter = null, dimensionFilter = null, includeHidden = false, statusFilter = null) {
     if (!query || query.trim().length < APP_CONFIG.MIN_SEARCH_QUERY_LENGTH) {
       return [];
     }
@@ -71,11 +81,14 @@ export const indicatorService = {
     if (includeHidden) {
       url += `&include_hidden=true`;
     }
+    if (statusFilter) {
+      url += `&status_filter=${encodeURIComponent(statusFilter)}`;
+    }
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getByArea(areaId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
+  async getByArea(areaId, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false, statusFilter = null) {
     let url = `${API_ENDPOINTS.INDICATORS.BY_AREA(areaId)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
@@ -83,17 +96,23 @@ export const indicatorService = {
     if (includeHidden) {
       url += `&include_hidden=true`;
     }
+    if (statusFilter) {
+      url += `&status_filter=${encodeURIComponent(statusFilter)}`;
+    }
     const response = await apiClient.get(url);
     return response.data;
   },
 
-  async getByDimension(areaId, dimensionName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false) {
+  async getByDimension(areaId, dimensionName, skip = 0, limit = APP_CONFIG.DEFAULT_ITEMS_PER_PAGE, sortBy = APP_CONFIG.DEFAULT_SORT_BY, sortOrder = APP_CONFIG.DEFAULT_SORT_ORDER, governanceFilter = null, includeHidden = false, statusFilter = null) {
     let url = `${API_ENDPOINTS.INDICATORS.BY_SUBDOMAIN(areaId, dimensionName)}/?skip=${skip}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (governanceFilter !== null) {
       url += `&governance_filter=${governanceFilter}`;
     }
     if (includeHidden) {
       url += `&include_hidden=true`;
+    }
+    if (statusFilter) {
+      url += `&status_filter=${encodeURIComponent(statusFilter)}`;
     }
     const response = await apiClient.get(url);
     return response.data;

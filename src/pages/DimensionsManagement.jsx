@@ -381,25 +381,27 @@ export default function DimensionsManagement() {
         )}
       </AdminListShell>
 
-      {/* Add Dimension Modal */}
-      <AddDimensionModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => { loadDimensions(); }}
-      />
+      {/* Add Dimension — right-half panel */}
+      {isAddModalOpen && (
+        <AddDimensionModal
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={() => { loadDimensions(); }}
+        />
+      )}
 
-      {/* Edit Dimension Modal */}
-      <AddDimensionModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingDimension(null);
-        }}
-        onSuccess={() => { loadDimensions(); }}
-        editAreaId={editingDimension?.areaId}
-        editDimensionName={editingDimension?.name}
-        editDimensionNameEn={editingDimension?.name_en}
-      />
+      {/* Edit Dimension — right-half panel */}
+      {isEditModalOpen && (
+        <AddDimensionModal
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingDimension(null);
+          }}
+          onSuccess={() => { loadDimensions(); }}
+          editAreaId={editingDimension?.areaId}
+          editDimensionName={editingDimension?.name}
+          editDimensionNameEn={editingDimension?.name_en}
+        />
+      )}
 
       <SuccessModal
         isOpen={!!successMessage}

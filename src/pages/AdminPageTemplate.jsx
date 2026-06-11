@@ -9,9 +9,9 @@ function ScrollToTop() {
     return null;
 }
 
-export default function AdminPageTemplate({ children }) {
+export default function AdminPageTemplate({ children, bgClassName = 'bg-base-100' }) {
     return (
-        <div className="min-h-screen bg-base-100">
+        <div className={`admin-theme min-h-screen ${bgClassName}`}>
             <ScrollToTop />
             <AdminNavbar />
             <main style={{ paddingTop: 'calc(var(--navbar-height) + 6rem)' }}>
@@ -23,4 +23,5 @@ export default function AdminPageTemplate({ children }) {
 
 AdminPageTemplate.propTypes = {
     children: PropTypes.node.isRequired,
+    bgClassName: PropTypes.string,
 };

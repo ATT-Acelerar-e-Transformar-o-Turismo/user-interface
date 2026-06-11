@@ -7,7 +7,7 @@ import AdminNavbar from './AdminNavbar';
  */
 export default function AdminPageLayout({ children, showEditPanel = true }) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="admin-theme min-h-screen bg-white">
       <AdminNavbar />
 
       <main className="relative">

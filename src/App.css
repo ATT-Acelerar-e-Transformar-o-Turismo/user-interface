@@ -69,6 +69,15 @@ body {
     --depth: 0;
     --noise: 0;
 }
+
+/* Admin surfaces use the ROOTS green as their primary colour. Scoped to
+   `.admin-theme` so the public site keeps the blue primary. Applied on the
+   admin page wrappers; cascades to daisyUI btn-primary / bg-primary / focus
+   rings and any panels/modals rendered within. */
+.admin-theme {
+    --color-primary: #009368;
+    --color-primary-hover: #007d57;
+}
 /*
 @plugin "daisyui/theme" {
     name: "dark";

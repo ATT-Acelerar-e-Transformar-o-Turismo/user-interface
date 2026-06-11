@@ -23,7 +23,7 @@ export default function Territorio() {
             </div>
             <div className="w-full max-w-[445px] aspect-square shrink-0 mx-auto lg:mx-0">
               <img
-                src="/assets/roots/territorio-mapa.png"
+                src="/assets/roots/ilhavo.png"
                 alt={t('roots.territorio.area_title')}
                 className="w-full h-full object-cover rounded-[12px]"
               />

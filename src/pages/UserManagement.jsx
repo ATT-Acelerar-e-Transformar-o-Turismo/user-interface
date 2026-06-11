@@ -181,7 +181,7 @@ export default function UserManagement() {
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => handleToggleRole(user.id, user.role)}
-                                                            className="text-blue-600 hover:text-blue-900"
+                                                            className="text-[#009368] hover:text-[#007d57]"
                                                         >
                                                             {user.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                                                         </button>

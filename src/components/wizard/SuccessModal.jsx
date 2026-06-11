@@ -12,6 +12,7 @@ export default function SuccessModal({
   title = 'Sucesso!',
   message,
   icon = null,
+  iconBg = null,
   variant = 'success',
   primaryAction = null,
   secondaryAction = null,
@@ -61,7 +62,7 @@ export default function SuccessModal({
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ) : (
-    <svg className="w-20 h-20 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
@@ -77,28 +78,32 @@ export default function SuccessModal({
       }}
     >
       {/* Modal Container */}
-      <div className="bg-white rounded-[23px] shadow-2xl w-full max-w-md mx-4 p-8">
+      <div className="bg-[#fffefc] rounded-[20px] shadow-2xl w-full max-w-[440px] mx-4 px-8 py-10">
         {/* Content */}
-        <div className="flex flex-col items-center gap-6">
-          {/* Icon */}
-          <div className={`rounded-full p-6 ${isError ? 'bg-red-50' : 'bg-[#f1f0f0]'}`}>
-            {icon || defaultIcon}
-          </div>
+        <div className="flex flex-col items-center gap-6 text-center">
+          {/* Icon — pass icon={false} to hide the icon circle entirely */}
+          {icon !== false && (
+            <div
+              className={`rounded-full w-[120px] h-[120px] flex items-center justify-center ${iconBg || (isError ? 'bg-red-50' : 'bg-[#fde047]')}`}
+            >
+              {icon || defaultIcon}
+            </div>
+          )}
 
           {/* Title */}
-          <h2 className="font-['Onest',sans-serif] font-bold text-2xl text-black text-center">
+          <h2 className="font-['Onest',sans-serif] font-bold text-[28px] leading-tight text-[#0a0a0a]">
             {title}
           </h2>
 
           {/* Message */}
           {message && (
-            <p className="font-['Onest',sans-serif] text-base text-gray-600 text-center">
+            <p className="font-['Onest',sans-serif] font-medium text-[17px] leading-6 text-[#0a0a0a] max-w-[320px]">
               {message}
             </p>
           )}
 
           {/* Actions */}
-          <div className="flex flex-col gap-3 w-full mt-4">
+          <div className="flex flex-col items-center gap-3 w-full mt-2">
             {/* Primary Action */}
             {primaryAction && (
               <button
@@ -109,7 +114,7 @@ export default function SuccessModal({
                     onClose();
                   }
                 }}
-                className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-6 py-3 rounded-lg transition-colors w-full"
+                className="font-['Onest',sans-serif] text-[17px] font-medium text-[#fafafa] bg-[#009368] hover:bg-[#007d57] px-8 py-3 rounded-full transition-colors"
               >
                 {primaryAction.label}
               </button>
@@ -125,7 +130,7 @@ export default function SuccessModal({
                     onClose();
                   }
                 }}
-                className="font-['Onest',sans-serif] text-sm font-medium text-gray-700 hover:text-black px-6 py-3 rounded-lg transition-colors w-full"
+                className="font-['Onest',sans-serif] text-[17px] font-medium text-[#404040] hover:text-[#0a0a0a] px-6 py-2 rounded-full transition-colors"
               >
                 {secondaryAction.label}
               </button>
@@ -136,7 +141,7 @@ export default function SuccessModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="font-['Onest',sans-serif] text-sm font-medium text-white bg-primary hover:bg-[color:var(--color-primary-hover)] px-6 py-3 rounded-lg transition-colors w-full"
+                className="font-['Onest',sans-serif] text-[17px] font-medium text-[#fafafa] bg-[#009368] hover:bg-[#007d57] px-8 py-3 rounded-full transition-colors"
               >
                 {t('common.close')}
               </button>
@@ -154,6 +159,7 @@ SuccessModal.propTypes = {
   title: PropTypes.string,
   message: PropTypes.string,
   icon: PropTypes.node,
+  iconBg: PropTypes.string,
   variant: PropTypes.oneOf(['success', 'error']),
   primaryAction: PropTypes.shape({
     label: PropTypes.string.isRequired,

@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useLocalizedName from '../hooks/useLocalizedName';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 
 import indicatorService from '../services/indicatorService';
+import resourceService from '../services/resourceService';
 import areaService from '../services/areaService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import { confirmAction } from '../utils/confirm';
 import AdminPageTemplate from './AdminPageTemplate';
-import IndicatorWizard from '../components/wizard/IndicatorWizard';
-import AreaWizard from '../components/wizard/AreaWizard';
+import IndicatorFormPanel from '../components/admin/IndicatorFormPanel';
+import IndicatorDetailPanel from '../components/admin/IndicatorDetailPanel';
+import AreaFormPanel from '../components/admin/AreaFormPanel';
 import SuccessModal from '../components/wizard/SuccessModal';
-import { showInfo } from '../utils/toast';
+import IndicatorDashboardStats from '../components/admin/IndicatorDashboardStats';
+import SourcePill from '../components/admin/SourcePill';
+import { sourceFromType } from '../utils/resourceSource';
 import AdminListShell, {
   AdminPageHeader,
   AdminFilterBar,
@@ -51,10 +55,15 @@ export default function IndicatorsManagement() {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [indicators, setIndicators] = useState([]);
   const [areas, setAreas] = useState([]);
+  // Per-indicator data-source ('api' | 'upload' | null), derived from each
+  // indicator's attached resources. Populated asynchronously after the table
+  // loads so the page paints without waiting on the extra resource fetches.
+  const [sourceMap, setSourceMap] = useState({});
 
-  // Wizard state
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [editingIndicatorId, setEditingIndicatorId] = useState(null);
+  // Right-half indicator panels (create/edit form + visualization), shown
+  // over the list instead of a modal / separate page.
+  const [formPanel, setFormPanel] = useState({ open: false, id: null });
+  const [detailPanel, setDetailPanel] = useState({ open: false, indicator: null, source: null });
   const [isAreaWizardOpen, setIsAreaWizardOpen] = useState(false);
   const [editingAreaId, setEditingAreaId] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -83,6 +92,9 @@ export default function IndicatorsManagement() {
   const [governanceFilter, setGovernanceFilter] = useState(null);
   const [areaFilter, setAreaFilter] = useState(null);
   const [dimensionFilter, setDimensionFilter] = useState(null);
+  // Drafts pill toggle. Off → backend hides drafts (default). On → backend
+  // returns ONLY drafts so the admin can find and finish them.
+  const [draftsOnly, setDraftsOnly] = useState(false);
 
   // Search state. `searchInput` is the controlled value bound to the input
   // element so typing stays responsive; `searchQuery` is the debounced value
@@ -91,8 +103,6 @@ export default function IndicatorsManagement() {
   const [searchInput, setSearchInput] = useState('');
   const searchQuery = useDebouncedValue(searchInput, 300);
   const isSearchMode = searchQuery.trim().length > 0;
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const search = searchParams.get('q');
@@ -104,7 +114,46 @@ export default function IndicatorsManagement() {
 
   useEffect(() => {
     loadData();
-  }, [selectedOption, currentPage, pageSize, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, searchQuery, isSearchMode]);
+  }, [selectedOption, currentPage, pageSize, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, searchQuery, isSearchMode, draftsOnly]);
+
+  // Derive the data-source pill for each visible indicator. The reliable
+  // signal is the wrapper's source_type ('API' vs 'CSV'/'XLSX'), so for each
+  // indicator we look at its resources' wrappers. Best-effort + non-blocking:
+  // a row shows "—" until its source resolves; 'api' wins if any resource is API.
+  useEffect(() => {
+    if (selectedOption !== 'indicators' || indicators.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(indicators.map(async (ind) => {
+        try {
+          const ids = Array.isArray(ind.resources) ? ind.resources : (await indicatorService.getResources(ind.id));
+          const list = Array.isArray(ids) ? ids : [];
+          let result = null;
+          for (const item of list) {
+            const r = typeof item === 'string' ? await resourceService.getById(item).catch(() => null) : item;
+            if (!r) continue;
+            // The resource list endpoint now denormalises `source_type` from
+            // the wrapper onto each resource, so prefer that to avoid an N+1
+            // wrapper fetch per row. Fall back to fetching the wrapper only
+            // when the field is missing (legacy data or older payload), and
+            // `r.type` as a last-resort hint.
+            let st = r.source_type || null;
+            if (!st && r.wrapper_id) {
+              try { const w = await resourceService.getWrapper(r.wrapper_id); st = w?.source_type; } catch { /* ignore */ }
+            }
+            const s = sourceFromType(st) || sourceFromType(r.type);
+            if (s === 'api') { result = 'api'; break; }
+            if (s) result = s;
+          }
+          return [ind.id, result];
+        } catch {
+          return [ind.id, null];
+        }
+      }));
+      if (!cancelled) setSourceMap(Object.fromEntries(entries));
+    })();
+    return () => { cancelled = true; };
+  }, [indicators, selectedOption]);
 
   const loadData = async () => {
     try {
@@ -113,9 +162,12 @@ export default function IndicatorsManagement() {
       
       if (selectedOption === 'indicators') {
         const skip = currentPage * pageSize;
-        
+        // `null` lets the backend default kick in (hide drafts); `'draft'` flips
+        // the listing to drafts-only when the "Rascunhos" pill is active.
+        const statusFilter = draftsOnly ? 'draft' : null;
+
         if (isSearchMode && searchQuery.trim()) {
-          const searchResults = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, true);
+          const searchResults = await indicatorService.search(searchQuery, pageSize, skip, sortBy, sortOrder, governanceFilter, areaFilter, dimensionFilter, true, statusFilter);
           setIndicators(searchResults || []);
 
           const hasMore = searchResults && searchResults.length === pageSize;
@@ -123,24 +175,24 @@ export default function IndicatorsManagement() {
           setTotalItems(hasMore ? (currentPage + 1) * pageSize + 1 : (currentPage * pageSize) + (searchResults?.length || 0));
         } else if (areaFilter && dimensionFilter) {
           const [indicatorsData, totalCount] = await Promise.all([
-            indicatorService.getByDimension(areaFilter, dimensionFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, true),
-            indicatorService.getCountByDimension(areaFilter, dimensionFilter, governanceFilter, true),
+            indicatorService.getByDimension(areaFilter, dimensionFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, true, statusFilter),
+            indicatorService.getCountByDimension(areaFilter, dimensionFilter, governanceFilter, true, statusFilter),
           ]);
           setIndicators(indicatorsData || []);
           setTotalItems(totalCount || 0);
           setHasNextPage(skip + pageSize < (totalCount || 0));
         } else if (areaFilter) {
           const [indicatorsData, totalCount] = await Promise.all([
-            indicatorService.getByArea(areaFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, true),
-            indicatorService.getCountByArea(areaFilter, governanceFilter, true),
+            indicatorService.getByArea(areaFilter, skip, pageSize, sortBy, sortOrder, governanceFilter, true, statusFilter),
+            indicatorService.getCountByArea(areaFilter, governanceFilter, true, statusFilter),
           ]);
           setIndicators(indicatorsData || []);
           setTotalItems(totalCount || 0);
           setHasNextPage(skip + pageSize < (totalCount || 0));
         } else {
           const [indicatorsData, totalCount] = await Promise.all([
-            indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter, true),
-            indicatorService.getCount(true)
+            indicatorService.getAll(skip, pageSize, sortBy, sortOrder, governanceFilter, true, statusFilter),
+            indicatorService.getCount(true, statusFilter)
           ]);
 
           setIndicators(indicatorsData || []);
@@ -174,8 +226,8 @@ export default function IndicatorsManagement() {
     }
 
     if (selectedOption === 'indicators') {
-      setEditingIndicatorId(id);
-      setIsWizardOpen(true);
+      setDetailPanel({ open: false, indicator: null, source: null });
+      setFormPanel({ open: true, id });
     } else {
       setEditingAreaId(id);
       setIsAreaWizardOpen(true);
@@ -263,16 +315,32 @@ export default function IndicatorsManagement() {
   }
 
   return (
-    <AdminPageTemplate>
+    <AdminPageTemplate bgClassName="bg-[#f3f4f6]">
 
       <AdminListShell>
+        {selectedOption === 'indicators' && (
+          <IndicatorDashboardStats areas={areas} />
+        )}
+
         <AdminPageHeader
           title={t('admin.indicators.title')}
           actions={<>
-            <AdminPillButton icon={LuFileText} onClick={() => showInfo(t('admin.indicators.drafts_wip'))}>
-              {t('admin.indicators.view_drafts')}
+            <AdminPillButton
+              icon={LuFileText}
+              onClick={() => {
+                // Toggle drafts-only listing. Reset paging so the user lands on
+                // page 1 of the new view instead of an empty later page.
+                setCurrentPage(0);
+                setDraftsOnly(v => !v);
+              }}
+              aria-pressed={draftsOnly}
+              className={draftsOnly ? 'bg-[#0a0a0a] text-[#fffefc]' : undefined}
+            >
+              {draftsOnly
+                ? t('admin.indicators.view_all', 'Ver todos')
+                : t('admin.indicators.view_drafts')}
             </AdminPillButton>
-            <AdminPrimaryButton icon={LuPlus} onClick={() => { setEditingIndicatorId(null); setIsWizardOpen(true); }}>
+            <AdminPrimaryButton icon={LuPlus} onClick={() => setFormPanel({ open: true, id: null })}>
               {t('admin.indicators.add')}
             </AdminPrimaryButton>
           </>}
@@ -336,70 +404,72 @@ export default function IndicatorsManagement() {
         </AdminFilterBar>
 
         <AdminCard>
-          <div className="grid grid-cols-[minmax(0,2fr)_160px_160px_160px] gap-6 items-start">
-            {/* Column: Nome */}
-            <div className="flex flex-col gap-4">
-              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
-                {t('admin.indicators.col_name')}
-              </h2>
-              {tableContent.length === 0 ? (
-                <div className="py-8 text-[#737373] font-['Onest']">{t('admin.indicators.empty')}</div>
-              ) : (
-                tableContent.map(ind => (
+          {/* Header row */}
+          <div className="grid grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))] gap-6 items-center pb-4 border-b border-[#e5e5e5]">
+            <h2 className="font-['Onest'] font-semibold text-[20px] leading-6 text-[#0a0a0a]">{t('admin.indicators.col_name')}</h2>
+            <h2 className="font-['Onest'] font-semibold text-[20px] leading-6 text-[#0a0a0a]">{t('admin.indicators.col_dimension', 'Dimensão')}</h2>
+            <h2 className="font-['Onest'] font-semibold text-[20px] leading-6 text-[#0a0a0a]">{t('admin.indicators.col_area', 'Área')}</h2>
+            <h2 className="font-['Onest'] font-semibold text-[20px] leading-6 text-[#0a0a0a]">{t('admin.indicators.col_governance')}?</h2>
+            <h2 className="font-['Onest'] font-semibold text-[20px] leading-6 text-[#0a0a0a]">{t('admin.indicators.col_source', 'Fonte')}</h2>
+            <h2 className="font-['Onest'] font-semibold text-[20px] leading-6 text-[#0a0a0a]">{t('admin.indicators.col_options')}</h2>
+          </div>
+
+          {tableContent.length === 0 ? (
+            <div className="py-8 text-[#737373] font-['Onest']">{t('admin.indicators.empty')}</div>
+          ) : (
+            tableContent.map(ind => {
+              const showLabel = ind.hidden ? t('admin.indicators.show', 'Mostrar') : t('admin.indicators.hide', 'Esconder');
+              return (
+                <div
+                  key={ind.id}
+                  className={`grid grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))] gap-6 items-center py-4 border-b border-[#e5e5e5] last:border-0 ${ind.hidden ? 'opacity-50' : ''}`}
+                >
+                  {/* Nome */}
                   <button
-                    key={`name-${ind.id}`}
                     type="button"
-                    onClick={() => navigate(`/admin/resources-management/${ind.id}`)}
-                    className={`font-['Onest'] font-medium text-[18px] leading-6 text-[#0a0a0a] text-left hover:text-[#009368] transition-colors cursor-pointer truncate ${ind.hidden ? 'opacity-50' : ''}`}
+                    onClick={() => setDetailPanel({ open: true, indicator: ind, source: sourceMap[ind.id] ?? null })}
+                    className="flex flex-col gap-1 text-left hover:text-[#009368] transition-colors cursor-pointer group min-w-0"
                     title={ind.name}
                   >
-                    {ind.name}
+                    <span className="font-['Onest'] font-medium text-[18px] leading-[1.4] text-[#0a0a0a] group-hover:text-[#009368] line-clamp-2">
+                      {ind.name}
+                    </span>
+                    {ind.unit && (
+                      <span className="font-['Onest'] text-[14px] leading-[21px] tracking-[0.07px] text-[#0a0a0a]/70 truncate">
+                        {ind.unit}
+                      </span>
+                    )}
                   </button>
-                ))
-              )}
-            </div>
 
-            {/* Column: Dimensão */}
-            <div className="flex flex-col gap-4 items-center text-center">
-              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
-                {t('admin.indicators.col_dimension', 'Dimensão')}
-              </h2>
-              {tableContent.map(ind => (
-                <span
-                  key={`dim-${ind.id}`}
-                  className="font-['Onest'] font-medium text-[18px] leading-6 truncate max-w-full"
-                  style={{ color: ind.color || '#0a0a0a' }}
-                >
-                  {ind.dimension || ind.area}
-                </span>
-              ))}
-            </div>
+                  {/* Dimensão */}
+                  <span className="font-['Onest'] font-medium text-[18px] leading-6 text-[#0a0a0a] truncate">
+                    {ind.dimension || '—'}
+                  </span>
 
-            {/* Column: Governança? */}
-            <div className="flex flex-col gap-4 items-center">
-              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
-                {t('admin.indicators.col_governance')}?
-              </h2>
-              {tableContent.map(ind => (
-                <div key={`gov-${ind.id}`} className="h-6 flex items-center">
-                  {ind.governance ? (
-                    <LuCircleCheck className="w-6 h-6 text-[#009368]" strokeWidth={1.75} />
-                  ) : (
-                    <LuCircleX className="w-6 h-6 text-[#dc2626]" strokeWidth={1.75} />
-                  )}
-                </div>
-              ))}
-            </div>
+                  {/* Área */}
+                  <div className="min-w-0">
+                    <span
+                      className="inline-flex items-center rounded-[22px] px-3 py-1.5 font-['Onest'] font-medium text-[14px] leading-[21px] tracking-[0.07px] text-[#fffefc] truncate max-w-full"
+                      style={{ backgroundColor: ind.color || '#737373' }}
+                    >
+                      {ind.area}
+                    </span>
+                  </div>
 
-            {/* Column: Opções */}
-            <div className="flex flex-col gap-4 items-center">
-              <h2 className="font-['Onest'] font-semibold text-[24px] leading-[1.2] tracking-tight text-[#0a0a0a]">
-                {t('admin.indicators.col_options')}
-              </h2>
-              {tableContent.map(ind => {
-                const showLabel = ind.hidden ? t('admin.indicators.show', 'Mostrar') : t('admin.indicators.hide', 'Esconder');
-                return (
-                  <div key={`act-${ind.id}`} className="flex items-center gap-4">
+                  {/* Governança? */}
+                  <div>
+                    {ind.governance ? (
+                      <LuCircleCheck className="w-7 h-7 text-[#009368]" strokeWidth={1.75} />
+                    ) : (
+                      <LuCircleX className="w-7 h-7 text-[#dc2626]" strokeWidth={1.75} />
+                    )}
+                  </div>
+
+                  {/* Fonte */}
+                  <div><SourcePill source={sourceMap[ind.id]} /></div>
+
+                  {/* Opções */}
+                  <div className="flex items-center gap-4">
                     <button
                       type="button"
                       onClick={() => handleToggleHidden(ind.id, ind.hidden)}
@@ -435,10 +505,10 @@ export default function IndicatorsManagement() {
                       <LuTrash2 className="w-6 h-6" strokeWidth={1.75} />
                     </button>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                </div>
+              );
+            })
+          )}
         </AdminCard>
 
         {tableContent.length > 0 && (
@@ -451,32 +521,39 @@ export default function IndicatorsManagement() {
         )}
       </AdminListShell>
 
-      {/* Indicator Wizard Modal */}
-      <IndicatorWizard
-        key="indicator-wizard"
-        isOpen={isWizardOpen}
-        onClose={() => {
-          setIsWizardOpen(false);
-          setEditingIndicatorId(null);
-        }}
-        indicatorId={editingIndicatorId}
-        onSuccess={() => {
-          loadData();
-        }}
-      />
+      {/* Indicator detail (visualization) — right-half panel */}
+      {detailPanel.open && (
+        <IndicatorDetailPanel
+          indicator={detailPanel.indicator}
+          source={detailPanel.source}
+          onClose={() => setDetailPanel({ open: false, indicator: null, source: null })}
+          onEdit={(id) => {
+            setDetailPanel({ open: false, indicator: null, source: null });
+            setFormPanel({ open: true, id });
+          }}
+        />
+      )}
 
-      {/* Area Wizard Modal */}
-      <AreaWizard
-        isOpen={isAreaWizardOpen}
-        onClose={() => {
-          setIsAreaWizardOpen(false);
-          setEditingAreaId(null);
-        }}
-        areaId={editingAreaId}
-        onSuccess={() => {
-          loadData();
-        }}
-      />
+      {/* Indicator create/edit — right-half panel */}
+      {formPanel.open && (
+        <IndicatorFormPanel
+          indicatorId={formPanel.id}
+          onClose={() => setFormPanel({ open: false, id: null })}
+          onSaved={() => loadData()}
+        />
+      )}
+
+      {/* Area create/edit — right-half panel */}
+      {isAreaWizardOpen && (
+        <AreaFormPanel
+          areaId={editingAreaId}
+          onClose={() => {
+            setIsAreaWizardOpen(false);
+            setEditingAreaId(null);
+          }}
+          onSaved={() => loadData()}
+        />
+      )}
 
       <SuccessModal
         isOpen={!!successMessage}

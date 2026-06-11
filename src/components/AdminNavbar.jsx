@@ -46,10 +46,11 @@ export default function AdminNavbar() {
 
     const adminNavItems = [
         { label: t('admin.nav.indicators'), path: '/admin/indicators-management' },
-        { label: t('admin.nav.dimensions'), path: '/admin/dimensions' },
         { label: t('admin.nav.areas'), path: '/admin/areas-management' },
-        { label: t('admin.nav.publications'), path: '/admin/publications' },
-        { label: t('admin.nav.news_events'), path: '/admin/news-events' },
+        { label: t('admin.nav.dimensions'), path: '/admin/dimensions' },
+        // News, publications and authors are unified under one "Comunicação"
+        // entry; the Communication page itself exposes the sub-tabs.
+        { label: t('admin.nav.communication', 'Comunicação'), path: '/admin/news-events', matchPaths: ['/admin/news-events', '/admin/publications', '/admin/authors'] },
     ];
 
     return (

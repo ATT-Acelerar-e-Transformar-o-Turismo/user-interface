@@ -22,10 +22,10 @@ export default function FormInput({
       {label && (
         <label
           htmlFor={name}
-          className="font-['Onest',sans-serif] font-medium text-sm text-black"
+          className="font-['Onest',sans-serif] font-semibold text-[18px] text-[#0a0a0a]"
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-[#dc2626] ml-1">*</span>}
         </label>
       )}
 
@@ -42,15 +42,15 @@ export default function FormInput({
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={error ? `${name}-error` : undefined}
         className={`
-          font-['Onest',sans-serif] text-sm text-black
-          bg-[#f1f0f0] rounded-lg px-4 py-3
-          border-2 transition-colors
+          font-['Onest',sans-serif] text-[16px] text-[#0a0a0a] placeholder-[#737373]
+          bg-[#fffefc] rounded-full px-5 py-3.5
+          border transition-colors
           ${error
-            ? 'border-red-500 focus:border-red-600'
-            : 'border-transparent focus:border-primary'
+            ? 'border-[#dc2626] focus:border-[#dc2626]'
+            : 'border-[#e5e5e5] focus:border-[#009368]'
           }
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}
-          focus:outline-none focus:ring-2 focus:ring-primary/20
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+          focus:outline-none focus:ring-2 focus:ring-[#009368]/20
         `}
       />
 

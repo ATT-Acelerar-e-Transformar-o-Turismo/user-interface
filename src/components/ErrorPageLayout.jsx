@@ -68,7 +68,7 @@ export default function ErrorPageLayout({
             <button
               type="button"
               onClick={() => navigate(primaryTo)}
-              className="inline-flex items-center justify-center min-h-[49px] px-7 py-3 rounded-full bg-[#084d92] text-[17px] font-medium text-[#fafafa] hover:bg-[#06407a] transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center min-h-[49px] px-7 py-3 rounded-full bg-[#009368] text-[17px] font-medium text-[#fafafa] hover:bg-[#007d57] transition-colors cursor-pointer"
             >
               {primaryLabel}
             </button>

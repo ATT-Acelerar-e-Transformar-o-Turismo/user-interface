@@ -169,7 +169,8 @@
       "areas": "Areas",
       "news_events": "News & Events",
       "publications": "Publications",
-      "user_management": "User Management"
+      "user_management": "User Management",
+      "communication": "Communication"
     },
     "indicators": {
       "title": "Indicators",
@@ -181,6 +182,8 @@
       "empty": "No indicators yet",
       "add": "Add indicator",
       "view_drafts": "Drafts",
+      "view_all": "Show all",
+      "publish_draft": "Publish",
       "sort_by": "Sort by",
       "search_placeholder": "Search indicators",
       "drafts_wip": "View Drafts - Feature under development",
@@ -188,7 +191,29 @@
       "confirm_delete": "Are you sure you want to delete the indicator \"{{name}}\"?",
       "hide": "Hide",
       "show": "Show",
-      "deleted_success": "Indicator deleted successfully."
+      "deleted_success": "Indicator deleted successfully.",
+      "col_source": "Source",
+      "source_api": "API",
+      "source_upload": "Upload",
+      "stats": {
+        "total_title": "Total Indicators",
+        "total_caption": "across {{count}} areas",
+        "by_area_title": "Indicators by area",
+        "sources_title": "Data sources",
+        "governance_title": "Governance indicators",
+        "governance_caption": "of all indicators"
+      },
+      "new_title": "New Indicator",
+      "new_subtitle": "Fill in all required fields to add a new indicator",
+      "edit_title": "Edit Indicator",
+      "edit_subtitle": "Change the necessary fields to update the indicator information.",
+      "section_general": "General information",
+      "save_draft": "Save draft",
+      "save_changes": "Save changes",
+      "edit_indicator": "Edit Indicator",
+      "manage_sources": "Manage data sources",
+      "created_success": "Indicator added!",
+      "created_message": "You can complete the indicator by adding sources, or do it later"
     },
     "areas": {
       "title": "Areas",
@@ -204,7 +229,12 @@
       "delete_error": "Failed to delete area",
       "deleted_success": "Area \"{{name}}\" deleted successfully.",
       "hide": "Hide",
-      "show": "Show"
+      "show": "Show",
+      "new_title": "New Area",
+      "new_subtitle": "Fill in all required fields to add a new area",
+      "edit_title": "Edit Area",
+      "edit_subtitle": "Change the necessary fields to update the area.",
+      "save_changes": "Save changes"
     },
     "dimensions": {
       "title": "Dimensions",
@@ -228,7 +258,34 @@
       "confirm_remove_child_title": "Remove included indicator?",
       "confirm_remove_child": "Are you sure you want to remove the indicator \"{{name}}\" from sources?",
       "type_indicator": "Indicator",
-      "status_linked": "linked"
+      "status_linked": "linked",
+      "tab_overview": "Overview",
+      "tab_data": "Data",
+      "tab_config": "Configuration",
+      "preview": "Preview",
+      "description": "Description",
+      "last_sync": "Last sync",
+      "sync_now": "Sync now",
+      "sync_failed": "Sync failed",
+      "no_data": "No data to preview yet.",
+      "no_description": "No description.",
+      "unknown_indicator": "Indicator",
+      "empty": "There are no data resources yet",
+      "col_value": "Value",
+      "tab_resources": "Resources",
+      "col_name": "Name",
+      "col_type": "Type",
+      "col_period": "Period",
+      "view_logs": "View logs",
+      "wrapper_logs": "Wrapper logs",
+      "regenerating": "Regenerating wrapper",
+      "waiting_logs": "Waiting for logs…",
+      "no_logs": "No logs.",
+      "error": "Error",
+      "wrapper_info": "Wrapper",
+      "details": "Details",
+      "col_status": "Status",
+      "load_failed": "Could not load the resources."
     },
     "news_events": {
       "title": "All News & Events",
@@ -240,7 +297,13 @@
       "confirm_delete": "Are you sure you want to delete this news / event?",
       "deleted_success": "News / event deleted successfully.",
       "drafts": "Drafts",
-      "search_placeholder": "Search news"
+      "search_placeholder": "Search news",
+      "tab": "News & Events",
+      "form_title_new": "New Article / Event",
+      "form_subtitle": "Fill in all required fields to add a new article or event.",
+      "created_success": "Article added!",
+      "created_message": "The article was added successfully.",
+      "add": "Add article"
     },
     "publications": {
       "title": "All Publications",
@@ -252,7 +315,13 @@
       "confirm_delete": "Are you sure you want to delete this publication?",
       "deleted_success": "Publication deleted successfully.",
       "drafts": "Drafts",
-      "search_placeholder": "Search publications"
+      "search_placeholder": "Search publications",
+      "tab": "Publications",
+      "form_title_new": "New publication",
+      "form_subtitle": "Fill in all required fields to add a new publication.",
+      "created_success": "Publication added!",
+      "created_message": "The publication was added successfully.",
+      "add": "Add publication"
     },
     "blog": {
       "title": "Manage Blog",
@@ -325,7 +394,42 @@
       "unsaved_changes_cancel": "You have unsaved changes. Are you sure you want to cancel?",
       "saving": "Saving...",
       "update": "Update",
-      "create": "Create Post"
+      "create": "Create Post",
+      "col_type": "Type",
+      "type_news": "News",
+      "type_event": "Event",
+      "type_publication": "Publication",
+      "share": "Share article",
+      "edit_news": "Edit article",
+      "go_home": "Go to start"
+    },
+    "authors": {
+      "tab": "Authors",
+      "title": "Authors",
+      "add": "Add author",
+      "save": "Save author",
+      "edit_title": "Edit author",
+      "new_title": "New author",
+      "new_subtitle": "Fill in all required fields to add a new author.",
+      "section_personal": "Personal information",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "E-mail",
+      "description": "Description",
+      "description_placeholder": "Write a description",
+      "section_affiliation": "Affiliation",
+      "institution": "Institution",
+      "role": "Role",
+      "section_identifiers": "Identifiers",
+      "url_or_username": "URL or username",
+      "col_name": "Name",
+      "col_role": "Role",
+      "col_email": "E-mail",
+      "col_options": "Options",
+      "empty": "No authors yet.",
+      "search_placeholder": "Search authors",
+      "confirm_delete": "Delete author \"{{name}}\"?",
+      "save_error": "Could not save the author."
     }
   },
   "wizard": {
@@ -433,7 +537,9 @@
       "error": "Failed to process dimension",
       "success_added": "Dimension Added!",
       "success_updated": "Dimension Updated!",
-      "success_message": "The dimension was saved successfully."
+      "success_message": "The dimension was saved successfully.",
+      "subtitle_add": "Fill in the required fields to add a new dimension.",
+      "subtitle_edit": "Change the necessary fields to update the dimension."
     },
     "resource": {
       "title_new": "Add Data Resource",
@@ -511,7 +617,8 @@
       "generation_failed": "Wrapper generation failed. Please try again.",
       "source_composition": "Composed indicator (formula)",
       "step_composition": "Define formula",
-      "composition_review": "Composed indicator to create:"
+      "composition_review": "Composed indicator to create:",
+      "view_indicator": "View indicator"
     },
     "composition": {
       "name_label": "Name (optional)",
