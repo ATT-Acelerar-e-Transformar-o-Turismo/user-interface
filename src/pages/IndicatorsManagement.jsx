@@ -132,8 +132,13 @@ export default function IndicatorsManagement() {
           for (const item of list) {
             const r = typeof item === 'string' ? await resourceService.getById(item).catch(() => null) : item;
             if (!r) continue;
-            let st = null;
-            if (r.wrapper_id) {
+            // The resource list endpoint now denormalises `source_type` from
+            // the wrapper onto each resource, so prefer that to avoid an N+1
+            // wrapper fetch per row. Fall back to fetching the wrapper only
+            // when the field is missing (legacy data or older payload), and
+            // `r.type` as a last-resort hint.
+            let st = r.source_type || null;
+            if (!st && r.wrapper_id) {
               try { const w = await resourceService.getWrapper(r.wrapper_id); st = w?.source_type; } catch { /* ignore */ }
             }
             const s = sourceFromType(st) || sourceFromType(r.type);

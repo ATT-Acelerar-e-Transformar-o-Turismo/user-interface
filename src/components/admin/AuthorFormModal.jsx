@@ -272,7 +272,7 @@ export default function AuthorFormModal({ onClose, author = null, onSaved }) {
           <div className="flex flex-col gap-6">
             {languageTabs}
             {lang === 'pt' ? (
-              <FormTextarea label={t('admin.authors.description', 'Descrição')} name="author_desc_pt" value={data.description} onChange={set('description')} placeholder={t('admin.authors.description_placeholder', 'Escreva uma descrição')} rows={5} required />
+              <FormTextarea label={t('admin.authors.description', 'Descrição')} name="author_desc_pt" value={data.description} onChange={set('description')} placeholder={t('admin.authors.description_placeholder', 'Escreva uma descrição')} rows={5} />
             ) : (
               <FormTextarea label={t('admin.authors.description', 'Descrição')} name="author_desc_en" value={data.description_en} onChange={set('description_en')} placeholder={t('admin.authors.description_placeholder', 'Escreva uma descrição')} rows={5} />
             )}

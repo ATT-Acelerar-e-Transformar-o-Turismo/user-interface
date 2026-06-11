@@ -43,7 +43,12 @@ export default function IndicatorResourcesTab({ indicatorId }) {
         if (r.wrapper_id) {
           try { wrapper = await resourceService.getWrapper(r.wrapper_id); } catch { /* ignore */ }
         }
-        const source = sourceFromType(wrapper?.source_type) || sourceFromType(r.type);
+        // Fall back to the resource's own denormalised `source_type` (set by
+        // resource-service) if the wrapper lookup didn't return one — that
+        // way a transient wrapper fetch failure doesn't surface as "—".
+        const source = sourceFromType(wrapper?.source_type)
+          || sourceFromType(r.source_type)
+          || sourceFromType(r.type);
         return { ...r, _wrapper: wrapper, _source: source, _status: wrapper?.status || (r.wrapper_id ? 'unknown' : '—') };
       }));
       setResources(enriched);
