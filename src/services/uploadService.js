@@ -13,6 +13,9 @@ export const uploadService = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        // Uploads can take far longer than the default 10s client timeout;
+        // large images would otherwise abort mid-upload and silently fail.
+        timeout: 120000,
       }
     );
 
@@ -30,6 +33,9 @@ export const uploadService = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        // Uploads can take far longer than the default 10s client timeout;
+        // large images would otherwise abort mid-upload and silently fail.
+        timeout: 120000,
       }
     );
 

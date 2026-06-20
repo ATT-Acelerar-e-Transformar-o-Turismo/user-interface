@@ -223,6 +223,7 @@ export default function FavoritesPage() {
                     dimension={indicator.dimensionName}
                     description={indicator.description}
                     description_en={indicator.description_en}
+                    unit={getName.field(indicator, 'unit', 'unit_en')}
                     defaultChartType={indicator.default_chart_type}
                     hiddenSeries={indicator.hidden_series || []}
                     seriesTranslations={indicator.series_translations || null}
