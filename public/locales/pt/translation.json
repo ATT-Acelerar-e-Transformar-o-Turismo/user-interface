@@ -565,6 +565,7 @@
       "step_preview_desc": "Visualize os dados antes de guardar",
       "legend_label": "Legenda",
       "legend_placeholder": "Etiqueta mostrada na legenda do gráfico",
+      "legend_save_failed": "O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.",
       "indicator_label": "Indicador",
       "source_type": "Tipo de Fonte",
       "source_type_placeholder": "Selecione o tipo de fonte",

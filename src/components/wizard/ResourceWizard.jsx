@@ -737,15 +737,25 @@ export default function ResourceWizard({
       }
 
       // Persist the legend onto the resource(s). In edit mode the wrapper flow
-      // may not surface the id, so fall back to the resource being edited.
+      // may not surface the id, so fall back to the resource being edited. The
+      // resource itself was already created/updated above, so a legend failure
+      // is non-fatal — surface it as a toast so the admin can retry the label
+      // (via the resource details panel) rather than silently believing it saved.
       const legend = (data.legend || '').trim();
       const idsToLabel = isEditMode ? [resourceId] : createdResourceIds;
-      await Promise.all(
+      const legendResults = await Promise.all(
         idsToLabel.filter(Boolean).map(rid =>
           resourceService.patch(rid, { legend: legend || null })
-            .catch(err => console.error('Failed to set resource legend:', err))
+            .then(() => true)
+            .catch(err => { console.error('Failed to set resource legend:', err); return false; })
         )
       );
+      if (legendResults.some(ok => !ok)) {
+        showError(
+          t('wizard.resource.legend_save_failed', 'O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.'),
+          8000,
+        );
+      }
 
       setShowSuccessModal(true);
 

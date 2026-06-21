@@ -565,6 +565,7 @@
       "step_preview_desc": "Preview the data before saving",
       "legend_label": "Legend",
       "legend_placeholder": "Label shown in the chart legend",
+      "legend_save_failed": "The resource was saved, but the legend could not be saved. Try editing it from the resource details.",
       "indicator_label": "Indicator",
       "source_type": "Source Type",
       "source_type_placeholder": "Select the source type",
