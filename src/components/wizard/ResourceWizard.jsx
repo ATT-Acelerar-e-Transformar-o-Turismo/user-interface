@@ -53,6 +53,8 @@ export default function ResourceWizard({
 
   const initialData = {
     sourceType: '',
+    // Admin-curated label shown in the chart legend for this resource's series.
+    legend: '',
     files: [],  // Changed to array for multiple files
     columnSelections: {},  // {fileName: {sheetName, timeColumn, valueColumns: []}}
     // Indicator-mode picker state. Each entry: {id, name, domain, subdomain}.
@@ -165,6 +167,8 @@ export default function ResourceWizard({
     try {
       setLoading(true);
       const resource = await resourceService.getById(resourceId);
+
+      wizard.updateFormData('legend', resource.legend || '');
 
       if (resource.wrapper_id) {
         const wrapper = await resourceService.getWrapper(resource.wrapper_id);
@@ -607,6 +611,9 @@ export default function ResourceWizard({
   };
 
   async function handleSubmit(data) {
+    // Resource ids created (or, in edit mode, the resource being edited) that
+    // should receive the legend label once the data flow below succeeds.
+    let createdResourceIds = [];
     try {
       if (data.sourceType === 'COMPOSITION') {
         const comp = data.composition || {};
@@ -694,6 +701,7 @@ export default function ResourceWizard({
         if (wrapper.resource_id && !isEditMode) {
           await indicatorService.addResource(indicatorId, wrapper.resource_id);
         }
+        if (wrapper.resource_id) createdResourceIds = [wrapper.resource_id];
 
         // Poll for completion
         await new Promise((resolve, reject) => {
@@ -724,7 +732,29 @@ export default function ResourceWizard({
             await indicatorService.addResource(indicatorId, wrapperInfo.resourceId);
           }
         }
+        createdResourceIds = wrappersData.map(w => w.resourceId).filter(Boolean);
 
+      }
+
+      // Persist the legend onto the resource(s). In edit mode the wrapper flow
+      // may not surface the id, so fall back to the resource being edited. The
+      // resource itself was already created/updated above, so a legend failure
+      // is non-fatal — surface it as a toast so the admin can retry the label
+      // (via the resource details panel) rather than silently believing it saved.
+      const legend = (data.legend || '').trim();
+      const idsToLabel = isEditMode ? [resourceId] : createdResourceIds;
+      const legendResults = await Promise.all(
+        idsToLabel.filter(Boolean).map(rid =>
+          resourceService.patch(rid, { legend: legend || null })
+            .then(() => true)
+            .catch(err => { console.error('Failed to set resource legend:', err); return false; })
+        )
+      );
+      if (legendResults.some(ok => !ok)) {
+        showError(
+          t('wizard.resource.legend_save_failed', 'O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.'),
+          8000,
+        );
       }
 
       setShowSuccessModal(true);
@@ -1034,6 +1064,20 @@ export default function ResourceWizard({
             title={t('wizard.resource.step_preview')}
             description={t('wizard.resource.step_preview_desc')}
           >
+            {/* Legend label — only relevant for data resources (API / file
+                uploads); composition and child-indicator modes don't create a
+                single labelled series. */}
+            {!['COMPOSITION', 'INDICATOR'].includes(wizard.formData.sourceType) && (
+              <div className="mb-6">
+                <FormInput
+                  label={t('wizard.resource.legend_label', 'Legenda')}
+                  name="legend"
+                  value={wizard.formData.legend || ''}
+                  onChange={(value) => wizard.updateFormData('legend', value)}
+                  placeholder={t('wizard.resource.legend_placeholder', 'Etiqueta mostrada na legenda do gráfico')}
+                />
+              </div>
+            )}
             {wizard.formData.sourceType === 'API' ? (
               <div className="bg-[#f1f0f0] rounded-lg p-6 text-center">
                 <p className="font-['Onest',sans-serif] text-sm text-gray-600">

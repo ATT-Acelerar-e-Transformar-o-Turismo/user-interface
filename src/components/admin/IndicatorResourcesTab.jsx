@@ -28,6 +28,8 @@ export default function IndicatorResourcesTab({ indicatorId }) {
   const [error, setError] = useState(null);
   const [wizard, setWizard] = useState({ open: false, resourceId: null });
   const [details, setDetails] = useState(null); // the resource being inspected
+  const [legendDraft, setLegendDraft] = useState('');
+  const [savingLegend, setSavingLegend] = useState(false);
   // Live wrapper run/logs modal: mode 'regenerate' kicks off a regeneration
   // and streams its logs; mode 'logs' just views the current logs.
   const [runModal, setRunModal] = useState(null); // { wrapperId, mode }
@@ -71,6 +73,26 @@ export default function IndicatorResourcesTab({ indicatorId }) {
       setResources(prev => (prev || []).filter(r => r.id !== resource.id));
     } catch (err) {
       setError(err.userMessage || err.message);
+    }
+  };
+
+  const openDetails = (resource) => {
+    setDetails(resource);
+    setLegendDraft(resource.legend || '');
+  };
+
+  const saveLegend = async () => {
+    if (!details) return;
+    const value = legendDraft.trim() || null;
+    try {
+      setSavingLegend(true);
+      await resourceService.patch(details.id, { legend: value });
+      setResources(prev => (prev || []).map(r => r.id === details.id ? { ...r, legend: value } : r));
+      setDetails(d => (d ? { ...d, legend: value } : d));
+    } catch (err) {
+      setError(err.userMessage || err.message);
+    } finally {
+      setSavingLegend(false);
     }
   };
 
@@ -131,7 +153,7 @@ export default function IndicatorResourcesTab({ indicatorId }) {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-3">
-                      <button type="button" onClick={() => setDetails(r)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('admin.resources.details', 'Detalhes')} title={t('admin.resources.details', 'Detalhes')}>
+                      <button type="button" onClick={() => openDetails(r)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('admin.resources.details', 'Detalhes')} title={t('admin.resources.details', 'Detalhes')}>
                         <LuEye className="w-5 h-5" strokeWidth={1.75} />
                       </button>
                       {r.wrapper_id && (
@@ -183,6 +205,30 @@ export default function IndicatorResourcesTab({ indicatorId }) {
               <div><span className="text-[#737373]">{t('admin.indicators.col_source', 'Fonte')}:</span> {toText(details._source)}</div>
               <div><span className="text-[#737373]">{t('admin.resources.col_period', 'Período')}:</span> {toText(details.start_period || details.startPeriod)}{(details.end_period || details.endPeriod) ? ` – ${toText(details.end_period || details.endPeriod, '')}` : ''}</div>
               <div><span className="text-[#737373]">{t('admin.resources.col_status', 'Estado')}:</span> {toText(details._status)}</div>
+            </div>
+            {/* Legend — editable label shown in the chart's series legend. */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="resource-legend" className="text-[14px] font-medium text-[#0a0a0a]">
+                {t('admin.resources.legend_label', 'Legenda')}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="resource-legend"
+                  type="text"
+                  value={legendDraft}
+                  onChange={(e) => setLegendDraft(e.target.value)}
+                  placeholder={t('wizard.resource.legend_placeholder', 'Etiqueta mostrada na legenda do gráfico')}
+                  className="flex-1 bg-[#f1f0f0] rounded-lg px-4 py-2.5 text-[14px] text-[#0a0a0a] border-2 border-transparent focus:border-[#009368] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={saveLegend}
+                  disabled={savingLegend || (legendDraft.trim() === (details.legend || ''))}
+                  className="inline-flex items-center justify-center h-10 px-4 rounded-full bg-[#009368] hover:bg-[#007d57] font-medium text-[14px] text-[#fffefc] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {savingLegend ? t('common.saving', 'A guardar…') : t('common.save', 'Guardar')}
+                </button>
+              </div>
             </div>
             {details._wrapper && (
               <div className="rounded-xl bg-[#f9fafb] border border-[#e5e5e5] p-4 flex flex-col gap-2 text-[14px]">

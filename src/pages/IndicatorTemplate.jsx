@@ -908,7 +908,7 @@ export default function IndicatorTemplate() {
             <div className={`${cardClass} flex-1 min-w-0`}>
               <div className="flex items-start justify-between gap-4 mb-5">
                 <h2 className="font-['Onest'] font-semibold text-2xl xl:text-3xl text-[#0a0a0a] tracking-tight leading-tight">
-                  {getName(indicatorData)} {indicatorData.unit ? `(${indicatorData.unit})` : ''}
+                  {getName(indicatorData)} {(() => { const u = getName.field(indicatorData, 'unit', 'unit_en'); return u ? `(${u})` : ''; })()}
                 </h2>
                 <div className="flex flex-col-reverse md:flex-row items-end md:items-center gap-2 shrink-0">
                   {/* Tablet (md–xl): standalone zoom action buttons. On xl+ these

@@ -148,6 +148,40 @@ test('buildChartSeries: multi-column file — series_label takes priority over r
   assert.deepEqual(new Set(out.series.map((s) => s.resource_id)), new Set(['r1']));
 });
 
+test('buildChartSeries: resource legend overrides file name and column label for a single series', () => {
+  // One resource, one column → the admin-curated legend wins over both the
+  // file name and the raw column label.
+  const raw = [
+    { resource_id: 'r1', series_label: 'Total', points: [{ x: '2020-01-01T00:00:00', y: 100 }] },
+  ];
+  const resources = [{ id: 'r1', name: 'INE 2020.xlsx', legend: 'Visitantes totais' }];
+  const out = buildChartSeries(raw, resources);
+  assert.equal(out.series.length, 1);
+  assert.equal(out.series[0].name, 'Visitantes totais');
+});
+
+test('buildChartSeries: resource legend is ignored for multi-column resources', () => {
+  // One resource emitting several columns: a single legend can't label every
+  // line distinctly, so each series keeps its column name.
+  const raw = [
+    { resource_id: 'r1', series_label: 'Total', points: [{ x: '2020-01-01T00:00:00', y: 100 }] },
+    { resource_id: 'r1', series_label: 'Águas residuais', points: [{ x: '2020-01-01T00:00:00', y: 50 }] },
+  ];
+  const resources = [{ id: 'r1', name: 'Indicator_1.xlsx', legend: 'Não deve aparecer' }];
+  const out = buildChartSeries(raw, resources);
+  assert.equal(out.series.length, 2);
+  assert.deepEqual(out.series.map((s) => s.name), ['Total', 'Águas residuais']);
+});
+
+test('buildChartSeries: blank/whitespace resource legend falls back to the default name', () => {
+  const raw = [
+    { resource_id: 'r1', series_label: null, points: [{ x: '2020-01-01T00:00:00', y: 10 }] },
+  ];
+  const resources = [{ id: 'r1', name: 'INE 2020.xlsx', legend: '   ' }];
+  const out = buildChartSeries(raw, resources);
+  assert.equal(out.series[0].name, 'INE 2020.xlsx');
+});
+
 test('buildChartSeries: complementary year ranges — merges resources sharing a series label', () => {
   // Two resources covering different time windows for the SAME column collapse
   // into one continuous line. Without merging the chart used to render two

@@ -320,10 +320,17 @@ export const buildChartSeries = (
       // is really many — defer to the column label instead.
       const singleEntry = entries.length === 1;
       const resourceSeriesCount = seriesCountByResource.get(first.resource_id) || 0;
+      // Admin-curated legend set on the resource itself. Only honoured when the
+      // line maps to a single resource contributing a single column — for
+      // multi-column resources one legend can't label every line distinctly.
+      const resourceLegend = (singleEntry && resourceSeriesCount === 1)
+        ? ((resById.get(first.resource_id)?.legend || '').trim() || null)
+        : null;
       const fileName = (singleEntry && resourceSeriesCount === 1)
         ? extractFileName(resById.get(first.resource_id)?.name)
         : null;
-      const baseName = (localized && localized.trim())
+      const baseName = resourceLegend
+        || (localized && localized.trim())
         || fileName
         || label
         || sourceName
