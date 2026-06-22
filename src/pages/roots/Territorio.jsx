@@ -17,9 +17,6 @@ export default function Territorio() {
               <p className="text-base md:text-lg lg:text-2xl leading-[1.5] text-[#0a0a0a]">
                 {t('roots.territorio.area_p1')}
               </p>
-              <p className="text-base md:text-lg lg:text-2xl leading-[1.5] text-[#0a0a0a]">
-                {t('roots.territorio.area_p2')}
-              </p>
             </div>
             <div className="w-full max-w-[445px] aspect-square shrink-0 mx-auto lg:mx-0">
               <img

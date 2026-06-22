@@ -16,11 +16,6 @@ export default function RedesCertificacoes() {
             <p className="text-base md:text-lg lg:text-2xl leading-relaxed text-base-content">
               {t('roots.redes.intro')}
             </p>
-            <div className="flex flex-wrap items-center gap-6 md:gap-10 mt-2">
-              <span className="text-base md:text-lg lg:text-2xl italic text-base-content/60">
-                {t('roots.redes.coming_soon')}
-              </span>
-            </div>
           </div>
           <img
             src="/assets/roots/redes-hero.png"
@@ -43,9 +38,6 @@ export default function RedesCertificacoes() {
             <p className="text-base md:text-lg lg:text-2xl leading-relaxed text-base-content">
               {t('roots.redes.conhecimento_p1')}
             </p>
-            <p className="text-base md:text-lg lg:text-2xl leading-relaxed italic text-base-content/60">
-              {t('roots.redes.conhecimento_p2')}
-            </p>
           </div>
         </section>
 
@@ -62,6 +54,7 @@ export default function RedesCertificacoes() {
               <li>{t('roots.redes.iniciativas_item1')}</li>
               <li>{t('roots.redes.iniciativas_item2')}</li>
               <li>{t('roots.redes.iniciativas_item3')}</li>
+              <li>{t('roots.redes.iniciativas_item4')}</li>
             </ul>
           </div>
           <img
