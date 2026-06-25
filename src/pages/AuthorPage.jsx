@@ -109,6 +109,7 @@ export default function AuthorPage() {
 
     // Derive unique category slugs from the author's posts for filter pills
     const lang = i18n.language?.startsWith('en') ? 'en' : 'pt'
+    const authorRole = (lang === 'en' && author?.role_en) ? author.role_en : author?.role
     const postCatSlugs = [...new Set(posts.flatMap(p => p.categories || []))]
     const catSlugs = postCatSlugs.filter(slug => categories.some(c => c.slug === slug))
     const catName = (slug) => {
@@ -172,9 +173,9 @@ export default function AuthorPage() {
                                 <h1 className="font-['Onest'] font-semibold text-3xl text-[#0a0a0a] tracking-tight text-center">
                                     {author.name}
                                 </h1>
-                                {author.role && (
+                                {authorRole && (
                                     <p className="font-['Onest'] font-medium text-base text-[#737373] text-center">
-                                        {author.role}
+                                        {authorRole}
                                     </p>
                                 )}
                                 {socialLinks.length > 0 && (
@@ -360,9 +361,9 @@ export default function AuthorPage() {
                             <h1 className="font-['Onest'] font-semibold text-4xl text-[#0a0a0a] tracking-tight mt-4 text-center">
                                 {author.name}
                             </h1>
-                            {author.role && (
+                            {authorRole && (
                                 <p className="font-['Onest'] font-medium text-lg text-[#737373] mt-1 text-center">
-                                    {author.role}
+                                    {authorRole}
                                 </p>
                             )}
                             {socialLinks.length > 0 && (

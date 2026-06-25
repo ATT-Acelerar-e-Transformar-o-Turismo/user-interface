@@ -496,7 +496,9 @@
       "step_columns_desc": "Ative/desative colunas e ajuste as traduções PT/EN. As traduções pré-preenchidas vêm do tradutor automático e podem ser editadas.",
       "column_label_pt": "Etiqueta (PT)",
       "column_label_en": "Etiqueta (EN)",
-      "column_hidden_badge": "oculta"
+      "column_hidden_badge": "oculta",
+      "show_time_averages": "Mostrar médias temporais",
+      "show_time_averages_desc": "Mostra os botões de média (raw, horário, diário, anual) na página do indicador. Desative para indicadores ambientais como CO, O3, ruído e pluviosidade."
     },
     "area": {
       "title_new": "Novo Área",
@@ -779,7 +781,11 @@
     "chart_tool_zoom_out": "Reduzir",
     "chart_tool_reset": "Repor zoom",
     "sources_load_partial": "Falha ao carregar {{count}} de {{total}} fonte(s).",
-    "sources_load_failed": "Falha ao carregar fontes. O serviço de recursos pode estar inacessível."
+    "sources_load_failed": "Falha ao carregar fontes. O serviço de recursos pode estar inacessível.",
+    "granularity_auto": "Auto",
+    "granularity_hourly": "Horário",
+    "granularity_daily": "Diário",
+    "granularity_annual": "Anual"
   },
   "chart_types": {
     "line": "Linha",
