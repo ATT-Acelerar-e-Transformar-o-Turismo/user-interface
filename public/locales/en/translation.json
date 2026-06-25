@@ -496,7 +496,9 @@
       "step_columns_desc": "Activate/deactivate columns and adjust PT/EN translations. Pre-filled values come from the auto-translator and are editable.",
       "column_label_pt": "Label (PT)",
       "column_label_en": "Label (EN)",
-      "column_hidden_badge": "hidden"
+      "column_hidden_badge": "hidden",
+      "show_time_averages": "Show time averages",
+      "show_time_averages_desc": "Shows the average buttons (raw, hourly, daily, annual) on the indicator page. Disable for environmental indicators such as CO, O3, noise and rainfall."
     },
     "area": {
       "title_new": "New Area",
@@ -779,7 +781,11 @@
     "chart_tool_zoom_out": "Zoom out",
     "chart_tool_reset": "Reset zoom",
     "sources_load_partial": "Failed to load {{count}} of {{total}} source(s).",
-    "sources_load_failed": "Failed to load sources. The resource service may be unreachable."
+    "sources_load_failed": "Failed to load sources. The resource service may be unreachable.",
+    "granularity_auto": "Auto",
+    "granularity_hourly": "Hourly",
+    "granularity_daily": "Daily",
+    "granularity_annual": "Annual"
   },
   "chart_types": {
     "line": "Line",

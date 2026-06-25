@@ -5,11 +5,13 @@ import { LuX, LuFileText } from 'react-icons/lu';
 import FormInput from '../forms/FormInput';
 import FormTextarea from '../forms/FormTextarea';
 import FormSelect from '../forms/FormSelect';
+import FormCheckbox from '../forms/FormCheckbox';
 import SuccessModal from '../wizard/SuccessModal';
+import ChartTypePreview from '../wizard/ChartTypePreview';
 import useSlideOver from '../../hooks/useSlideOver';
 import indicatorService from '../../services/indicatorService';
 import areaService from '../../services/areaService';
-import { DEFAULT_CHART_TYPES, DEFAULT_CHART_TYPE } from '../../constants/chartTypes';
+import { CHART_TYPES, CHART_TYPE_LABEL_KEYS, DEFAULT_CHART_TYPES, DEFAULT_CHART_TYPE } from '../../constants/chartTypes';
 
 // Right-half create/edit panel for an indicator (Figma nodes 2871:12370 /
 // 2898:16176). Renders over the indicators list, occupying ~half the screen.
@@ -17,6 +19,9 @@ const EMPTY = {
   name: '', name_en: '', description: '', description_en: '',
   area: '', dimension: '', unit: '', unit_en: '',
   scale: '', scale_en: '', font: '', font_en: '', governance: false,
+  carrying_capacity_enabled: false, carrying_capacity: '',
+  show_time_averages: true,
+  chart_types: [...DEFAULT_CHART_TYPES], default_chart_type: DEFAULT_CHART_TYPE,
   status: 'published',
 };
 
@@ -52,6 +57,12 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
               scale: ind.scale || '', scale_en: ind.scale_en || '',
               font: ind.font || '', font_en: ind.font_en || '',
               governance: ind.governance || false,
+              carrying_capacity_enabled: ind.carrying_capacity != null && ind.carrying_capacity !== '',
+              carrying_capacity: ind.carrying_capacity ?? '',
+              show_time_averages: ind.show_time_averages !== false,
+              chart_types: Array.isArray(ind.chart_types) && ind.chart_types.length > 0
+                ? ind.chart_types : [...DEFAULT_CHART_TYPES],
+              default_chart_type: ind.default_chart_type || DEFAULT_CHART_TYPE,
               status: ind.status || 'published',
             });
           }
@@ -74,6 +85,21 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
 
   const set = (key) => (value) => setData(prev => ({ ...prev, [key]: value }));
 
+  // Toggle a chart type in/out of the allowed set, keeping default_chart_type
+  // consistent: if the current default gets removed, fall back to the first
+  // remaining type; if nothing was selected as default yet, adopt the first.
+  const toggleChartType = (type) => {
+    setData(prev => {
+      const current = prev.chart_types || [];
+      const has = current.includes(type);
+      const next = has ? current.filter(t => t !== type) : [...current, type];
+      let def = prev.default_chart_type;
+      if (has && def === type) def = next[0] || '';
+      else if (!def && next.length > 0) def = next[0];
+      return { ...prev, chart_types: next, default_chart_type: def };
+    });
+  };
+
   const selectedArea = areas.find(a => a.id === data.area);
   const dimensionOptions = (() => {
     const subs = selectedArea?.dimensions || selectedArea?.subdomains || selectedArea?.subdominios || [];
@@ -85,6 +111,11 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
     if (!data.name.trim()) e.name = t('validation.required', { field: t('wizard.indicator.name_pt', 'Nome'), defaultValue: 'Campo obrigatório' });
     if (!data.area) e.area = t('validation.required', { field: t('wizard.indicator.area', 'Área'), defaultValue: 'Campo obrigatório' });
     if (!data.dimension) e.dimension = t('validation.required', { field: t('wizard.indicator.dimension', 'Dimensão'), defaultValue: 'Campo obrigatório' });
+    if (!data.chart_types || data.chart_types.length === 0) {
+      e.chart_types = t('wizard.indicator.chart_types_required', 'Selecione pelo menos um tipo de gráfico');
+    } else if (!data.chart_types.includes(data.default_chart_type)) {
+      e.default_chart_type = t('wizard.indicator.default_chart_type_invalid', 'O gráfico predefinido tem de estar entre os selecionados');
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -98,6 +129,12 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
       scale: data.scale.trim(), scale_en: data.scale_en.trim(),
       font: data.font.trim(), font_en: data.font_en.trim(),
       governance: data.governance,
+      carrying_capacity: data.carrying_capacity_enabled && data.carrying_capacity !== ''
+        ? Number(data.carrying_capacity)
+        : null,
+      show_time_averages: data.show_time_averages,
+      chart_types: data.chart_types,
+      default_chart_type: data.default_chart_type,
     };
     try {
       setSaving(true);
@@ -119,8 +156,6 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
         saved = await indicatorService.create(data.area, data.dimension, {
           ...payload,
           favourites: 0,
-          chart_types: [...DEFAULT_CHART_TYPES],
-          default_chart_type: DEFAULT_CHART_TYPE,
           hidden_series: [],
           series_translations: {},
           // Draft vs published lifecycle. Drafts skip the public listings
@@ -237,6 +272,77 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
                     checked={data.governance} onChange={(e) => set('governance')(e.target.checked)} />
                   <span className="font-medium text-[17px] text-[#0a0a0a]">{t('admin.indicators.col_governance', 'Governança')}</span>
                 </label>
+
+                <FormCheckbox
+                  label={t('wizard.indicator.carrying_capacity', 'Capacidade de carga')}
+                  name="carrying_capacity_enabled"
+                  checked={data.carrying_capacity_enabled}
+                  onChange={(checked) => set('carrying_capacity_enabled')(checked)}
+                  description={t('wizard.indicator.carrying_capacity_desc', 'Define um limite de referência para o indicador.')}
+                />
+                {data.carrying_capacity_enabled && (
+                  <FormInput
+                    label={t('wizard.indicator.carrying_capacity_value', 'Valor da capacidade de carga')}
+                    name="carrying_capacity"
+                    type="number"
+                    value={data.carrying_capacity}
+                    onChange={set('carrying_capacity')}
+                    placeholder={t('wizard.indicator.carrying_capacity_placeholder', 'Ex. 1000')}
+                  />
+                )}
+
+                <FormCheckbox
+                  label={t('wizard.indicator.show_time_averages', 'Mostrar médias temporais')}
+                  name="show_time_averages"
+                  checked={data.show_time_averages}
+                  onChange={(checked) => set('show_time_averages')(checked)}
+                  description={t('wizard.indicator.show_time_averages_desc', 'Mostra os botões de média (raw, horário, diário, anual) na página do indicador. Desative para indicadores ambientais como CO, O3, ruído e pluviosidade.')}
+                />
+              </div>
+
+              {/* Chart types */}
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <h3 className="font-medium text-[24px] text-[#0a0a0a]">{t('wizard.indicator.step_charts', 'Gráficos')}</h3>
+                  <div className="h-px w-full bg-[#e5e5e5]" />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <p className="font-medium text-[15px] text-[#0a0a0a]">{t('wizard.indicator.chart_types_label', 'Tipos de gráfico disponíveis')}</p>
+                  <p className="text-[13px] text-[#737373]">{t('wizard.indicator.chart_types_hint', 'Escolha quais os gráficos que podem ser mostrados neste indicador.')}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-1">
+                    {CHART_TYPES.map(type => {
+                      const checked = (data.chart_types || []).includes(type);
+                      return (
+                        <label key={type}
+                          className={`flex flex-col gap-2 cursor-pointer border rounded-lg p-2 transition-colors ${checked ? 'border-[#009368] bg-[#009368]/5' : 'border-[#e5e5e5] hover:border-[#d4d4d4]'}`}>
+                          <div className="flex items-center gap-2">
+                            <input type="checkbox" className="w-[18px] h-[18px] rounded border-[#d4d4d4] accent-[#009368]"
+                              checked={checked} onChange={() => toggleChartType(type)} />
+                            <span className="text-[14px] font-medium text-[#0a0a0a]">{t(CHART_TYPE_LABEL_KEYS[type])}</span>
+                          </div>
+                          <div className="w-full h-[90px] bg-white rounded overflow-hidden">
+                            <ChartTypePreview chartType={type} data={[]} height={90} />
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {errors.chart_types && <p className="text-[13px] text-[#dc2626]">{errors.chart_types}</p>}
+                </div>
+
+                <FormSelect
+                  label={t('wizard.indicator.default_chart_type_label', 'Gráfico predefinido')}
+                  name="default_chart_type"
+                  value={data.default_chart_type || ''}
+                  onChange={set('default_chart_type')}
+                  options={(data.chart_types || []).map(type => ({ value: type, label: t(CHART_TYPE_LABEL_KEYS[type]) }))}
+                  placeholder={t('wizard.indicator.default_chart_type_placeholder', 'Selecionar gráfico predefinido')}
+                  required
+                  error={errors.default_chart_type}
+                  disabled={(data.chart_types || []).length === 0}
+                />
+                <p className="text-[13px] text-[#737373] -mt-3">{t('wizard.indicator.default_chart_type_hint', 'É o gráfico mostrado por omissão na página do indicador.')}</p>
               </div>
             </div>
           )}

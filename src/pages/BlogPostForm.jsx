@@ -247,6 +247,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
         status: 'draft',
         categories: [],
         keywords: [],
+        keywords_en: [],
         tags: [],
         // Local 'YYYY-MM-DD' chosen at create time; converted to ISO before
         // sending to the backend. On edit we load the existing date here for
@@ -315,7 +316,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
                 title: '', title_en: '', content: '', content_en: '', excerpt: '', excerpt_en: '',
                 author: '', author_id: '', author_photo: '', author_role: '', post_type: routePostType,
                 publication_link: '', publication_link_label: '', publication_link_label_en: '',
-                status: 'draft', categories: [], keywords: [], tags: [], published_at: ''
+                status: 'draft', categories: [], keywords: [], keywords_en: [], tags: [], published_at: ''
             }
             setInitialFormData(empty)
         }
@@ -389,6 +390,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
                 status: postData.status,
                 categories: postData.categories || [],
                 keywords: postData.keywords || [],
+                keywords_en: postData.keywords_en || [],
                 tags: postData.tags || [],
                 // For display only on edit; we won't send it back.
                 published_at: postData.published_at
@@ -421,23 +423,26 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
         }))
     }
 
+    // Keywords are per-language so PT and EN sets don't pile into one list.
     const handleAddKeyword = (e) => {
         if (e.key === 'Enter' && tagInput.trim()) {
             e.preventDefault()
-            if (!formData.keywords.includes(tagInput.trim())) {
-                setFormData(prev => ({
-                    ...prev,
-                    keywords: [...prev.keywords, tagInput.trim()]
-                }))
-            }
+            const field = activeLang === 'pt' ? 'keywords' : 'keywords_en'
+            const value = tagInput.trim()
+            setFormData(prev => (
+                (prev[field] || []).includes(value)
+                    ? prev
+                    : { ...prev, [field]: [...(prev[field] || []), value] }
+            ))
             setTagInput('')
         }
     }
 
     const handleRemoveKeyword = (kw) => {
+        const field = activeLang === 'pt' ? 'keywords' : 'keywords_en'
         setFormData(prev => ({
             ...prev,
-            keywords: prev.keywords.filter(k => k !== kw)
+            [field]: (prev[field] || []).filter(k => k !== kw)
         }))
     }
 
@@ -1098,7 +1103,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
                                 {t('admin.blog.field_keywords', 'Keywords')}
                             </label>
                             <div className="flex flex-wrap gap-2 mb-2">
-                                {formData.keywords.map((kw, index) => (
+                                {(activeLang === 'pt' ? formData.keywords : formData.keywords_en).map((kw, index) => (
                                     <span
                                         key={index}
                                         className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-[#009368]/10 text-[#009368]"
@@ -1157,34 +1162,18 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
                             <div>
                                 <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
                                     {t('admin.blog.field_publication_link_label', 'Nome do link (ex: Livro Best Practices)')}
+                                    {activeLang === 'en' ? ' (EN)' : ''}
                                 </label>
                                 <input
                                     type="text"
-                                    name="publication_link_label"
-                                    value={formData.publication_link_label}
+                                    name={activeLang === 'pt' ? 'publication_link_label' : 'publication_link_label_en'}
+                                    value={activeLang === 'pt' ? formData.publication_link_label : formData.publication_link_label_en}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
                                     placeholder={t('admin.blog.placeholder_link_label', 'Nome do documento')}
                                 />
                             </div>
                         </div>
-
-                        {/* Publication Link Label EN (next to PT) */}
-                        {formData.publication_link && activeLang === 'en' && (
-                            <div>
-                                <label className="block font-['Onest'] text-xs font-medium text-[#737373] mb-2">
-                                    {t('admin.blog.field_publication_link_label', 'Nome do link')} (EN)
-                                </label>
-                                <input
-                                    type="text"
-                                    name="publication_link_label_en"
-                                    value={formData.publication_link_label_en}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 font-['Onest'] text-sm bg-[#fffefc] border border-[#e5e5e5] rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009368]/30"
-                                    placeholder="Document name (EN)"
-                                />
-                            </div>
-                        )}
 
                         {/* Publication date — editable on create, read-only on edit */}
                         <div>

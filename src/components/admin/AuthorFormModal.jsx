@@ -18,7 +18,7 @@ import blogService from '../../services/blogService';
 const EMPTY = {
   nome: '', apelido: '', email: '',
   description: '', description_en: '',
-  institution: '', role: '',
+  institution: '', role: '', role_en: '',
   orcid: '', scopus: '', researchgate: '', linkedin: '',
 };
 
@@ -63,6 +63,7 @@ export default function AuthorFormModal({ onClose, author = null, onSaved }) {
         apelido: parts.length > 1 ? parts[parts.length - 1] : '',
         email: author.email || '',
         role: author.role || '',
+        role_en: author.role_en || '',
         orcid: author.orcid || '',
         linkedin: author.linkedin || '',
       });
@@ -127,6 +128,7 @@ export default function AuthorFormModal({ onClose, author = null, onSaved }) {
       name: `${data.nome.trim()} ${data.apelido.trim()}`.trim(),
       email: data.email.trim() || undefined,
       role: data.role.trim() || undefined,
+      role_en: data.role_en.trim() || undefined,
       orcid: data.orcid.trim() || undefined,
       linkedin: data.linkedin.trim() || undefined,
     };
@@ -283,7 +285,13 @@ export default function AuthorFormModal({ onClose, author = null, onSaved }) {
             <SectionTitle>{t('admin.authors.section_affiliation', 'Afiliação')}</SectionTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <FormInput label={t('admin.authors.institution', 'Instituição')} name="author_institution" value={data.institution} onChange={set('institution')} placeholder="Ex. Universidade de Aveiro" />
-              <FormInput label={t('admin.authors.role', 'Cargo')} name="author_role" value={data.role} onChange={set('role')} placeholder="Ex. Investigadora" />
+              <FormInput
+                label={`${t('admin.authors.role', 'Cargo')}${lang === 'en' ? ' (EN)' : ''}`}
+                name={lang === 'pt' ? 'author_role' : 'author_role_en'}
+                value={lang === 'pt' ? data.role : data.role_en}
+                onChange={set(lang === 'pt' ? 'role' : 'role_en')}
+                placeholder="Ex. Investigadora"
+              />
             </div>
           </div>
 

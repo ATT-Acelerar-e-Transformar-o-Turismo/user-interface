@@ -1023,6 +1023,29 @@ export default function IndicatorTemplate() {
                   </div>
                 </div>
               </div>
+              {/* Time-average (granularity) buttons. Hidden per-indicator via
+                  show_time_averages — off for environment readings (CO, O3,
+                  noise, rainfall) where averaging over time isn't meaningful. */}
+              {indicatorData.show_time_averages !== false && (
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  {[
+                    { v: 'auto', label: t('indicator.granularity_auto', 'Auto') },
+                    { v: '0', label: t('indicator.granularity_raw', 'Raw') },
+                    { v: '1h', label: t('indicator.granularity_hourly', 'Horário') },
+                    { v: '1d', label: t('indicator.granularity_daily', 'Diário') },
+                    { v: '1y', label: t('indicator.granularity_annual', 'Anual') },
+                  ].map((opt) => (
+                    <button
+                      key={opt.v}
+                      type="button"
+                      onClick={() => setUiGranularity(opt.v)}
+                      className={`px-3 py-1.5 rounded-full border text-sm font-['Onest'] font-medium transition-colors cursor-pointer ${uiGranularity === opt.v ? 'bg-primary text-white border-primary' : 'bg-[#fffefc] text-[#0a0a0a] border-[#d4d4d4] hover:bg-black/[0.03]'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="relative" style={{ minHeight: 288 }}>
                 {dataLoading && (
                   <div className="absolute top-4 right-4 z-10">
