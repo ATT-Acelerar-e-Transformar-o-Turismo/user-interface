@@ -5,6 +5,7 @@ import { LuPlus, LuEye, LuRefreshCw, LuScrollText, LuSquarePen, LuTrash2 } from 
 import indicatorService from '../../services/indicatorService';
 import resourceService from '../../services/resourceService';
 import ResourceWizard from '../wizard/ResourceWizard';
+import GChart from '../Chart';
 import SourcePill from './SourcePill';
 import { sourceFromType } from '../../utils/resourceSource';
 import { confirmAction } from '../../utils/confirm';
@@ -25,6 +26,8 @@ function toText(v, fallback = '—') {
 export default function IndicatorResourcesTab({ indicatorId }) {
   const { t } = useTranslation();
   const [resources, setResources] = useState(null);
+  const [compositions, setCompositions] = useState([]);
+  const [childIndicators, setChildIndicators] = useState([]);
   const [error, setError] = useState(null);
   const [wizard, setWizard] = useState({ open: false, resourceId: null });
   const [details, setDetails] = useState(null); // the resource being inspected
@@ -38,6 +41,19 @@ export default function IndicatorResourcesTab({ indicatorId }) {
     try {
       setError(null);
       const ind = await indicatorService.getById(indicatorId);
+      // Compositions (formula-based) and child indicators are managed via their
+      // own endpoints and aren't "resources" — surface them here so they can be
+      // removed (previously there was no way to delete a composition).
+      setCompositions(Array.isArray(ind?.compositions) ? ind.compositions : []);
+      const childIds = Array.isArray(ind?.child_indicators) ? ind.child_indicators : [];
+      const children = await Promise.all(
+        childIds.map(cid =>
+          indicatorService.getById(cid)
+            .then(c => ({ id: String(cid), name: c?.name || String(cid) }))
+            .catch(() => ({ id: String(cid), name: String(cid) }))
+        )
+      );
+      setChildIndicators(children);
       const ids = Array.isArray(ind?.resources) ? ind.resources : [];
       const detailObjs = (await Promise.all(ids.map(rid => resourceService.getById(rid).catch(() => null)))).filter(Boolean);
       const enriched = await Promise.all(detailObjs.map(async (r) => {
@@ -76,6 +92,35 @@ export default function IndicatorResourcesTab({ indicatorId }) {
     }
   };
 
+  const handleDeleteComposition = async (comp) => {
+    const label = comp.name || comp.name_en || comp.formula || comp.id;
+    const ok = await confirmAction({
+      title: t('admin.resources.confirm_delete_composition_title', 'Eliminar indicador composto?'),
+      message: t('admin.resources.confirm_delete_composition', { name: label, defaultValue: `Tem a certeza que deseja eliminar "${label}"?` }),
+    });
+    if (!ok) return;
+    try {
+      await indicatorService.removeComposition(indicatorId, comp.id);
+      setCompositions(prev => prev.filter(c => c.id !== comp.id));
+    } catch (err) {
+      setError(err.userMessage || err.message);
+    }
+  };
+
+  const handleRemoveChild = async (child) => {
+    const ok = await confirmAction({
+      title: t('admin.resources.confirm_remove_child_title', 'Remover indicador?'),
+      message: t('admin.resources.confirm_remove_child', { name: child.name, defaultValue: `Remover "${child.name}" deste indicador composto?` }),
+    });
+    if (!ok) return;
+    try {
+      await indicatorService.removeChildIndicator(indicatorId, child.id);
+      setChildIndicators(prev => prev.filter(c => c.id !== child.id));
+    } catch (err) {
+      setError(err.userMessage || err.message);
+    }
+  };
+
   const openDetails = (resource) => {
     setDetails(resource);
     setLegendDraft(resource.legend || '');
@@ -103,7 +148,7 @@ export default function IndicatorResourcesTab({ indicatorId }) {
       message: t('wizard.resource.regenerate_confirm_body', 'Regenerar irá descartar os dados existentes e voltar a obtê-los da fonte.'),
     });
     if (!ok) return;
-    setRunModal({ wrapperId: resource.wrapper_id, mode: 'regenerate' });
+    setRunModal({ wrapperId: resource.wrapper_id, resourceId: resource.id, mode: 'regenerate' });
   };
 
   const statusBadge = (status) => {
@@ -158,7 +203,7 @@ export default function IndicatorResourcesTab({ indicatorId }) {
                       </button>
                       {r.wrapper_id && (
                         <>
-                          <button type="button" onClick={() => setRunModal({ wrapperId: r.wrapper_id, mode: 'logs' })} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('admin.resources.view_logs', 'Ver logs')} title={t('admin.resources.view_logs', 'Ver logs')}>
+                          <button type="button" onClick={() => setRunModal({ wrapperId: r.wrapper_id, resourceId: r.id, mode: 'logs' })} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('admin.resources.view_logs', 'Ver logs')} title={t('admin.resources.view_logs', 'Ver logs')}>
                             <LuScrollText className="w-5 h-5" strokeWidth={1.75} />
                           </button>
                           <button type="button" onClick={() => openRegenerate(r)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('wizard.resource.regenerate_wrapper', 'Regenerar')} title={t('wizard.resource.regenerate_wrapper', 'Regenerar')}>
@@ -178,6 +223,56 @@ export default function IndicatorResourcesTab({ indicatorId }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Composed indicators: formula compositions + linked child indicators.
+          Managed via their own endpoints, so listed separately from resources
+          with their own delete actions. */}
+      {compositions.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h4 className="font-semibold text-[16px] text-[#0a0a0a]">{t('admin.resources.compositions', 'Indicadores compostos (fórmula)')}</h4>
+          <div className="overflow-x-auto rounded-2xl border border-[#e5e5e5]">
+            <table className="w-full text-left">
+              <tbody>
+                {compositions.map((comp) => (
+                  <tr key={comp.id} className="border-t border-[#e5e5e5] first:border-t-0">
+                    <td className="px-4 py-3">
+                      <div className="text-[15px] text-[#0a0a0a] font-medium">{toText(comp.name || comp.name_en, comp.formula || comp.id)}</div>
+                      {comp.formula && <div className="text-[13px] text-[#737373] font-mono">{comp.formula}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button type="button" onClick={() => handleDeleteComposition(comp)} className="text-[#dc2626] hover:opacity-75 cursor-pointer" aria-label={t('common.delete', 'Eliminar')} title={t('common.delete', 'Eliminar')}>
+                        <LuTrash2 className="w-5 h-5" strokeWidth={1.75} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {childIndicators.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h4 className="font-semibold text-[16px] text-[#0a0a0a]">{t('admin.resources.child_indicators', 'Indicadores incluídos')}</h4>
+          <div className="overflow-x-auto rounded-2xl border border-[#e5e5e5]">
+            <table className="w-full text-left">
+              <tbody>
+                {childIndicators.map((child) => (
+                  <tr key={child.id} className="border-t border-[#e5e5e5] first:border-t-0">
+                    <td className="px-4 py-3 text-[15px] text-[#0a0a0a]">{toText(child.name)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button type="button" onClick={() => handleRemoveChild(child)} className="text-[#dc2626] hover:opacity-75 cursor-pointer" aria-label={t('common.remove', 'Remover')} title={t('common.remove', 'Remover')}>
+                        <LuTrash2 className="w-5 h-5" strokeWidth={1.75} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -244,7 +339,7 @@ export default function IndicatorResourcesTab({ indicatorId }) {
             )}
             {details.wrapper_id && (
               <div className="flex justify-end">
-                <button type="button" onClick={() => { const wid = details.wrapper_id; setDetails(null); setRunModal({ wrapperId: wid, mode: 'logs' }); }}
+                <button type="button" onClick={() => { const wid = details.wrapper_id; const rid = details.id; setDetails(null); setRunModal({ wrapperId: wid, resourceId: rid, mode: 'logs' }); }}
                   className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-[#d4d4d4] bg-[#fffefc] font-medium text-[15px] text-[#0a0a0a] shadow-sm hover:bg-black/[0.03] cursor-pointer">
                   <LuScrollText className="w-4 h-4" strokeWidth={1.75} />
                   {t('admin.resources.view_logs', 'Ver logs')}
@@ -259,6 +354,7 @@ export default function IndicatorResourcesTab({ indicatorId }) {
       {runModal && (
         <WrapperRunModal
           wrapperId={runModal.wrapperId}
+          resourceId={runModal.resourceId}
           mode={runModal.mode}
           onClose={() => setRunModal(null)}
           onDone={() => load()}
@@ -272,16 +368,58 @@ export default function IndicatorResourcesTab({ indicatorId }) {
 // the wrapper, shows a running animation, polls the status, and streams the
 // produced logs until the run completes or errors. In 'logs' mode it just
 // shows the current logs.
-function WrapperRunModal({ wrapperId, mode, onClose, onDone }) {
+function WrapperRunModal({ wrapperId, resourceId, mode, onClose, onDone }) {
   const { t } = useTranslation();
   const { regenerateWrapper, startPolling, stopPolling } = useWrapper();
   const [status, setStatus] = useState(mode === 'regenerate' ? 'executing' : null);
   const [logs, setLogs] = useState([]);
   const [running, setRunning] = useState(mode === 'regenerate');
   const [error, setError] = useState(null);
+  // Data preview, loaded once the run completes. The ingested data lands in
+  // storage a few seconds after the wrapper reports "completed" (it travels
+  // through the data-collector pipeline), so we retry a few times before
+  // concluding it's empty. Grouped by `series` so multi-column resources show
+  // one line per column.
+  const [preview, setPreview] = useState({ loading: false, series: null, error: null, attempted: false });
   const logsBoxRef = useRef(null);
   const logTimerRef = useRef(null);
   const doneRef = useRef(false);
+
+  const loadPreview = useCallback(async () => {
+    if (!resourceId) return;
+    setPreview({ loading: true, series: null, error: null, attempted: true });
+    try {
+      let data = [];
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const res = await resourceService.getResourceData(resourceId);
+        data = Array.isArray(res?.data) ? res.data : [];
+        if (data.length > 0) break;
+        await new Promise(r => setTimeout(r, 1500));  // wait for ingestion to propagate
+      }
+      const fallback = t('wizard.resource.preview_series_name', 'Valor');
+      const groups = new Map();
+      for (const p of data) {
+        const key = p.series || fallback;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push({ x: new Date(p.x).getTime(), y: parseFloat(p.y) || 0 });
+      }
+      const series = Array.from(groups.entries()).map(([name, d]) => ({
+        name,
+        data: d.sort((a, b) => a.x - b.x),
+      }));
+      setPreview({ loading: false, series, error: null, attempted: true });
+    } catch (err) {
+      setPreview({ loading: false, series: null, error: err?.userMessage || err?.message || 'erro', attempted: true });
+    }
+  }, [resourceId, t]);
+
+  // Auto-load the preview once the run reaches `completed` (covers both
+  // 'regenerate' and opening 'logs' on an already-finished wrapper).
+  useEffect(() => {
+    if (status === 'completed' && resourceId && !preview.attempted && !preview.loading) {
+      loadPreview();
+    }
+  }, [status, resourceId, preview.attempted, preview.loading, loadPreview]);
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -369,6 +507,40 @@ function WrapperRunModal({ wrapperId, mode, onClose, onDone }) {
           )}
         </div>
 
+        {/* Data preview — shown once the run completes */}
+        {status === 'completed' && resourceId && (
+          <div className="px-6 pb-4 shrink-0">
+            <h4 className="font-semibold text-[15px] text-[#0a0a0a] mb-2">
+              {t('wizard.resource.preview_title', 'Pré-visualização dos dados')}
+            </h4>
+            {preview.loading && (
+              <div className="flex items-center gap-2 text-[14px] text-[#737373] py-6 justify-center">
+                <span className="loading loading-spinner loading-sm" />
+                {t('wizard.resource.loading_resource', 'A carregar dados…')}
+              </div>
+            )}
+            {!preview.loading && preview.error && (
+              <div className="text-[#dc2626] text-[14px] py-3">{preview.error}</div>
+            )}
+            {!preview.loading && !preview.error && (!preview.series || preview.series.length === 0) && (
+              <p className="text-[14px] text-[#737373] py-3">{t('wizard.resource.preview_empty', 'Sem dados para mostrar.')}</p>
+            )}
+            {!preview.loading && preview.series && preview.series.length > 0 && (
+              <div className="rounded-xl border border-[#e5e5e5] p-2">
+                <GChart
+                  chartId={`run-preview-${wrapperId}`}
+                  chartType="line"
+                  xaxisType="datetime"
+                  series={preview.series}
+                  height={300}
+                  showLegend={true}
+                  disableAnimations={true}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Footer */}
         <div className="px-6 py-4 border-t border-[#e5e5e5] flex justify-end">
           <button type="button" onClick={onClose}
@@ -383,6 +555,7 @@ function WrapperRunModal({ wrapperId, mode, onClose, onDone }) {
 
 WrapperRunModal.propTypes = {
   wrapperId: PropTypes.string.isRequired,
+  resourceId: PropTypes.string,
   mode: PropTypes.oneOf(['regenerate', 'logs']).isRequired,
   onClose: PropTypes.func.isRequired,
   onDone: PropTypes.func,

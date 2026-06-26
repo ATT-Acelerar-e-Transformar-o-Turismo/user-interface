@@ -287,7 +287,9 @@
       "wrapper_info": "Wrapper",
       "details": "Details",
       "col_status": "Status",
-      "load_failed": "Could not load the resources."
+      "load_failed": "Could not load the resources.",
+      "compositions": "Composed indicators (formula)",
+      "child_indicators": "Included indicators"
     },
     "news_events": {
       "title": "All News & Events",

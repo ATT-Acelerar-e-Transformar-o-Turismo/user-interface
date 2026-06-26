@@ -287,7 +287,9 @@
       "wrapper_info": "Wrapper",
       "details": "Detalhes",
       "col_status": "Estado",
-      "load_failed": "Não foi possível carregar os recursos."
+      "load_failed": "Não foi possível carregar os recursos.",
+      "compositions": "Indicadores compostos (fórmula)",
+      "child_indicators": "Indicadores incluídos"
     },
     "news_events": {
       "title": "Todas as Notícias e Eventos",

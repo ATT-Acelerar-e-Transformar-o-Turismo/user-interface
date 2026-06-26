@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { LuX, LuChartLine, LuChartColumn, LuChartBar, LuSquarePen } from 'react-icons/lu';
@@ -9,6 +9,7 @@ import PanelErrorBoundary from '../PanelErrorBoundary';
 import useSlideOver from '../../hooks/useSlideOver';
 import indicatorService from '../../services/indicatorService';
 import dataService from '../../services/dataService';
+import { buildChartSeries } from '../../utils/chartSeries';
 import { CHART_TYPE_LABEL_KEYS } from '../../constants/chartTypes';
 
 // Right-half indicator visualization panel (Figma node 2892:15525):
@@ -19,7 +20,7 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
   const id = indicator?.id;
 
   const [full, setFull] = useState(indicator || null);
-  const [points, setPoints] = useState([]);
+  const [rawSeries, setRawSeries] = useState([]);
   const [loadingChart, setLoadingChart] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [previewType, setPreviewType] = useState(null);
@@ -54,16 +55,34 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
     (async () => {
       try {
         setLoadingChart(true);
-        const pts = await dataService.getIndicatorData(id, 0, 100);
+        // Use the per-resource/per-column series endpoint (same as the public
+        // page) so multi-column resources render as separate lines instead of
+        // every column's points collapsing onto one zig-zagging series.
+        const s = await dataService.getIndicatorSeries(id, { limit: 1000, granularity: 'auto' });
         if (cancelled) return;
-        setPoints((Array.isArray(pts) ? pts : [])
-          .map(p => ({ x: new Date(p.x).getTime(), y: Number(p.y) }))
-          .filter(p => !Number.isNaN(p.x) && !Number.isNaN(p.y)));
-      } catch { if (!cancelled) setPoints([]); }
+        setRawSeries(Array.isArray(s) ? s : []);
+      } catch { if (!cancelled) setRawSeries([]); }
       finally { if (!cancelled) setLoadingChart(false); }
     })();
     return () => { cancelled = true; };
   }, [id]);
+
+  // Hooks must run before any early return. Build the per-column chart series
+  // (same path as the public page) and derive the latest data timestamp.
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'pt';
+  const chartData = useMemo(
+    () => buildChartSeries(rawSeries, [], full?.series_translations || null, lang),
+    [rawSeries, full?.series_translations, lang],
+  );
+  const latestPointX = useMemo(() => {
+    let max = null;
+    for (const s of (chartData?.series || [])) {
+      for (const p of (s.data || [])) {
+        if (typeof p.x === 'number' && (max === null || p.x > max)) max = p.x;
+      }
+    }
+    return max;
+  }, [chartData]);
 
   if (!indicator) return null;
 
@@ -74,7 +93,12 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
   const description = full?.description || indicator.description || '';
   const chartTypes = full?.chart_types?.length ? full.chart_types : ['line', 'bar', 'column'];
 
-  const lastSync = full?.updated_at || null;
+  const chartSeries = chartData?.series || [];
+
+  // "Last sync" = the most recent data point we actually have (data freshness),
+  // falling back to the indicator doc's updated_at. Reading updated_at alone
+  // showed "—" because it isn't bumped on data ingestion.
+  const lastSync = latestPointX || (full?.updated_at ? new Date(full.updated_at).getTime() : null);
   const lastSyncLabel = lastSync
     ? new Date(lastSync).toLocaleDateString(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' })
     : '—';
@@ -150,9 +174,9 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
                   </div>
                   {loadingChart ? (
                     <div className="h-[300px] flex items-center justify-center"><span className="loading loading-spinner loading-lg" /></div>
-                  ) : points.length > 0 ? (
+                  ) : chartSeries.length > 0 ? (
                     <GChart title="" chartId={`detail-${id}`} chartType={previewType || 'column'} xaxisType="datetime"
-                      series={[{ name: unit || t('wizard.resource.preview_series_name', 'Valor'), data: points }]} height={300} disableAnimations={true} />
+                      series={chartSeries} height={300} showLegend={true} disableAnimations={true} />
                   ) : (
                     <div className="h-[300px] flex items-center justify-center text-[#737373]">{t('admin.resources.no_data', 'Sem dados para pré-visualizar.')}</div>
                   )}

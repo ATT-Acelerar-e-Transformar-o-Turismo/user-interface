@@ -1376,13 +1376,26 @@ export default function ResourceWizard({
                 chartId={`preview-chart-${previewModal.wrapperId}`}
                 chartType="line"
                 xaxisType="datetime"
-                series={[{
-                  name: t('wizard.resource.preview_series_name'),
-                  data: previewModal.data.map(p => ({
-                    x: new Date(p.x).getTime(),
-                    y: parseFloat(p.y) || 0,
-                  })),
-                }]}
+                series={(() => {
+                  // Multi-column resources return points tagged with their
+                  // column name in `series`. Group by it so each column is its
+                  // own line — otherwise every column's points pile onto one
+                  // series and the preview renders as a broken zig-zag.
+                  const fallback = t('wizard.resource.preview_series_name');
+                  const groups = new Map();
+                  for (const p of previewModal.data) {
+                    const key = p.series || fallback;
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key).push({
+                      x: new Date(p.x).getTime(),
+                      y: parseFloat(p.y) || 0,
+                    });
+                  }
+                  return Array.from(groups.entries()).map(([name, data]) => ({
+                    name,
+                    data: data.sort((a, b) => a.x - b.x),
+                  }));
+                })()}
                 height={350}
                 disableAnimations={true}
               />
