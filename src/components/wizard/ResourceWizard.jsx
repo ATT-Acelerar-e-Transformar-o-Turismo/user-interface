@@ -322,7 +322,17 @@ export default function ResourceWizard({
     try {
       for (let i = 0; i < wizard.formData.files.length; i++) {
         const file = wizard.formData.files[i];
-        const sourceType = wizard.formData.sourceType;
+        // Derive the source type from the file's actual extension rather than
+        // trusting the single dropdown picked at step 0. Picking "XLSX" but
+        // uploading a .csv (or vice-versa) otherwise generates a wrapper that
+        // reads the file with the wrong pandas reader (pd.read_excel on a CSV
+        // → "Excel file format cannot be determined").
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const sourceType = ext === 'csv'
+          ? 'CSV'
+          : (ext === 'xlsx' || ext === 'xls')
+            ? 'XLSX'
+            : wizard.formData.sourceType;
         const selection = wizard.formData.columnSelections?.[file.name] || {};
         const valueColumns = (selection.valueColumns && selection.valueColumns.length > 0)
           ? selection.valueColumns
@@ -743,18 +753,23 @@ export default function ResourceWizard({
       // (via the resource details panel) rather than silently believing it saved.
       const legend = (data.legend || '').trim();
       const idsToLabel = isEditMode ? [resourceId] : createdResourceIds;
-      const legendResults = await Promise.all(
-        idsToLabel.filter(Boolean).map(rid =>
-          resourceService.patch(rid, { legend: legend || null })
-            .then(() => true)
-            .catch(err => { console.error('Failed to set resource legend:', err); return false; })
-        )
-      );
-      if (legendResults.some(ok => !ok)) {
-        showError(
-          t('wizard.resource.legend_save_failed', 'O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.'),
-          8000,
+      // Only persist a legend when there's actually something to set (or when
+      // editing, where the user may be clearing it). New resources are already
+      // created with legend=null, so patching null is a needless no-op.
+      if ((legend || isEditMode) && idsToLabel.some(Boolean)) {
+        const legendResults = await Promise.all(
+          idsToLabel.filter(Boolean).map(rid =>
+            resourceService.patch(rid, { legend: legend || null })
+              .then(() => true)
+              .catch(err => { console.error('Failed to set resource legend:', err); return false; })
+          )
         );
+        if (legendResults.some(ok => !ok)) {
+          showError(
+            t('wizard.resource.legend_save_failed', 'O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.'),
+            8000,
+          );
+        }
       }
 
       setShowSuccessModal(true);
@@ -1361,13 +1376,26 @@ export default function ResourceWizard({
                 chartId={`preview-chart-${previewModal.wrapperId}`}
                 chartType="line"
                 xaxisType="datetime"
-                series={[{
-                  name: t('wizard.resource.preview_series_name'),
-                  data: previewModal.data.map(p => ({
-                    x: new Date(p.x).getTime(),
-                    y: parseFloat(p.y) || 0,
-                  })),
-                }]}
+                series={(() => {
+                  // Multi-column resources return points tagged with their
+                  // column name in `series`. Group by it so each column is its
+                  // own line — otherwise every column's points pile onto one
+                  // series and the preview renders as a broken zig-zag.
+                  const fallback = t('wizard.resource.preview_series_name');
+                  const groups = new Map();
+                  for (const p of previewModal.data) {
+                    const key = p.series || fallback;
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key).push({
+                      x: new Date(p.x).getTime(),
+                      y: parseFloat(p.y) || 0,
+                    });
+                  }
+                  return Array.from(groups.entries()).map(([name, data]) => ({
+                    name,
+                    data: data.sort((a, b) => a.x - b.x),
+                  }));
+                })()}
                 height={350}
                 disableAnimations={true}
               />

@@ -62,11 +62,8 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                 return;
             }
             const currentScrollY = window.scrollY;
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                setIsHidden(true);
-            } else {
-                setIsHidden(false);
-            }
+            // Navbar stays sticky/visible at all times — never hide on scroll down.
+            setIsHidden(false);
             setLastScrollY(currentScrollY);
         };
         window.addEventListener('scroll', handleScroll);
