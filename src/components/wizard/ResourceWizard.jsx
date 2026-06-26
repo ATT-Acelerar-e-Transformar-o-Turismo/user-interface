@@ -753,18 +753,23 @@ export default function ResourceWizard({
       // (via the resource details panel) rather than silently believing it saved.
       const legend = (data.legend || '').trim();
       const idsToLabel = isEditMode ? [resourceId] : createdResourceIds;
-      const legendResults = await Promise.all(
-        idsToLabel.filter(Boolean).map(rid =>
-          resourceService.patch(rid, { legend: legend || null })
-            .then(() => true)
-            .catch(err => { console.error('Failed to set resource legend:', err); return false; })
-        )
-      );
-      if (legendResults.some(ok => !ok)) {
-        showError(
-          t('wizard.resource.legend_save_failed', 'O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.'),
-          8000,
+      // Only persist a legend when there's actually something to set (or when
+      // editing, where the user may be clearing it). New resources are already
+      // created with legend=null, so patching null is a needless no-op.
+      if ((legend || isEditMode) && idsToLabel.some(Boolean)) {
+        const legendResults = await Promise.all(
+          idsToLabel.filter(Boolean).map(rid =>
+            resourceService.patch(rid, { legend: legend || null })
+              .then(() => true)
+              .catch(err => { console.error('Failed to set resource legend:', err); return false; })
+          )
         );
+        if (legendResults.some(ok => !ok)) {
+          showError(
+            t('wizard.resource.legend_save_failed', 'O recurso foi guardado, mas não foi possível guardar a legenda. Tente editá-la nos detalhes do recurso.'),
+            8000,
+          );
+        }
       }
 
       setShowSuccessModal(true);
