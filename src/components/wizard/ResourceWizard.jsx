@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
@@ -1291,6 +1291,11 @@ export default function ResourceWizard({
                         </div>
                       )}
 
+                      {/* Live generation logs — so the user sees actual
+                          progress (model, retries, deterministic build, file
+                          parsing) instead of just a "Processing…" spinner. */}
+                      <WrapperLiveLogs wrapperId={wrapperInfo.wrapper?.wrapper_id} active={isProcessing} />
+
                       {/* Error state: show message + Regenerate action. */}
                       {isError && (
                         <div className="mt-4 space-y-2">
@@ -1422,4 +1427,42 @@ ResourceWizard.propTypes = {
   indicatorId: PropTypes.string.isRequired,
   resourceId: PropTypes.string,
   onSuccess: PropTypes.func
+};
+
+// Streams a wrapper's generation/execution logs into the wizard card so the
+// user sees what's actually happening (which model, retries, deterministic
+// build, file parsing, queue waiting) instead of a bare "Processing…".
+function WrapperLiveLogs({ wrapperId, active }) {
+  const [logs, setLogs] = useState([]);
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    if (!wrapperId) return undefined;
+    let alive = true;
+    const fetchLogs = async () => {
+      try {
+        const res = await resourceService.getWrapperLogs(wrapperId, 300);
+        if (alive) setLogs(Array.isArray(res?.logs) ? res.logs : []);
+      } catch { /* keep previous logs */ }
+    };
+    fetchLogs();
+    const id = active ? setInterval(fetchLogs, 2500) : null;
+    return () => { alive = false; if (id) clearInterval(id); };
+  }, [wrapperId, active]);
+
+  useEffect(() => {
+    if (boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight;
+  }, [logs]);
+
+  if (!wrapperId || logs.length === 0) return null;
+  return (
+    <div ref={boxRef} className="mt-3 max-h-[180px] overflow-y-auto rounded-lg bg-[#0d0d0d] text-[#e5e5e5] font-mono text-[11px] leading-relaxed p-3 whitespace-pre-wrap">
+      {logs.map((line, i) => <div key={i}>{typeof line === 'string' ? line : JSON.stringify(line)}</div>)}
+    </div>
+  );
+}
+
+WrapperLiveLogs.propTypes = {
+  wrapperId: PropTypes.string,
+  active: PropTypes.bool,
 };
