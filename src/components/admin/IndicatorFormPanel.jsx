@@ -7,7 +7,7 @@ import FormTextarea from '../forms/FormTextarea';
 import FormSelect from '../forms/FormSelect';
 import FormCheckbox from '../forms/FormCheckbox';
 import SuccessModal from '../wizard/SuccessModal';
-import ChartTypePreview from '../wizard/ChartTypePreview';
+import ChartTypeOption from './ChartTypeOption';
 import useSlideOver from '../../hooks/useSlideOver';
 import indicatorService from '../../services/indicatorService';
 import areaService from '../../services/areaService';
@@ -311,22 +311,15 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
                   <p className="font-medium text-[15px] text-[#0a0a0a]">{t('wizard.indicator.chart_types_label', 'Tipos de gráfico disponíveis')}</p>
                   <p className="text-[13px] text-[#737373]">{t('wizard.indicator.chart_types_hint', 'Escolha quais os gráficos que podem ser mostrados neste indicador.')}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-1">
-                    {CHART_TYPES.map(type => {
-                      const checked = (data.chart_types || []).includes(type);
-                      return (
-                        <label key={type}
-                          className={`flex flex-col gap-2 cursor-pointer border rounded-lg p-2 transition-colors ${checked ? 'border-[#009368] bg-[#009368]/5' : 'border-[#e5e5e5] hover:border-[#d4d4d4]'}`}>
-                          <div className="flex items-center gap-2">
-                            <input type="checkbox" className="w-[18px] h-[18px] rounded border-[#d4d4d4] accent-[#009368]"
-                              checked={checked} onChange={() => toggleChartType(type)} />
-                            <span className="text-[14px] font-medium text-[#0a0a0a]">{t(CHART_TYPE_LABEL_KEYS[type])}</span>
-                          </div>
-                          <div className="w-full h-[90px] bg-white rounded overflow-hidden">
-                            <ChartTypePreview chartType={type} data={[]} height={90} />
-                          </div>
-                        </label>
-                      );
-                    })}
+                    {CHART_TYPES.map(type => (
+                      <ChartTypeOption
+                        key={type}
+                        type={type}
+                        label={t(CHART_TYPE_LABEL_KEYS[type])}
+                        checked={(data.chart_types || []).includes(type)}
+                        onToggle={() => toggleChartType(type)}
+                      />
+                    ))}
                   </div>
                   {errors.chart_types && <p className="text-[13px] text-[#dc2626]">{errors.chart_types}</p>}
                 </div>

@@ -240,6 +240,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
         author_id: '',
         author_photo: '',
         author_role: '',
+        author_role_en: '',
         post_type: routePostType,
         publication_link: '',
         publication_link_label: '',
@@ -314,7 +315,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
             setLoading(false)
             const empty = {
                 title: '', title_en: '', content: '', content_en: '', excerpt: '', excerpt_en: '',
-                author: '', author_id: '', author_photo: '', author_role: '', post_type: routePostType,
+                author: '', author_id: '', author_photo: '', author_role: '', author_role_en: '', post_type: routePostType,
                 publication_link: '', publication_link_label: '', publication_link_label_en: '',
                 status: 'draft', categories: [], keywords: [], keywords_en: [], tags: [], published_at: ''
             }
@@ -383,6 +384,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
                 author_id: postData.author_id || '',
                 author_photo: postData.author_photo || '',
                 author_role: postData.author_role || '',
+                author_role_en: postData.author_role_en || '',
                 post_type: postData.post_type || routePostType,
                 publication_link: postData.publication_link || '',
                 publication_link_label: postData.publication_link_label || '',
@@ -504,6 +506,7 @@ export default function BlogPostForm({ onClose = () => {}, onSaved = () => {}, p
             author_id: author.id || '',
             author_photo: author.photo_url || '',
             author_role: author.role || '',
+            author_role_en: author.role_en || '',
         }))
         setAuthorDropdownOpen(false)
     }

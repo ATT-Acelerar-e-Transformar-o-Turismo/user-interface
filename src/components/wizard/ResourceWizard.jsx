@@ -322,7 +322,17 @@ export default function ResourceWizard({
     try {
       for (let i = 0; i < wizard.formData.files.length; i++) {
         const file = wizard.formData.files[i];
-        const sourceType = wizard.formData.sourceType;
+        // Derive the source type from the file's actual extension rather than
+        // trusting the single dropdown picked at step 0. Picking "XLSX" but
+        // uploading a .csv (or vice-versa) otherwise generates a wrapper that
+        // reads the file with the wrong pandas reader (pd.read_excel on a CSV
+        // → "Excel file format cannot be determined").
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const sourceType = ext === 'csv'
+          ? 'CSV'
+          : (ext === 'xlsx' || ext === 'xls')
+            ? 'XLSX'
+            : wizard.formData.sourceType;
         const selection = wizard.formData.columnSelections?.[file.name] || {};
         const valueColumns = (selection.valueColumns && selection.valueColumns.length > 0)
           ? selection.valueColumns

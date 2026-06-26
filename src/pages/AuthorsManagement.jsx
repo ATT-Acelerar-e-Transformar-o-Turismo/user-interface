@@ -13,7 +13,9 @@ import { confirmAction } from '../utils/confirm';
 import { ptCompare } from '../utils/sort';
 
 export default function AuthorsManagement() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language?.startsWith('en');
+  const localizedRole = (a) => ((isEn && a.role_en) ? a.role_en : a.role);
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,7 +45,8 @@ export default function AuthorsManagement() {
       list = list.filter(a =>
         (a.name || '').toLowerCase().includes(q) ||
         (a.email || '').toLowerCase().includes(q) ||
-        (a.role || '').toLowerCase().includes(q));
+        (a.role || '').toLowerCase().includes(q) ||
+        (a.role_en || '').toLowerCase().includes(q));
     }
     list.sort((a, b) => ptCompare(a.name, b.name));
     return list;
@@ -136,7 +139,7 @@ export default function AuthorsManagement() {
                             <span className="font-['Onest'] font-medium text-[18px] text-[#0a0a0a]">{author.name}</span>
                           </button>
                         </td>
-                        <td className="py-3 px-4 font-['Onest'] font-medium text-[18px] text-[#0a0a0a]">{author.role || '—'}</td>
+                        <td className="py-3 px-4 font-['Onest'] font-medium text-[18px] text-[#0a0a0a]">{localizedRole(author) || '—'}</td>
                         <td className="py-3 px-4 font-['Onest'] text-[16px] text-[#404040]">{author.email || '—'}</td>
                         <td className="py-3 pl-4">
                           <div className="flex items-center justify-center gap-4">

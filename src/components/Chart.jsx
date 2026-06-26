@@ -314,6 +314,12 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
     const isCategoricalAggregate = chartType === 'pie' || chartType === 'donut';
     const isStacked = chartType === 'stackedColumn' || chartType === 'stackedBar';
     const isHorizontal = chartType === 'bar' || chartType === 'stackedBar';
+    // Vertical bars (column / stackedColumn) must use a CATEGORY x-axis, not a
+    // continuous datetime one. On a datetime axis ApexCharts spaces the tick
+    // labels evenly across the time range rather than under each bar, so a
+    // bar's real date (shown in its tooltip) drifts out of sync with the axis
+    // label beneath it. A category axis pins one label per bar.
+    const isVerticalBar = chartType === 'column' || chartType === 'stackedColumn';
     const isTreemap = chartType === 'treemap';
     const isHeatmap = chartType === 'heatmap';
     const isBoxPlot = chartType === 'boxPlot';
@@ -337,6 +343,10 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         const chart = chartRef.current;
         if (!chart || typeof chart.updateOptions !== 'function') return;
         if (!supportsZoomPan) return;
+        // Vertical bars run on a category axis, whose min/max are category
+        // indices, not the millisecond viewport values stored in xaxisRange —
+        // feeding ms here throws ("Invalid array length"). Skip them.
+        if (isVerticalBar) return;
         // Only apply an explicit, non-null range. When the parent clears its
         // viewport (no zoom / no pan history), apex's own min/max recompute
         // from the data range is what we want — calling updateOptions here
@@ -356,7 +366,7 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
         try {
             chart.updateOptions({ xaxis: { min, max } }, false, false);
         } catch (_) { /* swallow */ }
-    }, [xaxisRange?.min, xaxisRange?.max, supportsZoomPan]);
+    }, [xaxisRange?.min, xaxisRange?.max, supportsZoomPan, isVerticalBar]);
 
     const detectGranularity = (xs) => {
         const dates = (xs || []).map(v => new Date(v)).filter(d => !isNaN(d));
@@ -551,11 +561,12 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     : xaxisType === 'numeric'
                         ? [...s.data].sort((a, b) => a.x - b.x)
                         : [...s.data];
-                // For horizontal bars, ApexCharts uses data.x values as literal
-                // category labels on the visual Y axis without running them through
-                // any formatter. Pre-convert timestamps/numbers to display strings
-                // so the Y axis shows "2020" instead of a raw timestamp.
-                if (isHorizontal) {
+                // Bars use a category axis, so pre-convert each x to its display
+                // string. Horizontal bars label the visual Y axis from data.x;
+                // vertical bars label the X axis. Either way, baking the label in
+                // (with the same formatter the tooltip uses) keeps one label per
+                // bar and guarantees the axis label matches the tooltip date.
+                if (isHorizontal || isVerticalBar) {
                     sortedData = sortedData.map(d => ({ ...d, x: formatValue(d.x) }));
                 }
                 return { ...s, data: sortedData };
@@ -628,6 +639,9 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                     type: 'x',
                     enabled: allowUserInteraction && supportsZoomPan,
                     autoScaleYaxis: allowUserInteraction && supportsZoomPan,
+                    // Disable scroll-wheel zoom — it hijacks page scrolling.
+                    // Zoom stays available via the toolbar buttons and drag-select.
+                    allowMouseWheelZoom: false,
                 },
                 pan: {
                     enabled: allowUserInteraction && supportsZoomPan,
@@ -1019,11 +1033,13 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                 // visual-X (bottom) — ApexCharts always puts xaxis on visual-X
                 // regardless of orientation, so the swap is unavoidable.
                 // All other charts use xaxisType so zoom/pan work correctly.
-                type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap)
+                type: (isHeatmap || isBoxPlot || isRange || isCandlestick || isTreemap || isVerticalBar)
                     ? 'category'
                     : isHorizontal ? 'numeric' : xaxisType,
-                min: isHorizontal ? calculateNiceMin() : axisRangeMin,
-                max: isHorizontal ? calculateNiceMax() : axisRangeMax,
+                // Category axes (incl. vertical bars) take category indices, not
+                // the ms viewport range — leave min/max unset for them.
+                min: isHorizontal ? calculateNiceMin() : (isVerticalBar ? undefined : axisRangeMin),
+                max: isHorizontal ? calculateNiceMax() : (isVerticalBar ? undefined : axisRangeMax),
                 labels: {
                     show: !minimalAxis,
                     style: {
@@ -1031,7 +1047,10 @@ const GChart = forwardRef(({ title, chartId, chartType, xaxisType, annotations =
                         fontSize: compact ? '11px' : isHorizontal ? '10px' : '12px',
                         fontFamily: 'Onest, sans-serif'
                     },
-                    formatter: isHorizontal ? formatYValue : formatValue
+                    // Vertical bars already carry baked-in label strings as their
+                    // category x, so pass them through untouched (re-running the
+                    // datetime formatter on a string yields "Invalid Date").
+                    formatter: isHorizontal ? formatYValue : (isVerticalBar ? (v) => v : formatValue)
                 },
                 axisBorder: {
                     show: !compact && !minimalAxis,

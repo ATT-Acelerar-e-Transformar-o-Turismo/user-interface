@@ -34,6 +34,7 @@ function localizePost(raw, lang) {
         excerpt: (en && raw.excerpt_en) || raw.excerpt,
         publication_link_label: (en && raw.publication_link_label_en) || raw.publication_link_label,
         keywords: (en && raw.keywords_en?.length) ? raw.keywords_en : raw.keywords,
+        author_role: (en && raw.author_role_en) || raw.author_role,
     };
 }
 
