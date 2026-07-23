@@ -1344,7 +1344,9 @@ export default function IndicatorTemplate() {
                                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-secondary/10 text-secondary border border-secondary/20">
                                     {t('indicator.source_kind_composition', 'Composto (fórmula)')}
                                   </span>
-                                  <span>{getName.field(comp, 'name', 'name_en') || comp.formula}</span>
+                                  {getName.field(comp, 'name', 'name_en') && (
+                                    <span>{getName.field(comp, 'name', 'name_en')}</span>
+                                  )}
                                   {comp.formula && (
                                     <span className="font-mono text-xs text-[#737373]" title={t('indicator.composition_formula', 'Fórmula')}>
                                       {comp.formula}

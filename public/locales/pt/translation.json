@@ -288,6 +288,7 @@
       "details": "Detalhes",
       "col_status": "Estado",
       "load_failed": "Não foi possível carregar os recursos.",
+      "edit_composition": "Editar indicador composto",
       "compositions": "Indicadores compostos (fórmula)",
       "child_indicators": "Indicadores incluídos"
     },
@@ -623,6 +624,7 @@
       "regenerate_wrapper": "Regenerar wrapper",
       "regenerate_confirm_title": "Regenerar wrapper?",
       "regenerate_confirm_body": "Só faça isto se os resultados que está a pré-visualizar estiverem errados. Os dados existentes desta fonte serão descartados e será gerado um novo wrapper.",
+      "api_source": "Fonte API",
       "generation_failed": "Falha na geração do wrapper. Tente novamente.",
       "source_composition": "Indicador composto (fórmula)",
       "step_composition": "Definir fórmula",
@@ -640,6 +642,7 @@
       "choose_indicator": "Escolher indicador…",
       "formula_label": "Fórmula",
       "formula_placeholder": "Ex: a / b",
+      "incomplete": "Escolha os dois indicadores fonte e defina a fórmula.",
       "formula_help": "Use as variáveis acima (+ - * / ( ) e funções min, max, abs, log, sqrt).",
       "bucket_label": "Granularidade",
       "bucket_day": "Dia",

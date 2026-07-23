@@ -116,6 +116,11 @@ export default function IndicatorResourcesTab({ indicatorId }) {
     setCompError(null);
     setCompModal({
       original: comp,
+      // Snapshot of the composition ids known when the modal opened. The
+      // save flow's lost-response adoption must diff against THIS (not the
+      // live list, which failure-path resyncs mutate) to recognise a copy
+      // created by an earlier attempt of this same edit.
+      knownIdsAtOpen: compositions.map(c => c.id),
       draft: {
         name: comp.name || '',
         name_en: comp.name_en || '',
@@ -125,6 +130,21 @@ export default function IndicatorResourcesTab({ indicatorId }) {
         aggregator: comp.aggregator || 'avg',
       },
     });
+  };
+
+  // Two composition definitions are "the same" when every field the backend
+  // stores matches — used to reconcile with the server after a lost response.
+  const sameCompositionDefinition = (comp, payload) => {
+    const inputsKey = (list) => (list || [])
+      .map(i => `${i.key}=${i.indicator_id}`)
+      .sort()
+      .join('|');
+    return (comp.formula || '') === (payload.formula || '')
+      && (comp.name || '') === (payload.name || '')
+      && (comp.name_en || '') === (payload.name_en || '')
+      && (comp.bucket || '') === (payload.bucket || '')
+      && (comp.aggregator || '') === (payload.aggregator || '')
+      && inputsKey(comp.inputs) === inputsKey(payload.inputs);
   };
 
   const saveComposition = async () => {
@@ -137,25 +157,94 @@ export default function IndicatorResourcesTab({ indicatorId }) {
       setCompError(t('wizard.composition.incomplete', 'Escolha os dois indicadores fonte e defina a fórmula.'));
       return;
     }
+    const payload = {
+      name: d.name?.trim() || undefined,
+      name_en: d.name_en?.trim() || undefined,
+      inputs,
+      formula: d.formula.trim(),
+      bucket: d.bucket || '1M',
+      aggregator: d.aggregator || 'avg',
+    };
+    const originalId = compModal.original.id;
+    let createdId = compModal.createdId || null;
     try {
       setCompSaving(true);
       setCompError(null);
       // The backend has no update endpoint, so editing is replace: create the
       // new definition first and only then remove the old one — a failed
       // create never loses the original composition.
-      await indicatorService.addComposition(indicatorId, {
-        name: d.name?.trim() || undefined,
-        name_en: d.name_en?.trim() || undefined,
-        inputs,
-        formula: d.formula.trim(),
-        bucket: d.bucket || '1M',
-        aggregator: d.aggregator || 'avg',
-      });
-      const updated = await indicatorService.removeComposition(indicatorId, compModal.original.id);
+      //
+      // Re-sync with the server before creating: a previous attempt's add may
+      // have succeeded even though its response never arrived (timeout), so a
+      // blind re-create would stack duplicates. A server copy that matches
+      // the draft is adopted instead of re-created.
+      // Always start from fresh server state: a previous attempt's calls may
+      // have succeeded even though their responses never arrived.
+      const fresh = await indicatorService.getById(indicatorId);
+      const serverComps = Array.isArray(fresh?.compositions) ? fresh.compositions : [];
+      setCompositions(serverComps);
+      // A remembered createdId is only trusted if that copy still exists —
+      // e.g. a rollback whose response was lost may have deleted it, and
+      // blindly skipping the create would then remove the original with no
+      // replacement (total loss).
+      if (createdId && !serverComps.some(c => c.id === createdId)) createdId = null;
+      if (!createdId) {
+        // Adopt a matching copy that did not exist when the modal opened —
+        // the signature of a lost add response. Diffing against the open-time
+        // snapshot (not the live list, which failure-path resyncs mutate)
+        // keeps intentional pre-existing identical siblings safe.
+        const knownAtOpen = new Set(compModal.knownIdsAtOpen || compositions.map(c => c.id));
+        createdId = serverComps.find(c =>
+          c.id !== originalId && !knownAtOpen.has(c.id) && sameCompositionDefinition(c, payload),
+        )?.id || null;
+      }
+      if (!createdId) {
+        const afterAdd = await indicatorService.addComposition(indicatorId, payload);
+        const newComps = Array.isArray(afterAdd?.compositions) ? afterAdd.compositions : [];
+        const prevIds = new Set(serverComps.map(c => c.id));
+        createdId = newComps.find(c =>
+          c.id && !prevIds.has(c.id) && sameCompositionDefinition(c, payload),
+        )?.id || null;
+        // Refresh the list immediately so the new copy is never invisible,
+        // even if the remove below fails.
+        setCompositions(newComps);
+      }
+      // Persist however createdId was obtained (create OR adoption) so a
+      // retry after a later failure skips the create — but only while the
+      // draft is still the one this save started from; if it changed
+      // mid-flight, keeping createdId would let a retry silently swap in the
+      // stale definition.
+      setCompModal(m => (m && m.draft === d ? { ...m, createdId } : m));
+      const updated = await indicatorService.removeComposition(indicatorId, originalId);
       setCompositions(Array.isArray(updated?.compositions) ? updated.compositions : []);
       setCompModal(null);
     } catch (err) {
-      setCompError(err?.userMessage || err?.message);
+      // Recover from the ACTUAL server state before deciding what to show —
+      // a timed-out call may have succeeded server-side, so acting blindly
+      // could delete both copies or flash an error for a completed swap.
+      let recoveredAsSuccess = false;
+      try {
+        const ind = await indicatorService.getById(indicatorId);
+        const comps = Array.isArray(ind?.compositions) ? ind.compositions : [];
+        setCompositions(comps);
+        const originalGone = !comps.some(c => c.id === originalId);
+        const createdPresent = !!createdId && comps.some(c => c.id === createdId);
+        if (originalGone && createdPresent) {
+          // The swap actually completed (the remove response was just lost).
+          recoveredAsSuccess = true;
+          setCompModal(null);
+        } else if (!originalGone && createdPresent) {
+          // Replace failed midway: roll the created copy back so the
+          // indicator doesn't linger with both definitions.
+          const afterRollback = await indicatorService.removeComposition(indicatorId, createdId);
+          setCompositions(Array.isArray(afterRollback?.compositions) ? afterRollback.compositions : []);
+          setCompModal(m => (m ? { ...m, createdId: null } : m));
+        }
+      } catch {
+        // Server unreachable — keep createdId on the modal so a retry skips
+        // the create (the retry re-validates it against fresh state anyway).
+      }
+      if (!recoveredAsSuccess) setCompError(err?.userMessage || err?.message);
     } finally {
       setCompSaving(false);
     }
@@ -415,13 +504,22 @@ export default function IndicatorResourcesTab({ indicatorId }) {
           <div className="bg-[#fffefc] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
               <h3 className="font-semibold text-[20px] text-[#0a0a0a]">{t('admin.resources.edit_composition', 'Editar indicador composto')}</h3>
-              <button type="button" onClick={() => setCompModal(null)} className="text-[#404040] hover:text-[#0a0a0a] cursor-pointer text-2xl leading-none">×</button>
+              <button type="button" onClick={() => { if (!compSaving) setCompModal(null); }} disabled={compSaving} className="text-[#404040] hover:text-[#0a0a0a] cursor-pointer text-2xl leading-none disabled:opacity-40">×</button>
             </div>
-            <CompositionBuilder
-              value={compModal.draft}
-              onChange={(draft) => setCompModal(m => (m ? { ...m, draft } : m))}
-              excludeId={indicatorId}
-            />
+            {/* fieldset(disabled) freezes the form while the save is in
+                flight — edits typed mid-save would either be discarded on
+                success or corrupt the retry bookkeeping. */}
+            <fieldset disabled={compSaving} className={compSaving ? 'opacity-60' : ''}>
+              <CompositionBuilder
+                value={compModal.draft}
+                // Editing the draft invalidates any copy already created by a
+                // previous failed save — clearing createdId forces the next
+                // save to create the edited definition instead of silently
+                // reusing the stale one.
+                onChange={(draft) => setCompModal(m => (m ? { ...m, draft, createdId: null } : m))}
+                excludeId={indicatorId}
+              />
+            </fieldset>
             {compError && <div className="rounded-xl border border-[#dc2626]/30 bg-[#dc2626]/5 px-4 py-3 text-[#dc2626] text-sm">{compError}</div>}
             <div className="flex justify-end gap-3">
               <button type="button" onClick={() => setCompModal(null)} disabled={compSaving}

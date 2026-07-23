@@ -135,8 +135,11 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
       scale: data.scale.trim(), scale_en: data.scale_en.trim(),
       font: data.font.trim(), font_en: data.font_en.trim(),
       governance: data.governance,
-      carrying_capacity: data.carrying_capacity_enabled && data.carrying_capacity !== ''
-        ? Number(data.carrying_capacity)
+      // The backend schema types carrying_capacity as Optional[str] and
+      // pydantic v2 rejects JSON numbers for str fields (422 for the whole
+      // request) — always send it as a string.
+      carrying_capacity: data.carrying_capacity_enabled && String(data.carrying_capacity).trim() !== ''
+        ? String(data.carrying_capacity).trim()
         : null,
       show_time_averages: data.show_time_averages,
       chart_types: data.chart_types,

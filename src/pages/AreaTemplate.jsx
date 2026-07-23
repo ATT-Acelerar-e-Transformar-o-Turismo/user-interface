@@ -133,7 +133,12 @@ export default function AreaTemplate({ embedded = false }) {
     if (currentPage > 0) newParams.set('page', String(currentPage));
     else newParams.delete('page');
     setSearchParams(newParams, { replace: true });
-  }, [currentPage]);
+    // searchParams must be a dep: this effect and the ?dimension= one below
+    // fire in the same flush when a dimension change resets the page, and
+    // without it whichever runs last rewrites the URL from a stale snapshot,
+    // resurrecting the just-deleted param. The equality guard above stops the
+    // re-run loop.
+  }, [currentPage, searchParams, setSearchParams]);
 
   // Area state
   const [selectedDimension, setSelectedDimension] = useState(initialDimension);
@@ -151,7 +156,8 @@ export default function AreaTemplate({ embedded = false }) {
     if (activeDimensionName) newParams.set('dimension', activeDimensionName);
     else newParams.delete('dimension');
     setSearchParams(newParams, { replace: true });
-  }, [activeDimensionName]);
+    // searchParams in deps for the same reason as the ?page= effect above.
+  }, [activeDimensionName, searchParams, setSearchParams]);
 
   const images = selectedAreaObj?.AreaCarouselImages?.length > 0
     ? selectedAreaObj.AreaCarouselImages
@@ -517,7 +523,16 @@ export default function AreaTemplate({ embedded = false }) {
                         setSelectedArea(area);
                       }
                     }}
-                    selectedDimension={isAllIndicatorsMode ? (dimensionFilter ? { name: dimensionFilter } : null) : selectedDimension}
+                    selectedDimension={(() => {
+                      // A dimension restored from ?dimension= is a bare
+                      // { name: <PT> } — resolve the full object from the
+                      // area so the chip shows name_en in the EN UI.
+                      const bare = isAllIndicatorsMode ? (dimensionFilter ? { name: dimensionFilter } : null) : selectedDimension;
+                      if (!bare?.name) return bare;
+                      const areaObj = isAllIndicatorsMode ? areas.find(d => d.id === areaFilter) : selectedAreaObj;
+                      const subs = areaObj?.dimensions || areaObj?.subdomains || areaObj?.subdominios || [];
+                      return subs.find(s => (typeof s === 'string' ? s : s?.name) === bare.name) || bare;
+                    })()}
                     setSelectedDimension={(sub) => {
                       if (isAllIndicatorsMode) {
                         setDimensionFilter(sub?.name || null);

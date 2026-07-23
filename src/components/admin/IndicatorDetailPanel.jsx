@@ -124,7 +124,7 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
   const areaName = indicator.area || areaInfo?.name || '';
   // `subdomain` stores the PT name; localize via the domain's subdomain list.
   const rawDimension = full?.subdomain || indicator.dimension || '';
-  const dimObj = (areaInfo?.subdomains || areaInfo?.dimensions || [])
+  const dimObj = (areaInfo?.subdomains || areaInfo?.dimensions || areaInfo?.subdominios || [])
     .find(s => (typeof s === 'string' ? s : s?.name) === rawDimension);
   const dimensionName = dimObj ? getName(dimObj) : rawDimension;
   const areaColor = indicator.color || areaInfo?.color || '#009368';

@@ -284,7 +284,7 @@ export default function IndicatorsManagement() {
         // `indicator.subdomain` stores the PT name only — localize it by
         // looking the subdomain object up on the domain.
         const rawDim = indicator.subdomain || indicator.dimension || '';
-        const subs = areaInfo?.subdomains || areaInfo?.dimensions || [];
+        const subs = areaInfo?.subdomains || areaInfo?.dimensions || areaInfo?.subdominios || [];
         const dimObj = subs.find(s => (typeof s === 'string' ? s : s?.name) === rawDim);
 
         return {
