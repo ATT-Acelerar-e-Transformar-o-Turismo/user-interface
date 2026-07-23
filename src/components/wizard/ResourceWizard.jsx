@@ -707,6 +707,17 @@ export default function ResourceWizard({
         const wrapper = await generateWrapper(wrapperRequest);
         setWrapperStatus(wrapper.status);
 
+        // Populate wrappersData so the preview step renders the live generation
+        // logs (WrapperLiveLogs polls the wrapper's log file) and, when done,
+        // the data preview — the same detail the file flow shows, instead of a
+        // bare "A processar…".
+        setWrappersData([{
+          fileName: indicator.name || t('wizard.resource.api_source', 'Fonte API'),
+          wrapper,
+          status: wrapper.status,
+          resourceId: wrapper.resource_id,
+        }]);
+
         // Link resource to indicator if not editing
         if (wrapper.resource_id && !isEditMode) {
           await indicatorService.addResource(indicatorId, wrapper.resource_id);
@@ -715,10 +726,27 @@ export default function ResourceWizard({
 
         // Poll for completion
         await new Promise((resolve, reject) => {
-          startPolling(wrapper.wrapper_id, 2000, (updatedWrapper) => {
+          startPolling(wrapper.wrapper_id, 2000, async (updatedWrapper) => {
             setWrapperStatus(updatedWrapper.status);
+            setWrappersData(prev => prev.map(w =>
+              w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+                ? { ...w, status: updatedWrapper.status, wrapper: updatedWrapper }
+                : w
+            ));
 
             if (updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') {
+              if (updatedWrapper.resource_id) {
+                try {
+                  const resourceData = await resourceService.getById(updatedWrapper.resource_id);
+                  setWrappersData(prev => prev.map(w =>
+                    w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+                      ? { ...w, resourceData }
+                      : w
+                  ));
+                } catch (e) {
+                  console.error('Error fetching API resource data:', e);
+                }
+              }
               resolve(updatedWrapper);
             } else if (updatedWrapper.status === 'error') {
               reject(new Error(updatedWrapper.error_message || 'Wrapper generation failed'));
@@ -1094,13 +1122,70 @@ export default function ResourceWizard({
               </div>
             )}
             {wizard.formData.sourceType === 'API' ? (
-              <div className="bg-[#f1f0f0] rounded-lg p-6 text-center">
-                <p className="font-['Onest',sans-serif] text-sm text-gray-600">
-                  {t('wizard.resource.api_url_label')} {wizard.formData.apiConfig.location}
-                </p>
-                <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
-                  {t('wizard.resource.api_url_pending')}
-                </p>
+              <div className="space-y-4">
+                <div className="bg-[#f1f0f0] rounded-lg p-4 text-center">
+                  <p className="font-['Onest',sans-serif] text-sm text-gray-600">
+                    {t('wizard.resource.api_url_label')} {wizard.formData.apiConfig.location}
+                  </p>
+                  {wrappersData.length === 0 && (
+                    <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
+                      {t('wizard.resource.api_url_pending')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Once the user saves, the API wrapper is generated; show its
+                    live logs (model, retries, fetch progress) and, when done,
+                    the data preview / regenerate actions — instead of a bare
+                    "A processar…". */}
+                {wrappersData.map((wrapperInfo, index) => {
+                  const isComplete = wrapperInfo.status === 'completed' || wrapperInfo.status === 'executing';
+                  const isError = wrapperInfo.status === 'error';
+                  const isProcessing = wrapperInfo.status === 'pending' || wrapperInfo.status === 'generating' || wrapperInfo.status === 'creating_resource';
+                  return (
+                    <div key={index} className="border border-gray-300 rounded-lg p-4">
+                      <p className="font-['Onest',sans-serif] text-xs text-gray-600 mb-2">
+                        {isComplete && t('wizard.resource.status_done')}
+                        {isError && t('wizard.resource.status_error')}
+                        {isProcessing && t('wizard.resource.status_processing')}
+                      </p>
+
+                      <WrapperLiveLogs wrapperId={wrapperInfo.wrapper?.wrapper_id} active={isProcessing} />
+
+                      {isComplete && wrapperInfo.resourceData && (
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-primary"
+                            onClick={() => openPreview(wrapperInfo)}
+                          >
+                            {t('wizard.resource.preview_data')}
+                          </button>
+                          <RegenerateWrapperButton
+                            wrapperId={wrapperInfo.wrapper.wrapper_id}
+                            onRegenerated={handleRegenerated}
+                          />
+                        </div>
+                      )}
+
+                      {isError && (
+                        <div className="mt-3 space-y-2">
+                          {wrapperInfo.wrapper?.error_message && (
+                            <div className="bg-red-50 rounded-lg p-3">
+                              <p className="font-['Onest',sans-serif] text-xs text-red-600">
+                                {wrapperInfo.wrapper.error_message}
+                              </p>
+                            </div>
+                          )}
+                          <RegenerateWrapperButton
+                            wrapperId={wrapperInfo.wrapper.wrapper_id}
+                            onRegenerated={handleRegenerated}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : wizard.formData.sourceType === 'COMPOSITION' ? (
               <div className="space-y-3">

@@ -5,6 +5,7 @@ import { LuPlus, LuEye, LuRefreshCw, LuScrollText, LuSquarePen, LuTrash2 } from 
 import indicatorService from '../../services/indicatorService';
 import resourceService from '../../services/resourceService';
 import ResourceWizard from '../wizard/ResourceWizard';
+import CompositionBuilder from '../wizard/CompositionBuilder';
 import GChart from '../Chart';
 import SourcePill from './SourcePill';
 import { sourceFromType } from '../../utils/resourceSource';
@@ -36,6 +37,10 @@ export default function IndicatorResourcesTab({ indicatorId }) {
   // Live wrapper run/logs modal: mode 'regenerate' kicks off a regeneration
   // and streams its logs; mode 'logs' just views the current logs.
   const [runModal, setRunModal] = useState(null); // { wrapperId, mode }
+  // Edit-composition modal: { original, draft } — draft feeds CompositionBuilder.
+  const [compModal, setCompModal] = useState(null);
+  const [compSaving, setCompSaving] = useState(false);
+  const [compError, setCompError] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -104,6 +109,55 @@ export default function IndicatorResourcesTab({ indicatorId }) {
       setCompositions(prev => prev.filter(c => c.id !== comp.id));
     } catch (err) {
       setError(err.userMessage || err.message);
+    }
+  };
+
+  const openEditComposition = (comp) => {
+    setCompError(null);
+    setCompModal({
+      original: comp,
+      draft: {
+        name: comp.name || '',
+        name_en: comp.name_en || '',
+        inputs: (comp.inputs || []).map(i => ({ key: i.key, indicator_id: i.indicator_id })),
+        formula: comp.formula || '',
+        bucket: comp.bucket || '1M',
+        aggregator: comp.aggregator || 'avg',
+      },
+    });
+  };
+
+  const saveComposition = async () => {
+    if (!compModal) return;
+    const d = compModal.draft;
+    const inputs = (d.inputs || [])
+      .map(i => ({ key: i.key, indicator_id: i.indicator_id }))
+      .filter(i => i.indicator_id);
+    if (inputs.length < 2 || !d.formula?.trim()) {
+      setCompError(t('wizard.composition.incomplete', 'Escolha os dois indicadores fonte e defina a fórmula.'));
+      return;
+    }
+    try {
+      setCompSaving(true);
+      setCompError(null);
+      // The backend has no update endpoint, so editing is replace: create the
+      // new definition first and only then remove the old one — a failed
+      // create never loses the original composition.
+      await indicatorService.addComposition(indicatorId, {
+        name: d.name?.trim() || undefined,
+        name_en: d.name_en?.trim() || undefined,
+        inputs,
+        formula: d.formula.trim(),
+        bucket: d.bucket || '1M',
+        aggregator: d.aggregator || 'avg',
+      });
+      const updated = await indicatorService.removeComposition(indicatorId, compModal.original.id);
+      setCompositions(Array.isArray(updated?.compositions) ? updated.compositions : []);
+      setCompModal(null);
+    } catch (err) {
+      setCompError(err?.userMessage || err?.message);
+    } finally {
+      setCompSaving(false);
     }
   };
 
@@ -242,9 +296,14 @@ export default function IndicatorResourcesTab({ indicatorId }) {
                       {comp.formula && <div className="text-[13px] text-[#737373] font-mono">{comp.formula}</div>}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button type="button" onClick={() => handleDeleteComposition(comp)} className="text-[#dc2626] hover:opacity-75 cursor-pointer" aria-label={t('common.delete', 'Eliminar')} title={t('common.delete', 'Eliminar')}>
-                        <LuTrash2 className="w-5 h-5" strokeWidth={1.75} />
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button type="button" onClick={() => openEditComposition(comp)} className="text-[#0a0a0a] hover:text-[#009368] cursor-pointer" aria-label={t('common.edit', 'Editar')} title={t('common.edit', 'Editar')}>
+                          <LuSquarePen className="w-5 h-5" strokeWidth={1.75} />
+                        </button>
+                        <button type="button" onClick={() => handleDeleteComposition(comp)} className="text-[#dc2626] hover:opacity-75 cursor-pointer" aria-label={t('common.delete', 'Eliminar')} title={t('common.delete', 'Eliminar')}>
+                          <LuTrash2 className="w-5 h-5" strokeWidth={1.75} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -346,6 +405,34 @@ export default function IndicatorResourcesTab({ indicatorId }) {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit-composition modal — same builder used when creating one. */}
+      {compModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget && !compSaving) setCompModal(null); }}>
+          <div className="bg-[#fffefc] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="font-semibold text-[20px] text-[#0a0a0a]">{t('admin.resources.edit_composition', 'Editar indicador composto')}</h3>
+              <button type="button" onClick={() => setCompModal(null)} className="text-[#404040] hover:text-[#0a0a0a] cursor-pointer text-2xl leading-none">×</button>
+            </div>
+            <CompositionBuilder
+              value={compModal.draft}
+              onChange={(draft) => setCompModal(m => (m ? { ...m, draft } : m))}
+              excludeId={indicatorId}
+            />
+            {compError && <div className="rounded-xl border border-[#dc2626]/30 bg-[#dc2626]/5 px-4 py-3 text-[#dc2626] text-sm">{compError}</div>}
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setCompModal(null)} disabled={compSaving}
+                className="inline-flex items-center justify-center h-10 px-5 rounded-full border border-[#d4d4d4] bg-[#fffefc] font-medium text-[15px] text-[#0a0a0a] shadow-sm hover:bg-black/[0.03] cursor-pointer disabled:opacity-50">
+                {t('common.cancel', 'Cancelar')}
+              </button>
+              <button type="button" onClick={saveComposition} disabled={compSaving}
+                className="inline-flex items-center justify-center h-10 px-5 rounded-full bg-[#009368] hover:bg-[#007d57] font-medium text-[15px] text-[#fffefc] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                {compSaving ? t('common.saving', 'A guardar…') : t('common.save', 'Guardar')}
+              </button>
+            </div>
           </div>
         </div>
       )}

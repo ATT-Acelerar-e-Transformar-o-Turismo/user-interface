@@ -10,6 +10,7 @@ import areaService from '../services/areaService';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ErrorDisplay from '../components/ErrorDisplay';
 import { confirmAction } from '../utils/confirm';
+import { FEATURES } from '../constants/app';
 import AdminPageTemplate from './AdminPageTemplate';
 import IndicatorFormPanel from '../components/admin/IndicatorFormPanel';
 import IndicatorDetailPanel from '../components/admin/IndicatorDetailPanel';
@@ -280,11 +281,17 @@ export default function IndicatorsManagement() {
           }
         }
 
+        // `indicator.subdomain` stores the PT name only — localize it by
+        // looking the subdomain object up on the domain.
+        const rawDim = indicator.subdomain || indicator.dimension || '';
+        const subs = areaInfo?.subdomains || areaInfo?.dimensions || [];
+        const dimObj = subs.find(s => (typeof s === 'string' ? s : s?.name) === rawDim);
+
         return {
           ...indicator,
           name: getName(indicator),
           area: getName(areaInfo) || 'Unknown Area',
-          dimension: indicator.subdomain || indicator.dimension || '',
+          dimension: dimObj ? getName(dimObj) : rawDim,
           color: areaInfo?.color || '#CCCCCC'
         };
       })
@@ -369,7 +376,7 @@ export default function IndicatorsManagement() {
             options={[
               { value: 'name', label: t('areas.sort_name', 'Nome') },
               { value: 'periodicity', label: t('areas.sort_periodicity', 'Periodicidade') },
-              { value: 'favourites', label: t('areas.sort_favorites', 'Favoritos') },
+              ...(FEATURES.FAVORITES ? [{ value: 'favourites', label: t('areas.sort_favorites', 'Favoritos') }] : []),
             ]}
           />
           <AdminSelectDropdown
@@ -387,8 +394,9 @@ export default function IndicatorsManagement() {
               const a = areas.find(x => x.id === areaFilter);
               const subs = a?.dimensions || a?.subdomains || a?.subdominios || [];
               return subs.map(s => {
+                // value = PT name (backend filter key); label = localized.
                 const name = typeof s === 'string' ? s : s.name;
-                return { value: name, label: name };
+                return { value: name, label: getName(s) || name };
               });
             })()}
           />

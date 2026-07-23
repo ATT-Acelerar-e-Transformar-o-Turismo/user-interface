@@ -12,6 +12,13 @@ export const APP_CONFIG = {
   },
 };
 
+// Feature toggles. FAVORITES hides the heart button on indicator cards, the
+// /favorites route and the "sort by favourites" options — flip to true to
+// bring the whole feature back.
+export const FEATURES = {
+  FAVORITES: false,
+};
+
 export const STORAGE_KEYS = {
   TOKEN: 'token',
   USER: 'user',
