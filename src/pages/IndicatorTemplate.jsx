@@ -1273,7 +1273,7 @@ export default function IndicatorTemplate() {
                 className="w-full flex items-center justify-between cursor-pointer"
               >
                 <h3 className="font-['Onest'] font-semibold text-2xl text-[#0a0a0a] tracking-tight">
-                  {t('indicator.sources_title')} ({indicatorResources.length + childIndicators.length})
+                  {t('indicator.sources_title')} ({indicatorResources.length + childIndicators.length + (indicatorData?.compositions?.length || 0)})
                 </h3>
                 <svg className={`w-7 h-7 text-[#0a0a0a] transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1297,11 +1297,11 @@ export default function IndicatorTemplate() {
                       {sourcesError}
                     </div>
                   )}
-                  {indicatorResources.length === 0 && childIndicators.length === 0 && !sourcesError ? (
+                  {indicatorResources.length === 0 && childIndicators.length === 0 && (indicatorData?.compositions?.length || 0) === 0 && !sourcesError ? (
                     <div className="text-center py-8 text-[#737373]">
                       <p>{t('indicator.no_sources')}</p>
                     </div>
-                  ) : indicatorResources.length === 0 && childIndicators.length === 0 ? null : (
+                  ) : indicatorResources.length === 0 && childIndicators.length === 0 && (indicatorData?.compositions?.length || 0) === 0 ? null : (
                     <div className="overflow-x-auto">
                       <table className="w-full font-['Onest']">
                         <thead>
@@ -1332,6 +1332,31 @@ export default function IndicatorTemplate() {
                                   </button>
                                 </div>
                               </td>
+                            </tr>
+                          ))}
+                          {/* Formula-based compositions: flag that this indicator is
+                              composed and show the formula. The input indicators
+                              themselves are listed below as "Indicador" rows. */}
+                          {(indicatorData?.compositions || []).map((comp) => (
+                            <tr key={`comp-${comp.id}`} className="border-b border-[#f3f4f6]">
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-secondary/10 text-secondary border border-secondary/20">
+                                    {t('indicator.source_kind_composition', 'Composto (fórmula)')}
+                                  </span>
+                                  {getName.field(comp, 'name', 'name_en') && (
+                                    <span>{getName.field(comp, 'name', 'name_en')}</span>
+                                  )}
+                                  {comp.formula && (
+                                    <span className="font-mono text-xs text-[#737373]" title={t('indicator.composition_formula', 'Fórmula')}>
+                                      {comp.formula}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">-</td>
+                              <td className="py-3 px-4 text-sm text-[#0a0a0a]">-</td>
+                              <td className="py-3 px-4"></td>
                             </tr>
                           ))}
                           {childIndicators.map((child) => (

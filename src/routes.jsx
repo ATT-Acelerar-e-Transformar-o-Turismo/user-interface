@@ -3,6 +3,7 @@ import AreaTemplate from "./pages/AreaTemplate";
 import AreaSelectionPage from "./pages/AreaSelectionPage";
 import AreasManagement from "./pages/AreasManagement";
 import FavoritesPage from "./pages/FavoritesPage";
+import { FEATURES } from "./constants/app";
 import { Helmet } from "react-helmet";
 import IndicatorTemplate from "./pages/IndicatorTemplate";
 import IndicatorsManagement from "./pages/IndicatorsManagement";
@@ -49,7 +50,7 @@ export const routesList = [
             </>
         )
     },
-    {
+    ...(FEATURES.FAVORITES ? [{
         path: '/favorites',
         element: (
             <>
@@ -59,7 +60,7 @@ export const routesList = [
                 <FavoritesPage />
             </>
         )
-    },
+    }] : []),
     {
         path: '/indicators',
         element: (

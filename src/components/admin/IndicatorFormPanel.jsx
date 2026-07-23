@@ -9,6 +9,7 @@ import FormCheckbox from '../forms/FormCheckbox';
 import SuccessModal from '../wizard/SuccessModal';
 import ChartTypeOption from './ChartTypeOption';
 import useSlideOver from '../../hooks/useSlideOver';
+import useLocalizedName from '../../hooks/useLocalizedName';
 import indicatorService from '../../services/indicatorService';
 import areaService from '../../services/areaService';
 import { CHART_TYPES, CHART_TYPE_LABEL_KEYS, DEFAULT_CHART_TYPES, DEFAULT_CHART_TYPE } from '../../constants/chartTypes';
@@ -18,6 +19,7 @@ import { CHART_TYPES, CHART_TYPE_LABEL_KEYS, DEFAULT_CHART_TYPES, DEFAULT_CHART_
 const EMPTY = {
   name: '', name_en: '', description: '', description_en: '',
   area: '', dimension: '', unit: '', unit_en: '',
+  periodicity: '', periodicity_en: '',
   scale: '', scale_en: '', font: '', font_en: '', governance: false,
   carrying_capacity_enabled: false, carrying_capacity: '',
   show_time_averages: true,
@@ -27,6 +29,7 @@ const EMPTY = {
 
 export default function IndicatorFormPanel({ indicatorId = null, onClose, onSaved }) {
   const { t } = useTranslation();
+  const getName = useLocalizedName();
   const isEdit = !!indicatorId;
 
   const [data, setData] = useState(EMPTY);
@@ -54,6 +57,7 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
               area: ind.domain?.id || ind.domain || ind.area?.id || ind.area || '',
               dimension: ind.subdomain || ind.dimension || '',
               unit: ind.unit || '', unit_en: ind.unit_en || '',
+              periodicity: ind.periodicity || '', periodicity_en: ind.periodicity_en || '',
               scale: ind.scale || '', scale_en: ind.scale_en || '',
               font: ind.font || '', font_en: ind.font_en || '',
               governance: ind.governance || false,
@@ -103,7 +107,8 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
   const selectedArea = areas.find(a => a.id === data.area);
   const dimensionOptions = (() => {
     const subs = selectedArea?.dimensions || selectedArea?.subdomains || selectedArea?.subdominios || [];
-    return subs.map(s => { const name = typeof s === 'string' ? s : s.name; return { value: name, label: name }; });
+    // value = PT name (what the backend stores in `subdomain`); label = localized.
+    return subs.map(s => { const name = typeof s === 'string' ? s : s.name; return { value: name, label: getName(s) || name }; });
   })();
 
   const validate = () => {
@@ -126,11 +131,15 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
       name: data.name.trim(), name_en: data.name_en.trim(),
       description: data.description.trim(), description_en: data.description_en.trim(),
       unit: data.unit.trim(), unit_en: data.unit_en.trim(),
+      periodicity: data.periodicity.trim(), periodicity_en: data.periodicity_en.trim(),
       scale: data.scale.trim(), scale_en: data.scale_en.trim(),
       font: data.font.trim(), font_en: data.font_en.trim(),
       governance: data.governance,
-      carrying_capacity: data.carrying_capacity_enabled && data.carrying_capacity !== ''
-        ? Number(data.carrying_capacity)
+      // The backend schema types carrying_capacity as Optional[str] and
+      // pydantic v2 rejects JSON numbers for str fields (422 for the whole
+      // request) — always send it as a string.
+      carrying_capacity: data.carrying_capacity_enabled && String(data.carrying_capacity).trim() !== ''
+        ? String(data.carrying_capacity).trim()
         : null,
       show_time_averages: data.show_time_averages,
       chart_types: data.chart_types,
@@ -141,9 +150,9 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
       setError(null);
       let saved;
       if (isEdit) {
-        // Use PATCH for the edit panel — it only touches a subset of fields
-        // (no periodicity input), and PUT's schema requires the full body
-        // including `periodicity` and `favourites`, which we don't send.
+        // Use PATCH for the edit panel — it only touches a subset of fields,
+        // and PUT's schema requires the full body including `favourites`,
+        // which we don't send.
         // When publishing a draft, also flip its status so the indicator
         // shows up in public listings.
         saved = await indicatorService.patch(indicatorId, {
@@ -255,11 +264,18 @@ export default function IndicatorFormPanel({ indicatorId = null, onClose, onSave
                   )}
                 </div>
 
-                {lang === 'pt' ? (
-                  <FormInput label={t('wizard.indicator.source', 'Fonte')} name="ind_font" value={data.font} onChange={set('font')} placeholder={t('wizard.indicator.source_placeholder', 'Escrever fonte')} />
-                ) : (
-                  <FormInput label={t('wizard.indicator.source_en', 'Source')} name="ind_font_en" value={data.font_en} onChange={set('font_en')} placeholder={t('wizard.indicator.source_en_placeholder', 'Write source')} />
-                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {lang === 'pt' ? (
+                    <FormInput label={t('wizard.indicator.periodicity', 'Periodicidade')} name="ind_periodicity" value={data.periodicity} onChange={set('periodicity')} placeholder={t('wizard.indicator.periodicity_placeholder', 'Ex. Mensal, Anual')} />
+                  ) : (
+                    <FormInput label={t('wizard.indicator.periodicity_en', 'Periodicity')} name="ind_periodicity_en" value={data.periodicity_en} onChange={set('periodicity_en')} placeholder={t('wizard.indicator.periodicity_en_placeholder', 'Ex. Monthly, Yearly')} />
+                  )}
+                  {lang === 'pt' ? (
+                    <FormInput label={t('wizard.indicator.source', 'Fonte')} name="ind_font" value={data.font} onChange={set('font')} placeholder={t('wizard.indicator.source_placeholder', 'Escrever fonte')} />
+                  ) : (
+                    <FormInput label={t('wizard.indicator.source_en', 'Source')} name="ind_font_en" value={data.font_en} onChange={set('font_en')} placeholder={t('wizard.indicator.source_en_placeholder', 'Write source')} />
+                  )}
+                </div>
 
                 {lang === 'pt' ? (
                   <FormTextarea label={t('wizard.indicator.description_pt', 'Descrição')} name="ind_desc" value={data.description} onChange={set('description')} placeholder={t('wizard.indicator.description_pt_placeholder', 'Escrever descrição')} rows={5} required />

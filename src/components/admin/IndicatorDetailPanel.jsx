@@ -7,8 +7,10 @@ import SourcePill from './SourcePill';
 import IndicatorResourcesTab from './IndicatorResourcesTab';
 import PanelErrorBoundary from '../PanelErrorBoundary';
 import useSlideOver from '../../hooks/useSlideOver';
+import useLocalizedName from '../../hooks/useLocalizedName';
 import indicatorService from '../../services/indicatorService';
 import dataService from '../../services/dataService';
+import resourceService from '../../services/resourceService';
 import { buildChartSeries } from '../../utils/chartSeries';
 import { CHART_TYPE_LABEL_KEYS } from '../../constants/chartTypes';
 
@@ -17,10 +19,12 @@ import { CHART_TYPE_LABEL_KEYS } from '../../constants/chartTypes';
 // chart preview + sync row + description, footer (Fechar / Editar Indicador).
 export default function IndicatorDetailPanel({ indicator, source = null, onClose, onEdit }) {
   const { t, i18n } = useTranslation();
+  const getName = useLocalizedName();
   const id = indicator?.id;
 
   const [full, setFull] = useState(indicator || null);
   const [rawSeries, setRawSeries] = useState([]);
+  const [indicatorResources, setIndicatorResources] = useState([]);
   const [loadingChart, setLoadingChart] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [previewType, setPreviewType] = useState(null);
@@ -67,13 +71,43 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
     return () => { cancelled = true; };
   }, [id]);
 
+  // Load the indicator's resources so the legend resolution (resource.legend,
+  // file name) matches the public page — passing [] here made the preview fall
+  // back to raw column labels / resource ids. Same id-derivation as
+  // IndicatorTemplate: declared resources ∪ resource_ids seen in the series.
+  const resourceIdsKey = useMemo(() => {
+    const own = full?.resources || [];
+    const fromSeries = (rawSeries || [])
+      .map(s => s.resource_id)
+      .filter(rid => rid && !rid.startsWith('composition:'));
+    return Array.from(new Set([...own, ...fromSeries])).sort().join('|');
+  }, [full?.resources, rawSeries]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const ids = resourceIdsKey ? resourceIdsKey.split('|') : [];
+    if (!ids.length) { setIndicatorResources([]); return undefined; }
+    (async () => {
+      const results = await Promise.all(
+        ids.map(rid => resourceService.getById(rid).then(r => r, () => null)),
+      );
+      if (!cancelled) setIndicatorResources(results.filter(Boolean));
+    })();
+    return () => { cancelled = true; };
+  }, [resourceIdsKey]);
+
   // Hooks must run before any early return. Build the per-column chart series
   // (same path as the public page) and derive the latest data timestamp.
   const lang = i18n.language?.startsWith('en') ? 'en' : 'pt';
-  const chartData = useMemo(
-    () => buildChartSeries(rawSeries, [], full?.series_translations || null, lang),
-    [rawSeries, full?.series_translations, lang],
-  );
+  const chartData = useMemo(() => {
+    const built = buildChartSeries(rawSeries, indicatorResources, full?.series_translations || null, lang);
+    if (!built) return built;
+    // Mirror the public page: drop series the admin marked as hidden so the
+    // preview shows exactly what the visitor sees.
+    const hidden = new Set(full?.hidden_series || []);
+    if (hidden.size === 0) return built;
+    return { ...built, series: built.series.filter(s => !hidden.has(s.series_label)) };
+  }, [rawSeries, indicatorResources, full?.series_translations, full?.hidden_series, lang]);
   const latestPointX = useMemo(() => {
     let max = null;
     for (const s of (chartData?.series || [])) {
@@ -88,6 +122,11 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
 
   const areaInfo = full?.domain && typeof full.domain === 'object' ? full.domain : null;
   const areaName = indicator.area || areaInfo?.name || '';
+  // `subdomain` stores the PT name; localize via the domain's subdomain list.
+  const rawDimension = full?.subdomain || indicator.dimension || '';
+  const dimObj = (areaInfo?.subdomains || areaInfo?.dimensions || areaInfo?.subdominios || [])
+    .find(s => (typeof s === 'string' ? s : s?.name) === rawDimension);
+  const dimensionName = dimObj ? getName(dimObj) : rawDimension;
   const areaColor = indicator.color || areaInfo?.color || '#009368';
   const unit = full?.unit || indicator.unit || '';
   const description = full?.description || indicator.description || '';
@@ -209,7 +248,7 @@ export default function IndicatorDetailPanel({ indicator, source = null, onClose
             <div className="flex flex-col gap-4 max-w-[640px]">
               {[
                 { label: t('admin.indicators.col_area', 'Área'), value: areaName || '—' },
-                { label: t('admin.indicators.col_dimension', 'Dimensão'), value: full?.subdomain || indicator.dimension || '—' },
+                { label: t('admin.indicators.col_dimension', 'Dimensão'), value: dimensionName || '—' },
                 { label: t('wizard.indicator.unit', 'Unidade'), value: unit || '—' },
                 { label: t('wizard.indicator.periodicity', 'Periodicidade'), value: full?.periodicity || '—' },
                 { label: t('admin.indicators.col_governance', 'Governança'), value: full?.governance ? t('common.yes', 'Sim') : t('common.no', 'Não') },

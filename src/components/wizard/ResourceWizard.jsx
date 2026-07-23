@@ -38,7 +38,7 @@ export default function ResourceWizard({
 }) {
   const { t } = useTranslation();
   const getName = useLocalizedName();
-  const { uploadFile, generateWrapper, startPolling } = useWrapper();
+  const { uploadFile, generateWrapper, startPolling, stopPolling } = useWrapper();
   const [previewModal, setPreviewModal] = useState({ open: false, wrapperId: null, loading: false, data: [], error: null });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [indicator, setIndicator] = useState(null);
@@ -145,7 +145,9 @@ export default function ResourceWizard({
       && fileMode
       && wizard.formData.files.length > 0
       && !generatingWrappers
-      && wrappersData.length === 0
+      // Only FILE cards count — a leftover API card from an earlier attempt
+      // in the same session must not suppress file wrapper generation.
+      && !wrappersData.some(w => w.wrapper?.source_type !== 'API')
     ) {
       generateWrappersForFiles();
     }
@@ -485,6 +487,18 @@ export default function ResourceWizard({
         );
       });
       if ((updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') && updatedWrapper.resource_id) {
+        // API wrappers stay 'executing' forever by design, so the context
+        // never auto-stops this interval — stop it ourselves. File wrappers
+        // pass through a transient EXECUTING before completed/error, so for
+        // those we keep polling and let the context stop on the real
+        // terminal status.
+        if (updatedWrapper.status === 'executing' && updatedWrapper.source_type === 'API') {
+          stopPolling(updatedWrapper.wrapper_id);
+        }
+        // A regenerate that recovers unlocks the wizard again: wrapperStatus
+        // 'error' keeps the submit button permanently disabled, and the
+        // recovered wrapper is picked up by the submit reuse path.
+        setWrapperStatus(s => (s === 'error' ? null : s));
         try {
           const resourceData = await resourceService.getById(updatedWrapper.resource_id);
           setWrappersData(prev => prev.map(w =>
@@ -624,6 +638,11 @@ export default function ResourceWizard({
     // Resource ids created (or, in edit mode, the resource being edited) that
     // should receive the legend label once the data flow below succeeds.
     let createdResourceIds = [];
+    // Whether the API flow put an ERROR card on screen — the card's
+    // "Regenerar" button is the only unlock path the error-lock in the catch
+    // relies on, so locking without it would trap the admin in the modal.
+    // The wrappersData closure is stale inside the catch, hence the flag.
+    let apiCardHasUnlock = false;
     try {
       if (data.sourceType === 'COMPOSITION') {
         const comp = data.composition || {};
@@ -682,7 +701,40 @@ export default function ResourceWizard({
         wizard.reset();
         return;
       } else if (data.sourceType === 'API') {
-        // Handle API submission separately
+        // Handle API submission separately.
+        // Reuse the wrapper from a previous failed attempt when it has since
+        // recovered (the error card's "Regenerar" button re-queues it) —
+        // calling generateWrapper again here would create a duplicate wrapper
+        // and resource for the same endpoint.
+        // Only reuse a wrapper whose stored source_config matches the form's
+        // current API config on every field the form can edit — if the admin
+        // changed anything (URL, auth, credentials, field mapping, headers…)
+        // a new wrapper must be generated. '' / null / missing and {} / null
+        // are treated as equal so backend normalization can't produce false
+        // mismatches.
+        const sameApiConfig = (wc, cc) => {
+          const norm = (v) => {
+            if (v === undefined || v === null || v === '') return null;
+            if (typeof v === 'object' && Object.keys(v).length === 0) return null;
+            return typeof v === 'object' ? JSON.stringify(v) : v;
+          };
+          return ['location', 'auth_type', 'api_key', 'api_key_header', 'bearer_token',
+            'username', 'password', 'date_field', 'value_field',
+            'custom_headers', 'query_params']
+            .every(k => norm(wc?.[k]) === norm(cc?.[k]));
+        };
+        const existing = wrappersData.find(w =>
+          w.wrapper?.wrapper_id
+          && w.wrapper?.source_type === 'API'
+          && (w.status === 'completed' || w.status === 'executing')
+          && sameApiConfig(w.wrapper?.source_config, data.apiConfig),
+        );
+        if (existing) {
+          if (existing.resourceId && !isEditMode) {
+            await indicatorService.addResource(indicatorId, existing.resourceId);
+          }
+          createdResourceIds = existing.resourceId ? [existing.resourceId] : [];
+        } else {
         setWrapperStatus('pending');
 
         const wrapperRequest = {
@@ -707,28 +759,73 @@ export default function ResourceWizard({
         const wrapper = await generateWrapper(wrapperRequest);
         setWrapperStatus(wrapper.status);
 
+        // Populate wrappersData so the preview step renders the live generation
+        // logs (WrapperLiveLogs polls the wrapper's log file) and, when done,
+        // the data preview — the same detail the file flow shows, instead of a
+        // bare "A processar…".
+        setWrappersData([{
+          fileName: indicator.name || t('wizard.resource.api_source', 'Fonte API'),
+          wrapper,
+          status: wrapper.status,
+          resourceId: wrapper.resource_id,
+        }]);
+
         // Link resource to indicator if not editing
         if (wrapper.resource_id && !isEditMode) {
           await indicatorService.addResource(indicatorId, wrapper.resource_id);
         }
         if (wrapper.resource_id) createdResourceIds = [wrapper.resource_id];
 
-        // Poll for completion
+        // Poll for completion. API wrappers stay 'executing' forever by
+        // design (they fetch continuously), so the context never auto-stops
+        // the interval — settle once and stop it ourselves, or it keeps
+        // polling status + resource data every 2s indefinitely.
         await new Promise((resolve, reject) => {
-          startPolling(wrapper.wrapper_id, 2000, (updatedWrapper) => {
+          let settled = false;
+          startPolling(wrapper.wrapper_id, 2000, async (updatedWrapper) => {
             setWrapperStatus(updatedWrapper.status);
+            setWrappersData(prev => prev.map(w =>
+              w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+                ? { ...w, status: updatedWrapper.status, wrapper: updatedWrapper }
+                : w
+            ));
 
             if (updatedWrapper.status === 'completed' || updatedWrapper.status === 'executing') {
+              if (settled) return;
+              settled = true;
+              if (updatedWrapper.status === 'executing') stopPolling(wrapper.wrapper_id);
+              if (updatedWrapper.resource_id) {
+                try {
+                  const resourceData = await resourceService.getById(updatedWrapper.resource_id);
+                  setWrappersData(prev => prev.map(w =>
+                    w.wrapper.wrapper_id === updatedWrapper.wrapper_id
+                      ? { ...w, resourceData }
+                      : w
+                  ));
+                } catch (e) {
+                  console.error('Error fetching API resource data:', e);
+                }
+              }
               resolve(updatedWrapper);
             } else if (updatedWrapper.status === 'error') {
-              reject(new Error(updatedWrapper.error_message || 'Wrapper generation failed'));
+              if (!settled) {
+                settled = true;
+                // The card now renders its error branch with a "Regenerar"
+                // button — locking the wizard is safe because that button can
+                // undo it (its recovery poll resets wrapperStatus to null).
+                apiCardHasUnlock = true;
+                reject(new Error(updatedWrapper.error_message || 'Wrapper generation failed'));
+              }
             }
           });
         });
+        }
       } else {
-        // For file uploads, wrappers are already generated in preview step
-        // Just verify all wrappers are complete
-        const allComplete = wrappersData.every(w =>
+        // For file uploads, wrappers are already generated in preview step.
+        // Consider FILE cards only — a leftover API card from an earlier
+        // attempt must neither satisfy this gate nor get (re)linked here.
+        const fileCards = wrappersData.filter(w => w.wrapper?.source_type !== 'API');
+        const allComplete = fileCards.length > 0 && fileCards.every(w =>
           w.status === 'completed' || w.status === 'executing'
         );
 
@@ -737,12 +834,12 @@ export default function ResourceWizard({
         }
 
         // Link all resources to indicator
-        for (const wrapperInfo of wrappersData) {
+        for (const wrapperInfo of fileCards) {
           if (wrapperInfo.resourceId && !isEditMode) {
             await indicatorService.addResource(indicatorId, wrapperInfo.resourceId);
           }
         }
-        createdResourceIds = wrappersData.map(w => w.resourceId).filter(Boolean);
+        createdResourceIds = fileCards.map(w => w.resourceId).filter(Boolean);
 
       }
 
@@ -779,10 +876,22 @@ export default function ResourceWizard({
       }
     } catch (error) {
       console.error('Error creating resource:', error);
-      // COMPOSITION and INDICATOR modes don't use wrapperStatus; setting it to
-      // 'error' permanently disables the submit button (isSubmitting check includes !!wrapperStatus).
+      // COMPOSITION and INDICATOR modes don't use wrapperStatus; setting it
+      // to 'error' disables submit, back AND every close control (isSubmitting
+      // includes !!wrapperStatus), so it must only be set when the screen has
+      // an unlock path. API flow: only an error card's "Regenerar" button can
+      // clear the lock — a failed generateWrapper POST (no card) or a card
+      // frozen pre-polling must leave the wizard unlocked so Guardar can be
+      // retried or the modal closed. File flow keeps the legacy behavior
+      // (cards exist by the time submit runs).
+      const lockable = data.sourceType === 'API'
+        ? apiCardHasUnlock
+        : wrappersData.length > 0;
       if (data.sourceType !== 'COMPOSITION' && data.sourceType !== 'INDICATOR') {
-        setWrapperStatus('error');
+        // Not lockable → clear the transient status set earlier in this
+        // submission ('pending'/'executing') — leaving it would disable
+        // submit, back AND every close control with no way to recover.
+        setWrapperStatus(lockable ? 'error' : null);
       }
       throw error;
     }
@@ -843,8 +952,10 @@ export default function ResourceWizard({
     return 'Guardar';
   };
 
-  // Check if all wrappers are complete
-  const allWrappersComplete = wrappersData.length > 0 && wrappersData.every(w =>
+  // Check if all FILE wrappers are complete (this gate only guards the file
+  // flow, so API cards left over from another attempt must not satisfy it).
+  const fileWrapperCards = wrappersData.filter(w => w.wrapper?.source_type !== 'API');
+  const allWrappersComplete = fileWrapperCards.length > 0 && fileWrapperCards.every(w =>
     w.status === 'completed' || w.status === 'executing'
   );
 
@@ -891,7 +1002,18 @@ export default function ResourceWizard({
               label={t('wizard.resource.source_type')}
               name="sourceType"
               value={wizard.formData.sourceType}
-              onChange={(value) => wizard.updateFormData('sourceType', value)}
+              onChange={(value) => {
+                // Reset a stale lock when the admin changes direction after a
+                // failed attempt. wrappersData is deliberately NOT cleared:
+                // clearing it would re-arm the file flow's auto-generate
+                // effect and duplicate already-created file resources on a
+                // type round-trip; the API submit path guards against
+                // cross-type reuse by checking wrapper.source_type instead.
+                if (value !== wizard.formData.sourceType) {
+                  setWrapperStatus(null);
+                }
+                wizard.updateFormData('sourceType', value);
+              }}
               options={sourceTypeOptions}
               placeholder={t('wizard.resource.source_type_placeholder')}
               required
@@ -1094,13 +1216,70 @@ export default function ResourceWizard({
               </div>
             )}
             {wizard.formData.sourceType === 'API' ? (
-              <div className="bg-[#f1f0f0] rounded-lg p-6 text-center">
-                <p className="font-['Onest',sans-serif] text-sm text-gray-600">
-                  {t('wizard.resource.api_url_label')} {wizard.formData.apiConfig.location}
-                </p>
-                <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
-                  {t('wizard.resource.api_url_pending')}
-                </p>
+              <div className="space-y-4">
+                <div className="bg-[#f1f0f0] rounded-lg p-4 text-center">
+                  <p className="font-['Onest',sans-serif] text-sm text-gray-600">
+                    {t('wizard.resource.api_url_label')} {wizard.formData.apiConfig.location}
+                  </p>
+                  {wrappersData.length === 0 && (
+                    <p className="font-['Onest',sans-serif] text-xs text-gray-500 mt-2">
+                      {t('wizard.resource.api_url_pending')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Once the user saves, the API wrapper is generated; show its
+                    live logs (model, retries, fetch progress) and, when done,
+                    the data preview / regenerate actions — instead of a bare
+                    "A processar…". */}
+                {wrappersData.map((wrapperInfo, index) => {
+                  const isComplete = wrapperInfo.status === 'completed' || wrapperInfo.status === 'executing';
+                  const isError = wrapperInfo.status === 'error';
+                  const isProcessing = wrapperInfo.status === 'pending' || wrapperInfo.status === 'generating' || wrapperInfo.status === 'creating_resource';
+                  return (
+                    <div key={index} className="border border-gray-300 rounded-lg p-4">
+                      <p className="font-['Onest',sans-serif] text-xs text-gray-600 mb-2">
+                        {isComplete && t('wizard.resource.status_done')}
+                        {isError && t('wizard.resource.status_error')}
+                        {isProcessing && t('wizard.resource.status_processing')}
+                      </p>
+
+                      <WrapperLiveLogs wrapperId={wrapperInfo.wrapper?.wrapper_id} active={isProcessing} />
+
+                      {isComplete && wrapperInfo.resourceData && (
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-primary"
+                            onClick={() => openPreview(wrapperInfo)}
+                          >
+                            {t('wizard.resource.preview_data')}
+                          </button>
+                          <RegenerateWrapperButton
+                            wrapperId={wrapperInfo.wrapper.wrapper_id}
+                            onRegenerated={handleRegenerated}
+                          />
+                        </div>
+                      )}
+
+                      {isError && (
+                        <div className="mt-3 space-y-2">
+                          {wrapperInfo.wrapper?.error_message && (
+                            <div className="bg-red-50 rounded-lg p-3">
+                              <p className="font-['Onest',sans-serif] text-xs text-red-600">
+                                {wrapperInfo.wrapper.error_message}
+                              </p>
+                            </div>
+                          )}
+                          <RegenerateWrapperButton
+                            wrapperId={wrapperInfo.wrapper.wrapper_id}
+                            onRegenerated={handleRegenerated}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : wizard.formData.sourceType === 'COMPOSITION' ? (
               <div className="space-y-3">

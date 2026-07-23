@@ -6,6 +6,7 @@ import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
 import { useState, useEffect, useMemo } from "react";
 import { useInView } from 'react-intersection-observer';
 import { useArea } from "../contexts/AreaContext";
+import { FEATURES } from "../constants/app";
 import Chart from "./Chart";
 import useIndicatorSeries from "../hooks/useIndicatorSeries";
 import useLocalizedName from "../hooks/useLocalizedName";
@@ -151,6 +152,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
                         />
                     </button>
                 )}
+                {FEATURES.FAVORITES && (
                 <button
                     className="p-2 hover:bg-base-200 rounded-lg transition-colors relative"
                     onClick={toggleFavorite}
@@ -170,6 +172,7 @@ export default function IndicatorCard({ IndicatorTitle, IndicatorId, area, dimen
                         </div>
                     ))}
                 </button>
+                )}
             </div>
 
             <div className="flex flex-col gap-4 w-full">

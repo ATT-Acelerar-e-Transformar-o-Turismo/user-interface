@@ -10,6 +10,7 @@ import ErrorDisplay from "../components/ErrorDisplay";
 import Pagination from "../components/Pagination";
 import indicatorService from "../services/indicatorService";
 import { highlightSearchTerms } from "../utils/searchUtils";
+import { FEATURES } from "../constants/app";
 import useLocalizedName from "../hooks/useLocalizedName";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
@@ -132,12 +133,31 @@ export default function AreaTemplate({ embedded = false }) {
     if (currentPage > 0) newParams.set('page', String(currentPage));
     else newParams.delete('page');
     setSearchParams(newParams, { replace: true });
-  }, [currentPage]);
+    // searchParams must be a dep: this effect and the ?dimension= one below
+    // fire in the same flush when a dimension change resets the page, and
+    // without it whichever runs last rewrites the URL from a stale snapshot,
+    // resurrecting the just-deleted param. The equality guard above stops the
+    // re-run loop.
+  }, [currentPage, searchParams, setSearchParams]);
 
   // Area state
   const [selectedDimension, setSelectedDimension] = useState(initialDimension);
   const [,setSelectedArea] = useState(selectedAreaObj);
   const navigateTo = useNavigate();
+
+  // Keep ?dimension= in URL in sync with the active dimension filter (same
+  // pattern as ?page= above) so opening an indicator and navigating back
+  // restores the filter. The dropdown drives dimensionFilter in
+  // all-indicators mode and selectedDimension in area mode.
+  const activeDimensionName = isAllIndicatorsMode ? dimensionFilter : (selectedDimension?.name || null);
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    if ((newParams.get('dimension') || null) === (activeDimensionName || null)) return;
+    if (activeDimensionName) newParams.set('dimension', activeDimensionName);
+    else newParams.delete('dimension');
+    setSearchParams(newParams, { replace: true });
+    // searchParams in deps for the same reason as the ?page= effect above.
+  }, [activeDimensionName, searchParams, setSearchParams]);
 
   const images = selectedAreaObj?.AreaCarouselImages?.length > 0
     ? selectedAreaObj.AreaCarouselImages
@@ -503,7 +523,16 @@ export default function AreaTemplate({ embedded = false }) {
                         setSelectedArea(area);
                       }
                     }}
-                    selectedDimension={isAllIndicatorsMode ? (dimensionFilter ? { name: dimensionFilter } : null) : selectedDimension}
+                    selectedDimension={(() => {
+                      // A dimension restored from ?dimension= is a bare
+                      // { name: <PT> } — resolve the full object from the
+                      // area so the chip shows name_en in the EN UI.
+                      const bare = isAllIndicatorsMode ? (dimensionFilter ? { name: dimensionFilter } : null) : selectedDimension;
+                      if (!bare?.name) return bare;
+                      const areaObj = isAllIndicatorsMode ? areas.find(d => d.id === areaFilter) : selectedAreaObj;
+                      const subs = areaObj?.dimensions || areaObj?.subdomains || areaObj?.subdominios || [];
+                      return subs.find(s => (typeof s === 'string' ? s : s?.name) === bare.name) || bare;
+                    })()}
                     setSelectedDimension={(sub) => {
                       if (isAllIndicatorsMode) {
                         setDimensionFilter(sub?.name || null);
@@ -539,7 +568,7 @@ export default function AreaTemplate({ embedded = false }) {
                       {[
                         { value: 'name', label: t('areas.sort_name') },
                         { value: 'periodicity', label: t('areas.sort_periodicity') },
-                        { value: 'favourites', label: t('areas.sort_favorites') },
+                        ...(FEATURES.FAVORITES ? [{ value: 'favourites', label: t('areas.sort_favorites') }] : []),
                       ].map((option) => (
                         <button
                           key={option.value}
