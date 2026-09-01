@@ -872,7 +872,12 @@
       "quem_somos": "Quem somos?",
       "governanca": "Governança",
       "territorio": "Território",
-      "redes": "Redes e certificações"
+      "redes": "Redes e certificações",
+      "projetos_exploratorios": "Projetos exploratórios",
+      "projects": {
+        "feliz": "FELIZ",
+        "mapa_ilhavo": "Mapa Interativo do Turismo de Ílhavo"
+      }
     }
   },
   "errors": {
