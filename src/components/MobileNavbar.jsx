@@ -7,6 +7,7 @@ import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { cn } from '../utils/cn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import { EXPLORATORY_PROJECTS } from '../constants/exploratoryProjects'
 
 const logoDark = '/roots.svg'
 const logoWhite = '/roots-white.svg'
@@ -18,6 +19,7 @@ export default function MobileNavbar() {
     const location = useLocation()
     const [isOpen, setIsOpen] = useState(false)
     const [openDropdown, setOpenDropdown] = useState(null)
+    const [isProjectsOpen, setIsProjectsOpen] = useState(false)
     const navRef = useRef(null)
     const isAdminContext = location.pathname.startsWith('/admin')
     const expandedBg = isAdminContext
@@ -43,6 +45,7 @@ export default function MobileNavbar() {
     useEffect(() => {
         setIsOpen(false)
         setOpenDropdown(null)
+        setIsProjectsOpen(false)
     }, [location.pathname])
 
     useEffect(() => {
@@ -50,6 +53,7 @@ export default function MobileNavbar() {
             if (navRef.current && !navRef.current.contains(e.target)) {
                 setIsOpen(false)
                 setOpenDropdown(null)
+                setIsProjectsOpen(false)
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -57,6 +61,7 @@ export default function MobileNavbar() {
     }, [])
 
     const toggleDropdown = (name) => {
+        setIsProjectsOpen(false)
         setOpenDropdown(prev => prev === name ? null : name)
     }
 
@@ -144,6 +149,49 @@ export default function MobileNavbar() {
                                                         {sub.label}
                                                     </Link>
                                                 ))}
+
+                                                {/* Projetos exploratórios — nested accordion of external project sites */}
+                                                <div className="flex flex-col">
+                                                    <button
+                                                        onClick={() => setIsProjectsOpen(o => !o)}
+                                                        className="flex items-center justify-between w-full text-left"
+                                                        aria-expanded={isProjectsOpen}
+                                                        aria-controls="mobile-projects-submenu"
+                                                    >
+                                                        <span className="font-medium text-lg leading-tight text-[#fffefc]">
+                                                            {t('roots.nav.projetos_exploratorios')}
+                                                        </span>
+                                                        <FontAwesomeIcon
+                                                            icon={isProjectsOpen ? faChevronUp : faChevronDown}
+                                                            className="text-[#fffefc] text-xs mr-2"
+                                                        />
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {isProjectsOpen && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                transition={{ duration: 0.2 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="flex flex-col gap-1 mt-1 pl-3" id="mobile-projects-submenu">
+                                                                    {EXPLORATORY_PROJECTS.map(project => (
+                                                                        <a
+                                                                            key={project.id}
+                                                                            href={project.url}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="font-medium text-base leading-tight text-[#fffefc]"
+                                                                        >
+                                                                            {t(project.labelKey)}
+                                                                        </a>
+                                                                    ))}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
                                             </div>
                                         </motion.div>
                                     )}

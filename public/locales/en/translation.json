@@ -872,7 +872,12 @@
       "quem_somos": "Who are we?",
       "governanca": "Governance",
       "territorio": "Territory",
-      "redes": "Networks & certifications"
+      "redes": "Networks & certifications",
+      "projetos_exploratorios": "Exploratory projects",
+      "projects": {
+        "feliz": "FELIZ",
+        "mapa_ilhavo": "Ílhavo Tourism Interactive Map"
+      }
     }
   },
   "errors": {

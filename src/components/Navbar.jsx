@@ -9,7 +9,8 @@ import { highlightSearchTerms } from '../utils/searchUtils'
 import MobileNavbar from './MobileNavbar'
 import Weather from './Weather'
 import { useAuth } from '../contexts/AuthContext'
-import { LuLock } from 'react-icons/lu'
+import { LuLock, LuChevronRight, LuExternalLink } from 'react-icons/lu'
+import { EXPLORATORY_PROJECTS } from '../constants/exploratoryProjects'
 
 export default function Navbar({ navItems = null, rightContent = null, showSearchBox = false }) {
     const { t, i18n } = useTranslation();
@@ -23,8 +24,10 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
     const [isHidden, setIsHidden] = useState(false);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [isRootsOpen, setIsRootsOpen] = useState(false);
+    const [isProjectsOpen, setIsProjectsOpen] = useState(false);
     const rootsDropdownRef = useRef(null);
     const rootsTimeoutRef = useRef(null);
+    const projectsTimeoutRef = useRef(null);
 
     const rootsSubItems = [
         { label: t('roots.nav.quem_somos'), path: '/roots/about' },
@@ -32,6 +35,12 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
         { label: t('roots.nav.territorio'), path: '/roots/territory' },
         { label: t('roots.nav.redes'), path: '/roots/networks-certifications' },
     ];
+
+    // The nested submenu only exists inside the ROOTS dropdown, so it must not
+    // stay expanded once that dropdown collapses.
+    useEffect(() => {
+        if (!isRootsOpen) setIsProjectsOpen(false);
+    }, [isRootsOpen]);
 
     const searchInputRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -359,6 +368,50 @@ export default function Navbar({ navItems = null, rightContent = null, showSearc
                                                         {sub.label}
                                                     </Link>
                                                 ))}
+
+                                                {/* Projetos exploratórios — flyout with the Rocket Booster sites */}
+                                                <div
+                                                    className="relative"
+                                                    onMouseEnter={() => {
+                                                        clearTimeout(rootsTimeoutRef.current);
+                                                        clearTimeout(projectsTimeoutRef.current);
+                                                        setIsProjectsOpen(true);
+                                                    }}
+                                                    onMouseLeave={() => {
+                                                        projectsTimeoutRef.current = setTimeout(() => setIsProjectsOpen(false), 150);
+                                                    }}
+                                                >
+                                                    <button
+                                                        onClick={() => setIsProjectsOpen(o => !o)}
+                                                        aria-expanded={isProjectsOpen}
+                                                        aria-haspopup="true"
+                                                        className={`flex w-full items-center justify-between gap-2 p-2 rounded-lg font-['Onest'] font-medium text-[20px] tracking-[-0.2px] leading-none text-left whitespace-nowrap cursor-pointer transition-colors text-[#0a0a0a] ${hoverBg}`}
+                                                    >
+                                                        {t('roots.nav.projetos_exploratorios')}
+                                                        <LuChevronRight className="shrink-0 text-lg" aria-hidden="true" />
+                                                    </button>
+                                                    {isProjectsOpen && (
+                                                        /* pl-2 keeps the hover path to the flyout contiguous with the
+                                                           parent panel, so the menu does not close in the gap. */
+                                                        <div className="absolute top-0 left-full pl-2 z-50">
+                                                            <div className="bg-[#fffefc] flex flex-col gap-2 p-4 rounded-[18px] shadow-[0px_0px_3px_2px_rgba(0,0,0,0.05)] w-max min-w-[353px]">
+                                                                {EXPLORATORY_PROJECTS.map(project => (
+                                                                    <a
+                                                                        key={project.id}
+                                                                        href={project.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={() => { setIsProjectsOpen(false); setIsRootsOpen(false); }}
+                                                                        className={`flex items-center gap-2 p-2 rounded-lg font-['Onest'] font-medium text-[20px] tracking-[-0.2px] leading-none whitespace-nowrap transition-colors text-[#0a0a0a] ${hoverBg}`}
+                                                                    >
+                                                                        {t(project.labelKey)}
+                                                                        <LuExternalLink className="shrink-0 text-base" aria-hidden="true" />
+                                                                    </a>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
